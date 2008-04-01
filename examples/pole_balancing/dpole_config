@@ -1,0 +1,50 @@
+#--- parameters for the double pole experiment ---#
+
+[phenotype]
+input_nodes         = 6
+output_nodes        = 1
+max_weight          = 500
+min_weight          = -500
+random_range        = 0.5
+feedforward         = 0
+nn_activation       = exp
+
+[genetic]
+pop_size              = 150
+max_fitness_threshold = 1400
+
+# Human reasoning
+prob_addconn          = 0.05
+prob_addnode          = 0.03    
+prob_mutatebias       = 0.2
+bias_mutation_power   = 0.5    
+prob_mutate_weight    = 0.25
+weight_mutation_power = 1.5    
+prob_togglelink       = 0.01
+
+# Parameters obtained with a meta-SGA
+#prob_addconn          = 0.32064768257848786
+#prob_addnode          = 0.079877505580863845
+#prob_mutatebias       = 0.26320591007566424
+#bias_mutation_power   = 0.21543442675620872
+#prob_mutate_weight    = 0.5
+#weight_mutation_power = 0.45428647964797569
+#prob_togglelink       = 0.024390995616214557
+
+[genotype compatibility]
+compatibility_threshold = 5.0
+compatibility_change    = 0.0
+excess_coeficient       = 1.0
+disjoint_coeficient     = 1.0
+weight_coeficient       = 0.4
+
+[species]
+species_size        = 10
+survival_threshold  = 0.1
+old_threshold       = 80
+youth_threshold     = 10
+old_penalty         = 0.2
+youth_boost         = 1.7
+max_stagnation      = 15
+
+

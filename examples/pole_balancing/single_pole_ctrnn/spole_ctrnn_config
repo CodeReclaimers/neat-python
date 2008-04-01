@@ -1,0 +1,41 @@
+#--- parameters for the single pole experiment ---#
+
+[phenotype]
+input_nodes         = 4
+output_nodes        = 1
+max_weight          = +50
+min_weight          = -50
+random_range        = 0.5
+feedforward         = 0
+nn_activation       = exp
+
+[genetic]
+pop_size              = 100
+max_fitness_threshold = 99999
+
+# Human reasoning
+prob_addconn          = 0.3
+prob_addnode          = 0.01    
+prob_mutatebias       = 0.5
+bias_mutation_power   = 1.0    
+prob_mutate_weight    = 0.5
+weight_mutation_power = 1.8    
+prob_togglelink       = 0.01
+
+[genotype compatibility]
+compatibility_threshold = 6.0
+compatibility_change    = 0.0
+excess_coeficient       = 1.0
+disjoint_coeficient     = 1.0
+weight_coeficient       = 2.0
+
+[species]
+species_size        = 10
+survival_threshold  = 0.1
+old_threshold       = 80
+youth_threshold     = 10
+old_penalty         = 0.2
+youth_boost         = 1.7
+max_stagnation      = 20
+
+
