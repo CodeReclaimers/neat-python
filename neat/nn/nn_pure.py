@@ -36,7 +36,7 @@ def sigmoid(x, response, activation_type):
 class Neuron(object):
     " A simple sigmoidal neuron "
     __id = 0
-    def __init__(self, neurontype, id = None, bias = 0, response = 1, activation_type = None):
+    def __init__(self, neurontype, id = None, bias = 0, response = 1, activation_type = 'exp'):
         
         self._id = self.__get_new_id(id) # every neuron has an ID
         
@@ -199,7 +199,7 @@ class Network(object):
 class FeedForward(Network):
     'A feedforward network is a particular class of neural network'
     # only one hidden layer is considered for now
-    def __init__(self, layers, use_bias=False):
+    def __init__(self, layers, use_bias=False, activation_type=None):
         super(FeedForward, self).__init__()
         
         self.__input_layer   = layers[0]
@@ -207,9 +207,9 @@ class FeedForward(Network):
         self.__hidden_layers = layers[1:-1]
         self.__use_bias = use_bias
         
-        self.__create_net()
+        self.__create_net(activation_type)
         
-    def __create_net(self):
+    def __create_net(self, activation_type):
         
         # assign random weights for bias
         if self.__use_bias:
@@ -221,10 +221,14 @@ class FeedForward(Network):
             self.add_neuron(Neuron('INPUT'))                              
         
         for i in xrange(self.__hidden_layers[0]):
-            self.add_neuron(Neuron('HIDDEN', bias = r(-1,1), response = 1))
+            self.add_neuron(Neuron('HIDDEN', bias = r(-1,1), 
+                                   response = 1, 
+                                   activation_type = activation_type))
             
         for i in xrange(self.__output_layer):
-            self.add_neuron(Neuron('OUTPUT', bias = r(-1,1), response = 1))
+            self.add_neuron(Neuron('OUTPUT', bias = r(-1,1), 
+                                   response = 1, 
+                                   activation_type = activation_type))
            
         r = random.uniform  # assign random weights             
         # inputs -> hidden
@@ -239,10 +243,13 @@ class FeedForward(Network):
 def create_phenotype(chromo): 
         """ Receives a chromosome and returns its phenotype (a neural network) """
 
-        neurons_list = [Neuron(ng._type, ng._id, ng._bias, ng._response, ng.activation_type) \
+        neurons_list = [Neuron(ng._type, ng._id, 
+                               ng._bias, 
+                               ng._response, 
+                               ng.activation_type)
                         for ng in chromo._node_genes]
         
-        conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
+        conn_list = [(cg.innodeid, cg.outnodeid, cg.weight)
                      for cg in chromo.conn_genes if cg.enabled] 
         
         return Network(neurons_list, conn_list) 
@@ -251,18 +258,19 @@ def create_ffphenotype(chromo):
     """ Receives a chromosome and returns its phenotype (a neural network) """
     
     # first create inputs
-    neurons_list = [Neuron('INPUT', ng.id, 0, 0, ) \
-                    for ng in chromo.node_genes if ng.type == 'INPUT']
+    neurons_list = [Neuron('INPUT', ng.id, 0, 0) \
+                    for ng in chromo.node_genes[:chromo.sensors] if ng.type == 'INPUT']
     
     # Add hidden nodes in the right order
     for id in chromo.node_order:
-        neurons_list.append(Neuron('HIDDEN', id, chromo.node_genes[id-1].bias, 
-                                                 chromo.node_genes[id-1].response,
-                                                 chromo.node_genes[id-1].activation_type))
-        
+        neurons_list.append(Neuron('HIDDEN', 
+                                   id, chromo.node_genes[id-1].bias, 
+                                   chromo.node_genes[id-1].response,
+                                   chromo.node_genes[id-1].activation_type))        
     # finally the output
-    neurons_list.extend(Neuron('OUTPUT', ng.id, ng.bias, ng.response, ng.activation_type) \
-                        for ng in chromo.node_genes if ng.type == 'OUTPUT')
+    neurons_list.extend(Neuron('OUTPUT', ng.id, ng.bias, 
+                               ng.response, ng.activation_type) \
+                               for ng in chromo.node_genes if ng.type == 'OUTPUT')
     
     assert(len(neurons_list) == len(chromo.node_genes))
     
@@ -273,10 +281,9 @@ def create_ffphenotype(chromo):
 
 if __name__ == "__main__":
     # Example
-    from neat import visualize
-    Config.nn_activation = 'exp'
+    #from neat import visualize
     
-    nn = FeedForward([2,2,1], False)
+    nn = FeedForward([2,10,3], use_bias=False, activation_type = 'exp')
     ##visualize.draw_ff(nn)
     print 'Serial activation method: '
     for t in range(3):
@@ -286,37 +293,11 @@ if __name__ == "__main__":
     #for t in range(3):
         #print nn.pactivate([1,1])
 
-    #print nn
-
     # defining a neural network manually
     #neurons = [Neuron('INPUT', 1), Neuron('HIDDEN', 2), Neuron('OUTPUT', 3)]
     #connections = [(1, 2, 0.5), (1, 3, 0.5), (2, 3, 0.5)]
     
     #net = Network(neurons, connections) # constructs the neural network
-    ###visualize.draw_ff(net)
+    #visualize.draw_ff(net)
     #print net.pactivate([0.04]) # parallel activation method
     #print net # print how many neurons and synapses our network has 
-    
-    ## CTRNN neurontype, id = None, bias, response=1.0, state, tau
-#    n1 = CTNeuron('OUTPUT', 1, -2.75, 1.0, -0.0840006, 1.0)
-#    n2 = CTNeuron('OUTPUT', 2, -1.75, 1.0, -0.4080350, 1.0)
-#    ##n3 = CTNeuron('OUTPUT', +0.4000000, 1.0, -0.40)
-#
-#    connections = [(1, 1, +4.5), (1, 2, -1.0),
-#                   (2, 1, +1.0), (2, 2, +4.5)]
-#    
-#    ##connections = [(1, 1, +4.5), (1, 2, -1.0), (1, 3, +2.3),
-#                   ##(2, 1, +1.0), (2, 2, +4.5), (2, 3, +0.8),
-#                   ##(3, 1, -1.5), (3, 2, +2.1), (3, 3, +3.1)]
-#                   
-#    net = Network([n1, n2], connections)
-#    
-#    ###print net.synapses
-#    ###visualize.draw_ff(net)
-#    ### we need a method to print NN's current state (as is the case with CTRNNs)
-#    for i in xrange(5500):
-#        net_output = net.pactivate([0.1])  #forwards one time-step
-#        print "%s %s" %(net_output[0], net_output[1])
-        ###print "%f " %(net_output[0])
-        
-        ##print n1.output, n2.output, n3.output # same as n1.current_output
