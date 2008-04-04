@@ -6,6 +6,7 @@ def load(file):
         config_file = open(file,'r')
     except IOError:
         print 'Error: file %s not found!' %file
+        raise
     else:        
         parameters = ConfigParser()
         parameters.readfp(config_file)

@@ -21,10 +21,11 @@ def sigmoid(x, response, activation_type):
         else:
             # raise exception
             print 'Invalid activation type selected:', activation_type
+            raise
             
     except OverflowError:
         print 'Overflow error: x = ', x
-        import sys; sys.exit(0)
+        raise
         # Although overflow errors should not occur, here's a trick:
         # ftp://ftp.sas.com/pub/neural/FAQ2.html#A_overflow
         # if x*response < -45: output = 0
