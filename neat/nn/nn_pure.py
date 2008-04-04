@@ -1,27 +1,26 @@
 from math import exp, log, tanh, pi, sin
 import random
-from neat.config import Config
 
 try: 
     import psyco; psyco.full()
 except ImportError:
     pass
     
-def sigmoid(x, response):
+def sigmoid(x, response, activation_type):
     " Sigmoidal type of activation function "
     output = 0
     try:
-        if Config.nn_activation == 'exp':
+        if activation_type == 'exp':
             if x < - 30: output = 0.0
             elif x > 30: output = 1.0            
             else: output = 1.0/(1.0 + exp(-x*response))
-        elif Config.nn_activation == 'tanh':
+        elif activation_type == 'tanh':
             if x < - 20: output = -1.0
             elif x > 20: output = +1.0
             else: output = tanh(x*response)
         else:
             # raise exception
-            print 'Invalid activation type selected:', Config.nn_activation
+            print 'Invalid activation type selected:', activation_type
             
     except OverflowError:
         print 'Overflow error: x = ', x
@@ -37,7 +36,7 @@ def sigmoid(x, response):
 class Neuron(object):
     " A simple sigmoidal neuron "
     __id = 0
-    def __init__(self, neurontype, id = None, bias = 0, response = 1):
+    def __init__(self, neurontype, id = None, bias = 0, response = 1, activation_type = None):
         
         self._id = self.__get_new_id(id) # every neuron has an ID
         
@@ -46,6 +45,8 @@ class Neuron(object):
         self._bias = bias
         self._type = neurontype  
         assert(self._type in ('INPUT', 'OUTPUT', 'HIDDEN')) 
+        
+        self.__activation_type = activation_type # default is exponential
         
         self._response = response # default = 4.924273 (Stanley, p. 146)
         self._output = 0.0  # for recurrent networks all neurons must have an "initial state"
@@ -65,7 +66,7 @@ class Neuron(object):
     def activate(self):
         "Activates the neuron"
         if(len(self._synapses) > 0):           
-            return sigmoid(self._update_activation() + self._bias, self._response)
+            return sigmoid(self._update_activation() + self._bias, self._response, self.__activation_type)
         else:
             return self._output # for input neurons (sensors)
 
@@ -238,8 +239,7 @@ class FeedForward(Network):
 def create_phenotype(chromo): 
         """ Receives a chromosome and returns its phenotype (a neural network) """
 
-        #need to figure out how to do it - we need a general enough create_phenotype method
-        neurons_list = [Neuron(ng._type, ng._id, ng._bias, ng._response) \
+        neurons_list = [Neuron(ng._type, ng._id, ng._bias, ng._response, ng.activation_type) \
                         for ng in chromo._node_genes]
         
         conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
@@ -251,15 +251,17 @@ def create_ffphenotype(chromo):
     """ Receives a chromosome and returns its phenotype (a neural network) """
     
     # first create inputs
-    neurons_list = [Neuron('INPUT', ng.id, 0, 0) \
+    neurons_list = [Neuron('INPUT', ng.id, 0, 0, ) \
                     for ng in chromo.node_genes if ng.type == 'INPUT']
     
     # Add hidden nodes in the right order
     for id in chromo.node_order:
-        neurons_list.append(Neuron('HIDDEN', id, chromo.node_genes[id - 1].bias, chromo.node_genes[id - 1].response))
+        neurons_list.append(Neuron('HIDDEN', id, chromo.node_genes[id-1].bias, 
+                                                 chromo.node_genes[id-1].response,
+                                                 chromo.node_genes[id-1].activation_type))
         
     # finally the output
-    neurons_list.extend(Neuron('OUTPUT', ng.id, ng.bias, ng.response) \
+    neurons_list.extend(Neuron('OUTPUT', ng.id, ng.bias, ng.response, ng.activation_type) \
                         for ng in chromo.node_genes if ng.type == 'OUTPUT')
     
     assert(len(neurons_list) == len(chromo.node_genes))

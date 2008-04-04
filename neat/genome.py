@@ -3,7 +3,7 @@ import random, math
 from config import Config
 
 class NodeGene(object):    
-    def __init__(self, id, nodetype, bias=0, response=4.924273):
+    def __init__(self, id, nodetype, bias=0, response=4.924273, activation_type=None):
         """ A node gene encodes the basic artificial neuron model.
             nodetype should be "INPUT", "HIDDEN", or "OUTPUT" 
         """
@@ -11,15 +11,19 @@ class NodeGene(object):
         self._type = nodetype
         self._bias = bias
         self._response = response
+        self._activation_type = activation_type
+        
         assert(self._type in ('INPUT', 'OUTPUT', 'HIDDEN'))
         
     id = property(lambda self: self._id)
     type = property(lambda self: self._type)
     bias = property(lambda self: self._bias)
     response = property(lambda self: self._response)
+    activation_type = property(lambda self: self._activation_type)
         
     def __str__(self):
-        return "Node %2d %6s, bias %+2.10s, response %+2.10s"% (self._id, self._type, self._bias, self._response)
+        return "Node %2d %6s, bias %+2.10s, response %+2.10s" \
+                %(self._id, self._type, self._bias, self._response)
     
     def get_child(self, other):
         """ Creates a new NodeGene ramdonly inheriting its attributes from parents """
@@ -27,7 +31,8 @@ class NodeGene(object):
         
         ng = NodeGene(self._id, self._type,
                       random.choice((self._bias, other._bias)), 
-                      random.choice((self._response, other._response)))
+                      random.choice((self._response, other._response)),
+                      self._activation_type)
         return ng
     
     def __mutate_bias(self):
@@ -44,7 +49,8 @@ class NodeGene(object):
         self._response += random.gauss(0,1)*Config.bias_mutation_power
     
     def copy(self):
-        return NodeGene(self._id, self._type, self._bias, self._response)
+        return NodeGene(self._id, self._type, self._bias, 
+                        self._response, self._activation_type)
       
     def mutate(self):
         r = random.random
@@ -97,7 +103,8 @@ class CTNodeGene(NodeGene):
                 % (self._id, self._type, self._bias, self._response, self._time_constant)
                 
     def copy(self):
-        return CTNodeGene(self._id, self._type, self._bias, self._response, self._time_constant)
+        return CTNodeGene(self._id, self._type, self._bias, 
+                          self._response, self._time_constant)
     
 
 class ConnectionGene(object):

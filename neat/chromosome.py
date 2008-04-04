@@ -117,7 +117,7 @@ class Chromosome(object):
     def _mutate_add_node(self):
         # Choose a random connection to split
         conn_to_split = random.choice(self._connection_genes.values())
-        ng = self._node_gene_type(len(self._node_genes) + 1, 'HIDDEN')
+        ng = self._node_gene_type(len(self._node_genes) + 1, 'HIDDEN', activation_type = Config.nn_activation)
         self._node_genes.append(ng)
         new_conn1, new_conn2 = conn_to_split.split(ng.id)
         self._connection_genes[new_conn1.key] = new_conn1
@@ -229,9 +229,10 @@ class Chromosome(object):
             c._node_genes.append(c._node_gene_type(id, 'INPUT'))
             id += 1
         #c._input_nodes += num_input
-        
         for i in range(num_output):
-            node_gene = c._node_gene_type(id, 'OUTPUT')
+            node_gene = c._node_gene_type(id, 
+                                          nodetype = 'OUTPUT', 
+                                          activation_type = Config.nn_activation)            
             c._node_genes.append(node_gene)
             id += 1
             

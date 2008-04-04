@@ -268,14 +268,29 @@ class Population:
                         for c in new_population[:]:
                             if c.species_id == s.id:
                                 new_population.remove(c)
-                                        
-#            # Controls under or overflow
+                                
+            # Remove "super-stagnated" species (even if it has the best chromosome)
+            # It is not clear if it really avoids local minima
+            for s in self.__species[:]:
+                if s.no_improvement_age > 2*Config.max_stagnation:
+                    if report: print "\n   Species %2d is super-stagnated: removing it" % s.id                        
+                    # removing species
+                    self.__species.remove(s)
+                    # removing all the species' members
+                    #TODO: can be optimized!
+                    for c in new_population[:]:
+                        if c.species_id == s.id:
+                            new_population.remove(c)
+            
+            # ----------------------------#                            
+            # Controls under or overflow  #
+            # ----------------------------#
             fill = (self.__popsize) - len(new_population)
-#            if fill < 0: # overflow
-#                print 'Removing %d excess individual(s) from the new population' %-fill
-#                # This is dangerous! I can't remove a species' representative!
-#                new_population = new_population[:fill] # Removing the last added members
-#                
+            if fill < 0: # overflow
+                print 'Removing %d excess individual(s) from the new population' %-fill
+                # TODO: This is dangerous! I can't remove a species' representative!
+                new_population = new_population[:fill] # Removing the last added members
+                
             if fill > 0: # underflow
                 if report: print 'Selecting %d more individual(s) to fill up the new population' %fill
                 
@@ -299,15 +314,6 @@ class Population:
 #            # Updates current population
 #            assert self.__popsize == len(new_population), 'Different population sizes!'
             self.__population = new_population[:]
-                    
-            # Does it help in avoiding local minima?
-            #for s in self.__species:
-                #if s.no_improvement_age > 50:
-                    #print 'Species %d is super-stagnated, removing it' %(s.id)
-            
-            ## Remove "super-stagnated" species (even if it has the best chromosome)
-            #self.__species = [s for s in self.__species if \
-                              #s.no_improvement_age < 50]
 
 if __name__ ==  '__main__' :
     
