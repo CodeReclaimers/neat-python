@@ -139,11 +139,11 @@ class Network(object):
     def __repr__(self):
         return '%d nodes and %d synapses' % (len(self.__neurons), len(self.__synapses))
     
-    def activate(self, inputs=[]):
-        if Config.feedforward:
-            return self.sactivate(inputs)
-        else:
-            return self.pactivate(inputs)
+    #def activate(self, inputs=[]):
+    #    if Config.feedforward:
+    #        return self.sactivate(inputs)
+    #    else:
+    #        return self.pactivate(inputs)
 
     def sactivate(self, inputs=[]):    
         '''Serial (asynchronous) network activation method. Mostly

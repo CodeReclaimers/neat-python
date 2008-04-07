@@ -5,28 +5,68 @@ import cPickle as pickle
 import visualize
 import random, math
 
-class Population:
+class Population(object):
     """ Manages all the species  """
     evaluate = None # Evaluates the entire population. You need to override 
-                    # this method in your experiments    
-
-    def __init__(self):
-        # total population size
-        self.__popsize = Config.pop_size
-        # currently living species
-        self.__species = []
-        # species history
-        self.__species_log = []
-                
-        # Statistics
-        self.__avg_fitness = []
-        self.__best_fitness = []
+                    # this method in your experiments                     
+    
+    def __init__(self, checkpoint_file=None):
         
-        self.__create_population()
-        self.__generation = -1
-        
+        if checkpoint_file:
+            # start from a previous point: creates an 'empty' 
+            # population and point its __dict__ to the previous one        
+            self.__resume_checkpoint(checkpoint_file)                
+        else:
+            # total population size
+            self.__popsize = Config.pop_size
+            # currently living species
+            self.__species = []
+            # species history
+            self.__species_log = []
+                    
+            # Statistics
+            self.__avg_fitness = []
+            self.__best_fitness = []
+            
+            self.__create_population()
+            self.__generation = -1            
+            
     stats = property(lambda self: (self.__best_fitness, self.__avg_fitness))   
     species_log = property(lambda self: self.__species_log)
+    
+    def __resume_checkpoint(self, checkpoint):
+        
+        print 'Resuming from a previous point'
+        try:
+            file = open(checkpoint)
+        except IOError:
+            raise
+            
+        print 'Loading previous population: %s' %checkpoint
+        # when unpickling __init__ is not called again
+        previous_pop = pickle.load(file)
+        self.__dict__ = previous_pop.__dict__
+        
+        print 'Loading random state'
+        rstate = pickle.load(file)
+        random.setstate(rstate) 
+        #random.jumpahead(1)
+    
+    def __create_checkpoint(self, report):
+        
+        from time import strftime
+        # get current time
+        date = strftime("%Y_%m_%d_%Hh%Mm%Ss")   
+        if report: 
+            print 'Creating checkpoint file: %s' %date 
+            
+        # dumps 'self'        
+        file = open('checkpoint_'+date, 'w')        
+        # dumps the population
+        pickle.dump(self, file, protocol=2)        
+        # dumps the current random state  
+        pickle.dump(random.getstate(), file, protocol=2)
+        file.close()
     
     def __create_population(self):
         
@@ -37,7 +77,12 @@ class Population:
             
         self.__population = [genotypes(Config.input_nodes, Config.output_nodes) \
                              for i in xrange(self.__popsize)]
-                            
+    
+    def __repr__(self):
+        s = "Population size: %d" %self.__popsize
+        s += "\nTotal species: %d" %len(self.__species)
+        return s
+                                
     def __len__(self):
         return len(self.__population)
       
@@ -174,7 +219,7 @@ class Population:
     def epoch(self, n, report=True, save_best=False):
         """ Runs NEAT's genetic algorithm for n epochs """
         
-        for g in xrange(n):
+        for g in xrange(n):            
             self.__generation += 1
             
             if report: print '\n ****** Running generation %d ****** \n' % self.__generation
@@ -185,8 +230,7 @@ class Population:
             # Speciates the population
             self.__speciate(report)       
             # Compute spawn levels for each remaining species
-            self.__compute_spawn_levels()     
-            
+            self.__compute_spawn_levels()                 
                                     
             # Current generation's best chromosome 
             self.__best_fitness.append(max(self.__population))
@@ -287,7 +331,7 @@ class Population:
             # ----------------------------#
             fill = (self.__popsize) - len(new_population)
             if fill < 0: # overflow
-                print 'Removing %d excess individual(s) from the new population' %-fill
+                if report: print 'Removing %d excess individual(s) from the new population' %-fill
                 # TODO: This is dangerous! I can't remove a species' representative!
                 new_population = new_population[:fill] # Removing the last added members
                 
@@ -309,11 +353,15 @@ class Population:
                     if not found:
                         # If no mate was found, just mutate it
                         new_population.append(parent1.mutate())
-                    fill -= 1
-                                        
-#            # Updates current population
-#            assert self.__popsize == len(new_population), 'Different population sizes!'
+                    fill -= 1                                       
+
+            assert self.__popsize == len(new_population), 'Different population sizes!'
+            # Updates current population
             self.__population = new_population[:]
+            
+            # how often a checkpoint will be created?
+            if self.__generation % 10 is 0:
+                self.__create_checkpoint(report)
 
 if __name__ ==  '__main__' :
     
