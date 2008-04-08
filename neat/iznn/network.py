@@ -22,6 +22,8 @@ class Network(object):
         "Resets the network's state."
         for n in self.__neurons.values():
             n.reset()
+    
+    neurons = property(lambda self: self.__neurons.values())
 
 def create_phenotype(chromosome):
     """ Receives a chromosome and returns its phenotype (a neural network) """
