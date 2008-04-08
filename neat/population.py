@@ -3,7 +3,7 @@ import species
 import chromosome
 import cPickle as pickle
 import visualize
-import random, math
+import random, math, time
 
 class Population(object):
     """ Manages all the species  """
@@ -50,18 +50,19 @@ class Population(object):
         print 'Loading random state'
         rstate = pickle.load(file)
         random.setstate(rstate) 
-        #random.jumpahead(1)
+        #random.jumpahead(1)        
+        file.close()
     
     def __create_checkpoint(self, report):
         
-        from time import strftime
+        #from time import strftime
         # get current time
-        date = strftime("%Y_%m_%d_%Hh%Mm%Ss")   
+        #date = strftime("%Y_%m_%d_%Hh%Mm%Ss")   
         if report: 
-            print 'Creating checkpoint file: %s' %date 
+            print 'Creating checkpoint file at generation: %d' %self.__generation 
             
         # dumps 'self'        
-        file = open('checkpoint_'+date, 'w')        
+        file = open('checkpoint_'+str(self.__generation), 'w')        
         # dumps the population
         pickle.dump(self, file, protocol=2)        
         # dumps the current random state  
@@ -216,11 +217,18 @@ class Population(object):
         total = len(self)
         return (num_nodes/total, num_conns/total, avg_weights/total)
                     
-    def epoch(self, n, report=True, save_best=False):
-        """ Runs NEAT's genetic algorithm for n epochs """
+    def epoch(self, n, report=True, save_best=False, checkpoint_interval = 10):
+        """ Runs NEAT's genetic algorithm for n epochs.
+        
+            Keyword arguments:
+            report -- show stats at each epoch (default True)
+            save_best -- save the best chromosome from each epoch (default False)
+            checkpoint_interval -- time in minutes between saving checkpoints (default 10 minutes)      
+        """
+        t0 = time.time() # for saving checkpoints
         
         for g in xrange(n):            
-            self.__generation += 1
+            self.__generation += 1        
             
             if report: print '\n ****** Running generation %d ****** \n' % self.__generation
             
@@ -360,8 +368,12 @@ class Population(object):
             self.__population = new_population[:]
             
             # how often a checkpoint will be created?
-            if self.__generation % 10 is 0:
+            #if self.__generation % 10 is 0:
+            #    self.__create_checkpoint(report)
+                
+            if time.time() > t0 + 60*checkpoint_interval:
                 self.__create_checkpoint(report)
+                t0 = time.time() # updates the counter
 
 if __name__ ==  '__main__' :
     
