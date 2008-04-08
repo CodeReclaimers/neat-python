@@ -99,10 +99,19 @@ PyObject* Neuron_advance(NeuronObject* self) {
 	return Py_BuildValue("");
 }
 
+PyObject* Neuron_reset(NeuronObject* self) {
+	self->v = self->c;
+	self->u = self->b * self->v;
+	self->has_fired = false;
+	self->current = self->bias;
+	return Py_BuildValue("");
+}
+
 PyMethodDef Neuron_methods[] = {
     {"advance", reinterpret_cast<PyCFunction>(Neuron_advance), METH_NOARGS,
-     "Advances time in 1 ms."
-    },
+    	"Advances time in 1 ms."},
+    {"reset", reinterpret_cast<PyCFunction>(Neuron_reset), METH_NOARGS,
+    	"Resets all state variables."},
     {0}
 };
 

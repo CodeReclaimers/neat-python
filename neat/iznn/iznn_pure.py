@@ -50,6 +50,13 @@ class Neuron(object):
             self.__has_fired = False
         self.current = self.__bias
     
+    def reset(self):
+        'Resets all state variables.'
+        self.__v = self.__c
+        self.__u = self.__b * self.__v
+        self.__has_fired = False
+        self.current = self.__bias
+    
     potential = property(lambda self: self.__v, doc = 'Membrane potential')
     has_fired = property(lambda self: self.__has_fired,
                      doc = 'Indicates whether the neuron has fired')
@@ -67,3 +74,5 @@ class Synapse:
         'Advances time in 1 ms.'
         if self.__source.has_fired:
             self.__dest.current += self.__weight
+
+from network import *
