@@ -217,13 +217,16 @@ class Population(object):
         total = len(self)
         return (num_nodes/total, num_conns/total, avg_weights/total)
                     
-    def epoch(self, n, report=True, save_best=False, checkpoint_interval = 10):
+    def epoch(self, n, report=True, save_best=False, checkpoint_interval = 10,
+        checkpoint_generation = None):
         """ Runs NEAT's genetic algorithm for n epochs.
         
             Keyword arguments:
             report -- show stats at each epoch (default True)
             save_best -- save the best chromosome from each epoch (default False)
             checkpoint_interval -- time in minutes between saving checkpoints (default 10 minutes)      
+            checkpoint_generation -- time in generations between saving checkpoints
+                (default 0 -- option disabled)
         """
         t0 = time.time() # for saving checkpoints
         
@@ -371,9 +374,11 @@ class Population(object):
             #if self.__generation % 10 is 0:
             #    self.__create_checkpoint(report)
                 
-            if time.time() > t0 + 60*checkpoint_interval:
+            if checkpoint_interval is not None and time.time() > t0 + 60*checkpoint_interval:
                 self.__create_checkpoint(report)
                 t0 = time.time() # updates the counter
+            elif checkpoint_generation is not None and self.__generation % checkpoint_generation == 0:
+                self.__create_checkpoint(report)
 
 if __name__ ==  '__main__' :
     
@@ -386,7 +391,7 @@ if __name__ ==  '__main__' :
     Population.evaluate = eval_fitness
     
     # creates the population
-    pop = Population(50)
+    pop = Population()
     # runs the simulation for 250 epochs
     pop.epoch(250)       
 
