@@ -2,7 +2,7 @@
 import random, math
 from config import Config
 
-class Species:
+class Species(object):
     """ A subpopulation containing similar individiduals """
     __id = 0 # global species id counter
     

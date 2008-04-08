@@ -65,8 +65,8 @@ class CTNodeGene(NodeGene):
         The main difference here is the addition of
         a decay rate given by the time constant.
     """
-    def __init__(self, id, nodetype, bias = 0.1, response = 1.0, time_constant = 0.001):
-        super(CTNodeGene, self).__init__(id, nodetype, bias, response)
+    def __init__(self, id, nodetype, bias = 1.0, response = 1.0, activation_type = 'exp', time_constant = 1.0):
+        super(CTNodeGene, self).__init__(id, nodetype, bias, response, activation_type)
         
         self._time_constant = time_constant
         
@@ -95,16 +95,18 @@ class CTNodeGene(NodeGene):
         ng = CTNodeGene(self._id, self._type,
                       random.choice((self._bias, other._bias)), 
                       random.choice((self._response, other._response)),
+                      self._activation_type,
                       random.choice((self._time_constant, other._time_constant)))
         return ng
         
     def __str__(self):
         return "Node %2d %6s, bias %+2.10s, response %+2.10s, time constant %+2.5s" \
-                % (self._id, self._type, self._bias, self._response, self._time_constant)
+                % (self._id, self._type, self._bias, self._response, 
+                   self._activation_type, self._time_constant)
                 
     def copy(self):
         return CTNodeGene(self._id, self._type, self._bias, 
-                          self._response, self._time_constant)
+                          self._response, self._activation_type, self._time_constant)
     
 
 class ConnectionGene(object):

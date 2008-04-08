@@ -21,11 +21,11 @@ def sigmoid(x, response, activation_type):
         else:
             # raise exception
             print 'Invalid activation type selected:', activation_type
-            raise
+            #raise NameError('Invalid activation type selected:', activation_type)
             
     except OverflowError:
         print 'Overflow error: x = ', x
-        raise
+        #raise OverflowError('Overflow error: x = ', x)
         # Although overflow errors should not occur, here's a trick:
         # ftp://ftp.sas.com/pub/neural/FAQ2.html#A_overflow
         # if x*response < -45: output = 0
@@ -37,7 +37,7 @@ def sigmoid(x, response, activation_type):
 class Neuron(object):
     " A simple sigmoidal neuron "
     __id = 0
-    def __init__(self, neurontype, id = None, bias = 0, response = 1, activation_type = 'exp'):
+    def __init__(self, neurontype, id = None, bias = 0.0, response = 1.0, activation_type = 'exp'):
         
         self._id = self.__get_new_id(id) # every neuron has an ID
         
@@ -47,7 +47,7 @@ class Neuron(object):
         self._type = neurontype  
         assert(self._type in ('INPUT', 'OUTPUT', 'HIDDEN')) 
         
-        self.__activation_type = activation_type # default is exponential
+        self._activation_type = activation_type # default is exponential
         
         self._response = response # default = 4.924273 (Stanley, p. 146)
         self._output = 0.0  # for recurrent networks all neurons must have an "initial state"
@@ -67,7 +67,7 @@ class Neuron(object):
     def activate(self):
         "Activates the neuron"
         if(len(self._synapses) > 0):           
-            return sigmoid(self._update_activation() + self._bias, self._response, self.__activation_type)
+            return sigmoid(self._update_activation() + self._bias, self._response, self._activation_type)
         else:
             return self._output # for input neurons (sensors)
 
