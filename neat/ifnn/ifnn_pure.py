@@ -1,5 +1,6 @@
 import math
 from neat.iznn.iznn_pure import Synapse
+from network import *
 
 class Neuron(object):
     'Neuron based on the integrate and fire model'
