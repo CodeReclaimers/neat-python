@@ -1,6 +1,6 @@
 import math
 from neat.iznn.iznn_pure import Synapse
-from network import *
+from neat.iznn.network import Network
 
 class Neuron(object):
     'Neuron based on the integrate and fire model'
@@ -42,3 +42,21 @@ class Neuron(object):
     potential = property(lambda self: self.__v, doc = 'Membrane potential')
     has_fired = property(lambda self: self.__has_fired,
                      doc = 'Indicates whether the neuron has fired')
+
+def create_phenotype(chromosome):
+    """ Receives a chromosome and returns its phenotype (a neural network) """
+    
+    neurons = {}
+    input_neurons = []
+    output_neurons = []
+    for ng in chromosome.node_genes:
+        neurons[ng.id] = Neuron(ng.bias)
+        if ng.type == 'INPUT':
+            input_neurons.append(neurons[ng.id])
+        elif ng.type == 'OUTPUT':
+            output_neurons.append(neurons[ng.id])
+    
+    synapses = [Synapse(neurons[cg.innodeid], neurons[cg.outnodeid], cg.weight) \
+                 for cg in chromosome.conn_genes if cg.enabled] 
+    
+    return Network(neurons, input_neurons, output_neurons, synapses)
