@@ -1,4 +1,5 @@
 import math
+from neat.iznn.iznn_pure import Synapse
 
 class Neuron(object):
     'Neuron based on the integrate and fire model'
@@ -14,10 +15,11 @@ class Neuron(object):
         self.__vrest = vrest
         self.__vreset = vreset
         self.__vt = vt
-        self.__bias = 0
+        self.__bias = bias
         self.__v = self.__vreset
         assert self.__v < self.__vt
         self.__has_fired = False
+        self.current = self.__bias
     
     def advance(self):
         'Advances time in 1 ms.'
