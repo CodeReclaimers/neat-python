@@ -27,19 +27,20 @@ PyObject* set_nn_activation(PyObject *self, PyObject *args)
 // Sigmoidal type of activation function
 double sigmoid(double x, double response) {
 	if (std::strcmp(nn_activation, "exp") == 0) {
-		double xtimesr = x * response;
-		if (xtimesr < -45) {
-			return 0;
-		}
-		else if (xtimesr > +45) {
+		if (x < - 30)
+			return 0.0;
+		else if (x > 30)
 			return 1;
-		}
-		else {
-			return 1.0 / (1.0 + exp(-xtimesr));
-		}
+		else
+			return 1.0 / (1.0 + std::exp(-x * response));
 	}
     else {
-    	return std::tanh(x * response);
+    	if (x < - 20)
+			return -1.0;
+		else if (x > 20)
+			return +1.0;
+		else
+			return std::tanh(x * response);
     }
 }
 

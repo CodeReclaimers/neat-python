@@ -16,11 +16,6 @@ class Network(object):
                 N[n.id] = n        
             for c in links: 
                 self.__synapses.append(Synapse(N[c[0]], N[c[1]], c[2]))
-        
-        if Config.nn_activation == 'exp' or Config.nn_activation == 'tanh':
-            set_nn_activation(Config.nn_activation)
-        else:
-            raise Exception, 'Invalid activation type selected: ' + str(Config.nn_activation)
                 
     neurons = property(lambda self: self.__neurons)
     synapses = property(lambda self: self.__synapses)
