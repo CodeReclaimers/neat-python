@@ -216,6 +216,25 @@ class Chromosome(object):
             s += "\n\t" + str(c)
         return s
     
+    def add_hidden_nodes(self, num_hidden):
+        id = len(self._node_genes)
+        for i in range(num_hidden):
+            node_gene = self._node_gene_type(id, 
+                                          nodetype = 'HIDDEN', 
+                                          activation_type = Config.nn_activation)            
+            self._node_genes.append(node_gene)
+            id += 1
+            # Connect all nodes to it
+            for pre in self._node_genes:
+                weight = random.gauss(0, Config.weight_stdev)
+                cg = self._conn_gene_type(pre.id, node_gene.id, weight, True)
+                self._connection_genes[cg.key] = cg
+            # Connect it to all nodes except input nodes
+            for post in self._node_genes[self._input_nodes:]:
+                weight = random.gauss(0, Config.weight_stdev)
+                cg = self._conn_gene_type(node_gene.id, post.id, weight, True)
+                self._connection_genes[cg.key] = cg
+    
     @classmethod
     def create_fully_connected(cls, num_input, num_output):
         '''
@@ -240,10 +259,11 @@ class Chromosome(object):
             for input_node in c._node_genes[:num_input]:
                 #TODO: review the initial weights distribution
                 #weight = random.uniform(-1, 1)*Config.random_range
-                weight = random.gauss(0,0.9)
+                weight = random.gauss(0, Config.weight_stdev)
                 
                 cg = c._conn_gene_type(input_node.id, node_gene.id, weight, True)
-                c._connection_genes[cg.key] = cg        
+                c._connection_genes[cg.key] = cg
+        assert id == len(c._node_genes) + 1
         return c
     
 
@@ -314,6 +334,34 @@ class FFChromosome(Chromosome):
         return in_node.type == 'INPUT' or out_node.type == 'OUTPUT' or \
             self.__node_order.index(in_node.id) < self.__node_order.index(out_node.id)
             
+    def add_hidden_nodes(self, num_hidden):
+        id = len(self._node_genes)
+        for i in range(num_hidden):
+            node_gene = self._node_gene_type(id, 
+                                          nodetype = 'HIDDEN', 
+                                          activation_type = Config.nn_activation)            
+            self._node_genes.append(node_gene)
+            self.__node_order.insert(node_gene.id)
+            id += 1
+            # Connect all input nodes to it
+            for pre in self._node_genes[:self._input_nodes]:
+                weight = random.gauss(0, Config.weight_stdev)
+                cg = self._conn_gene_type(pre.id, node_gene.id, weight, True)
+                self._connection_genes[cg.key] = cg
+                assert self.__is_connection_feedforward(pre, node_gene)
+            # Connect all previous hidden nodes to it
+            for pre_id in self.__node_order[:-1]:
+                assert pre_id != node_gene.id
+                weight = random.gauss(0, Config.weight_stdev)
+                cg = self._conn_gene_type(pre_id, node_gene.id, weight, True)
+                self._connection_genes[cg.key] = cg
+            # Connect it to all output nodes
+            for post in self._node_genes[self._input_nodes:(self._input_nodes + self._output_nodes)]:
+                assert post.type == 'OUTPUT'
+                weight = random.gauss(0, Config.weight_stdev)
+                cg = self._conn_gene_type(node_gene.id, post.id, weight, True)
+                self._connection_genes[cg.key] = cg
+                assert self.__is_connection_feedforward(node_gene, post)
     
     def __str__(self):
         s = super(FFChromosome, self).__str__()

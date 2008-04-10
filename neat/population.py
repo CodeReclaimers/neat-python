@@ -76,8 +76,11 @@ class Population(object):
         else:
             genotypes = chromosome.Chromosome.create_fully_connected
             
-        self.__population = [genotypes(Config.input_nodes, Config.output_nodes) \
-                             for i in xrange(self.__popsize)]
+        self.__population = []
+        for i in xrange(self.__popsize):
+            g = genotypes(Config.input_nodes, Config.output_nodes)
+            g.add_hidden_nodes(Config.hidden_nodes)
+            self.__population.append(g)
     
     def __repr__(self):
         s = "Population size: %d" %self.__popsize

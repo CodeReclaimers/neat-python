@@ -8,6 +8,8 @@ min_weight          = -500
 random_range        = 0.5
 feedforward         = 0
 nn_activation       = tanh
+hidden_nodes        = 0
+weight_stdev        = 0.9
 
 [genetic]
 pop_size              = 150

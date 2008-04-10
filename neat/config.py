@@ -16,11 +16,12 @@ def load(file):
         # phenotype
         Config.input_nodes          =       int(parameters.get('phenotype','input_nodes'))
         Config.output_nodes         =       int(parameters.get('phenotype','output_nodes'))
+        Config.hidden_nodes         =       int(parameters.get('phenotype','hidden_nodes'))
         Config.max_weight           =     float(parameters.get('phenotype','max_weight'))
         Config.min_weight           =     float(parameters.get('phenotype','min_weight'))
         Config.feedforward          =  bool(int(parameters.get('phenotype','feedforward')))
         Config.nn_activation        =           parameters.get('phenotype','nn_activation')  # exp or tanh
-        Config.random_range         =     float(parameters.get('phenotype','random_range'))
+        Config.weight_stdev         =     float(parameters.get('phenotype','weight_stdev'))
         
         # GA
         Config.pop_size                 =   int(parameters.get('genetic','pop_size'))
@@ -54,11 +55,12 @@ class Config:
     # phenotype config
     input_nodes         = None
     output_nodes        = None
+    hidden_nodes        = None
     max_weight          = None
     min_weight          = None
     nn_allow_recurrence = None
     nn_activation       = None
-    random_range        = None
+    weight_stdev        = None
      
     # GA config
     pop_size                = None
