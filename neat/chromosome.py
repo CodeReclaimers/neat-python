@@ -139,7 +139,7 @@ class Chromosome(object):
                     if (in_node.id, out_node.id) not in self._connection_genes.keys():
                         # Free connection
                         if count == n: # Connection to create
-                            weight = random.uniform(-Config.random_range, Config.random_range)
+                            weight = random.gauss(0, Config.weight_stdev)
                             cg = self._conn_gene_type(in_node.id, out_node.id, weight, True)
                             self._connection_genes[cg.key] = cg
                             return
