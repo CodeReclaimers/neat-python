@@ -341,7 +341,7 @@ class FFChromosome(Chromosome):
                                           nodetype = 'HIDDEN', 
                                           activation_type = Config.nn_activation)            
             self._node_genes.append(node_gene)
-            self.__node_order.insert(node_gene.id)
+            self.__node_order.append(node_gene.id)
             id += 1
             # Connect all input nodes to it
             for pre in self._node_genes[:self._input_nodes]:
