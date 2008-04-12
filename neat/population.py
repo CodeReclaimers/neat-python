@@ -157,7 +157,7 @@ class Population(object):
             # now compute the distance from average
             for c in self:
                 error += (u - c.fitness)**2                 
-        except OverflowError
+        except OverflowError:
             #TODO: catch OverflowError: (34, 'Numerical result out of range')
             print "Overflow - printing population status"
             print "error = %f \t average = %f" %(error, u)
