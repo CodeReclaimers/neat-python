@@ -10,6 +10,7 @@ class Network(object):
         return '%d nodes and %d synapses' % (len(self.__neurons), len(self.__synapses))
     
     def advance(self, inputs):
+        assert len(inputs) == len(self.__input_neurons), "Wrong number of inputs."
         for i, input in enumerate(inputs):
             self.__input_neurons[i].current += input
         for s in self.__synapses:

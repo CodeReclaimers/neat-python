@@ -66,10 +66,8 @@ class Neuron(object):
             
     def activate(self):
         "Activates the neuron"
-        if(len(self._synapses) > 0):           
-            return sigmoid(self._update_activation() + self._bias, self._response, self._activation_type)
-        else:
-            return self._output # for input neurons (sensors)
+        assert self.type is not 'INPUT'
+        return sigmoid(self._update_activation() + self._bias, self._response, self._activation_type)
 
     def _update_activation(self):
         soma = 0.0
@@ -112,9 +110,10 @@ class Synapse(object):
 
 class Network(object):
     'A neural network has a list of neurons linked by synapses'
-    def __init__(self, neurons=[], links=None):
+    def __init__(self, neurons=[], links=None, num_inputs = 0):
         self.__neurons = neurons
         self.__synapses = []                
+        self._num_inputs = num_inputs
         
         if links is not None:        
             N = {} # a temporary dictionary to create the network connections
@@ -153,20 +152,19 @@ class Network(object):
            you're defining your own feedforward topology, make sure 
            you got them in the right order of activation.
         '''
+        assert len(inputs) == self._num_inputs, "Wrong number of inputs."
         # assign "input neurons'" output values (sensor readings)
-        k=0
-        for n in self.__neurons[:len(inputs)]:
+        
+        it = iter(inputs)
+        for n in self.__neurons[:self._num_inputs]:
             if(n._type == 'INPUT'):                
-                n._output = inputs[k]
-                k+=1
+                n._output = it.next() # iterates over inputs
         # activate all neurons in the network (except for the inputs)
         net_output = [] 
-        for n in self.__neurons[k:]:
-            n._output = n.activate()
-            
+        for n in self.__neurons[self._num_inputs:]:
+            n._output = n.activate()            
             if(n._type == 'OUTPUT'): 
                 net_output.append(n._output)
-
         return net_output
         
     def pactivate(self, inputs=[]):
@@ -175,31 +173,31 @@ class Network(object):
            in recurrent networks. All neurons are updated (activated)
            simultaneously.
         '''
+        assert len(inputs) == self._num_inputs, "Wrong number of inputs."
+        
         # the current state is like a "photograph" taken at each time step 
         # reresenting all neuron's state at that time (think of it as a clock)
         current_state = []      
-
-        k=0        
+        it = iter(inputs)
         for n in self.__neurons:
-            if(n._type == 'INPUT'): 
-                n._output = inputs[k]   
-                current_state.append(n._output)
-                k+=1
-            else:
-                current_state.append(n.activate())
-            
-        # updates all neurons at once                
+            if n._type == 'INPUT': 
+                n._output = it.next() # iterates over inputs
+            else: # hidden or output neurons
+                current_state.append(n.activate())        
+        # updates all neurons at once
         net_output = []
-        for i, n in enumerate(self.__neurons):
-            n._output = current_state[i]
-            if(n._type == 'OUTPUT'): 
+        for n, state in zip(self.__neurons[self._num_inputs:], current_state):
+            n._output = state # updates from the previous step
+            if n._type == 'OUTPUT': 
                 net_output.append(n._output)
                 
         return net_output
 
 class FeedForward(Network):
-    'A feedforward network is a particular class of neural network'
-    # only one hidden layer is considered for now
+    """ A feedforward network is a particular class of neural network.
+        Only one hidden layer is considered for now.
+    """
+    
     def __init__(self, layers, use_bias=False, activation_type=None):
         super(FeedForward, self).__init__()
         
@@ -208,6 +206,7 @@ class FeedForward(Network):
         self.__hidden_layers = layers[1:-1]
         self.__use_bias = use_bias
         
+        self._num_inputs = layers[0]
         self.__create_net(activation_type)
         
     def __create_net(self, activation_type):
@@ -253,7 +252,7 @@ def create_phenotype(chromo):
         conn_list = [(cg.innodeid, cg.outnodeid, cg.weight)
                      for cg in chromo.conn_genes if cg.enabled] 
         
-        return Network(neurons_list, conn_list) 
+        return Network(neurons_list, conn_list, chromo.sensors) 
     
 def create_ffphenotype(chromo):
     """ Receives a chromosome and returns its phenotype (a neural network) """
@@ -278,7 +277,7 @@ def create_ffphenotype(chromo):
     conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
                  for cg in chromo.conn_genes if cg.enabled] 
     
-    return Network(neurons_list, conn_list)        
+    return Network(neurons_list, conn_list, chromo.sensors)        
 
 if __name__ == "__main__":
     # Example
