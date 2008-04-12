@@ -152,10 +152,18 @@ class Population(object):
         # first compute the average
         u = self.average_fitness()
         error = 0.0
-        # now compute the distance from average
-        for c in self:
-            error += (u - c.fitness)**2 
+        
+        try:
+            # now compute the distance from average
+            for c in self:
+                error += (u - c.fitness)**2                 
+        except OverflowError
             #TODO: catch OverflowError: (34, 'Numerical result out of range')
+            print "Overflow - printing population status"
+            print "error = %f \t average = %f" %(error, u)
+            print "Population fitness:"
+            print [c.fitness for c in self]
+            
         return math.sqrt(error/len(self))
        
     def __compute_spawn_levels(self):
