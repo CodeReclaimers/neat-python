@@ -1,9 +1,10 @@
+import gzip, random, math, time
 from config import Config
 import species
 import chromosome
 import cPickle as pickle
 import visualize
-import random, math, time
+
 
 class Population(object):
     """ Manages all the species  """
@@ -35,14 +36,13 @@ class Population(object):
     species_log = property(lambda self: self.__species_log)
     
     def __resume_checkpoint(self, checkpoint):
-        
-        print 'Resuming from a previous point'
+        """ Resumes the simulation from a previous saved point. """        
         try:
-            file = open(checkpoint)
+            #file = open(checkpoint)
+            file = gzip.open(checkpoint)
         except IOError:
             raise
-            
-        print 'Loading previous population: %s' %checkpoint
+        print 'Resuming from a previous point: %s' %checkpoint            
         # when unpickling __init__ is not called again
         previous_pop = pickle.load(file)
         self.__dict__ = previous_pop.__dict__
@@ -54,7 +54,7 @@ class Population(object):
         file.close()
     
     def __create_checkpoint(self, report):
-        
+        """ Saves the current simulation state. """ 
         #from time import strftime
         # get current time
         #date = strftime("%Y_%m_%d_%Hh%Mm%Ss")   
@@ -62,7 +62,8 @@ class Population(object):
             print 'Creating checkpoint file at generation: %d' %self.__generation 
             
         # dumps 'self'        
-        file = open('checkpoint_'+str(self.__generation), 'w')        
+        #file = open('checkpoint_'+str(self.__generation), 'w')            
+        file = gzip.open('checkpoint_'+str(self.__generation), 'w', compresslevel = 5)    
         # dumps the population
         pickle.dump(self, file, protocol=2)        
         # dumps the current random state  
