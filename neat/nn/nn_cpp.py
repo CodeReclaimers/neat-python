@@ -1,4 +1,8 @@
-import ann # C++ extension
+try: 
+    import ann # C++ extension
+except ImportError:
+    print "Neural network extension library not found!"
+    raise
 
 def create_ffphenotype(chromo):
     """ Receives a chromosome and returns its phenotype (a neural network) """

@@ -7,7 +7,7 @@ import genome
 conn_gene_type = genome.ConnectionGene
 
 class Chromosome(object):
-    ''' A chromosome for general recurrent neural networks '''
+    """ A chromosome for general recurrent neural networks. """
     _id = 0
     def __init__(self, parent1_id, parent2_id, node_gene_type, conn_gene_type):
         
@@ -60,7 +60,7 @@ class Chromosome(object):
     
     
     def crossover(self, other):
-        ''' Crosses over parents' chromosomes and returns a child '''
+        """ Crosses over parents' chromosomes and returns a child. """
         
         # This can't happen! Parents must belong to the same species.
         assert self.species_id == other.species_id, 'Different parents species ID: %d vs %d' \
@@ -85,7 +85,7 @@ class Chromosome(object):
         return child
          
     def _inherit_genes(child, parent1, parent2):
-        ''' Applies the crossover operator '''
+        """ Applies the crossover operator. """
         assert(parent1.fitness >= parent2.fitness)
         
         # Crossover connection genes
@@ -148,7 +148,7 @@ class Chromosome(object):
     
     # compatibility function        
     def distance(self, other):
-        ''' Returns the distance between this chromosome and the other '''
+        """ Returns the distance between this chromosome and the other. """
         if len(self._connection_genes) > len(other._connection_genes):
             chromo1 = self
             chromo2 = other
@@ -186,10 +186,9 @@ class Chromosome(object):
         return distance
     
     def size(self):
-        ''' Defines chromosome 'complexity': number of hidden nodes plus
-            number of enabled connections '''
-            # Neuron's bias is not considered
-           
+        """ Defines chromosome 'complexity': number of hidden nodes plus
+            number of enabled connections (bias is not considered)
+        """           
         # number of hidden nodes
         num_hidden = len(self._node_genes) - self._input_nodes - self._output_nodes
         # number of enabled connections
@@ -217,7 +216,7 @@ class Chromosome(object):
         return s
     
     def add_hidden_nodes(self, num_hidden):
-        id = len(self._node_genes)
+        id = len(self._node_genes)+1
         for i in range(num_hidden):
             node_gene = self._node_gene_type(id, 
                                           nodetype = 'HIDDEN', 
@@ -236,19 +235,19 @@ class Chromosome(object):
                 self._connection_genes[cg.key] = cg
     
     @classmethod
-    def create_fully_connected(cls, num_input, num_output):
-        '''
+    def create_fully_connected(cls):
+        """
         Factory method
         Creates a chromosome for a fully connected feedforward network with no hidden nodes.
-        '''   
+        """   
         c = cls(0, 0, node_gene_type, conn_gene_type)
         id = 1
         # Create node genes
-        for i in range(num_input):
+        for i in range(Config.input_nodes):
             c._node_genes.append(c._node_gene_type(id, 'INPUT'))
             id += 1
         #c._input_nodes += num_input
-        for i in range(num_output):
+        for i in range(Config.output_nodes):
             node_gene = c._node_gene_type(id, 
                                           nodetype = 'OUTPUT', 
                                           activation_type = Config.nn_activation)            
@@ -256,7 +255,7 @@ class Chromosome(object):
             id += 1
             
             # Connect it to all input nodes
-            for input_node in c._node_genes[:num_input]:
+            for input_node in c._node_genes[:Config.input_nodes]:
                 #TODO: review the initial weights distribution
                 #weight = random.uniform(-1, 1)*Config.random_range
                 weight = random.gauss(0, Config.weight_stdev)
@@ -268,9 +267,9 @@ class Chromosome(object):
     
 
 class FFChromosome(Chromosome):
-    ''' A chromosome for feedforward neural networks. Feedforward 
+    """ A chromosome for feedforward neural networks. Feedforward 
         topologies are a particular case of Recurrent NNs.
-    '''
+    """
     def __init__(self, parent1_id, parent2_id, node_gene_type, conn_gene_type):
         super(FFChromosome, self).__init__(parent1_id, parent2_id, node_gene_type, conn_gene_type)
         self.__node_order = [] # hidden node order (for feedforward networks)
@@ -335,7 +334,7 @@ class FFChromosome(Chromosome):
             self.__node_order.index(in_node.id) < self.__node_order.index(out_node.id)
             
     def add_hidden_nodes(self, num_hidden):
-        id = len(self._node_genes)
+        id = len(self._node_genes)+1
         for i in range(num_hidden):
             node_gene = self._node_gene_type(id, 
                                           nodetype = 'HIDDEN', 
@@ -369,24 +368,30 @@ class FFChromosome(Chromosome):
         return s
     
 if __name__ == '__main__':
+    # Example
+    import visualize 
+    # define some attributes       
+    node_gene_type = genome.NodeGene         # standard neuron model
+    conn_gene_type = genome.ConnectionGene   # and connection link
+    Config.nn_activation = 'exp'             # activation function
+    Config.weight_stdev = 0.9                # weights distribution
     
-    Config.random_range = 3
+    Config.input_nodes = 2                   # number of inputs
+    Config.output_nodes = 1                  # number of outputs
     
-    # creates a chromosome for general networks
-    c1 = Chromosome.create_fully_connected(2, 2, NodeGene, ConnectionGene)
-    
-    c1._mutate_add_node()    
-    c1._mutate_add_connection()
+    # creates a chromosome for recurrent networks
+    #c1 = Chromosome.create_fully_connected()    
     
     # creates a chromosome for feedforward networks
-    c2 = FFChromosome.create_fully_connected(2, 2, NodeGene, ConnectionGene)
-
-    c2._mutate_add_node()    
-    c2._mutate_add_connection()
+    c2 = FFChromosome.create_fully_connected()
+    # add two hidden nodes
+    c2.add_hidden_nodes(2)
+    # apply some mutations
+    #c2._mutate_add_node()    
+    #c2._mutate_add_connection()
      
-    import visualize 
-    visualize.draw_net(c1)
-    
-    visualize.draw_ff(c2)
-
+    # check the result
+    #visualize.draw_net(c1) # for recurrent nets    
+    visualize.draw_ff(c2)   # for feedforward nets
+    # print the chromosome
     print  c2

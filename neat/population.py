@@ -72,14 +72,15 @@ class Population(object):
     def __create_population(self):
         
         if Config.feedforward:
-            genotypes = chromosome.FFChromosome.create_fully_connected
+            genotypes = chromosome.FFChromosome
         else:
-            genotypes = chromosome.Chromosome.create_fully_connected
+            genotypes = chromosome.Chromosome
             
         self.__population = []
         for i in xrange(self.__popsize):
-            g = genotypes(Config.input_nodes, Config.output_nodes)
-            g.add_hidden_nodes(Config.hidden_nodes)
+            g = genotypes.create_fully_connected()
+            if Config.hidden_nodes > 0:
+                g.add_hidden_nodes(Config.hidden_nodes)
             self.__population.append(g)
     
     def __repr__(self):
@@ -153,7 +154,7 @@ class Population(object):
         # now compute the distance from average
         for c in self:
             error += (u - c.fitness)**2 
-			#TODO: catch OverflowError: (34, 'Numerical result out of range')
+            #TODO: catch OverflowError: (34, 'Numerical result out of range')
         return math.sqrt(error/len(self))
        
     def __compute_spawn_levels(self):
