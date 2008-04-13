@@ -53,6 +53,11 @@ void ANN::flush() {
 // serial activation method (for feedforward topologies)
 PyObject* ANN::sactivate(PyObject* inputs)
 {
+	if (PyList_Size(inputs) != sensors) {
+    	PyErr_SetString(PyExc_ValueError, "Wrong number of inputs.");
+    	return 0;
+    }
+    
     PyObject* output = PyList_New(0);
     if (!output) return 0;
 
@@ -94,6 +99,10 @@ PyObject* ANN::sactivate(PyObject* inputs)
 
 // parallel activation method (for recurrent neural networks)
 PyObject*  ANN::pactivate(PyObject* inputs) {
+	if (PyList_Size(inputs) != sensors) {
+    	PyErr_SetString(PyExc_ValueError, "Wrong number of inputs.");
+    	return 0;
+    }
 
     PyObject* output = PyList_New(0);
     if (!output) return 0;

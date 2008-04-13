@@ -109,7 +109,10 @@ PyObject* sactivate(ANNObject *self, PyObject *args) {
     if (!PyArg_ParseTuple(args, "O!", &PyList_Type, &list)) {
         return 0;
     }
-    return self->ann->sactivate(list);
+    Py_INCREF(list);
+    PyObject* output = self->ann->sactivate(list);
+    Py_DECREF(list);
+    return output;
 }
 
 PyObject* pactivate(ANNObject *self, PyObject *args) {
@@ -117,7 +120,10 @@ PyObject* pactivate(ANNObject *self, PyObject *args) {
     if (!PyArg_ParseTuple(args, "O!", &PyList_Type, &list)) {
         return 0;
     }
-    return self->ann->pactivate(list);
+    Py_INCREF(list);
+    PyObject* output = self->ann->pactivate(list);
+    Py_DECREF(list);
+    return output;
 }
 
 PyObject* flush(ANNObject* self) {
