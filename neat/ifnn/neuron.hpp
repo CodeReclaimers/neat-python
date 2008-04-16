@@ -83,8 +83,7 @@ PyGetSetDef Neuron_getsetters[] = {
 };
 
 PyObject* Neuron_advance(NeuronObject* self) {
-	self->v = self->vrest + (1 -  self->invtau) * (self->v - self->vrest) +
-    	self->invtau * self->current;
+	self->v += self->invtau * (self->vrest - self->v + self->current);
 	if (self->v >= self->vt) {
 		self->has_fired = true;
 	    self->v = self->vreset;

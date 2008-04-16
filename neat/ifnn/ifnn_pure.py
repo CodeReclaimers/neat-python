@@ -24,8 +24,7 @@ class Neuron(object):
     
     def advance(self):
         'Advances time in 1 ms.'
-        self.__v = self.__vrest + (1 -  self.__invtau) * (self.__v - self.__vrest) + \
-            self.__invtau * self.current
+        self.__v += self.__invtau * (self.__vrest - self.__v + self.current)
         if self.__v >= self.__vt:
             self.__has_fired = True
             self.__v = self.__vreset
