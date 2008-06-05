@@ -1,11 +1,11 @@
 import math
-from neat import config, population, chromosome, genome2, iznn, visualize
+from neat import config, population, chromosome, genome, iznn, visualize
 #from psyco.classes import *
 
 config.load('xor2_config')
 
 # Temporary workaround
-chromosome.node_gene_type = genome2.NodeGene
+chromosome.node_gene_type = genome.NodeGene
 
 # For spiking networks
 config.Config.output_nodes = 2
@@ -35,7 +35,7 @@ def eval_fitness(population):
         chromosome.fitness = 1 - math.sqrt(error/len(OUTPUTS))
         if not chromosome.fitness:
             chromosome.fitness = 0.00001
-        
+
 population.Population.evaluate = eval_fitness
 pop = population.Population()
 pop.epoch(200, report=True, save_best=0)
