@@ -1,5 +1,5 @@
 #--- parameters for the XOR-2 experiment ---#
-# Stats for the following parameters averaged (std) over 5000 runs: 
+# Stats for the following parameters averaged (std) over 5000 runs:
 #   generations     hidden nodes      synapses
 #   26.2 (7.48)       2.9 (1.3)      10.4 (3.37)
 # Additional info: error threshold = 0.9
@@ -10,7 +10,6 @@ input_nodes         = 2
 output_nodes        = 1
 max_weight          = 30
 min_weight          = -30
-random_range        = 0.5
 feedforward         = 1
 nn_activation       = exp
 hidden_nodes        = 0
@@ -22,12 +21,13 @@ max_fitness_threshold = 0.9
 
 # Human reasoning
 prob_addconn          = 0.05
-prob_addnode          = 0.03    
-prob_mutatebias       = 0.5
-bias_mutation_power   = 0.5    
+prob_addnode          = 0.03
+prob_mutatebias       = 0.2
+bias_mutation_power   = 0.5
 prob_mutate_weight    = 0.9
-weight_mutation_power = 1.5    
+weight_mutation_power = 1.5
 prob_togglelink       = 0.01
+elitism               = 1
 
 # Parameters obtained with a meta-SGA
 #prob_addconn          = 0.32064768257848786
