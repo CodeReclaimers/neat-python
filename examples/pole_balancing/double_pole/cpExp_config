@@ -1,31 +1,37 @@
-#--- parameters for the double pole experiment using CTRNNs ---#
+#--- parameters for the double pole experiment ---#
+
+# markov (averaged over 100 runs)
+#          Nodes   Links   Evals.
+# average  0.01    6.15    1384.35
+# stdev    0.10    0.41    864.72
+# varing weight_stdev results in significant performance
+# difference (the lower the better)
+
 
 [phenotype]
-input_nodes         = 3
+input_nodes         = 6
 output_nodes        = 1
-max_weight          = 500
-min_weight          = -500
-random_range        = 0.5
+max_weight          = 50
+min_weight          = -50
 feedforward         = 0
 nn_activation       = tanh
 hidden_nodes        = 0
-weight_stdev        = 0.9
+weight_stdev        = 2.0
 
 [genetic]
 pop_size              = 150
 max_fitness_threshold = 99999
-
-# Human reasoning
 prob_addconn          = 0.03
-prob_addnode          = 0.01    
+prob_addnode          = 0.01
 prob_mutatebias       = 0.2
-bias_mutation_power   = 0.5    
+bias_mutation_power   = 0.5
 prob_mutate_weight    = 0.8
-weight_mutation_power = 1.8    
+weight_mutation_power = 1.8
 prob_togglelink       = 0.05
+elitism               = 0
 
 [genotype compatibility]
-compatibility_threshold = 3.5
+compatibility_threshold = 5.5
 compatibility_change    = 0.0
 excess_coeficient       = 1.0
 disjoint_coeficient     = 1.0
