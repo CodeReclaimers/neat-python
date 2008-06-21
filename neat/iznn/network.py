@@ -46,6 +46,7 @@ def create_phenotype(chromosome):
 
 if __name__ == '__main__':
     from neat import visualize
+    from iznn_pure import Neuron
     n = Neuron(10)
     spike_train = []
     for i in range(1000):
@@ -53,4 +54,5 @@ if __name__ == '__main__':
         #print '%d\t%f' % (i, n.potential)
         n.advance()
         
+    #print spike_train
     visualize.plot_spikes(spike_train)
