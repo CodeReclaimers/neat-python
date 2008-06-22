@@ -61,9 +61,7 @@ class Neuron(object):
     has_fired = property(lambda self: self.__has_fired,
                      doc = 'Indicates whether the neuron has fired')
 
-import math
-
-class Synapse:
+class Synapse(object):
     """ A synapse indicates the connection strength between two neurons (or itself) """
     def __init__(self, source, dest, weight):        
         self.__weight = weight
@@ -74,5 +72,3 @@ class Synapse:
         'Advances time in 1 ms.'
         if self.__source.has_fired:
             self.__dest.current += self.__weight
-
-from network import *

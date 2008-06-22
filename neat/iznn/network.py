@@ -51,8 +51,7 @@ if __name__ == '__main__':
     spike_train = []
     for i in range(1000):
         spike_train.append(n.potential)
-        #print '%d\t%f' % (i, n.potential)
+        print '%d\t%f' % (i, n.potential)
         n.advance()
         
-    #print spike_train
     visualize.plot_spikes(spike_train)
