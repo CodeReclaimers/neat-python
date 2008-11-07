@@ -3,24 +3,24 @@
 // into a Python shared library.                       //
 //*****************************************************//
 #include <Python.h>
-#include "ANN_python.hpp"
+#include "PyANN.hpp"
 
 namespace {
 
 PyMethodDef ANN_methods[] = {
-    {"SetConnectionWeight", reinterpret_cast<PyCFunction>(SetConnectionWeight),
+    {"set_synapse", reinterpret_cast<PyCFunction>(set_synapse),
         METH_VARARGS, ""},
     {"set_sensory_weight", reinterpret_cast<PyCFunction>(set_sensory_weight),
         METH_VARARGS, ""},
-    {"setNeuronParameters", reinterpret_cast<PyCFunction>(setNeuronParameters),
+    {"set_neuron", reinterpret_cast<PyCFunction>(set_neuron),
         METH_VARARGS, ""},
     {"get_neuron_response", reinterpret_cast<PyCFunction>(get_neuron_response),
         METH_VARARGS, ""},
     {"get_neuron_bias", reinterpret_cast<PyCFunction>(get_neuron_bias),
         METH_VARARGS, ""},
-    {"setNeuronOutput", reinterpret_cast<PyCFunction>(setNeuronOutput),
+    {"set_neuron_output", reinterpret_cast<PyCFunction>(set_neuron_output),
         METH_VARARGS, ""},
-    {"NeuronOutput", reinterpret_cast<PyCFunction>(NeuronOutput),
+    {"get_neuron_output", reinterpret_cast<PyCFunction>(get_neuron_output),
         METH_VARARGS, ""},
     {"sactivate", reinterpret_cast<PyCFunction>(sactivate),
         METH_VARARGS, ""},

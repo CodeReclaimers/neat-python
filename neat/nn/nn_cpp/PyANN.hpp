@@ -2,11 +2,11 @@
 // An interface to wrap the C++ neural network class    //
 // into a Python shared library.                        //
 // **************************************************** //
-#ifndef ANN_PYTHON
-#define ANN_PYTHON
+#ifndef _PYANN_HPP_
+#define _PYANN_HPP_
 
 #include <Python.h>
-#include <vector>
+//#include <vector>
 #include "ANN.h"
 
 struct ANNObject {
@@ -16,37 +16,33 @@ struct ANNObject {
 
 namespace {
 
-// ****************************
-// Constructor and destructor
-// ****************************
+// constructor
 int ANN_init(ANNObject *self, PyObject *args, PyObject *kwds) {
-    int how_many_inputs = 0;
-    int newsize = 0;
-    static char *kwlist[] = {"how_many_inputs", "newsize", 0};
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ii", kwlist, 
-            &how_many_inputs, &newsize)) {
+    int inputs;
+    int neurons;
+    static char *kwlist[] = {"inputs", "neurons", 0};
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ii", kwlist,
+            &inputs, &neurons)) {
         return -1;
     }
-    self->ann = new ANN(how_many_inputs, newsize);
+    self->ann = new ANN(inputs, neurons);
     return 0;
 }
-
+// destructor
 void ANN_dealloc(ANNObject* self)
 {
     delete self->ann;
     self->ob_type->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
-// ****************************
-// Methods
-// ****************************
-PyObject* SetConnectionWeight(ANNObject *self, PyObject *args) {
+// methods
+PyObject* set_synapse(ANNObject *self, PyObject *args) {
     int from, to;
     double value;
     if (!PyArg_ParseTuple(args, "iid", &from, &to, &value)) {
         return 0;
     }
-    self->ann->SetConnectionWeight(from, to, value);
+    self->ann->set_synapse(from, to, value);
     return Py_BuildValue("");
 }
 
@@ -60,13 +56,13 @@ PyObject* set_sensory_weight(ANNObject *self, PyObject *args) {
     return Py_BuildValue("");
 }
 
-PyObject* setNeuronParameters(ANNObject *self, PyObject *args) {
+PyObject* set_neuron(ANNObject *self, PyObject *args) {
     int i, type;
     double bias, gain;
     if (!PyArg_ParseTuple(args, "iddi", &i, &bias, &gain, &type)) {
         return 0;
     }
-    self->ann->setNeuronParameters(i, bias, gain, type);
+    self->ann->set_neuron(i, bias, gain, type);
     return Py_BuildValue("");
 }
 
@@ -86,22 +82,22 @@ PyObject* get_neuron_bias(ANNObject *self, PyObject *args) {
     return Py_BuildValue("d", self->ann->get_neuron_bias(i));
 }
 
-PyObject* setNeuronOutput(ANNObject *self, PyObject *args) {
+PyObject* set_neuron_output(ANNObject *self, PyObject *args) {
     int i;
     double output;
     if (!PyArg_ParseTuple(args, "id", &i, &output)) {
         return 0;
     }
-    self->ann->setNeuronOutput(i, output);
+    self->ann->set_neuron_output(i, output);
     return Py_BuildValue("");
 }
 
-PyObject* NeuronOutput(ANNObject *self, PyObject *args) {
+PyObject* get_neuron_output(ANNObject *self, PyObject *args) {
     int i;
     if (!PyArg_ParseTuple(args, "i", &i)) {
         return 0;
     }
-    return Py_BuildValue("d", self->ann->NeuronOutput(i));
+    return Py_BuildValue("d", self->ann->get_neuron_output(i));
 }
 
 PyObject* sactivate(ANNObject *self, PyObject *args) {
