@@ -1,9 +1,10 @@
 # ******************************** #
 # Double pole balancing experiment #
 # ******************************** #
-from neat import config, population, chromosome, genome, visualize
-import math, random
+import math
+import random
 import cPickle as pickle
+from neat import config, population, chromosome, genome, visualize
 from cart_pole import CartPole
 
 def evaluate_population(population):
@@ -22,14 +23,14 @@ if __name__ == "__main__":
     # you can also set the configs in dpole_config as long
     # as you have two config files for each type of experiment
     config.Config.input_nodes = 3
-                                          
-    # Temporary workaround
+
+    # neuron model type
     chromosome.node_gene_type = genome.NodeGene
     #chromosome.node_gene_type = genome.CTNodeGene
 
     population.Population.evaluate = evaluate_population
     pop = population.Population()
-    pop.epoch(500, report=False, save_best=0)
+    pop.epoch(500, report=1, save_best=0)
 
     winner = pop.stats[0][-1]
 
@@ -43,11 +44,10 @@ if __name__ == "__main__":
     print 'Number of evaluations: %d' %winner.id
     print 'Winner score: %d' %winner.score
     from time import strftime
-    # saves the winner
     date = strftime("%Y_%m_%d_%Hh%Mm%Ss")
     # saves the winner
-    #file = open('winner_'+date, 'w')
-    #pickle.dump(winner, file)
-    #file.close()
+    file = open('winner_'+date, 'w')
+    pickle.dump(winner, file)
+    file.close()
 
     #print winner

@@ -1,15 +1,6 @@
 #--- parameters for the double pole experiment ---#
-
-# markov (averaged over 100 runs)
-#          Nodes   Links   Evals.
-# average  0.01    6.15    1384.35
-# stdev    0.10    0.41    864.72
-# varing weight_stdev results in significant performance
-# difference (the lower the better)
-
-
 [phenotype]
-input_nodes         = 6
+input_nodes         = 3
 output_nodes        = 1
 max_weight          = 50
 min_weight          = -50

@@ -52,7 +52,7 @@ def eval_fitness(population):
         # It drastically reduces the lag at minimal cost
         # zlib compression (for small chromosomes)
         #           ratio             ratio
-        # level   protocol=0 (note that protocol 1 or 2 are better)
+        # level   protocol=0 (note that protocol 1 or 2 are even better)
         #   1       74.06%
         #   3       77.21%
         #   6       79.68%

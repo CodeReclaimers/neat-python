@@ -2,11 +2,11 @@
 # Cart pole module #
 # ---------------- #
 import sys
-from dpole import integrate # wrapped from C++
 from random import randint
-#from neat.nn import nn_pure as nn
-from neat.nn import nn_cpp as nn
-#from neat import ctrnn as nn
+from dpole import integrate # wrapped from C++
+from neat.nn import nn_pure as nn
+#from neat.nn import nn_cpp as nn
+#from neat.ctrnn import ctrnn_pure as nn
 
 class CartPole(object):
     def __init__(self, population, markov):
@@ -36,7 +36,7 @@ class CartPole(object):
                 if testing:
                     # cart's position, first pole's angle, second pole's angle
                     #print "\nInitial conditions:"
-                    #print "%f \t %f \t %f" %(self.__state[0], self.__state[2], self.__state[4])
+                    print "%f \t %f \t %f" %(self.__state[0], self.__state[2], self.__state[4])
                     pass
 
                 steps = 0
@@ -125,6 +125,7 @@ class CartPole(object):
                     print "\tWinner failed at the 100k test with score %d\n "%score
 
     def __non_markov(self, network, max_steps, testing):
+        # variables used in Gruau's fitness function
         den = 0.0
         f1 = 0.0
         f2 = 0.0

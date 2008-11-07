@@ -2,7 +2,6 @@
 #**************************************************#
 # A simple script to help in executing the         #
 # same experiment for a number of times.           #
-# Please kindly note: THIS IS FAR FROM FINISHED!   #
 #**************************************************#
 import math, sys
 import re, os
@@ -47,8 +46,8 @@ if __name__ == '__main__':
         sys.exit(0)
 
     print "\nExecuting %s for %s times\n" %(sys.argv[1], sys.argv[2])
-    print "    =============================================="
-    print "\t N. \tGen. \t Nodes \t Conn. \t Evals. \t Score"
+    print "    =========================================================="
+    print "\t N. \tGen. \t Nodes \t Conn. \t Evals.    Score"
 
     for i in xrange(int(sys.argv[2])):
         output = os.popen('python '+sys.argv[1]).read()
@@ -67,7 +66,7 @@ if __name__ == '__main__':
         sys.stdout.flush()
         print "\t %d \t %s \t %s \t %s \t %s \t %s" % (i+1, gens, nodes, conns, evals, score)
 
-    print "    =============================================="
+    print "    =========================================================="
     report()
 
 

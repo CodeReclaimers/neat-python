@@ -1,9 +1,11 @@
-import math, random
+import math
+import random
 import cPickle as pickle
 from neat import config, population, chromosome, genome, visualize
 from neat.nn import nn_pure as nn
 #from neat.nn import nn_cpp as nn # C++ extension
 
+#random.seed(22) # seed 22 results in 4089 evaluations
 config.load('xor2_config')
 
 # Temporary workaround
@@ -20,7 +22,7 @@ def eval_fitness(population):
         error = 0.0
         #error_stanley = 0.0
         for i, inputs in enumerate(INPUTS):
-            brain.flush() # not strictly necessary in feedforward nets
+            #brain.flush() # not strictly necessary in feedforward nets
             output = brain.sactivate(inputs) # serial activation
             error += (output[0] - OUTPUTS[i])**2
 
