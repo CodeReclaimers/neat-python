@@ -18,8 +18,8 @@ namespace {
 
 // constructor
 int ANN_init(ANNObject *self, PyObject *args, PyObject *kwds) {
-    int inputs;
-    int neurons;
+    int inputs = 0;
+    int neurons = 0;
     static char *kwlist[] = {"inputs", "neurons", 0};
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ii", kwlist,
             &inputs, &neurons)) {

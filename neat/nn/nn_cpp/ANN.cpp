@@ -106,10 +106,12 @@ PyObject* ANN::sactivate(PyObject* inputs)
         outputs[i] = sigmoid(states[i] + biases[i], response[i]);
 
         if(neuron_type[i] == 1) {
-            if (PyList_Append(output, PyFloat_FromDouble(outputs[i])) != 0) {
+            PyObject* newoutput = PyFloat_FromDouble(outputs[i]);
+            if (PyList_Append(output, newoutput) != 0) {
                 Py_DECREF(output);
                 return 0;
             }
+            Py_DECREF(newoutput);
         }
     }
     return output;
@@ -162,10 +164,12 @@ PyObject*  ANN::pactivate(PyObject* inputs) {
     for (int i = 0; i < size; i++) {
         outputs[i] = sigmoid(states[i] + biases[i], response[i]);
         if(neuron_type[i] == 1) {
-            if (PyList_Append(output, PyFloat_FromDouble(outputs[i])) != 0) {
+            PyObject* newoutput = PyFloat_FromDouble(outputs[i]);
+            if (PyList_Append(output, newoutput) != 0) {
                 Py_DECREF(output);
                 return 0;
             }
+            Py_DECREF(newoutput);
         }
     }
    return output;
