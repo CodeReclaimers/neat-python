@@ -53,6 +53,25 @@ ANN::ANN(int inputs, int neurons) {
 
 }
 
+ANN::~ANN()
+{
+    for(int i=0; i<sensors; i++)
+        delete[] sensory_weights[i];
+    
+    for(int i=0; i<size; i++)
+        delete[] weights[i];
+    
+    delete[] sensory_weights;
+    delete[] weights;
+    
+    delete[] states;
+    delete[] outputs;
+    delete[] biases;
+    delete[] response;
+    
+    delete[] neuron_type;
+}
+
 // flushes all neuron's output
 void ANN::flush() {
     for (int i = 0; i < size; i++) {

@@ -13,7 +13,7 @@
 class ANN {
     public:
         ANN(int inputs, int neurons);
-        //~ANN();
+        ~ANN();
 
         void set_synapse(int from, int to, double value) {
             weights[from][to] = value; };
