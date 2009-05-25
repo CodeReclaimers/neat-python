@@ -23,7 +23,7 @@ def eval_fitness(population):
         error = 0.0
         for i, input in enumerate(INPUTS):
             for j in range(MAX_TIME):
-                output = brain.advance([i * 10 for i in input])
+                output = brain.advance([x * 10 for x in input])
                 if output != [False, False]:
                     break
             if output[0] and not output[1]: # Network answered 1

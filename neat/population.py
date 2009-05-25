@@ -1,5 +1,7 @@
-import gzip, random
-import math, time
+import gzip
+import random
+import math
+import time
 import cPickle as pickle
 from config import Config
 import species

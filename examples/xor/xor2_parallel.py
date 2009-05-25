@@ -95,11 +95,11 @@ def parallel_evaluation(compressed_pop, chunk):
 
     fitness = []
     for c in sub_pop:
-        brain = nn.create_ffphenotype(c)
+        net = nn.create_ffphenotype(c)
 
         error = 0.0
         for i, input in enumerate(INPUTS):
-            output = brain.sactivate(input) # serial activation
+            output = net.sactivate(input) # serial activation
             error += (output[0] - OUTPUTS[i])**2
 
         fitness.append(1 - math.sqrt(error/len(OUTPUTS)))

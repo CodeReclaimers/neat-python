@@ -5,10 +5,9 @@ from neat import config, population, chromosome, genome, visualize
 from neat.nn import nn_pure as nn
 #from neat.nn import nn_cpp as nn # C++ extension
 
-#random.seed(22) # seed 22 results in 4089 evaluations
 config.load('xor2_config')
 
-# Temporary workaround
+# set node gene type
 chromosome.node_gene_type = genome.NodeGene
 
 # XOR-2
@@ -17,13 +16,13 @@ OUTPUTS = [0, 1, 1, 0]
 
 def eval_fitness(population):
     for chromo in population:
-        brain = nn.create_ffphenotype(chromo)
+        net = nn.create_ffphenotype(chromo)
 
         error = 0.0
         #error_stanley = 0.0
         for i, inputs in enumerate(INPUTS):
-            #brain.flush() # not strictly necessary in feedforward nets
-            output = brain.sactivate(inputs) # serial activation
+            net.flush() # not strictly necessary in feedforward nets
+            output = net.sactivate(inputs) # serial activation
             error += (output[0] - OUTPUTS[i])**2
 
             #error_stanley += math.fabs(output[0] - OUTPUTS[i])
