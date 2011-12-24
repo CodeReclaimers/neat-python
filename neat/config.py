@@ -8,7 +8,7 @@ def load(file):
         print 'Error: file %s not found!' %file
         raise
     else:
-        parameters = ConfigParser()
+        parameters = ConfigParser()#{'phenotype':{'fully_connected': True}})
         parameters.readfp(config_file)
 
         # set class attributes
@@ -16,6 +16,8 @@ def load(file):
         Config.input_nodes          =       int(parameters.get('phenotype','input_nodes'))
         Config.output_nodes         =       int(parameters.get('phenotype','output_nodes'))
         Config.hidden_nodes         =       int(parameters.get('phenotype','hidden_nodes'))
+        #print 'fully_connected:',parameters.get('phenotype', 'fully_connected')
+        Config.fully_connected      =  bool(int(parameters.get('phenotype','fully_connected')))
         Config.max_weight           =     float(parameters.get('phenotype','max_weight'))
         Config.min_weight           =     float(parameters.get('phenotype','min_weight'))
         Config.feedforward          =  bool(int(parameters.get('phenotype','feedforward')))
@@ -56,6 +58,7 @@ class Config:
     input_nodes         = None
     output_nodes        = None
     hidden_nodes        = None
+    fully_connected     = None
     max_weight          = None
     min_weight          = None
     feedforward         = None

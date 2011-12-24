@@ -80,7 +80,9 @@ class Population(object):
 
         self.__population = []
         for i in xrange(self.__popsize):
-            g = genotypes.create_fully_connected()
+            g = genotypes.create_fully_connected() \
+                if Config.fully_connected \
+                else genotypes.create_minimally_connected()
             if Config.hidden_nodes > 0:
                 g.add_hidden_nodes(Config.hidden_nodes)
             self.__population.append(g)

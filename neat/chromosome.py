@@ -179,10 +179,11 @@ class Chromosome(object):
 
         disjoint += len(chromo2._connection_genes) - matching
 
-        assert(matching > 0) # this can't happen
+        #assert(matching > 0) # this can't happen
         distance = Config.excess_coeficient * excess + \
-                   Config.disjoint_coeficient * disjoint + \
-                   Config.weight_coeficient * (weight_diff/matching)
+                   Config.disjoint_coeficient * disjoint
+        if matching > 0:
+            distance += Config.weight_coeficient * (weight_diff/matching)
 
         return distance
 
@@ -236,10 +237,10 @@ class Chromosome(object):
                 self._connection_genes[cg.key] = cg
 
     @classmethod
-    def create_fully_connected(cls):
+    def create_unconnected(cls):
         """
         Factory method
-        Creates a chromosome for a fully connected feedforward network with no hidden nodes.
+        Creates a chromosome for an unconnected feedforward network with no hidden nodes.
         """
         c = cls(0, 0, node_gene_type, conn_gene_type)
         id = 1
@@ -254,6 +255,37 @@ class Chromosome(object):
                                           activation_type = Config.nn_activation)
             c._node_genes.append(node_gene)
             id += 1
+        assert id == len(c._node_genes) + 1
+        return c
+
+    @classmethod
+    def create_minimally_connected(cls):
+        """
+        Factory method
+        Creates a chromosome for a minimally connected feedforward network with no hidden nodes. That is, each output node will have a single connection from a randomly chosen input node.
+        """
+        c = cls.create_unconnected()
+        for node_gene in c.node_genes:
+            if node_gene.type != 'OUTPUT': continue
+
+            # Connect it to a random input node
+            input_node = random.choice(c._node_genes[:Config.input_nodes])
+            weight = random.gauss(0, Config.weight_stdev)
+
+            cg = c._conn_gene_type(input_node.id, node_gene.id, weight, True)
+            c._connection_genes[cg.key] = cg
+
+        return c
+
+    @classmethod
+    def create_fully_connected(cls):
+        """
+        Factory method
+        Creates a chromosome for a fully connected feedforward network with no hidden nodes.
+        """
+        c = cls.create_unconnected()
+        for node_gene in c.node_genes:
+            if node_gene.type != 'OUTPUT': continue
 
             # Connect it to all input nodes
             for input_node in c._node_genes[:Config.input_nodes]:
@@ -263,7 +295,7 @@ class Chromosome(object):
 
                 cg = c._conn_gene_type(input_node.id, node_gene.id, weight, True)
                 c._connection_genes[cg.key] = cg
-        assert id == len(c._node_genes) + 1
+
         return c
 
 

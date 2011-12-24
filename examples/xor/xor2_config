@@ -8,6 +8,7 @@
 [phenotype]
 input_nodes         = 2
 output_nodes        = 1
+fully_connected     = 1
 max_weight          = 30
 min_weight          = -30
 feedforward         = 1

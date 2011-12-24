@@ -3,6 +3,7 @@
 [phenotype]
 input_nodes         = 4
 output_nodes        = 1
+fully_connected     = 1
 max_weight          = +50
 min_weight          = -50
 random_range        = 0.5
