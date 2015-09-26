@@ -1,11 +1,15 @@
 import math
+import os
 import random
 import cPickle as pickle
 from neat import config, population, chromosome, genome, visualize
 from neat.nn import nn_pure as nn
 #from neat.nn import nn_cpp as nn # C++ extension
 
-config.load('xor2_config')
+# Load the config file, which is assumed to live in 
+# the same directory as this script.
+local_dir = os.path.dirname(__file__)
+config.load(os.path.join(local_dir, 'xor2_config'))
 
 # set node gene type
 chromosome.node_gene_type = genome.NodeGene
