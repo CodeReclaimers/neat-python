@@ -13,6 +13,7 @@ class Population(object):
                     # this method in your experiments
 
     def __init__(self, checkpoint_file=None):
+        self.__population = None
 
         if checkpoint_file:
             # start from a previous point: creates an 'empty'
@@ -40,19 +41,19 @@ class Population(object):
         """ Resumes the simulation from a previous saved point. """
         try:
             #file = open(checkpoint)
-            file = gzip.open(checkpoint)
+            f = gzip.open(checkpoint)
         except IOError:
             raise
         print 'Resuming from a previous point: %s' %checkpoint
         # when unpickling __init__ is not called again
-        previous_pop = pickle.load(file)
+        previous_pop = pickle.load(f)
         self.__dict__ = previous_pop.__dict__
 
         print 'Loading random state'
-        rstate = pickle.load(file)
+        rstate = pickle.load(f)
         random.setstate(rstate)
         #random.jumpahead(1)
-        file.close()
+        f.close()
 
     def __create_checkpoint(self, report):
         """ Saves the current simulation state. """
@@ -64,12 +65,12 @@ class Population(object):
 
         # dumps 'self'
         #file = open('checkpoint_'+str(self.__generation), 'w')
-        file = gzip.open('checkpoint_'+str(self.__generation), 'w', compresslevel = 5)
+        f = gzip.open('checkpoint_'+str(self.__generation), 'w', compresslevel = 5)
         # dumps the population
-        pickle.dump(self, file, protocol=2)
+        pickle.dump(self, f, protocol=2)
         # dumps the current random state
-        pickle.dump(random.getstate(), file, protocol=2)
-        file.close()
+        pickle.dump(random.getstate(), f, protocol=2)
+        f.close()
 
     def __create_population(self):
 
@@ -133,7 +134,7 @@ class Population(object):
         self.__set_compatibility_threshold()
 
     def __set_compatibility_threshold(self):
-        ''' Controls compatibility threshold '''
+        """ Controls compatibility threshold """
         if len(self.__species) > Config.species_size:
             Config.compatibility_threshold += Config.compatibility_change
         elif len(self.__species) < Config.species_size:
@@ -144,11 +145,11 @@ class Population(object):
 
     def average_fitness(self):
         """ Returns the average raw fitness of population """
-        sum = 0.0
+        s = 0.0
         for c in self:
-            sum += c.fitness
+            s += c.fitness
 
-        return sum/len(self)
+        return s/len(self)
 
     def stdeviation(self):
         """ Returns the population standard deviation """
@@ -250,7 +251,8 @@ class Population(object):
         for g in xrange(n):
             self.__generation += 1
 
-            if report: print '\n ****** Running generation %d ****** \n' % self.__generation
+            if report:
+                print '\n ****** Running generation %d ****** \n' % self.__generation
 
             # Evaluate individuals
             self.evaluate()
@@ -272,13 +274,13 @@ class Population(object):
 
             # saves the best chromo from the current generation
             if save_best:
-                file = open('best_chromo_'+str(self.__generation),'w')
-                pickle.dump(best, file)
-                file.close()
+                f = open('best_chromo_'+str(self.__generation),'w')
+                pickle.dump(best, f)
+                f.close()
 
             # Stops the simulation
             if best.fitness > Config.max_fitness_threshold:
-                print '\nBest individual found in epoch %s - complexity: %s' %(self.__generation, best.size())
+                print '\nBest individual in epoch %s meets fitness threshold - complexity: %s' %(self.__generation, best.size())
                 break
 
             #-----------------------------------------
@@ -364,7 +366,7 @@ class Population(object):
             # ----------------------------#
             # Controls under or overflow  #
             # ----------------------------#
-            fill = (self.__popsize) - len(new_population)
+            fill = self.__popsize - len(new_population)
             if fill < 0: # overflow
                 if report: print '   Removing %d excess individual(s) from the new population' %-fill
                 # TODO: This is dangerous! I can't remove a species' representant!

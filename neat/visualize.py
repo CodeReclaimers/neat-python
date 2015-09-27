@@ -76,7 +76,7 @@ def draw_ff(chromosome):
     else:
         print 'You do not have the PyDot package.'
 
-def plot_stats(stats):
+def plot_stats(stats, log=False):
     ''' Plots the population's average and best fitness. '''
     if has_biggles:
         generation = [i for i in xrange(len(stats[0]))]
@@ -91,6 +91,8 @@ def plot_stats(stats):
 
         plot.add(biggles.Curve(generation, fitness, color="red"))
         plot.add(biggles.Curve(generation, avg_pop, color="blue"))
+        if log:
+            plot.ylog = True
 
         #plot.show() # X11
         plot.write_img(600, 300, 'avg_fitness.svg')
@@ -145,7 +147,6 @@ def plot_species(species_log):
             plot.add(c)
             plot.add(biggles.FillBetween(generation, curves[i-1], generation, curves[i], color=random.randint(0,90000)))
 
-        
         plot.write_img(1024, 800, 'speciation.svg')
 
     else:

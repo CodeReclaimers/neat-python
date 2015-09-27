@@ -93,7 +93,7 @@ class Species(object):
 
         # this condition is useless since no species with spawn_amount < 0 will
         # reach this point - at least it shouldn't happen.
-        assert self.spawn_amount > 0, "Species %d with zero spawn amount!" % (self.__id)
+        #assert self.spawn_amount > 0, "Species %d with zero spawn amount!" % (self.__id)
 
         self.__subpopulation.sort()     # sort species's members by their fitness
         self.__subpopulation.reverse()  # best members first

@@ -1,29 +1,24 @@
-# test single pole performance
+# Test the performance of the genome produced by single_pole.py.
 
-from neat import config, chromosome, genome2
-from neat import nn
+import sys
 from random import randint
 import cPickle as pickle
+
+from neat import config, chromosome, genome
+from neat.nn import nn_pure as nn
 import single_pole
 
-chromosome.node_gene_type = genome2.NodeGene
+chromosome.node_gene_type = genome.NodeGene
 
 # load the winner
-file = open('winner_chromosome', 'r')
-c = pickle.load(file)
-file.close()
+with open('winner_chromosome', 'r') as f:
+    c = pickle.load(f)
 
 print 'Loaded chromosome:'
 print c
 
 config.load('spole_config')
 net = nn.create_phenotype(c)
-
-
-#x = 0.0
-#x_dot = 0.0
-#theta = 0.0
-#theta_dot = 0.0
 
 # initial conditions (as used by Stanley)
 x         = randint(0, 4799)/1000.0 - 2.4
@@ -49,13 +44,7 @@ for step in xrange(10**5):
     x, x_dot, theta, theta_dot = single_pole.cart_pole(action[0], x, x_dot, theta, theta_dot)
     
     if (abs(x) >= 2.4 or abs(theta) >= twelve_degrees):
-    #if abs(theta) >= twelve_degrees: # Igel (p. 5)
-        import sys
-        sys.stderr.write('\nFailed at step %d \n' %step)
-        sys.exit(0)
+        print '\nFailed at step %d \n' % step
+        sys.exit(1)
     
 print '\nPole balanced for 10^5 time steps!'
-           
-    #print "%f \t %f \t %f" %(action[0], x, theta)
-    #if (x < -2.4 or x > 2.4 or theta < -twelve_degrees or theta > twelve_degrees):
-    

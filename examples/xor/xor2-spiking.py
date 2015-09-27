@@ -1,8 +1,12 @@
 import math
-from neat import config, population, chromosome, genome, iznn, visualize
-#from psyco.classes import *
+import os
 
-config.load('xor2_config')
+from neat import config, population, chromosome, genome, iznn, visualize
+
+# Load the config file, which is assumed to live in
+# the same directory as this script.
+local_dir = os.path.dirname(__file__)
+config.load(os.path.join(local_dir, 'xor2_config'))
 
 # Temporary workaround
 chromosome.node_gene_type = genome.NodeGene
@@ -14,8 +18,9 @@ config.Config.output_nodes = 2
 INPUTS = ((0, 0), (0, 1), (1, 0), (1, 1))
 OUTPUTS = (0, 1, 1, 0)
 
-# For how long are we going to wait for an answer from the network?
-MAX_TIME = 100 # in miliseconds of simulation time
+# Length of simulated time (in milliseconds) for which will
+# wait for the network to produce an output.
+MAX_TIME = 100
 
 def eval_fitness(population):
     for chromosome in population:
@@ -30,7 +35,8 @@ def eval_fitness(population):
                 error += (1 - OUTPUTS[i])**2
             elif not output[0] and output[1]: # Network answered 0
                 error += (0 - OUTPUTS[i])**2
-            else: # No answer or ambiguous
+            else:
+                # No answer or ambiguous
                 error += 1
         chromosome.fitness = 1 - math.sqrt(error/len(OUTPUTS))
         if not chromosome.fitness:
@@ -38,16 +44,12 @@ def eval_fitness(population):
 
 population.Population.evaluate = eval_fitness
 pop = population.Population()
-pop.epoch(200, report=True, save_best=0)
+pop.epoch(200, report=True, save_best=False)
 
 # Draft solution for network visualizing
-visualize.draw_net(pop.stats[0][-1]) # best chromosome
+visualize.draw_net(pop.stats[0][-1])
 # Plots the evolution of the best/average fitness
 visualize.plot_stats(pop.stats)
 # Visualizes speciation
-#visualize.plot_species(pop.species_log)
+visualize.plot_species(pop.species_log)
 
-# saves the winner
-#file = open('winner_chromosome', 'w')
-#pickle.dump(pop.stats[0][-1], file)
-#file.close()

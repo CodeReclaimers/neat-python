@@ -1,24 +1,16 @@
-# ******************************** #
-# Single pole balancing experiment #
-# ******************************** #
-from neat import config, population, chromosome, genome2, visualize
-from neat import nn
+""" Single pole balancing experiment """
+import random
+import os
+import math
 import cPickle as pickle
-import math, random
 
-rstate = random.getstate()
-save = open('rstate','w')
-pickle.dump(rstate, save)
-save.close()
+from neat import config, population, chromosome, genome, visualize
+from neat.nn import nn_pure as nn
 
-#dumped = open('rstate','r')
-#rstate = pickle.load(dumped)
-#random.setstate(rstate)
-#dumped.close()
 
 def cart_pole(net_output, x, x_dot, theta, theta_dot):
     ''' Directly copied from Stanley's C++ source code '''
-    
+
     GRAVITY = 9.8
     MASSCART = 1.0
     MASSPOLE = 0.1
@@ -29,7 +21,6 @@ def cart_pole(net_output, x, x_dot, theta, theta_dot):
     TAU = 0.02  # seconds between state updates
     FOURTHIRDS = 1.3333333333333
 
-    #force = (net_output - 0.5) * FORCE_MAG * 2
     if net_output > 0.5:
         force = FORCE_MAG
     else:
@@ -67,11 +58,7 @@ def evaluate_population(population):
         x_dot     = random.randint(0, 1999)/1000.0 - 1.0
         theta     = random.randint(0,  399)/1000.0 - 0.2
         theta_dot = random.randint(0, 2999)/1000.0 - 1.5
-        #x = 0.0
-        #x_dot = 0.0
-        #theta = 0.0
-        #theta_dot = 0.0
-        
+
         fitness = 0
 
         for trials in xrange(num_steps):
@@ -102,11 +89,14 @@ def evaluate_population(population):
         chromo.fitness = fitness
 
 if __name__ == "__main__":
-     
-    config.load('spole_config') 
+
+    # Load the config file, which is assumed to live in
+    # the same directory as this script.
+    local_dir = os.path.dirname(__file__)
+    config.load(os.path.join(local_dir, 'spole_config'))
 
     # Temporary workaround
-    chromosome.node_gene_type = genome2.NodeGene
+    chromosome.node_gene_type = genome.NodeGene
     
     population.Population.evaluate = evaluate_population
     pop = population.Population()
@@ -114,12 +104,11 @@ if __name__ == "__main__":
     
     print 'Number of evaluations: %d' %(pop.stats[0][-1]).id
     
-    # visualize the best topology
-    visualize.draw_net(pop.stats[0][-1]) # best chromosome
-    # Plots the evolution of the best/average fitness
-    #visualize.plot_stats(pop.stats)
-    
-    # saves the winner
-    file = open('winner_chromosome', 'w')
-    pickle.dump(pop.stats[0][-1], file)
-    file.close()
+    # Visualize the best network.
+    visualize.draw_net(pop.stats[0][-1])
+    # Plot the evolution of the best/average fitness.
+    visualize.plot_stats(pop.stats, log=True)
+
+    # Save the winner,
+    with open('winner_chromosome', 'w') as f:
+        pickle.dump(pop.stats[0][-1], f)

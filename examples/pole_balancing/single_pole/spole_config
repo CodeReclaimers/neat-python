@@ -15,6 +15,7 @@ weight_stdev        = 0.9
 [genetic]
 pop_size              = 100
 max_fitness_threshold = 99999
+elitism               = 1
 
 # Human reasoning
 prob_addconn          = 0.3
