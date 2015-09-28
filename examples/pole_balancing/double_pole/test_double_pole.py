@@ -1,33 +1,25 @@
-from neat import config, chromosome, genome
-import random, sys
+import os
+import sys
 import cPickle as pickle
+
+from neat import config
 from cart_pole import CartPole
 
+filename = 'winner_chromosome'
 if len(sys.argv) > 1:
-    # load genome
-    try:
-        file = open(sys.argv[1], 'r')
-    except IOError:
-        print "Filename: '"+sys.argv[1]+"' not found!"
-        sys.exit(0)
-    else:
-        c = pickle.load(file)
-        file.close()
-else:
-    print "Loading default winner chromosome file"
-    try:
-        file = open('winner_chromosome', 'r')
-    except IOError:
-        print "Winner chromosome not found!"
-        sys.exit(0)
-    else:
-        c = pickle.load(file)
-        file.close()
+    filename = sys.argv[1]
+
+# load genome
+print "loading genome %s" % filename
+with open(filename, ''
+                    'r') as f:
+    c = pickle.load(f)
 
 # load settings file
-config.load('cpExp_config')
-print "Loaded genome:"
-print c
+local_dir = os.path.dirname(__file__)
+config.load(os.path.join(local_dir, 'dpole_config'))
+
+print "Loaded genome:\n%s" % c
 # starts the simulation
 simulator = CartPole([c], markov=False)
 simulator.run(testing=True)

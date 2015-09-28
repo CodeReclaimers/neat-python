@@ -12,7 +12,11 @@
  *  To compile manually:
  *  g++ -O2 -fPIC -Wall -I /usr/include/python2.5 -c dpole.cpp -o dpole.o
  *  g++ -lpython2.5 -shared dpole.o -o dpole.so
+ *
+ *  See setup.py for instructions on getting distutils to compile for you
+ *  (odds are you just need to do 'python setup.py build_ext -i').
 */
+
 #include <Python.h>
 #include <vector>
 #include <cmath>

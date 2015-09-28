@@ -1,12 +1,12 @@
-# ---------------- #
-# Cart pole module #
-# ---------------- #
+""" Cart pole module """
 import sys
 from random import randint
-from dpole import integrate # wrapped from C++
+
 from neat.nn import nn_pure as nn
-#from neat.nn import nn_cpp as nn
-#from neat.ctrnn import ctrnn_pure as nn
+
+# wrapped from C++
+from dpole import integrate
+
 
 class CartPole(object):
     def __init__(self, population, markov):
