@@ -42,9 +42,9 @@ elitism               = 1
 [genotype compatibility]
 compatibility_threshold = 3.0
 compatibility_change    = 0.0
-excess_coeficient       = 1.0
-disjoint_coeficient     = 1.0
-weight_coeficient       = 0.4
+excess_coefficient       = 1.0
+disjoint_coefficient     = 1.0
+weight_coefficient       = 0.4
 
 [species]
 species_size        = 10

@@ -42,14 +42,13 @@ def eval_fitness(population):
         if not chromosome.fitness:
             chromosome.fitness = 0.00001
 
-population.Population.evaluate = eval_fitness
 pop = population.Population()
-pop.epoch(200, report=True, save_best=False)
+pop.epoch(eval_fitness, 200, report=True, save_best=False)
 
 # Draft solution for network visualizing
-visualize.draw_net(pop.stats[0][-1])
+visualize.draw_net(pop.stats()[0][-1])
 # Plots the evolution of the best/average fitness
-visualize.plot_stats(pop.stats)
+visualize.plot_stats(pop.stats())
 # Visualizes speciation
-visualize.plot_species(pop.species_log)
+visualize.plot_species(pop.species_log())
 

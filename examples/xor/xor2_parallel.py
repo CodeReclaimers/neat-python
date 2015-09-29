@@ -9,10 +9,12 @@
 # parallel experiment in neat-python.                                   #
 # ----------------------------------------------------------------------#
 import math
-import random
+import os
 import zlib
 import cPickle as pickle
-from neat import config, population, chromosome, genome, visualize
+
+from neat import config, population, chromosome, genome
+
 
 #random.seed(5465)
 config.load('xor2_config')
@@ -108,9 +110,7 @@ def parallel_evaluation(compressed_pop, chunk):
     return fitness
 
 
-population.Population.evaluate = eval_fitness
-
 pop = population.Population()
-pop.epoch(400, report=1, save_best=False)
-#visualize.draw_ff(pop.stats[0][-1])
+pop.epoch(eval_fitness, 400, report=1, save_best=False)
+#visualize.draw_ff(pop.stats()[0][-1])
 job_server.print_stats()

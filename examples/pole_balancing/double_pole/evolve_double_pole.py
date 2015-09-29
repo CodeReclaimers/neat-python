@@ -28,18 +28,17 @@ if __name__ == "__main__":
     chromosome.node_gene_type = genome.NodeGene
     # chromosome.node_gene_type = genome.CTNodeGene
 
-    population.Population.evaluate = evaluate_population
     pop = population.Population()
-    pop.epoch(200, report=1, save_best=0)
+    pop.epoch(evaluate_population, 200, report=1, save_best=0)
 
-    winner = pop.stats[0][-1]
+    winner = pop.stats()[0][-1]
 
     # visualize the best topology
-    visualize.draw_net(winner) # best chromosome
+    visualize.draw_net(winner)  # best chromosome
     # Plots the evolution of the best/average fitness
-    visualize.plot_stats(pop.stats)
+    visualize.plot_stats(pop.stats())
     # Visualizes speciation
-    visualize.plot_species(pop.species_log)
+    visualize.plot_species(pop.species_log())
 
     print 'Number of evaluations: %d' % winner.id
     print 'Winner fitness: %f' % winner.fitness

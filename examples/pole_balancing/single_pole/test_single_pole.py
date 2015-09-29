@@ -6,7 +6,7 @@ import cPickle as pickle
 
 from neat import config, chromosome, genome
 from neat.nn import nn_pure as nn
-import single_pole
+import evolve_single_pole
 
 chromosome.node_gene_type = genome.NodeGene
 
@@ -41,7 +41,7 @@ for step in xrange(10**5):
     action = net.pactivate(inputs)
     
     # Apply action to the simulated cart-pole
-    x, x_dot, theta, theta_dot = single_pole.cart_pole(action[0], x, x_dot, theta, theta_dot)
+    x, x_dot, theta, theta_dot = evolve_single_pole.cart_pole(action[0], x, x_dot, theta, theta_dot)
     
     if (abs(x) >= 2.4 or abs(theta) >= twelve_degrees):
         print '\nFailed at step %d \n' % step

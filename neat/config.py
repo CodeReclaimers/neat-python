@@ -1,14 +1,15 @@
 # sets the configuration parameters for NEAT
 from ConfigParser import ConfigParser
 
+
 def load(file):
     try:
-        config_file = open(file,'r')
+        config_file = open(file, 'r')
     except IOError:
-        print 'Error: file %s not found!' %file
+        print 'Error: file %s not found!' % file
         raise
     else:
-        parameters = ConfigParser()#{'phenotype':{'fully_connected': True}})
+        parameters = ConfigParser()
         parameters.readfp(config_file)
 
         # set class attributes
@@ -39,9 +40,9 @@ def load(file):
         # genotype compatibility
         Config.compatibility_threshold  = float(parameters.get('genotype compatibility','compatibility_threshold'))
         Config.compatibility_change     = float(parameters.get('genotype compatibility','compatibility_change'))
-        Config.excess_coeficient        = float(parameters.get('genotype compatibility','excess_coeficient'))
-        Config.disjoint_coeficient      = float(parameters.get('genotype compatibility','disjoint_coeficient'))
-        Config.weight_coeficient        = float(parameters.get('genotype compatibility','weight_coeficient'))
+        Config.excess_coefficient        = float(parameters.get('genotype compatibility','excess_coefficient'))
+        Config.disjoint_coefficient      = float(parameters.get('genotype compatibility','disjoint_coefficient'))
+        Config.weight_coefficient        = float(parameters.get('genotype compatibility','weight_coefficient'))
 
         # species
         Config.species_size         =   int(parameters.get('species','species_size'))
@@ -83,9 +84,9 @@ class Config:
     # genotype compatibility
     compatibility_threshold = None
     compatibility_change    = None
-    excess_coeficient       = None
-    disjoint_coeficient     = None
-    weight_coeficient       = None
+    excess_coefficient       = None
+    disjoint_coefficient     = None
+    weight_coefficient       = None
 
     # species
     species_size        = None

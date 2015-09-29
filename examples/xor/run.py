@@ -4,8 +4,10 @@
 # same experiment for a number of times.           #
 # Please kindly note: THIS IS FAR FROM FINISHED!   #
 #**************************************************#
-import math, sys, random, pickle
-import re, os
+import math
+import sys
+import re
+import os
 
 p = re.compile('\d*\d')
 

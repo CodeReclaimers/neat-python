@@ -98,17 +98,16 @@ if __name__ == "__main__":
     # Temporary workaround
     chromosome.node_gene_type = genome.NodeGene
     
-    population.Population.evaluate = evaluate_population
     pop = population.Population()
-    pop.epoch(200, report=1, save_best=0)
+    pop.epoch(evaluate_population, 200, report=1, save_best=0)
     
-    print 'Number of evaluations: %d' %(pop.stats[0][-1]).id
+    print 'Number of evaluations: %d' %(pop.stats()[0][-1]).id
     
     # Visualize the best network.
-    visualize.draw_net(pop.stats[0][-1])
+    visualize.draw_net(pop.stats()[0][-1])
     # Plot the evolution of the best/average fitness.
-    visualize.plot_stats(pop.stats, log=True)
+    visualize.plot_stats(pop.stats(), log=True)
 
     # Save the winner,
     with open('winner_chromosome', 'w') as f:
-        pickle.dump(pop.stats[0][-1], f)
+        pickle.dump(pop.stats()[0][-1], f)
