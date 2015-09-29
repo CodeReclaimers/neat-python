@@ -4,9 +4,9 @@ from distutils.core import setup, Extension
 setup(
     name='neat-python',
     version='0.2',
-    author=
-    'CodeReclaimers, LLC',
-    author_email='alan@codereclaimers.com',
+    author='cesar.gomes, mirrorballu2',
+    maintainer='CodeReclaimers, LLC',
+    maintainer_email='alan@codereclaimers.com',
     url='https://github.com/CodeReclaimers/neat-python',
     description='A NEAT (NeuroEvolution of Augmenting Topologies) implementation',
     packages=['neat', 'neat/iznn', 'neat/nn', 'neat/ctrnn', 'neat/ifnn'],
