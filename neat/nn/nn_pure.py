@@ -7,7 +7,7 @@ except ImportError:
     pass
 
 def sigmoid(x, response, activation_type):
-    " Sigmoidal type of activation function "
+    """ Sigmoidal type of activation function """
     output = 0
     try:
         if activation_type == 'exp':
@@ -29,7 +29,7 @@ def sigmoid(x, response, activation_type):
     return output
 
 class Neuron(object):
-    " A simple sigmoidal neuron "
+    """ A simple sigmoidal neuron """
     __id = 0
     def __init__(self, neurontype, id = None, bias = 0.0, response = 1.0, activation_type = 'exp'):
 
@@ -58,7 +58,7 @@ class Neuron(object):
             return id
 
     def activate(self):
-        "Activates the neuron"
+        """Activates the neuron"""
         assert self._type is not 'INPUT'
         return sigmoid(self._update_activation() + self._bias, self._response, self._activation_type)
 
@@ -69,7 +69,7 @@ class Neuron(object):
         return soma
 
     def current_output(self):
-        "Prints neuron's current state"
+        """Prints neuron's current state"""
         #print "state: %f - output: %f" %(self.state, self.output)
         return self._output
 
@@ -81,7 +81,7 @@ class Neuron(object):
 
 
 class Synapse(object):
-    'A synapse indicates the connection strength between two neurons (or itself)'
+    """A synapse indicates the connection strength between two neurons (or itself)"""
     def __init__(self, source, destination, weight):
         self._weight = weight
         self._source = source            # a 'pointer' to the source neuron
@@ -93,8 +93,8 @@ class Synapse(object):
     destination = property(lambda self: self._destination)
 
     def incoming(self):
-        ''' Receives the incoming signal from a sensor or another neuron
-            and returns the value to the neuron it belongs to. '''
+        """ Receives the incoming signal from a sensor or another neuron
+            and returns the value to the neuron it belongs to. """
         return self._weight*self._source._output
 
     def __repr__(self):
@@ -102,7 +102,7 @@ class Synapse(object):
 
 
 class Network(object):
-    'A neural network has a list of neurons linked by synapses'
+    """A neural network has a list of neurons linked by synapses"""
     def __init__(self, neurons=[], links=None, num_inputs = 0):
         self.__neurons = neurons
         self.__synapses = []
@@ -138,13 +138,13 @@ class Network(object):
     #        return self.pactivate(inputs)
 
     def sactivate(self, inputs=[]):
-        '''Serial (asynchronous) network activation method. Mostly
+        """Serial (asynchronous) network activation method. Mostly
            used  in classification tasks (supervised learning) in
            feedforward topologies. All neurons are updated (activated)
            one at a time following their order of importance, so if
            you're defining your own feedforward topology, make sure
            you got them in the right order of activation.
-        '''
+        """
         assert len(inputs) == self._num_inputs, "Wrong number of inputs."
         # assign "input neurons'" output values (sensor readings)
 
@@ -161,11 +161,11 @@ class Network(object):
         return net_output
 
     def pactivate(self, inputs=[]):
-        '''Parallel (synchronous) network activation method. Mostly used
+        """Parallel (synchronous) network activation method. Mostly used
            for control and unsupervised learning (i.e., artificial life)
            in recurrent networks. All neurons are updated (activated)
            simultaneously.
-        '''
+        """
         assert len(inputs) == self._num_inputs, "Wrong number of inputs."
 
         # the current state is like a "photograph" taken at each time step

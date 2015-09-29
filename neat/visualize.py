@@ -138,7 +138,7 @@ except ImportError:
     print "The Python graphviz library is not installed. If you wish to generate a graphical representation " + \
           "of the resulting neural network, please install it: https://pypi.python.org/pypi/graphviz"
 
-    def draw_net(chromosome, filename):
+    def draw_net(chromosome, filename=None):
         print 'The graphviz library is not installed, unable to render network.'
 
 

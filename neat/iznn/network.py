@@ -22,7 +22,7 @@ class Network(object):
         return [n.has_fired for n in self.__output_neurons]
 
     def reset(self):
-        "Resets the network's state."
+        """Resets the network's state."""
         for n in self.__neurons.values():
             n.reset()
 

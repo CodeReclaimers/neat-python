@@ -2,15 +2,15 @@ from neat.iznn.iznn_pure import Synapse
 from neat.iznn.network import Network
 
 class Neuron(object):
-    'Neuron based on the integrate and fire model'
+    """Neuron based on the integrate and fire model"""
     def __init__(self, bias = 0, tau = 10, vrest = -70, vreset = -70, vt = -55):
-        '''
+        """
         tau, vrest, vreset, vthreshold are the parameters of this model.
         tau: membrane time constant in ms.
         vrest: rest potential in mV.
         vreset: reset potential in mV.
         vt: firing threshold in mV.
-        '''
+        """
         self.__invtau = 1.0 / tau
         self.__vrest = vrest
         self.__vreset = vreset
@@ -22,7 +22,7 @@ class Neuron(object):
         self.current = self.__bias
     
     def advance(self):
-        'Advances time in 1 ms.'
+        """Advances time in 1 ms."""
         self.__v += self.__invtau * (self.__vrest - self.__v + self.current)
         if self.__v >= self.__vt:
             self.__has_fired = True
@@ -32,7 +32,7 @@ class Neuron(object):
         self.current = self.__bias
     
     def reset(self):
-        'Resets all state variables.'
+        """Resets all state variables."""
         self.__v = self.__vreset
         self.__has_fired = False
         self.current = self.__bias

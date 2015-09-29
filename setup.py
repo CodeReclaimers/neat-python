@@ -5,12 +5,16 @@ setup(
     name='neat-python',
     version='0.2',
     author='cesar.gomes, mirrorballu2',
+    author_email='nobody@nowhere.com',
     maintainer='CodeReclaimers, LLC',
     maintainer_email='alan@codereclaimers.com',
     url='https://github.com/CodeReclaimers/neat-python',
+    license="BSD",
     description='A NEAT (NeuroEvolution of Augmenting Topologies) implementation',
+    long_description='NEAT (NeuroEvolution of Augmenting Topologies) is a method developed by Kenneth O. Stanley for '
+        + 'evolving arbitrary neural networks. This project is a Python implementation of NEAT.',
     packages=['neat', 'neat/iznn', 'neat/nn', 'neat/ctrnn', 'neat/ifnn'],
-    requires=['graphviz', 'python2-biggles'],
+    install_requires=['graphviz', 'python2-biggles'],
     ext_modules=[
         Extension('neat/iznn/iznn_cpp', ['neat/iznn/iznn.cpp']),
         Extension('neat/nn/ann', ['neat/nn/nn_cpp/ANN.cpp', 'neat/nn/nn_cpp/PyANN.cpp']),

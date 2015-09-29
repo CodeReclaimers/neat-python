@@ -34,7 +34,7 @@ class Population(object):
                 self.__create_population()
             else:
                 self.population = initial_population
-            self.__generation = -1
+            self.generation = -1
 
     def stats(self):
         return (self.__best_fitness, self.__avg_fitness)
@@ -66,11 +66,11 @@ class Population(object):
         # get current time
         # date = strftime("%Y_%m_%d_%Hh%Mm%Ss")
         if report:
-            print 'Creating checkpoint file at generation: %d' % self.__generation
+            print 'Creating checkpoint file at generation: %d' % self.generation
 
         # dumps 'self'
-        # file = open('checkpoint_'+str(self.__generation), 'w')
-        f = gzip.open('checkpoint_' + str(self.__generation), 'w', compresslevel=5)
+        # file = open('checkpoint_'+str(self.generation), 'w')
+        f = gzip.open('checkpoint_' + str(self.generation), 'w', compresslevel=5)
         # dumps the population
         pickle.dump(self, f, protocol=2)
         # dumps the current random state
@@ -241,10 +241,10 @@ class Population(object):
         t0 = time.time()  # for saving checkpoints
 
         for g in xrange(n):
-            self.__generation += 1
+            self.generation += 1
 
             if report:
-                print '\n ****** Running generation %d ****** \n' % self.__generation
+                print '\n ****** Running generation %d ****** \n' % self.generation
 
             # Evaluate individuals
             fitness_function(self.population)
@@ -266,14 +266,14 @@ class Population(object):
 
             # saves the best chromo from the current generation
             if save_best:
-                f = open('best_chromo_' + str(self.__generation), 'w')
+                f = open('best_chromo_' + str(self.generation), 'w')
                 pickle.dump(best, f)
                 f.close()
 
             # Stops the simulation
             if best.fitness > Config.max_fitness_threshold:
                 print '\nBest individual in epoch %s meets fitness threshold - complexity: %s' % (
-                self.__generation, best.size())
+                self.generation, best.size())
                 break
 
             # -----------------------------------------
@@ -397,7 +397,7 @@ class Population(object):
             if checkpoint_interval is not None and time.time() > t0 + 60 * checkpoint_interval:
                 self.__create_checkpoint(report)
                 t0 = time.time()  # updates the counter
-            elif checkpoint_generation is not None and self.__generation % checkpoint_generation == 0:
+            elif checkpoint_generation is not None and self.generation % checkpoint_generation == 0:
                 self.__create_checkpoint(report)
 
 

@@ -12,32 +12,32 @@ import math
 import os
 import zlib
 import cPickle as pickle
+import time
 
-from neat import config, population, chromosome, genome
+import pp
 
+from neat import config, population, chromosome, genome, visualize
+from neat.nn import nn_pure as nn
 
-#random.seed(5465)
-config.load('xor2_config')
+t0 = time.time()
 
-config.Config.max_fitness_threshold = 0.9
-config.Config.pop_size = 150
+# Load the config file, which is assumed to live in
+# the same directory as this script.
+local_dir = os.path.dirname(__file__)
+config.load(os.path.join(local_dir, 'xor2_config'))
+
 # Temporary workaround
 chromosome.node_gene_type = genome.NodeGene
 
-import pp
-# list of available servers
-#servers = ("server1:port1, "server2:port2", "server3:port3")
-servers = () # empty: run local
-# you can set the number of CPUs the local machine will use
-# if you set ncpus = 0, then only distributed workers will
-# receive and do the job
-job_server = pp.Server(ncpus=1, ppservers=servers, loglevel=20)
+# Create Parallel Python server
+secret = 'my_secret_key'
+job_server = pp.Server(ncpus=5, secret=secret)
 print "Starting pp with", job_server.get_ncpus(), "workers"
 
-def eval_fitness(population):
 
+def eval_fitness(population):
     # number of chunks (jobs)
-    num_chunks = 2
+    num_chunks = job_server.get_ncpus()
     # size for each subpopulation
     size = config.Config.pop_size/num_chunks
     # make sure we have a proper number of chunks
@@ -47,7 +47,7 @@ def eval_fitness(population):
     for k in xrange(num_chunks):
         # divide the population in chunks and evaluate each chunk on a
         # different processor or machine
-        print 'Chunk %d:  [%3d:%3d]' %(k, size*k, size*(k+1))
+        #print 'Chunk %d:  [%3d:%3d]' %(k, size*k, size*(k+1))
 
         # compressing the population is useful when running
         # on a network of machines over the internet
@@ -78,13 +78,14 @@ def eval_fitness(population):
     for i, fitness in enumerate(all_jobs):
         population[i].fitness = fitness
 
+
 def parallel_evaluation(compressed_pop, chunk):
     # This function will run in parallel
     from neat.nn import nn_pure as nn
 
     # don't print OS calls to stdout:
     #http://www.parallelpython.com/component/option,com_smf/Itemid,29/topic,103.0
-    print "Evaluating chunk %d at %s" %(chunk, os.popen("hostname").read())
+    #print "Evaluating chunk %d at %s" %(chunk, os.popen("hostname").read())
 
     # decompress the pickled object
     decompress_pop = zlib.decompress(compressed_pop)
@@ -111,6 +112,27 @@ def parallel_evaluation(compressed_pop, chunk):
 
 
 pop = population.Population()
-pop.epoch(eval_fitness, 400, report=1, save_best=False)
-#visualize.draw_ff(pop.stats()[0][-1])
+pop.epoch(eval_fitness, 400, report=False)
+
+print "total evolution time %.3f sec" % (time.time() - t0)
+print "time per generation %.3f sec" % ((time.time() - t0) / pop.generation)
+
 job_server.print_stats()
+
+winner = pop.stats()[0][-1]
+print 'Number of evaluations: %d' % winner.id
+
+# Visualize the winner network and plot statistics.
+visualize.draw_net(winner)
+visualize.plot_stats(pop.stats())
+visualize.plot_species(pop.species_log())
+
+# Let's check if it's really solved the problem
+print '\nBest network output:'
+net = nn.create_ffphenotype(winner)
+INPUTS = ((0, 0), (0, 1), (1, 0), (1, 1))
+OUTPUTS = (0, 1, 1, 0)
+for i, inputs in enumerate(INPUTS):
+    output = net.sactivate(inputs)  # serial activation
+    print "%1.5f \t %1.5f" % (OUTPUTS[i], output[0])
+

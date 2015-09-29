@@ -9,7 +9,7 @@ from neat.nn import nn_pure as nn
 
 
 def cart_pole(net_output, x, x_dot, theta, theta_dot):
-    ''' Directly copied from Stanley's C++ source code '''
+    """ Directly copied from Stanley's C++ source code """
 
     GRAVITY = 9.8
     MASSCART = 1.0
