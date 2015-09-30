@@ -103,11 +103,13 @@ if __name__ == "__main__":
     
     print 'Number of evaluations: %d' %(pop.stats()[0][-1]).id
     
-    # Visualize the best network.
-    visualize.draw_net(pop.stats()[0][-1])
-    # Plot the evolution of the best/average fitness.
-    visualize.plot_stats(pop.stats(), log=True)
-
     # Save the winner,
     with open('winner_chromosome', 'w') as f:
         pickle.dump(pop.stats()[0][-1], f)
+
+    # Plot the evolution of the best/average fitness.
+    visualize.plot_stats(pop.stats(), ylog=True)
+    # Visualizes speciation
+    visualize.plot_species(pop.species_log())
+    # Visualize the best network.
+    visualize.draw_net(pop.stats()[0][-1], view=True)

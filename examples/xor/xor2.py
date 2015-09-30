@@ -40,7 +40,7 @@ def run():
     winner = pop.stats()[0][-1]
     print 'Number of evaluations: %d' % winner.id
 
-    # Let's check if it's really solved the problem
+    # Verify network output against training data.
     print '\nBest network output:'
     net = nn.create_ffphenotype(winner)
     for i, inputs in enumerate(INPUTS):
