@@ -5,21 +5,13 @@ import os
 from neat import config, population, chromosome, genome, visualize
 from neat.nn import nn_pure as nn
 
-# Load the config file, which is assumed to live in
-# the same directory as this script.
-local_dir = os.path.dirname(__file__)
-config.load(os.path.join(local_dir, 'xor2_config'))
-
-# set node gene type
-chromosome.node_gene_type = genome.NodeGene
-
 # XOR-2
 INPUTS = [[0, 0], [0, 1], [1, 0], [1, 1]]
 OUTPUTS = [0, 1, 1, 0]
 
 
-def eval_fitness(population):
-    for chromo in population:
+def eval_fitness(chromosomes):
+    for chromo in chromosomes:
         net = nn.create_ffphenotype(chromo)
 
         error = 0.0
@@ -33,20 +25,33 @@ def eval_fitness(population):
         chromo.fitness = 1 - math.sqrt(error / len(OUTPUTS))
 
 
-pop = population.Population()
-pop.epoch(eval_fitness, 300, report=True, save_best=False)
+def run():
+    # Load the config file, which is assumed to live in
+    # the same directory as this script.
+    local_dir = os.path.dirname(__file__)
+    config.load(os.path.join(local_dir, 'xor2_config'))
 
-winner = pop.stats()[0][-1]
-print 'Number of evaluations: %d' % winner.id
+    # set node gene type
+    chromosome.node_gene_type = genome.NodeGene
 
-# Visualize the winner network and plot statistics.
-visualize.draw_net(winner)
-visualize.plot_stats(pop.stats())
-visualize.plot_species(pop.species_log())
+    pop = population.Population()
+    pop.epoch(eval_fitness, 300, report=True, save_best=False)
 
-# Let's check if it's really solved the problem
-print '\nBest network output:'
-net = nn.create_ffphenotype(winner)
-for i, inputs in enumerate(INPUTS):
-    output = net.sactivate(inputs)  # serial activation
-    print "%1.5f \t %1.5f" % (OUTPUTS[i], output[0])
+    winner = pop.stats()[0][-1]
+    print 'Number of evaluations: %d' % winner.id
+
+    # Let's check if it's really solved the problem
+    print '\nBest network output:'
+    net = nn.create_ffphenotype(winner)
+    for i, inputs in enumerate(INPUTS):
+        output = net.sactivate(inputs)  # serial activation
+        print "%1.5f \t %1.5f" % (OUTPUTS[i], output[0])
+
+    # Visualize the winner network and plot statistics.
+    visualize.plot_stats(pop.stats())
+    visualize.plot_species(pop.species_log())
+    visualize.draw_net(winner, view=True)
+
+
+if __name__ == '__main__':
+    run()

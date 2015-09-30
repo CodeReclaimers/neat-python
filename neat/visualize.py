@@ -99,7 +99,7 @@ except ImportError:
     print "The python2-biggles library is not installed. If you wish to plot some nice statistics, " + \
           ", please install it: https://pypi.python.org/pypi/python2-biggles"
 
-    def plot_stats(stats, ylog):
+    def plot_stats(stats, ylog=False):
         print 'The python2-biggles library is not installed, unable to plot statistics.'
 
     def plot_spikes(spikes):
@@ -112,7 +112,7 @@ except ImportError:
 try:
     import graphviz
 
-    def draw_net(chromosome, filename=None):
+    def draw_net(chromosome, filename=None, view=False):
         """ Receives a chromosome and draws a neural network with arbitrary topology. """
         dot = graphviz.Digraph(format='svg', node_attr=node_attrs)
 
@@ -132,13 +132,13 @@ try:
             else:
                 dot.edge(a, b)
 
-        dot.render(filename, view=True)
+        dot.render(filename, view=view)
 
 except ImportError:
     print "The Python graphviz library is not installed. If you wish to generate a graphical representation " + \
           "of the resulting neural network, please install it: https://pypi.python.org/pypi/graphviz"
 
-    def draw_net(chromosome, filename=None):
+    def draw_net(chromosome, filename=None, view=False):
         print 'The graphviz library is not installed, unable to render network.'
 
 

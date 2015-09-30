@@ -8,5 +8,5 @@ Simple Model of Spiking Neurons
 IEEE TRANSACTIONS ON NEURAL NETWORKS, VOL. 14, NO. 6, NOVEMBER 2003
 """
 
-from iznn_cpp import *
+from iznn_pure import *
 from network import *

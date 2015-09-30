@@ -6,11 +6,6 @@
 """
 from neat.nn import nn_pure as nn
 
-try:
-    import psyco; psyco.full()
-except ImportError:
-    pass
-
 class CTNeuron(nn.Neuron):
     """ Continuous-time neuron model based on:
 

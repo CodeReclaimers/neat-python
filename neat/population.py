@@ -277,11 +277,10 @@ class Population(object):
                 break
 
             # -----------------------------------------
-            # Prints chromosome's parents id:  {dad_id, mon_id} -> child_id
+            # Prints chromosome's parents id:  {dad_id, mom_id} -> child_id
             # for chromosome in self.population:
             #    print '{%3d; %3d} -> %3d' %(chromosome.parent1_id, chromosome.parent2_id, chromosome.id)
             # -----------------------------------------
-
 
             # Remove stagnated species and its members (except if it has the best chromosome)
             for s in self.__species[:]:

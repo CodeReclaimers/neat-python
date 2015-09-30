@@ -1,4 +1,4 @@
-from iznn_cpp import *
+from iznn_pure import *
 
 class Network(object):
     """ A neural network has a list of neurons linked by synapses """
