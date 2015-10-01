@@ -83,4 +83,4 @@ if __name__ == '__main__':
         #print '%d\t%f' % (i, n.potential)
         n.advance()
 
-    visualize.plot_spikes(neuron_membrane)
+    visualize.plot_spikes(neuron_membrane, view=True)
