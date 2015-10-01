@@ -1,9 +1,8 @@
-# Installation script
-from distutils.core import setup, Extension
+from distutils.core import setup
 
 setup(
     name='neat-python',
-    version='0.1',
+    version='0.1.3',
     author='cesar.gomes, mirrorballu2',
     author_email='nobody@nowhere.com',
     maintainer='CodeReclaimers, LLC',
@@ -15,10 +14,6 @@ setup(
                      'developed by Kenneth O. Stanley for evolving arbitrary neural networks.',
     packages=['neat', 'neat/iznn', 'neat/nn', 'neat/ctrnn', 'neat/ifnn'],
     install_requires=['graphviz', 'matplotlib'],
-    ext_modules=[
-        Extension('neat/iznn/iznn_cpp', ['neat/iznn/iznn.cpp']),
-        Extension('neat/nn/ann', ['neat/nn/nn_cpp/ANN.cpp', 'neat/nn/nn_cpp/PyANN.cpp']),
-        Extension('neat/ifnn/ifnn_cpp', ['neat/ifnn/ifnn.cpp']), ],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',

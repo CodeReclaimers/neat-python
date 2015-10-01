@@ -1,49 +1,53 @@
 import math
 import random
 
-try:
-    import psyco; psyco.full()
-except ImportError:
-    pass
 
 def sigmoid(x, response, activation_type):
     """ Sigmoidal type of activation function """
     output = 0
     try:
         if activation_type == 'exp':
-            if x < - 30: output = 0.0
-            elif x > 30: output = 1.0
-            else: output = 1.0/(1.0 + math.exp(-x*response))
+            if x < - 30:
+                output = 0.0
+            elif x > 30:
+                output = 1.0
+            else:
+                output = 1.0 / (1.0 + math.exp(-x * response))
         elif activation_type == 'tanh':
-            if x < - 20: output = -1.0
-            elif x > 20: output = +1.0
-            else: output = math.tanh(x*response)
+            if x < - 20:
+                output = -1.0
+            elif x > 20:
+                output = +1.0
+            else:
+                output = math.tanh(x * response)
         else:
             # raise exception
             print 'Invalid activation type selected:', activation_type
-            #raise NameError('Invalid activation type selected:', activation_type)
+            # raise NameError('Invalid activation type selected:', activation_type)
 
     except OverflowError:
         print 'Overflow error: x = ', x
 
     return output
 
+
 class Neuron(object):
     """ A simple sigmoidal neuron """
     __id = 0
-    def __init__(self, neurontype, id = None, bias = 0.0, response = 1.0, activation_type = 'exp'):
 
-        self._id = self.__get_new_id(id) # every neuron has an ID
+    def __init__(self, neurontype, id=None, bias=0.0, response=1.0, activation_type='exp'):
+
+        self._id = self.__get_new_id(id)  # every neuron has an ID
 
         self._synapses = []
 
         self._bias = bias
         self._type = neurontype
-        assert(self._type in ('INPUT', 'OUTPUT', 'HIDDEN'))
+        assert (self._type in ('INPUT', 'OUTPUT', 'HIDDEN'))
 
-        self._activation_type = activation_type # default is exponential
+        self._activation_type = activation_type  # default is exponential
 
-        self._response = response # default = 4.924273 (Stanley, p. 146)
+        self._response = response  # default = 4.924273 (Stanley, p. 146)
         self._output = 0.0  # for recurrent networks all neurons must have an "initial state"
 
     type = property(lambda self: self._type, "Returns neuron's type: INPUT, OUTPUT, or HIDDEN")
@@ -70,23 +74,24 @@ class Neuron(object):
 
     def current_output(self):
         """Prints neuron's current state"""
-        #print "state: %f - output: %f" %(self.state, self.output)
+        # print "state: %f - output: %f" %(self.state, self.output)
         return self._output
 
     def create_synapse(self, s):
         self._synapses.append(s)
 
     def __repr__(self):
-        return '%d %s' %(self._id, self._type)
+        return '%d %s' % (self._id, self._type)
 
 
 class Synapse(object):
     """A synapse indicates the connection strength between two neurons (or itself)"""
+
     def __init__(self, source, destination, weight):
         self._weight = weight
-        self._source = source            # a 'pointer' to the source neuron
+        self._source = source  # a 'pointer' to the source neuron
         self._destination = destination  # a 'pointer' to the destination neuron
-        destination.create_synapse(self) # adds the synapse to the destination neuron
+        destination.create_synapse(self)  # adds the synapse to the destination neuron
 
     # for external access
     source = property(lambda self: self._source)
@@ -95,21 +100,22 @@ class Synapse(object):
     def incoming(self):
         """ Receives the incoming signal from a sensor or another neuron
             and returns the value to the neuron it belongs to. """
-        return self._weight*self._source._output
+        return self._weight * self._source._output
 
     def __repr__(self):
-        return '%s -> %s -> %s' %(self._source._id, self._weight, self._destination._id)
+        return '%s -> %s -> %s' % (self._source._id, self._weight, self._destination._id)
 
 
 class Network(object):
     """A neural network has a list of neurons linked by synapses"""
-    def __init__(self, neurons=[], links=None, num_inputs = 0):
+
+    def __init__(self, neurons=[], links=None, num_inputs=0):
         self.__neurons = neurons
         self.__synapses = []
         self._num_inputs = num_inputs
 
         if links is not None:
-            N = {} # a temporary dictionary to create the network connections
+            N = {}  # a temporary dictionary to create the network connections
             for n in self.__neurons:
                 N[n._id] = n
             for c in links:
@@ -131,7 +137,7 @@ class Network(object):
     def __repr__(self):
         return '%d nodes and %d synapses' % (len(self.__neurons), len(self.__synapses))
 
-    #def activate(self, inputs=[]):
+    # def activate(self, inputs=[]):
     #    if Config.feedforward:
     #        return self.sactivate(inputs)
     #    else:
@@ -150,13 +156,13 @@ class Network(object):
 
         it = iter(inputs)
         for n in self.__neurons[:self._num_inputs]:
-            if(n._type == 'INPUT'):
-                n._output = it.next() # iterates over inputs
+            if (n._type == 'INPUT'):
+                n._output = it.next()  # iterates over inputs
         # activate all neurons in the network (except for the inputs)
         net_output = []
         for n in self.__neurons[self._num_inputs:]:
             n._output = n.activate()
-            if(n._type == 'OUTPUT'):
+            if (n._type == 'OUTPUT'):
                 net_output.append(n._output)
         return net_output
 
@@ -174,17 +180,18 @@ class Network(object):
         it = iter(inputs)
         for n in self.__neurons:
             if n._type == 'INPUT':
-                n._output = it.next() # iterates over inputs
-            else: # hidden or output neurons
+                n._output = it.next()  # iterates over inputs
+            else:  # hidden or output neurons
                 current_state.append(n.activate())
         # updates all neurons at once
         net_output = []
         for n, state in zip(self.__neurons[self._num_inputs:], current_state):
-            n._output = state # updates from the previous step
+            n._output = state  # updates from the previous step
             if n._type == 'OUTPUT':
                 net_output.append(n._output)
 
         return net_output
+
 
 class FeedForward(Network):
     """ A feedforward network is a particular class of neural network.
@@ -194,8 +201,8 @@ class FeedForward(Network):
     def __init__(self, layers, use_bias=False, activation_type=None):
         super(FeedForward, self).__init__()
 
-        self.__input_layer   = layers[0]
-        self.__output_layer  = layers[-1]
+        self.__input_layer = layers[0]
+        self.__output_layer = layers[-1]
         self.__hidden_layers = layers[1:-1]
         self.__use_bias = use_bias
 
@@ -208,44 +215,46 @@ class FeedForward(Network):
         if self.__use_bias:
             r = random.uniform
         else:
-            r = lambda a,b: 0
+            r = lambda a, b: 0
 
         for i in xrange(self.__input_layer):
             self.add_neuron(Neuron('INPUT'))
 
         for i in xrange(self.__hidden_layers[0]):
-            self.add_neuron(Neuron('HIDDEN', bias = r(-1,1),
-                                   response = 1,
-                                   activation_type = activation_type))
+            self.add_neuron(Neuron('HIDDEN', bias=r(-1, 1),
+                                   response=1,
+                                   activation_type=activation_type))
 
         for i in xrange(self.__output_layer):
-            self.add_neuron(Neuron('OUTPUT', bias = r(-1,1),
-                                   response = 1,
-                                   activation_type = activation_type))
+            self.add_neuron(Neuron('OUTPUT', bias=r(-1, 1),
+                                   response=1,
+                                   activation_type=activation_type))
 
         r = random.uniform  # assign random weights
         # inputs -> hidden
         for i in self.neurons[:self.__input_layer]:
-                for h in self.neurons[self.__input_layer:-self.__output_layer]:
-                        self.add_synapse(Synapse(i, h, r(-1,1)))
+            for h in self.neurons[self.__input_layer:-self.__output_layer]:
+                self.add_synapse(Synapse(i, h, r(-1, 1)))
         # hidden -> outputs
         for h in self.neurons[self.__input_layer:-self.__output_layer]:
-                for o in self.neurons[-self.__output_layer:]:
-                        self.add_synapse(Synapse(h, o, r(-1,1)))
+            for o in self.neurons[-self.__output_layer:]:
+                self.add_synapse(Synapse(h, o, r(-1, 1)))
+
 
 def create_phenotype(chromo):
-        """ Receives a chromosome and returns its phenotype (a neural network) """
+    """ Receives a chromosome and returns its phenotype (a neural network) """
 
-        neurons_list = [Neuron(ng._type, ng._id,
-                               ng._bias,
-                               ng._response,
-                               ng.activation_type)
-                        for ng in chromo._node_genes]
+    neurons_list = [Neuron(ng._type, ng._id,
+                           ng._bias,
+                           ng._response,
+                           ng.activation_type)
+                    for ng in chromo._node_genes]
 
-        conn_list = [(cg.innodeid, cg.outnodeid, cg.weight)
-                     for cg in chromo.conn_genes if cg.enabled]
+    conn_list = [(cg.innodeid, cg.outnodeid, cg.weight)
+                 for cg in chromo.conn_genes if cg.enabled]
 
-        return Network(neurons_list, conn_list, chromo.sensors)
+    return Network(neurons_list, conn_list, chromo.sensors)
+
 
 def create_ffphenotype(chromo):
     """ Receives a chromosome and returns its phenotype (a neural network) """
@@ -257,40 +266,41 @@ def create_ffphenotype(chromo):
     # Add hidden nodes in the right order
     for id in chromo.node_order:
         neurons_list.append(Neuron('HIDDEN',
-                                   id, chromo.node_genes[id-1].bias,
-                                   chromo.node_genes[id-1].response,
-                                   chromo.node_genes[id-1].activation_type))
+                                   id, chromo.node_genes[id - 1].bias,
+                                   chromo.node_genes[id - 1].response,
+                                   chromo.node_genes[id - 1].activation_type))
     # finally the output
     neurons_list.extend(Neuron('OUTPUT', ng.id, ng.bias,
                                ng.response, ng.activation_type) \
-                               for ng in chromo.node_genes if ng.type == 'OUTPUT')
+                        for ng in chromo.node_genes if ng.type == 'OUTPUT')
 
-    assert(len(neurons_list) == len(chromo.node_genes))
+    assert (len(neurons_list) == len(chromo.node_genes))
 
     conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
                  for cg in chromo.conn_genes if cg.enabled]
 
     return Network(neurons_list, conn_list, chromo.sensors)
 
+
 if __name__ == "__main__":
     # Example
-    #from neat import visualize
+    # from neat import visualize
 
-    nn = FeedForward([2,10,3], use_bias=False, activation_type = 'exp')
+    nn = FeedForward([2, 10, 3], use_bias=False, activation_type='exp')
     ##visualize.draw_ff(nn)
     print 'Serial activation method: '
     for t in range(3):
-        print nn.sactivate([1,1])
+        print nn.sactivate([1, 1])
 
-    #print 'Parallel activation method: '
-    #for t in range(3):
-        #print nn.pactivate([1,1])
+        # print 'Parallel activation method: '
+        # for t in range(3):
+        # print nn.pactivate([1,1])
 
-    # defining a neural network manually
-    #neurons = [Neuron('INPUT', 1), Neuron('HIDDEN', 2), Neuron('OUTPUT', 3)]
-    #connections = [(1, 2, 0.5), (1, 3, 0.5), (2, 3, 0.5)]
+        # defining a neural network manually
+        # neurons = [Neuron('INPUT', 1), Neuron('HIDDEN', 2), Neuron('OUTPUT', 3)]
+        # connections = [(1, 2, 0.5), (1, 3, 0.5), (2, 3, 0.5)]
 
-    #net = Network(neurons, connections) # constructs the neural network
-    #visualize.draw_ff(net)
-    #print net.pactivate([0.04]) # parallel activation method
-    #print net # print how many neurons and synapses our network has
+        # net = Network(neurons, connections) # constructs the neural network
+        # visualize.draw_ff(net)
+        # print net.pactivate([0.04]) # parallel activation method
+        # print net # print how many neurons and synapses our network has
