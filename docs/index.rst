@@ -12,11 +12,17 @@ networks. NEAT-Python is a Python implementation of NEAT.
 For further information regarding general concepts and theory, please see `Selected Publications
 <http://www.cs.ucf.edu/~kstanley/#publications>`_ in Stanley's website.
 
+If you encounter any confusing or incorrect information in this documentation, please open an issue in the `GitHub project
+<https://github.com/CodeReclaimers/neat-python>`_.
+
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
+
+   neat_overview
+   xor_example
 
 
 
