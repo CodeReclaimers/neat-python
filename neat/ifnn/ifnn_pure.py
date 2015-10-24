@@ -1,9 +1,11 @@
 from neat.iznn.iznn_pure import Synapse
 from neat.iznn.network import Network
 
+
 class Neuron(object):
     """Neuron based on the integrate and fire model"""
-    def __init__(self, bias = 0, tau = 10, vrest = -70, vreset = -70, vt = -55):
+
+    def __init__(self, bias=0, tau=10, vrest=-70, vreset=-70, vt=-55):
         """
         tau, vrest, vreset, vthreshold are the parameters of this model.
         tau: membrane time constant in ms.
@@ -20,7 +22,7 @@ class Neuron(object):
         assert self.__v < self.__vt
         self.__has_fired = False
         self.current = self.__bias
-    
+
     def advance(self):
         """Advances time in 1 ms."""
         self.__v += self.__invtau * (self.__vrest - self.__v + self.current)
@@ -30,20 +32,21 @@ class Neuron(object):
         else:
             self.__has_fired = False
         self.current = self.__bias
-    
+
     def reset(self):
         """Resets all state variables."""
         self.__v = self.__vreset
         self.__has_fired = False
         self.current = self.__bias
-    
-    potential = property(lambda self: self.__v, doc = 'Membrane potential')
+
+    potential = property(lambda self: self.__v, doc='Membrane potential')
     has_fired = property(lambda self: self.__has_fired,
-                     doc = 'Indicates whether the neuron has fired')
+                         doc='Indicates whether the neuron has fired')
+
 
 def create_phenotype(chromosome):
     """ Receives a chromosome and returns its phenotype (a neural network) """
-    
+
     neurons = {}
     input_neurons = []
     output_neurons = []
@@ -53,8 +56,8 @@ def create_phenotype(chromosome):
             input_neurons.append(neurons[ng.id])
         elif ng.type == 'OUTPUT':
             output_neurons.append(neurons[ng.id])
-    
+
     synapses = [Synapse(neurons[cg.innodeid], neurons[cg.outnodeid], cg.weight) \
-                 for cg in chromosome.conn_genes if cg.enabled] 
-    
+                for cg in chromosome.conn_genes if cg.enabled]
+
     return Network(neurons, input_neurons, output_neurons, synapses)

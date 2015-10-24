@@ -23,6 +23,8 @@ max_fitness_threshold = 0.9
 # Human reasoning
 prob_addconn          = 0.05
 prob_addnode          = 0.03
+prob_deleteconn       = 0.05
+prob_deletenode       = 0.05
 prob_mutatebias       = 0.20
 bias_mutation_power   = 0.50
 prob_mutate_weight    = 0.90

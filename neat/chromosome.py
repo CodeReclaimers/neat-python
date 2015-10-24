@@ -49,10 +49,12 @@ class Chromosome(object):
         r = random.random
         if r() < Config.prob_addnode:
             self._mutate_add_node()
-
         elif r() < Config.prob_addconn:
             self._mutate_add_connection()
-
+        # elif r() < Config.prob_deletenode:
+        #    self._mutate_delete_node()
+        elif r() < Config.prob_deleteconn:
+            self._mutate_delete_connection()
         else:
             # mutate weights
             for cg in self._connection_genes.values():
@@ -150,6 +152,27 @@ class Chromosome(object):
                         else:
                             count += 1
 
+    def _mutate_delete_node(self):
+        if len(self._node_genes) > self._input_nodes + self._output_nodes:
+            idx = random.randint(self._input_nodes + self._output_nodes,
+                                 len(self._node_genes) - 1)
+            node = self._node_genes[idx]
+
+            keys_to_delete = []
+            for key, value in self._connection_genes.items():
+                if value.innodeid == node.id or value.outnodeid == node.id:
+                    keys_to_delete.append(key)
+
+            for key in keys_to_delete:
+                del self._connection_genes[key]
+
+            del self._node_genes[idx]
+
+    def _mutate_delete_connection(self):
+        if len(self._connection_genes) > 1:
+            key = random.choice(self._connection_genes.keys())
+            del self._connection_genes[key]
+
     # compatibility function
     def distance(self, other):
         """ Returns the distance between this chromosome and the other. """
@@ -220,13 +243,13 @@ class Chromosome(object):
         return s
 
     def add_hidden_nodes(self, num_hidden):
-        id = len(self._node_genes) + 1
+        node_id = len(self._node_genes) + 1
         for i in range(num_hidden):
-            node_gene = self._node_gene_type(id,
+            node_gene = self._node_gene_type(node_id,
                                              nodetype='HIDDEN',
                                              activation_type=Config.nn_activation)
             self._node_genes.append(node_gene)
-            id += 1
+            node_id += 1
             # Connect all nodes to it
             for pre in self._node_genes:
                 weight = random.gauss(0, Config.weight_stdev)
@@ -245,19 +268,19 @@ class Chromosome(object):
         Creates a chromosome for an unconnected feedforward network with no hidden nodes.
         """
         c = cls(0, 0, node_gene_type, conn_gene_type)
-        id = 1
+        node_id = 1
         # Create node genes
         for i in range(Config.input_nodes):
-            c._node_genes.append(c._node_gene_type(id, 'INPUT'))
-            id += 1
+            c._node_genes.append(c._node_gene_type(node_id, 'INPUT'))
+            node_id += 1
         # c._input_nodes += num_input
         for i in range(Config.output_nodes):
-            node_gene = c._node_gene_type(id,
+            node_gene = c._node_gene_type(node_id,
                                           nodetype='OUTPUT',
                                           activation_type=Config.nn_activation)
             c._node_genes.append(node_gene)
-            id += 1
-        assert id == len(c._node_genes) + 1
+            node_id += 1
+        assert node_id == len(c._node_genes) + 1
         return c
 
     @classmethod
@@ -373,14 +396,14 @@ class FFChromosome(Chromosome):
                self.__node_order.index(in_node.id) < self.__node_order.index(out_node.id)
 
     def add_hidden_nodes(self, num_hidden):
-        id = len(self._node_genes) + 1
+        node_id = len(self._node_genes) + 1
         for i in range(num_hidden):
-            node_gene = self._node_gene_type(id,
+            node_gene = self._node_gene_type(node_id,
                                              nodetype='HIDDEN',
                                              activation_type=Config.nn_activation)
             self._node_genes.append(node_gene)
             self.__node_order.append(node_gene.id)
-            id += 1
+            node_id += 1
             # Connect all input nodes to it
             for pre in self._node_genes[:self._input_nodes]:
                 weight = random.gauss(0, Config.weight_stdev)
@@ -405,33 +428,3 @@ class FFChromosome(Chromosome):
         s = super(FFChromosome, self).__str__()
         s += '\nNode order: ' + str(self.__node_order)
         return s
-
-
-if __name__ == '__main__':
-    # Example
-    import visualize
-    # define some attributes
-    node_gene_type = genome.NodeGene  # standard neuron model
-    conn_gene_type = genome.ConnectionGene  # and connection link
-    Config.nn_activation = 'exp'  # activation function
-    Config.weight_stdev = 0.9  # weights distribution
-
-    Config.input_nodes = 2  # number of inputs
-    Config.output_nodes = 1  # number of outputs
-
-    # creates a chromosome for recurrent networks
-    # c1 = Chromosome.create_fully_connected()
-
-    # creates a chromosome for feedforward networks
-    c2 = FFChromosome.create_fully_connected()
-    # add two hidden nodes
-    c2.add_hidden_nodes(2)
-    # apply some mutations
-    # c2._mutate_add_node()
-    # c2._mutate_add_connection()
-
-    # check the result
-    # visualize.draw_net(c1) # for recurrent nets
-    visualize.draw_net(c2)  # for feedforward nets
-    # print the chromosome
-    print c2

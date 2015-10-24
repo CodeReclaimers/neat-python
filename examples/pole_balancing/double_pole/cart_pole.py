@@ -126,10 +126,10 @@ class CartPole(object):
 
     def __non_markov(self, network, max_steps, testing):
         # variables used in Gruau's fitness function
-        den = 0.0
-        f1 = 0.0
-        f2 = 0.0
-        F = 0.0
+        #den = 0.0
+        #f1 = 0.0
+        #f2 = 0.0
+        #F = 0.0
         last_values = []
 
         steps = 0

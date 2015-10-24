@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot_stats(stats, ylog=False, view=False):
+def plot_stats(stats, ylog=False, view=False, filename='avg_fitness.svg'):
     """ Plots the population's average and best fitness. """
 
     generation = [i for i in xrange(len(stats[0]))]
@@ -23,26 +23,28 @@ def plot_stats(stats, ylog=False, view=False):
     if ylog:
         plt.gca().set_yscale('symlog')
 
-    plt.savefig('avg_fitness.svg')
+    plt.savefig(filename)
     if view:
         plt.show()
 
     plt.close()
 
 
-def plot_spikes(spikes, view=False):
+def plot_spikes(spikes, view=False, filename=None):
     """ Plots the trains for a single spiking neuron. """
     plt.title("Izhikevich's spiking neuron model")
     plt.ylabel("Membrane Potential")
     plt.xlabel("Time (in ms)")
+    plt.grid()
     plt.plot(spikes, "g-")
-    plt.savefig('spiking_neuron.svg')
+    if filename is not None:
+        plt.savefig(filename)
     if view:
         plt.show()
     plt.close()
 
 
-def plot_species(species_log, view=False):
+def plot_species(species_log, view=False, filename='speciation.svg'):
     """ Visualizes speciation throughout evolution. """
     num_generations = len(species_log)
     print num_generations
@@ -61,7 +63,7 @@ def plot_species(species_log, view=False):
     plt.ylabel("Size per Species")
     plt.xlabel("Generations")
 
-    plt.savefig('speciation.svg')
+    plt.savefig(filename)
 
     if view:
         plt.show()
@@ -69,7 +71,7 @@ def plot_species(species_log, view=False):
     plt.close()
 
 
-def draw_net(chromosome, filename=None, view=False):
+def draw_net(chromosome, view=False, filename=None):
     """ Receives a chromosome and draws a neural network with arbitrary topology. """
     # Attributes for network nodes.
     node_attrs = {

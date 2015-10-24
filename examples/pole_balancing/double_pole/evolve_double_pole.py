@@ -6,8 +6,8 @@ from neat import config, population, chromosome, genome, visualize
 from cart_pole import CartPole
 
 
-def evaluate_population(population):
-    simulation = CartPole(population, markov=False)
+def evaluate_population(pop):
+    simulation = CartPole(pop, markov=False)
     # comment this line to print the status
     simulation.print_status = False
     simulation.run()

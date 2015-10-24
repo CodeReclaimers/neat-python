@@ -35,7 +35,7 @@ def run():
     chromosome.node_gene_type = genome.NodeGene
 
     pop = population.Population()
-    pop.epoch(eval_fitness, 300, report=True, save_best=False)
+    pop.epoch(eval_fitness, 300)
 
     winner = pop.stats()[0][-1]
     print 'Number of evaluations: %d' % winner.id

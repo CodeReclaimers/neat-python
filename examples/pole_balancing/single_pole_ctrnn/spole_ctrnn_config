@@ -9,6 +9,8 @@ min_weight          = -50
 random_range        = 0.5
 feedforward         = 0
 nn_activation       = exp
+hidden_nodes        = 0
+weight_stdev        = 0.9
 
 [genetic]
 pop_size              = 100
@@ -17,18 +19,21 @@ max_fitness_threshold = 99999
 # Human reasoning
 prob_addconn          = 0.3
 prob_addnode          = 0.01    
+prob_deleteconn       = 0.05
+prob_deletenode       = 0.05
 prob_mutatebias       = 0.5
 bias_mutation_power   = 1.0    
 prob_mutate_weight    = 0.5
 weight_mutation_power = 1.8    
 prob_togglelink       = 0.01
+elitism               = 1
 
 [genotype compatibility]
 compatibility_threshold = 6.0
 compatibility_change    = 0.0
-excess_coeficient       = 1.0
-disjoint_coeficient     = 1.0
-weight_coeficient       = 2.0
+excess_coefficient       = 1.0
+disjoint_coefficient     = 1.0
+weight_coefficient       = 2.0
 
 [species]
 species_size        = 10

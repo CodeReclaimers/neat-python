@@ -15,14 +15,11 @@ total_evals = []
 total_score = []
 
 def average(values):
-    ''' Returns the population average '''
-    sum = 0.0
-    for i in values:
-        sum += i
-    return sum/len(values)
+    """ Returns the population average """
+    return sum(values)/len(values)
 
 def stdev(values):
-    ''' Returns the population standard deviation '''
+    """ Returns the population standard deviation """
     # first compute the average
     u = average(values)
     error = 0.0

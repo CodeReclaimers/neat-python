@@ -109,7 +109,9 @@ class Synapse(object):
 class Network(object):
     """A neural network has a list of neurons linked by synapses"""
 
-    def __init__(self, neurons=[], links=None, num_inputs=0):
+    def __init__(self, neurons=None, links=None, num_inputs=0):
+        if not neurons:
+            neurons = []
         self.__neurons = neurons
         self.__synapses = []
         self._num_inputs = num_inputs
@@ -137,13 +139,7 @@ class Network(object):
     def __repr__(self):
         return '%d nodes and %d synapses' % (len(self.__neurons), len(self.__synapses))
 
-    # def activate(self, inputs=[]):
-    #    if Config.feedforward:
-    #        return self.sactivate(inputs)
-    #    else:
-    #        return self.pactivate(inputs)
-
-    def sactivate(self, inputs=[]):
+    def sactivate(self, inputs=None):
         """Serial (asynchronous) network activation method. Mostly
            used  in classification tasks (supervised learning) in
            feedforward topologies. All neurons are updated (activated)
@@ -151,6 +147,8 @@ class Network(object):
            you're defining your own feedforward topology, make sure
            you got them in the right order of activation.
         """
+        if not inputs:
+            inputs = []
         assert len(inputs) == self._num_inputs, "Wrong number of inputs."
         # assign "input neurons'" output values (sensor readings)
 
@@ -166,16 +164,18 @@ class Network(object):
                 net_output.append(n._output)
         return net_output
 
-    def pactivate(self, inputs=[]):
+    def pactivate(self, inputs=None):
         """Parallel (synchronous) network activation method. Mostly used
            for control and unsupervised learning (i.e., artificial life)
            in recurrent networks. All neurons are updated (activated)
            simultaneously.
         """
+        if not inputs:
+            inputs = []
         assert len(inputs) == self._num_inputs, "Wrong number of inputs."
 
         # the current state is like a "photograph" taken at each time step
-        # reresenting all neuron's state at that time (think of it as a clock)
+        # representing all neuron's state at that time (think of it as a clock)
         current_state = []
         it = iter(inputs)
         for n in self.__neurons:
@@ -280,27 +280,3 @@ def create_ffphenotype(chromo):
                  for cg in chromo.conn_genes if cg.enabled]
 
     return Network(neurons_list, conn_list, chromo.sensors)
-
-
-if __name__ == "__main__":
-    # Example
-    # from neat import visualize
-
-    nn = FeedForward([2, 10, 3], use_bias=False, activation_type='exp')
-    ##visualize.draw_ff(nn)
-    print 'Serial activation method: '
-    for t in range(3):
-        print nn.sactivate([1, 1])
-
-        # print 'Parallel activation method: '
-        # for t in range(3):
-        # print nn.pactivate([1,1])
-
-        # defining a neural network manually
-        # neurons = [Neuron('INPUT', 1), Neuron('HIDDEN', 2), Neuron('OUTPUT', 3)]
-        # connections = [(1, 2, 0.5), (1, 3, 0.5), (2, 3, 0.5)]
-
-        # net = Network(neurons, connections) # constructs the neural network
-        # visualize.draw_ff(net)
-        # print net.pactivate([0.04]) # parallel activation method
-        # print net # print how many neurons and synapses our network has

@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
 
+
 class Neuron(object):
     """
     A spiking neuron model based on:
@@ -9,7 +10,7 @@ class Neuron(object):
     IEEE TRANSACTIONS ON NEURAL NETWORKS, VOL. 14, NO. 6, NOVEMBER 2003
     """
 
-    def __init__(self, bias = 0, a = 0.02, b = 0.2, c = -65.0, d = 8.0):
+    def __init__(self, bias=0, a=0.02, b=0.2, c=-65.0, d=8.0):
         """
         a, b, c, d are the parameters of this model.
         a: the time scale of the recovery variable.
@@ -31,8 +32,8 @@ class Neuron(object):
         self.__b = b
         self.__c = c
         self.__d = d
-        self.__v = self.__c # membrane potential
-        self.__u = self.__b * self.__v # membrane recovery variable
+        self.__v = self.__c  # membrane potential
+        self.__u = self.__b * self.__v  # membrane recovery variable
         self.__has_fired = False
         self.__bias = bias
         self.current = self.__bias
@@ -57,12 +58,14 @@ class Neuron(object):
         self.__has_fired = False
         self.current = self.__bias
 
-    potential = property(lambda self: self.__v, doc = 'Membrane potential')
+    potential = property(lambda self: self.__v, doc='Membrane potential')
     has_fired = property(lambda self: self.__has_fired,
-                     doc = 'Indicates whether the neuron has fired')
+                         doc='Indicates whether the neuron has fired')
 
-class Synapse:
+
+class Synapse(object):
     """ A synapse indicates the connection strength between two neurons (or itself) """
+
     def __init__(self, source, dest, weight):
         self.__weight = weight
         self.__source = source
@@ -71,16 +74,4 @@ class Synapse:
     def advance(self):
         """Advances time in 1 ms."""
         if self.__source.has_fired:
-            self.__dest.current += self.__weight # dest.current or dest.__v ?
-
-
-if __name__ == '__main__':
-    from neat import visualize
-    n = Neuron(10)
-    neuron_membrane = []
-    for i in range(1000):
-        neuron_membrane.append(n.potential)
-        #print '%d\t%f' % (i, n.potential)
-        n.advance()
-
-    visualize.plot_spikes(neuron_membrane, view=True)
+            self.__dest.current += self.__weight  # dest.current or dest.__v ?

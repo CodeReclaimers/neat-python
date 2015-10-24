@@ -2,8 +2,9 @@
 import random
 from config import Config
 
+
 class NodeGene(object):
-    def __init__(self, id, nodetype, bias=0, response=4.924273, activation_type=None):
+    def __init__(self, id, nodetype, bias=0.0, response=4.924273, activation_type=None):
         """ A node gene encodes the basic artificial neuron model.
             nodetype should be "INPUT", "HIDDEN", or "OUTPUT"
         """
@@ -13,7 +14,7 @@ class NodeGene(object):
         self._response = response
         self._activation_type = activation_type
 
-        assert(self._type in ('INPUT', 'OUTPUT', 'HIDDEN'))
+        assert (self._type in ('INPUT', 'OUTPUT', 'HIDDEN'))
 
     id = property(lambda self: self._id)
     type = property(lambda self: self._type)
@@ -23,11 +24,11 @@ class NodeGene(object):
 
     def __str__(self):
         return "Node %2d %6s, bias %+2.10s, response %+2.10s" \
-                %(self._id, self._type, self._bias, self._response)
+               % (self._id, self._type, self._bias, self._response)
 
     def get_child(self, other):
-        """ Creates a new NodeGene ramdonly inheriting its attributes from parents """
-        assert(self._id == other._id)
+        """ Creates a new NodeGene randomly inheriting its attributes from parents """
+        assert (self._id == other._id)
 
         ng = NodeGene(self._id, self._type,
                       random.choice((self._bias, other._bias)),
@@ -36,8 +37,8 @@ class NodeGene(object):
         return ng
 
     def __mutate_bias(self):
-        #self._bias += random.uniform(-1, 1) * Config.bias_mutation_power
-        self._bias += random.gauss(0,1)*Config.bias_mutation_power
+        # self._bias += random.uniform(-1, 1) * Config.bias_mutation_power
+        self._bias += random.gauss(0, 1) * Config.bias_mutation_power
         if self._bias > Config.max_weight:
             self._bias = Config.max_weight
         elif self._bias < Config.min_weight:
@@ -45,8 +46,8 @@ class NodeGene(object):
 
     def __mutate_response(self):
         """ Mutates the neuron's average firing response. """
-        #self._response += random.uniform(-0.2, 0.2) * Config.bias_mutation_power
-        self._response += random.gauss(0,1)*Config.bias_mutation_power
+        # self._response += random.uniform(-0.2, 0.2) * Config.bias_mutation_power
+        self._response += random.gauss(0, 1) * Config.bias_mutation_power
 
     def copy(self):
         return NodeGene(self._id, self._type, self._bias,
@@ -65,7 +66,8 @@ class CTNodeGene(NodeGene):
         The main difference here is the addition of
         a decay rate given by the time constant.
     """
-    def __init__(self, id, nodetype, bias = 1.0, response = 1.0, activation_type = 'exp', time_constant = 1.0):
+
+    def __init__(self, id, nodetype, bias=1.0, response=1.0, activation_type='exp', time_constant=1.0):
         super(CTNodeGene, self).__init__(id, nodetype, bias, response, activation_type)
 
         self._time_constant = time_constant
@@ -76,12 +78,12 @@ class CTNodeGene(NodeGene):
         super(CTNodeGene, self).mutate()
         # mutating the time constant could bring numerical instability
         # do it with caution
-        #if random.random() < 0.1:
+        # if random.random() < 0.1:
         #    self.__mutate_time_constant()
 
     def __mutate_time_constant(self):
         """ Warning: pertubing the time constant (tau) may result in numerical instability """
-        self._time_constant += random.gauss(1.0,0.5)*0.001
+        self._time_constant += random.gauss(1.0, 0.5) * 0.001
         if self._time_constant > Config.max_weight:
             self._time_constant = Config.max_weight
         elif self._time_constant < Config.min_weight:
@@ -90,19 +92,19 @@ class CTNodeGene(NodeGene):
 
     def get_child(self, other):
         """ Creates a new NodeGene ramdonly inheriting its attributes from parents """
-        assert(self._id == other._id)
+        assert (self._id == other._id)
 
         ng = CTNodeGene(self._id, self._type,
-                      random.choice((self._bias, other._bias)),
-                      random.choice((self._response, other._response)),
-                      self._activation_type,
-                      random.choice((self._time_constant, other._time_constant)))
+                        random.choice((self._bias, other._bias)),
+                        random.choice((self._response, other._response)),
+                        self._activation_type,
+                        random.choice((self._time_constant, other._time_constant)))
         return ng
 
     def __str__(self):
         return "Node %2d %6s, bias %+2.10s, response %+2.10s, activation %s, time constant %+2.5s" \
-                % (self._id, self._type, self._bias, self._response,
-                   self._activation_type, self._time_constant)
+               % (self._id, self._type, self._bias, self._response,
+                  self._activation_type, self._time_constant)
 
     def copy(self):
         return CTNodeGene(self._id, self._type, self._bias,
@@ -111,14 +113,14 @@ class CTNodeGene(NodeGene):
 
 class ConnectionGene(object):
     __global_innov_number = 0
-    __innovations = {} # A list of innovations.
+    __innovations = {}  # A list of innovations.
     # Should it be global? Reset at every generation? Who knows?
 
     @classmethod
     def reset_innovations(cls):
         cls.__innovations = {}
 
-    def __init__(self, innodeid, outnodeid, weight, enabled, innov = None):
+    def __init__(self, innodeid, outnodeid, weight, enabled, innov=None):
         self.__in = innodeid
         self.__out = outnodeid
         self.__weight = weight
@@ -132,10 +134,10 @@ class ConnectionGene(object):
         else:
             self.__innov_number = innov
 
-    weight    = property(lambda self: self.__weight)
-    innodeid  = property(lambda self: self.__in)
+    weight = property(lambda self: self.__weight)
+    innodeid = property(lambda self: self.__in)
     outnodeid = property(lambda self: self.__out)
-    enabled   = property(lambda self: self.__enabled)
+    enabled = property(lambda self: self.__enabled)
     # Key for dictionaries, avoids two connections between the same nodes.
     key = property(lambda self: (self.__in, self.__out))
 
@@ -143,19 +145,19 @@ class ConnectionGene(object):
         r = random.random
         if r() < Config.prob_mutate_weight:
             self.__mutate_weight()
-        if r() <  Config.prob_togglelink:
+        if r() < Config.prob_togglelink:
             self.enable()
-        #TODO: Remove weight_replaced?
-        #if r() < 0.001:
-        #    self.__weight_replaced()
+            # TODO: Remove weight_replaced?
+            # if r() < 0.001:
+            #    self.__weight_replaced()
 
     def enable(self):
         """ Enables a link. """
         self.__enabled = True
 
     def __mutate_weight(self):
-        #self.__weight += random.uniform(-1,1) * Config.weight_mutation_power
-        self.__weight += random.gauss(0,1)*Config.weight_mutation_power
+        # self.__weight += random.uniform(-1,1) * Config.weight_mutation_power
+        self.__weight += random.gauss(0, 1) * Config.weight_mutation_power
 
         if self.__weight > Config.max_weight:
             self.__weight = Config.max_weight
@@ -163,7 +165,7 @@ class ConnectionGene(object):
             self.__weight = Config.min_weight
 
     def __weight_replaced(self):
-        #self.__weight = random.uniform(-Config.random_range, Config.random_range)
+        # self.__weight = random.uniform(-Config.random_range, Config.random_range)
         self.__weight = random.gauss(0, Config.weight_stdev)
 
     @classmethod

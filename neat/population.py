@@ -273,7 +273,7 @@ class Population(object):
             # Stops the simulation
             if best.fitness > Config.max_fitness_threshold:
                 print '\nBest individual in epoch %s meets fitness threshold - complexity: %s' % (
-                self.generation, best.size())
+                    self.generation, best.size())
                 break
 
             # -----------------------------------------
@@ -331,7 +331,7 @@ class Population(object):
             self.__log_species()
 
             if report:
-                # print 'Poluation size: %d \t Divirsity: %s' %(len(self.population), self.__population_diversity())
+                # print 'Population size: %d \t Diversity: %s' %(len(self.population), self.__population_diversity())
                 print 'Population\'s average fitness: %3.5f stdev: %3.5f' % (self.__avg_fitness[-1], self.stdeviation())
                 print 'Best fitness: %2.12s - size: %s - species %s - id %s' \
                       % (best.fitness, best.size(), best.species_id, best.id)
@@ -361,12 +361,14 @@ class Population(object):
             # ----------------------------#
             fill = self.__popsize - len(new_population)
             if fill < 0:  # overflow
-                if report: print '   Removing %d excess individual(s) from the new population' % -fill
+                if report:
+                    print '   Removing %d excess individual(s) from the new population' % -fill
                 # TODO: This is dangerous! I can't remove a species' representant!
                 new_population = new_population[:fill]  # Removing the last added members
 
             if fill > 0:  # underflow
-                if report: print '   Producing %d more individual(s) to fill up the new population' % fill
+                if report:
+                    print '   Producing %d more individual(s) to fill up the new population' % fill
 
                 # TODO:
                 # what about producing new individuals instead of reproducing?
@@ -398,17 +400,3 @@ class Population(object):
                 t0 = time.time()  # updates the counter
             elif checkpoint_generation is not None and self.generation % checkpoint_generation == 0:
                 self.__create_checkpoint(report)
-
-
-if __name__ == '__main__':
-
-    # sample fitness function
-    def eval_fitness(population):
-        for individual in population:
-            individual.fitness = 1.0
-
-
-    # creates the population
-    pop = Population()
-    # runs the simulation for 250 epochs
-    pop.epoch(eval_fitness, 250)
