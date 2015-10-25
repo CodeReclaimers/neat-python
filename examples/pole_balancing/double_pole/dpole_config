@@ -13,10 +13,10 @@ weight_stdev        = 2.0
 [genetic]
 pop_size              = 150
 max_fitness_threshold = 99999
-prob_addconn          = 0.03
-prob_addnode          = 0.01
-prob_deleteconn       = 0.05
-prob_deletenode       = 0.0
+prob_addconn          = 0.05
+prob_addnode          = 0.03
+prob_deleteconn       = 0.01
+prob_deletenode       = 0.01
 prob_mutatebias       = 0.2
 bias_mutation_power   = 0.5
 prob_mutate_response  = 0.2

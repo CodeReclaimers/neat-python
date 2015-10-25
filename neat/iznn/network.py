@@ -52,7 +52,7 @@ def create_phenotype(chromosome):
     neurons = {}
     input_neurons = []
     output_neurons = []
-    for ng in chromosome.node_genes:
+    for ng in chromosome.node_genes.values():
         neurons[ng.ID] = Neuron(ng.bias)
         if ng.type == 'INPUT':
             input_neurons.append(neurons[ng.ID])

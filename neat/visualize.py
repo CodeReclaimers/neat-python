@@ -97,13 +97,13 @@ def draw_net(chromosome, view=False, filename=None):
 
     dot = graphviz.Digraph(format='svg', node_attr=node_attrs)
 
-    for ng in chromosome.node_genes:
+    for ng_id, ng in chromosome.node_genes.items():
         if ng.type == 'INPUT':
-            dot.node(str(ng.ID), _attributes=input_attrs)
+            dot.node(str(ng_id), _attributes=input_attrs)
 
-    for ng in chromosome.node_genes:
+    for ng_id, ng in chromosome.node_genes.items():
         if ng.type == 'OUTPUT':
-            dot.node(str(ng.ID), _attributes=output_attrs)
+            dot.node(str(ng_id), _attributes=output_attrs)
 
     for cg in chromosome.conn_genes.values():
         a = str(cg.in_node_id)

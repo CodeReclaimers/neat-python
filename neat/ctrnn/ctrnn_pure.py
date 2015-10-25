@@ -54,7 +54,7 @@ def create_phenotype(chromo):
                              ng.response,
                              ng.activation_type,
                              ng.time_constant) \
-                    for ng in chromo.node_genes]
+                    for ng in chromo.node_genes.values()]
 
     conn_list = [(cg.in_node_id, cg.out_node_id, cg.weight) \
                  for cg in chromo.conn_genes.values() if cg.enabled]

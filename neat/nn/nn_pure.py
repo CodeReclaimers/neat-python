@@ -33,38 +33,35 @@ def sigmoid(x, response, activation_type):
 
 class Neuron(object):
     """ A simple sigmoidal neuron """
-    __id = 0
+    __next_id = 1
 
-    def __init__(self, neurontype, id=None, bias=0.0, response=1.0, activation_type='exp'):
+    @classmethod
+    def __get_next_id(cls, ID):
+        if ID is None:
+            ID = cls.__next_id
+            cls.__next_id += 1
 
-        self._id = self.__get_new_id(id)  # every neuron has an ID
+        return ID
+
+    def __init__(self, neurontype, ID=None, bias=0.0, response=1.0, activation_type='exp'):
+
+        self.ID = Neuron.__get_next_id(ID)  # every neuron has an ID
 
         self._synapses = []
 
-        self._bias = bias
-        self._type = neurontype
-        assert (self._type in ('INPUT', 'OUTPUT', 'HIDDEN'))
+        self.bias = bias
+        self.type = neurontype
+        assert (self.type in ('INPUT', 'OUTPUT', 'HIDDEN'))
 
-        self._activation_type = activation_type  # default is exponential
+        self.activation_type = activation_type  # default is exponential
 
-        self._response = response  # default = 4.924273 (Stanley, p. 146)
-        self._output = 0.0  # for recurrent networks all neurons must have an "initial state"
-
-    type = property(lambda self: self._type, "Returns neuron's type: INPUT, OUTPUT, or HIDDEN")
-    id = property(lambda self: self._id, "Returns neuron's id")
-
-    @classmethod
-    def __get_new_id(cls, id):
-        if id is None:
-            cls.__id += 1
-            return cls.__id
-        else:
-            return id
+        self.response = response  # default = 4.924273 (Stanley, p. 146)
+        self.output = 0.0  # for recurrent networks all neurons must have an "initial state"
 
     def activate(self):
         """Activates the neuron"""
-        assert self._type is not 'INPUT'
-        return sigmoid(self._update_activation() + self._bias, self._response, self._activation_type)
+        assert self.type is not 'INPUT'
+        return sigmoid(self._update_activation() + self.bias, self.response, self.activation_type)
 
     def _update_activation(self):
         soma = 0.0
@@ -72,38 +69,29 @@ class Neuron(object):
             soma += s.incoming()
         return soma
 
-    def current_output(self):
-        """Prints neuron's current state"""
-        # print "state: %f - output: %f" %(self.state, self.output)
-        return self._output
-
     def create_synapse(self, s):
         self._synapses.append(s)
 
     def __repr__(self):
-        return '%d %s' % (self._id, self._type)
+        return '%d %s' % (self.ID, self.type)
 
 
 class Synapse(object):
     """A synapse indicates the connection strength between two neurons (or itself)"""
 
     def __init__(self, source, destination, weight):
-        self._weight = weight
-        self._source = source  # a 'pointer' to the source neuron
-        self._destination = destination  # a 'pointer' to the destination neuron
+        self.weight = weight
+        self.source = source  # a 'pointer' to the source neuron
+        self.destination = destination  # a 'pointer' to the destination neuron
         destination.create_synapse(self)  # adds the synapse to the destination neuron
-
-    # for external access
-    source = property(lambda self: self._source)
-    destination = property(lambda self: self._destination)
 
     def incoming(self):
         """ Receives the incoming signal from a sensor or another neuron
             and returns the value to the neuron it belongs to. """
-        return self._weight * self._source._output
+        return self.weight * self.source.output
 
     def __repr__(self):
-        return '%s -> %s -> %s' % (self._source._id, self._weight, self._destination._id)
+        return '%s -> %s -> %s' % (self.source.ID, self.weight, self.destination.ID)
 
 
 class Network(object):
@@ -112,32 +100,29 @@ class Network(object):
     def __init__(self, neurons=None, links=None, num_inputs=0):
         if not neurons:
             neurons = []
-        self.__neurons = neurons
-        self.__synapses = []
+        self.neurons = neurons
+        self.synapses = []
         self._num_inputs = num_inputs
 
         if links is not None:
-            N = {}  # a temporary dictionary to create the network connections
-            for n in self.__neurons:
-                N[n._id] = n
+            nodes = {}  # a temporary dictionary to create the network connections
+            for n in self.neurons:
+                nodes[n.ID] = n
             for c in links:
-                self.__synapses.append(Synapse(N[c[0]], N[c[1]], c[2]))
-
-    neurons = property(lambda self: self.__neurons)
-    synapses = property(lambda self: self.__synapses)
+                self.synapses.append(Synapse(nodes[c[0]], nodes[c[1]], c[2]))
 
     def flush(self):
-        for neuron in self.__neurons:
-            neuron._output = 0.0
+        for neuron in self.neurons:
+            neuron.output = 0.0
 
     def add_neuron(self, neuron):
-        self.__neurons.append(neuron)
+        self.neurons.append(neuron)
 
     def add_synapse(self, synapse):
-        self.__synapses.append(synapse)
+        self.synapses.append(synapse)
 
     def __repr__(self):
-        return '%d nodes and %d synapses' % (len(self.__neurons), len(self.__synapses))
+        return '%d nodes and %d synapses' % (len(self.neurons), len(self.synapses))
 
     def sactivate(self, inputs=None):
         """Serial (asynchronous) network activation method. Mostly
@@ -153,15 +138,15 @@ class Network(object):
         # assign "input neurons'" output values (sensor readings)
 
         it = iter(inputs)
-        for n in self.__neurons[:self._num_inputs]:
-            if (n._type == 'INPUT'):
-                n._output = it.next()  # iterates over inputs
+        for n in self.neurons[:self._num_inputs]:
+            if n.type == 'INPUT':
+                n.output = it.next()  # iterates over inputs
         # activate all neurons in the network (except for the inputs)
         net_output = []
-        for n in self.__neurons[self._num_inputs:]:
-            n._output = n.activate()
-            if (n._type == 'OUTPUT'):
-                net_output.append(n._output)
+        for n in self.neurons[self._num_inputs:]:
+            n.output = n.activate()
+            if n.type == 'OUTPUT':
+                net_output.append(n.output)
         return net_output
 
     def pactivate(self, inputs=None):
@@ -178,17 +163,17 @@ class Network(object):
         # representing all neuron's state at that time (think of it as a clock)
         current_state = []
         it = iter(inputs)
-        for n in self.__neurons:
-            if n._type == 'INPUT':
-                n._output = it.next()  # iterates over inputs
+        for n in self.neurons:
+            if n.type == 'INPUT':
+                n.output = it.next()  # iterates over inputs
             else:  # hidden or output neurons
                 current_state.append(n.activate())
         # updates all neurons at once
         net_output = []
-        for n, state in zip(self.__neurons[self._num_inputs:], current_state):
-            n._output = state  # updates from the previous step
-            if n._type == 'OUTPUT':
-                net_output.append(n._output)
+        for n, state in zip(self.neurons[self._num_inputs:], current_state):
+            n.output = state  # updates from the previous step
+            if n.type == 'OUTPUT':
+                net_output.append(n.output)
 
         return net_output
 
@@ -244,39 +229,37 @@ class FeedForward(Network):
 def create_phenotype(chromo):
     """ Receives a chromosome and returns its phenotype (a neural network) """
 
-    neurons_list = [Neuron(ng._type, ng._id,
-                           ng._bias,
-                           ng._response,
+    neurons_list = [Neuron(ng.type, ng.ID,
+                           ng.bias,
+                           ng.response,
                            ng.activation_type)
-                    for ng in chromo._node_genes]
+                    for ng in chromo.node_genes.values()]
 
-    conn_list = [(cg.innodeid, cg.outnodeid, cg.weight)
-                 for cg in chromo.conn_genes if cg.enabled]
+    conn_list = [(cg.in_node_id, cg.out_node_id, cg.weight)
+                 for cg in chromo.conn_genes.values() if cg.enabled]
 
-    return Network(neurons_list, conn_list, chromo.sensors)
+    return Network(neurons_list, conn_list, chromo.num_inputs)
 
 
 def create_ffphenotype(chromo):
     """ Receives a chromosome and returns its phenotype (a neural network) """
 
     # first create inputs
-    neurons_list = [Neuron('INPUT', ng.id, 0, 0) \
-                    for ng in chromo.node_genes[:chromo.sensors] if ng.type == 'INPUT']
+    neurons_list = [Neuron('INPUT', ng.ID, 0, 0) \
+                    for ng in chromo.node_genes.values() if ng.type == 'INPUT']
 
     # Add hidden nodes in the right order
-    for id in chromo.node_order:
-        neurons_list.append(Neuron('HIDDEN',
-                                   id, chromo.node_genes[id - 1].bias,
-                                   chromo.node_genes[id - 1].response,
-                                   chromo.node_genes[id - 1].activation_type))
+    for ID in chromo.node_order:
+        gene = chromo.node_genes[ID]
+        neurons_list.append(Neuron('HIDDEN', ID, gene.bias, gene.response, gene.activation_type))
     # finally the output
-    neurons_list.extend(Neuron('OUTPUT', ng.id, ng.bias,
+    neurons_list.extend(Neuron('OUTPUT', ng.ID, ng.bias,
                                ng.response, ng.activation_type) \
-                        for ng in chromo.node_genes if ng.type == 'OUTPUT')
+                        for ng in chromo.node_genes.values() if ng.type == 'OUTPUT')
 
     assert (len(neurons_list) == len(chromo.node_genes))
 
-    conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
-                 for cg in chromo.conn_genes if cg.enabled]
+    conn_list = [(cg.in_node_id, cg.out_node_id, cg.weight) \
+                 for cg in chromo.conn_genes.values() if cg.enabled]
 
-    return Network(neurons_list, conn_list, chromo.sensors)
+    return Network(neurons_list, conn_list, chromo.num_inputs)
