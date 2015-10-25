@@ -22,6 +22,7 @@ Contents:
    :maxdepth: 2
 
    neat_overview
+   config_file
    xor_example
 
 
