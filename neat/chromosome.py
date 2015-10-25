@@ -40,8 +40,8 @@ class Chromosome(object):
             self._mutate_add_node()
         elif r() < self.config.prob_addconn:
             self._mutate_add_connection()
-        # elif r() < self.config.prob_deletenode:
-        #    self._mutate_delete_node()
+        elif r() < self.config.prob_deletenode:
+           self._mutate_delete_node()
         elif r() < self.config.prob_deleteconn:
             self._mutate_delete_connection()
         else:
@@ -62,7 +62,7 @@ class Chromosome(object):
         assert self.species_id == other.species_id, 'Different parents species ID: %d vs %d' \
                                                     % (self.species_id, other.species_id)
 
-        # TODO: if they're of equal fitnesses, choose the shortest
+        # TODO: if they're of equal fitness, choose the shortest
         if self.fitness > other.fitness:
             parent1 = self
             parent2 = other
@@ -149,7 +149,7 @@ class Chromosome(object):
 
             keys_to_delete = []
             for key, value in self.conn_genes.items():
-                if value.innodeid == node.ID or value.outnodeid == node.ID:
+                if value.in_node_id == node.ID or value.out_node_id == node.ID:
                     keys_to_delete.append(key)
 
             for key in keys_to_delete:
@@ -338,13 +338,13 @@ class FFChromosome(Chromosome):
         ng, split_conn = super(FFChromosome, self)._mutate_add_node()
         # Add node to node order list: after the presynaptic node of the split connection
         # and before the postsynaptic node of the split connection
-        if self.node_genes[split_conn.innodeid - 1].type == 'HIDDEN':
-            mini = self.__node_order.index(split_conn.innodeid) + 1
+        if self.node_genes[split_conn.in_node_id - 1].type == 'HIDDEN':
+            mini = self.__node_order.index(split_conn.in_node_id) + 1
         else:
             # Presynaptic node is an input node, not hidden node
             mini = 0
-        if self.node_genes[split_conn.outnodeid - 1].type == 'HIDDEN':
-            maxi = self.__node_order.index(split_conn.outnodeid)
+        if self.node_genes[split_conn.out_node_id - 1].type == 'HIDDEN':
+            maxi = self.__node_order.index(split_conn.out_node_id)
         else:
             # Postsynaptic node is an output node, not hidden node
             maxi = len(self.__node_order)

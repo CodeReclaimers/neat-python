@@ -56,7 +56,7 @@ def create_phenotype(chromo):
                              ng.time_constant) \
                     for ng in chromo.node_genes]
 
-    conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
+    conn_list = [(cg.in_node_id, cg.out_node_id, cg.weight) \
                  for cg in chromo.conn_genes.values() if cg.enabled]
 
     return nn.Network(neurons_list, conn_list, chromo.num_inputs)

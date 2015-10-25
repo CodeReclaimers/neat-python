@@ -30,7 +30,6 @@ class NodeGene(object):
         return ng
 
     def __mutate_bias(self, config):
-        # self.bias += random.uniform(-1, 1) * Config.bias_mutation_power
         self.bias += random.gauss(0, 1) * config.bias_mutation_power
         if self.bias > config.max_weight:
             self.bias = config.max_weight
@@ -39,18 +38,16 @@ class NodeGene(object):
 
     def __mutate_response(self, config):
         """ Mutates the neuron's average firing response. """
-        # self.response += random.uniform(-0.2, 0.2) * Config.bias_mutation_power
-        self.response += random.gauss(0, 1) * config.bias_mutation_power
+        self.response += random.gauss(0, 1) * config.response_mutation_power
 
     def copy(self):
         return NodeGene(self.ID, self.type, self.bias,
                         self.response, self.activation_type)
 
     def mutate(self, config):
-        r = random.random
-        if r() < config.prob_mutatebias:
+        if random.random() < config.prob_mutate_bias:
             self.__mutate_bias(config)
-        if r() < config.prob_mutatebias:
+        if random.random() < config.prob_mutate_response:
             self.__mutate_response(config)
 
 
@@ -72,7 +69,7 @@ class CTNodeGene(NodeGene):
         #    self.__mutate_time_constant()
 
     def __mutate_time_constant(self, config):
-        """ Warning: pertubing the time constant (tau) may result in numerical instability """
+        """ Warning: perturbing the time constant (tau) may result in numerical instability """
         self.time_constant += random.gauss(1.0, 0.5) * 0.001
         if self.time_constant > config.max_weight:
             self.time_constant = config.max_weight
@@ -104,17 +101,12 @@ class CTNodeGene(NodeGene):
 class ConnectionGene(object):
     __global_innov_number = 0
     __innovations = {}  # A list of innovations.
-    # Should it be global? Reset at every generation? Who knows?
-
-    @classmethod
-    def reset_innovations(cls):
-        cls.__innovations = {}
 
     def __init__(self, innodeid, outnodeid, weight, enabled, innov=None):
-        self.__in = innodeid
-        self.__out = outnodeid
-        self.__weight = weight
-        self.__enabled = enabled
+        self.in_node_id = innodeid
+        self.out_node_id = outnodeid
+        self.weight = weight
+        self.enabled = enabled
         if innov is None:
             try:
                 self.__innov_number = self.__innovations[self.key]
@@ -124,12 +116,8 @@ class ConnectionGene(object):
         else:
             self.__innov_number = innov
 
-    weight = property(lambda self: self.__weight)
-    innodeid = property(lambda self: self.__in)
-    outnodeid = property(lambda self: self.__out)
-    enabled = property(lambda self: self.__enabled)
     # Key for dictionaries, avoids two connections between the same nodes.
-    key = property(lambda self: (self.__in, self.__out))
+    key = property(lambda self: (self.in_node_id, self.out_node_id))
 
     def mutate(self, config):
         r = random.random
@@ -143,20 +131,20 @@ class ConnectionGene(object):
 
     def enable(self):
         """ Enables a link. """
-        self.__enabled = True
+        self.enabled = True
 
     def __mutate_weight(self, config):
-        # self.__weight += random.uniform(-1,1) * Config.weight_mutation_power
-        self.__weight += random.gauss(0, 1) * config.weight_mutation_power
+        # self.weight += random.uniform(-1,1) * Config.weight_mutation_power
+        self.weight += random.gauss(0, 1) * config.weight_mutation_power
 
-        if self.__weight > config.max_weight:
-            self.__weight = config.max_weight
-        elif self.__weight < config.min_weight:
-            self.__weight = config.min_weight
+        if self.weight > config.max_weight:
+            self.weight = config.max_weight
+        elif self.weight < config.min_weight:
+            self.weight = config.min_weight
 
     def __weight_replaced(self, config):
-        # self.__weight = random.uniform(-Config.random_range, Config.random_range)
-        self.__weight = random.gauss(0, config.weight_stdev)
+        # self.weight = random.uniform(-Config.random_range, Config.random_range)
+        self.weight = random.gauss(0, config.weight_stdev)
 
     @classmethod
     def __get_new_innov_number(cls):
@@ -164,8 +152,8 @@ class ConnectionGene(object):
         return cls.__global_innov_number
 
     def __str__(self):
-        s = "In %2d, Out %2d, Weight %+3.5f, " % (self.__in, self.__out, self.__weight)
-        if self.__enabled:
+        s = "In %2d, Out %2d, Weight %+3.5f, " % (self.in_node_id, self.out_node_id, self.weight)
+        if self.enabled:
             s += "Enabled, "
         else:
             s += "Disabled, "
@@ -176,14 +164,14 @@ class ConnectionGene(object):
 
     def split(self, node_id):
         """ Splits a connection, creating two new connections and disabling this one """
-        self.__enabled = False
-        new_conn1 = ConnectionGene(self.__in, node_id, 1.0, True)
-        new_conn2 = ConnectionGene(node_id, self.__out, self.__weight, True)
+        self.enabled = False
+        new_conn1 = ConnectionGene(self.in_node_id, node_id, 1.0, True)
+        new_conn2 = ConnectionGene(node_id, self.out_node_id, self.weight, True)
         return new_conn1, new_conn2
 
     def copy(self):
-        return ConnectionGene(self.__in, self.__out, self.__weight,
-                              self.__enabled, self.__innov_number)
+        return ConnectionGene(self.in_node_id, self.out_node_id, self.weight,
+                              self.enabled, self.__innov_number)
 
     def is_same_innov(self, cg):
         return self.__innov_number == cg.__innov_number

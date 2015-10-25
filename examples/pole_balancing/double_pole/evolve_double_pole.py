@@ -2,7 +2,8 @@
 import cPickle as pickle
 import os
 
-from neat import config, population, chromosome, genome, visualize
+from neat import population, visualize
+from neat.config import Config
 from cart_pole import CartPole
 
 
@@ -16,24 +17,20 @@ def evaluate_population(pop):
 def run():
     # load settings file
     local_dir = os.path.dirname(__file__)
-    config.load(os.path.join(local_dir, 'dpole_config'))
+    config = Config(os.path.join(local_dir, 'dpole_config'))
 
     # change the number of inputs accordingly to the type
     # of experiment: markov (6) or non-markov (3)
     # you can also set the configs in dpole_config as long
     # as you have two config files for each type of experiment
-    config.Config.input_nodes = 3
+    config.input_nodes = 3
 
-    # neuron model type
-    chromosome.node_gene_type = genome.NodeGene
-    # chromosome.node_gene_type = genome.CTNodeGene
-
-    pop = population.Population()
+    pop = population.Population(config)
     pop.epoch(evaluate_population, 200, report=1, save_best=0)
 
     winner = pop.stats()[0][-1]
 
-    print 'Number of evaluations: %d' % winner.id
+    print 'Number of evaluations: %d' % winner.ID
     print 'Winner fitness: %f' % winner.fitness
 
     # save the winner

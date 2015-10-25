@@ -245,7 +245,7 @@ class Population(object):
             save_best -- save the best chromosome from each epoch (default False)
             checkpoint_interval -- time in minutes between saving checkpoints (default 10 minutes)
             checkpoint_generation -- time in generations between saving checkpoints
-                (default 0 -- option disabled)
+                (default None -- option disabled)
         """
         t0 = time.time()  # for saving checkpoints
 
@@ -281,8 +281,9 @@ class Population(object):
 
             # Stops the simulation
             if best.fitness > self.config.max_fitness_threshold:
-                print '\nBest individual in epoch %s meets fitness threshold - complexity: %s' % (
-                    self.generation, best.size())
+                if report:
+                    print '\nBest individual in epoch %s meets fitness threshold - complexity: %s' % (
+                        self.generation, best.size())
                 break
 
             # -----------------------------------------

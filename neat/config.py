@@ -1,5 +1,5 @@
 # sets the configuration parameters for NEAT
-from ConfigParser import ConfigParser
+from ConfigParser import SafeConfigParser
 import os
 
 
@@ -9,7 +9,7 @@ class Config(object):
             raise Exception('No such config file: ' + os.path.abspath(filename))
 
         with open(filename) as f:
-            parameters = ConfigParser()
+            parameters = SafeConfigParser()
             parameters.readfp(f)
 
         # Phenotype configuration
@@ -30,8 +30,10 @@ class Config(object):
         self.prob_addnode = float(parameters.get('genetic', 'prob_addnode'))
         self.prob_deleteconn = float(parameters.get('genetic', 'prob_deleteconn'))
         self.prob_deletenode = float(parameters.get('genetic', 'prob_deletenode'))
-        self.prob_mutatebias = float(parameters.get('genetic', 'prob_mutatebias'))
+        self.prob_mutate_bias = float(parameters.get('genetic', 'prob_mutatebias'))
         self.bias_mutation_power = float(parameters.get('genetic', 'bias_mutation_power'))
+        self.prob_mutate_response = float(parameters.get('genetic', 'prob_mutate_response'))
+        self.response_mutation_power = float(parameters.get('genetic', 'response_mutation_power'))
         self.prob_mutate_weight = float(parameters.get('genetic', 'prob_mutate_weight'))
         self.weight_mutation_power = float(parameters.get('genetic', 'weight_mutation_power'))
         self.prob_togglelink = float(parameters.get('genetic', 'prob_togglelink'))

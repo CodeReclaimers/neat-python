@@ -106,8 +106,8 @@ def draw_net(chromosome, view=False, filename=None):
             dot.node(str(ng.ID), _attributes=output_attrs)
 
     for cg in chromosome.conn_genes.values():
-        a = str(cg.innodeid)
-        b = str(cg.outnodeid)
+        a = str(cg.in_node_id)
+        b = str(cg.out_node_id)
         if cg.enabled is False:
             dot.edge(a, b, _attributes=disabled_attrs)
         else:

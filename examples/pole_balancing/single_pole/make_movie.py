@@ -6,7 +6,7 @@ import numpy as np
 import gizeh as gz
 import moviepy.editor as mpy
 
-from neat import config, chromosome, genome
+from neat.config import Config
 from neat.nn import nn_pure as nn
 from evolve_single_pole import cart_pole, angle_limit
 
@@ -19,8 +19,6 @@ pole = gz.rectangle(SCALE * 0.1, SCALE * 1.0, xy=(150, 55), stroke_width=1, fill
 
 # random.seed(0)
 
-chromosome.node_gene_type = genome.NodeGene
-
 # load the winner
 with open('winner_chromosome') as f:
     c = pickle.load(f)
@@ -29,7 +27,7 @@ print 'Loaded chromosome:'
 print c
 
 local_dir = os.path.dirname(__file__)
-config.load(os.path.join(local_dir, 'spole_config'))
+config = Config(os.path.join(local_dir, 'spole_config'))
 net = nn.create_phenotype(c)
 
 # initial conditions (as used by Stanley)

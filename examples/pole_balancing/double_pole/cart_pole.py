@@ -24,11 +24,11 @@ class CartPole(object):
     def run(self, testing=False):
         """ Runs the cart-pole experiment and evaluates the population. """
 
-        if(self.__markov):
+        if self.__markov:
              # markov experiment: full system's information is provided to the network
             for chromo in self.__population:
                 # chromosome to phenotype
-                assert chromo.sensors == 6, "There must be 6 inputs to the network"
+                assert chromo.num_inputs == 6, "There must be 6 inputs to the network"
                 net = nn.create_phenotype(chromo)
 
                 self.__initial_state()
@@ -41,7 +41,7 @@ class CartPole(object):
 
                 steps = 0
 
-                while(steps < 100000):
+                while steps < 100000:
                     inputs = [self.__state[0]/4.80, # cart's initial position
                               self.__state[1]/2.00, # cart's initial speed
                               self.__state[2]/0.52, # pole_1 initial angle
@@ -56,7 +56,7 @@ class CartPole(object):
                     # advances one time step
                     self.__state = integrate(action, self.__state, 1)
 
-                    if(self.__outside_bounds()):
+                    if self.__outside_bounds():
                         # network failed to solve the task
                         if testing:
                             print "Failed at step %d \t %+1.2f \t %+1.2f \t %+1.2f" \
@@ -74,7 +74,7 @@ class CartPole(object):
             # non-markovian: no velocity information is provided (only 3 inputs)
             for chromo in self.__population:
 
-                assert chromo.sensors == 3, "There must be 3 inputs to the network"
+                assert chromo.num_inputs == 3, "There must be 3 inputs to the network"
                 net = nn.create_phenotype(chromo)
                 self.__initial_state()
 
@@ -89,7 +89,7 @@ class CartPole(object):
 
             best = max(self.__population) # selects the best network
             if self.print_status:
-                print "\t\nBest chromosome of generation: %d" %best.id
+                print "\t\nBest chromosome of generation: %d" %best.ID
 
             # ** *******************#
             #  GENERALIZATION TEST  #
@@ -133,7 +133,7 @@ class CartPole(object):
         last_values = []
 
         steps = 0
-        while(steps < max_steps):
+        while steps < max_steps:
             inputs = [self.__state[0]/4.80, # cart's initial position
                       self.__state[2]/0.52, # pole_1 initial angle
                       self.__state[4]/0.52] # pole_2 initial angle
@@ -144,7 +144,7 @@ class CartPole(object):
             action = 0.5*(output[0]+1.0) #maps [-1,1] onto [0,1]
             self.__state = integrate(action, self.__state, 1)
 
-            if(self.__outside_bounds()):
+            if self.__outside_bounds():
                 # network failed to solve the task
                 if testing:
                     print "Failed at step %d \t %+1.2f \t %+1.2f \t %+1.2f" \
@@ -167,7 +167,7 @@ class CartPole(object):
         if steps > 100:
             # the denominator is computed only for the last 100 time steps
             jiggle = sum(last_values)
-            F = 0.1*steps/1000.0 + 0.9*0.75/(jiggle)
+            F = 0.1*steps/1000.0 + 0.9*0.75/ jiggle
         else:
             F = 0.1*steps/1000.0
 
@@ -192,7 +192,7 @@ class CartPole(object):
                         test_number += 1
                         best_net.flush()
                         score = self.__non_markov(best_net, 1000, testing)[1]
-                        if(score > 999):
+                        if score > 999:
                             balanced += 1
                             if self.print_status:
                                 print "Test %d succeeded with score: %d" %(test_number, score)
