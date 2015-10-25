@@ -10,7 +10,7 @@ from evolve_single_pole import cart_pole, angle_limit
 
 
 # load the winner
-with open('winner_chromosome', 'r') as f:
+with open('winner_chromosome') as f:
     c = pickle.load(f)
 
 print 'Loaded chromosome:'
@@ -39,7 +39,7 @@ for step in xrange(10**5):
     # Apply action to the simulated cart-pole
     x, x_dot, theta, theta_dot = cart_pole(action[0], x, x_dot, theta, theta_dot)
     
-    if (abs(x) >= 2.4 or abs(theta) >= angle_limit):
+    if abs(x) >= 2.4 or abs(theta) >= angle_limit:
         print '\nFailed at step %d \n' % step
         sys.exit(1)
     

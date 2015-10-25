@@ -4,13 +4,19 @@ import math
 
 class Chromosome(object):
     """ A chromosome for general recurrent neural networks. """
-    _id = 0
+    __next_id = 1
+
+    @classmethod
+    def __get_next_id(cls):
+        ID = cls.__next_id
+        cls.__next_id += 1
+        return ID
 
     def __init__(self, config, parent1_id, parent2_id, node_gene_type, conn_gene_type):
         self.config = config
-        self._id = self.__get_new_id()
-        self._input_nodes = config.input_nodes
-        self._output_nodes = config.output_nodes
+        self.ID = Chromosome.__get_next_id()
+        self.num_inputs = config.input_nodes
+        self.num_outputs = config.output_nodes
 
         # the type of NodeGene and ConnectionGene the chromosome carries
         self._node_gene_type = node_gene_type
@@ -25,15 +31,6 @@ class Chromosome(object):
         # my parents id: helps in tracking chromosome's genealogy
         self.parent1_id = parent1_id
         self.parent2_id = parent2_id
-
-    sensors = property(lambda self: self._input_nodes)
-    actuators = property(lambda self: self._output_nodes)
-    id = property(lambda self: self._id)
-
-    @classmethod
-    def __get_new_id(cls):
-        cls._id += 1
-        return cls._id
 
     def mutate(self):
         """ Mutates this chromosome """
@@ -53,7 +50,7 @@ class Chromosome(object):
                 cg.mutate(self.config)
 
             # mutate bias, response, and etc...
-            for ng in self.node_genes[self._input_nodes:]:
+            for ng in self.node_genes[self.num_inputs:]:
                 ng.mutate(self.config)
 
         return self
@@ -74,12 +71,12 @@ class Chromosome(object):
             parent2 = self
 
         # creates a new child
-        child = self.__class__(self.config, self.id, other.id, self._node_gene_type, self._conn_gene_type)
+        child = self.__class__(self.config, self.ID, other.ID, self._node_gene_type, self._conn_gene_type)
 
         child._inherit_genes(parent1, parent2)
 
         child.species_id = parent1.species_id
-        # child._input_nodes = parent1._input_nodes
+        # child.num_inputs = parent1.num_inputs
 
         return child
 
@@ -124,7 +121,7 @@ class Chromosome(object):
 
     def _mutate_add_connection(self):
         # Only for recurrent networks
-        total_possible_conns = (len(self.node_genes) - self._input_nodes) \
+        total_possible_conns = (len(self.node_genes) - self.num_inputs) \
                                * len(self.node_genes)
         remaining_conns = total_possible_conns - len(self.conn_genes)
         # Check if new connection can be added:
@@ -133,7 +130,7 @@ class Chromosome(object):
             count = 0
             # Count connections
             for in_node in self.node_genes:
-                for out_node in self.node_genes[self._input_nodes:]:
+                for out_node in self.node_genes[self.num_inputs:]:
                     if (in_node.ID, out_node.ID) not in self.conn_genes.keys():
                         # Free connection
                         if count == n:  # Connection to create
@@ -145,8 +142,8 @@ class Chromosome(object):
                             count += 1
 
     def _mutate_delete_node(self):
-        if len(self.node_genes) > self._input_nodes + self._output_nodes:
-            idx = random.randint(self._input_nodes + self._output_nodes,
+        if len(self.node_genes) > self.num_inputs + self.num_outputs:
+            idx = random.randint(self.num_inputs + self.num_outputs,
                                  len(self.node_genes) - 1)
             node = self.node_genes[idx]
 
@@ -209,7 +206,7 @@ class Chromosome(object):
             number of enabled connections (bias is not considered)
         """
         # number of hidden nodes
-        num_hidden = len(self.node_genes) - self._input_nodes - self._output_nodes
+        num_hidden = len(self.node_genes) - self.num_inputs - self.num_outputs
         # number of enabled connections
         conns_enabled = sum([1 for cg in self.conn_genes.values() if cg.enabled is True])
 
@@ -248,7 +245,7 @@ class Chromosome(object):
                 cg = self._conn_gene_type(pre.id, node_gene.id, weight, True)
                 self.conn_genes[cg.key] = cg
             # Connect it to all nodes except input nodes
-            for post in self.node_genes[self._input_nodes:]:
+            for post in self.node_genes[self.num_inputs:]:
                 weight = random.gauss(0, self.config.weight_stdev)
                 cg = self._conn_gene_type(node_gene.id, post.id, weight, True)
                 self.conn_genes[cg.key] = cg
@@ -265,7 +262,7 @@ class Chromosome(object):
         for i in range(config.input_nodes):
             c.node_genes.append(c._node_gene_type(node_id, 'INPUT'))
             node_id += 1
-        # c._input_nodes += num_input
+        # c.num_inputs += num_input
         for i in range(config.output_nodes):
             node_gene = c._node_gene_type(node_id,
                                           nodetype='OUTPUT',
@@ -358,9 +355,9 @@ class FFChromosome(Chromosome):
     def _mutate_add_connection(self):
         # Only for feedforwad networks
         num_hidden = len(self.__node_order)
-        num_output = len(self.node_genes) - self._input_nodes - num_hidden
+        num_output = len(self.node_genes) - self.num_inputs - num_hidden
 
-        total_possible_conns = (num_hidden + num_output) * (self._input_nodes + num_hidden) - \
+        total_possible_conns = (num_hidden + num_output) * (self.num_inputs + num_hidden) - \
                                sum(range(num_hidden + 1))
 
         remaining_conns = total_possible_conns - len(self.conn_genes)
@@ -369,8 +366,8 @@ class FFChromosome(Chromosome):
             n = random.randint(0, remaining_conns - 1)
             count = 0
             # Count connections
-            for in_node in (self.node_genes[:self._input_nodes] + self.node_genes[-num_hidden:]):
-                for out_node in self.node_genes[self._input_nodes:]:
+            for in_node in (self.node_genes[:self.num_inputs] + self.node_genes[-num_hidden:]):
+                for out_node in self.node_genes[self.num_inputs:]:
                     if (in_node.ID, out_node.ID) not in self.conn_genes.keys() and \
                             self.__is_connection_feedforward(in_node, out_node):
                         # Free connection
@@ -397,7 +394,7 @@ class FFChromosome(Chromosome):
             self.__node_order.append(node_gene.id)
             node_id += 1
             # Connect all input nodes to it
-            for pre in self.node_genes[:self._input_nodes]:
+            for pre in self.node_genes[:self.num_inputs]:
                 weight = random.gauss(0, self.config.weight_stdev)
                 cg = self._conn_gene_type(pre.id, node_gene.id, weight, True)
                 self.conn_genes[cg.key] = cg
@@ -409,7 +406,7 @@ class FFChromosome(Chromosome):
                 cg = self._conn_gene_type(pre_id, node_gene.id, weight, True)
                 self.conn_genes[cg.key] = cg
             # Connect it to all output nodes
-            for post in self.node_genes[self._input_nodes:(self._input_nodes + self._output_nodes)]:
+            for post in self.node_genes[self.num_inputs:(self.num_inputs + self.num_outputs)]:
                 assert post.type == 'OUTPUT'
                 weight = random.gauss(0, self.config.weight_stdev)
                 cg = self._conn_gene_type(node_gene.id, post.id, weight, True)

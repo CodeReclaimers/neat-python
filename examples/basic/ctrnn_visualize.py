@@ -18,7 +18,7 @@ conn_list = [(1, 1, 4.5), (1, 2, -1.0), (2, 1, 1.0), (2, 2, 4.5)]
 # create the network
 net = nn.Network(neurons_list, conn_list)
 # activates the network
-print "%.17f %.17f" % (N1._output, N2._output)
+print "%.17f %.17f" % (N1.output, N2.output)
 outputs = []
 for i in xrange(1000):
     output = net.pactivate()

@@ -113,7 +113,7 @@ class Population(object):
         for individual in self.population:
             found = False
             for s in self.__species:
-                if individual.distance(s.representant) < self.config.compatibility_threshold:
+                if individual.distance(s.representative) < self.config.compatibility_threshold:
                     s.add(individual)
                     found = True
                     break
@@ -128,7 +128,7 @@ class Population(object):
             # this happens when no chromosomes are compatible with the species
             if len(s) == 0:
                 if report:
-                    print "Removing species %d for being empty" % s.id
+                    print "Removing species %d for being empty" % s.ID
                 # remove empty species
                 self.__species.remove(s)
 
@@ -206,12 +206,12 @@ class Population(object):
 
     def __log_species(self):
         """ Logging species data for visualizing speciation """
-        higher = max([s.id for s in self.__species])
+        higher = max([s.ID for s in self.__species])
         temp = []
         for i in xrange(1, higher + 1):
             found_specie = False
             for s in self.__species:
-                if i == s.id:
+                if i == s.ID:
                     temp.append(len(s))
                     found_specie = True
                     break
@@ -270,7 +270,7 @@ class Population(object):
             # Which species has the best chromosome?
             for s in self.__species:
                 s.hasBest = False
-                if best.species_id == s.id:
+                if best.species_id == s.ID:
                     s.hasBest = True
 
             # saves the best chromo from the current generation
@@ -297,13 +297,13 @@ class Population(object):
                     if not s.hasBest:
                         if report:
                             print "\n   Species %2d (with %2d individuals) is stagnated: removing it" \
-                                  % (s.id, len(s))
+                                  % (s.ID, len(s))
                         # removing species
                         self.__species.remove(s)
                         # removing all the species' members
                         # TODO: can be optimized!
                         for c in self.population[:]:
-                            if c.species_id == s.id:
+                            if c.species_id == s.ID:
                                 self.population.remove(c)
 
             # Remove "super-stagnated" species (even if it has the best chromosome)
@@ -312,13 +312,13 @@ class Population(object):
                 if s.no_improvement_age > 2 * self.config.max_stagnation:
                     if report:
                         print "\n   Species %2d (with %2d individuals) is super-stagnated: removing it" \
-                              % (s.id, len(s))
+                              % (s.ID, len(s))
                     # removing species
                     self.__species.remove(s)
                     # removing all the species' members
                     # TODO: can be optimized!
                     for c in self.population[:]:
-                        if c.species_id == s.id:
+                        if c.species_id == s.ID:
                             self.population.remove(c)
 
             # Compute spawn levels for each remaining species
@@ -329,9 +329,9 @@ class Population(object):
                 # This rarely happens
                 if s.spawn_amount == 0:
                     if report:
-                        print '   Species %2d age %2s removed: produced no offspring' % (s.id, s.age)
+                        print '   Species %2d age %2s removed: produced no offspring' % (s.ID, s.age)
                     for c in self.population[:]:
-                        if c.species_id == s.id:
+                        if c.species_id == s.ID:
                             self.population.remove(c)
                             # self.remove(c)
                     self.__species.remove(s)
@@ -343,12 +343,12 @@ class Population(object):
                 # print 'Population size: %d \t Diversity: %s' %(len(self.population), self.__population_diversity())
                 print 'Population\'s average fitness: %3.5f stdev: %3.5f' % (self.__avg_fitness[-1], self.stdeviation())
                 print 'Best fitness: %2.12s - size: %s - species %s - id %s' \
-                      % (best.fitness, best.size(), best.species_id, best.id)
+                      % (best.fitness, best.size(), best.species_id, best.ID)
 
                 # print some "debugging" information
                 print 'Species length: %d totalizing %d individuals' \
                       % (len(self.__species), sum([len(s) for s in self.__species]))
-                print 'Species ID       : %s' % [s.id for s in self.__species]
+                print 'Species ID       : %s' % [s.ID for s in self.__species]
                 print 'Each species size: %s' % [len(s) for s in self.__species]
                 print 'Amount to spawn  : %s' % [s.spawn_amount for s in self.__species]
                 print 'Species age      : %s' % [s.age for s in self.__species]
@@ -372,7 +372,7 @@ class Population(object):
             if fill < 0:  # overflow
                 if report:
                     print '   Removing %d excess individual(s) from the new population' % -fill
-                # TODO: This is dangerous! I can't remove a species' representant!
+                # TODO: This is dangerous! I can't remove a species' representative!
                 new_population = new_population[:fill]  # Removing the last added members
 
             if fill > 0:  # underflow

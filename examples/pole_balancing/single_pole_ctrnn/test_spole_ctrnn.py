@@ -9,9 +9,8 @@ import spole_ctrnn
 
 
 # load the winner
-file = open('winner_chromosome', 'r')
-c = pickle.load(file)
-file.close()
+with open('winner_chromosome') as f:
+    c = pickle.load(f)
 
 print 'Loaded chromosome:'
 print c
@@ -47,7 +46,7 @@ for step in xrange(10 ** 5):
     # Apply action to the simulated cart-pole
     x, x_dot, theta, theta_dot = spole_ctrnn.cart_pole(action[0], x, x_dot, theta, theta_dot)
 
-    if (abs(x) >= 2.5 or abs(theta) >= twelve_degrees):
+    if abs(x) >= 2.5 or abs(theta) >= twelve_degrees:
         # if abs(theta) >= twelve_degrees: # Igel (p. 5)
         import sys
 

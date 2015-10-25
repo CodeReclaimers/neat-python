@@ -82,7 +82,7 @@ def evaluate_population(chromosomes):
             # Check for failure.  If so, return steps
             # the number of steps indicates the fitness: higher = better
             fitness += 1
-            if (abs(x) >= 2.4 or abs(theta) >= angle_limit):
+            if abs(x) >= 2.4 or abs(theta) >= angle_limit:
                 # if abs(theta) > angle_limit: # Igel (p. 5) uses theta criteria only
                 # the cart/pole has run/inclined out of the limits
                 break
@@ -97,9 +97,9 @@ if __name__ == "__main__":
     config = Config(os.path.join(local_dir, 'spole_config'))
 
     pop = population.Population(config)
-    pop.epoch(evaluate_population, 200, report=True)
+    pop.epoch(evaluate_population, 200)
 
-    print 'Number of evaluations: %d' % (pop.stats()[0][-1]).id
+    print 'Number of evaluations: %d' % (pop.stats()[0][-1]).ID
 
     # Save the winner,
     with open('winner_chromosome', 'w') as f:

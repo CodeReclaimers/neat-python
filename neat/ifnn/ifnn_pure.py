@@ -51,11 +51,11 @@ def create_phenotype(chromosome):
     input_neurons = []
     output_neurons = []
     for ng in chromosome.node_genes:
-        neurons[ng.id] = Neuron(ng.bias)
+        neurons[ng.ID] = Neuron(ng.bias)
         if ng.type == 'INPUT':
-            input_neurons.append(neurons[ng.id])
+            input_neurons.append(neurons[ng.ID])
         elif ng.type == 'OUTPUT':
-            output_neurons.append(neurons[ng.id])
+            output_neurons.append(neurons[ng.ID])
 
     synapses = [Synapse(neurons[cg.innodeid], neurons[cg.outnodeid], cg.weight) \
                 for cg in chromosome.conn_genes if cg.enabled]

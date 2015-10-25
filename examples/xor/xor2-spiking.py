@@ -49,7 +49,7 @@ def run():
     pop.epoch(eval_fitness, 500)
 
     winner = pop.stats()[0][-1]
-    print 'Number of evaluations: %d' % winner.id
+    print 'Number of evaluations: %d' % winner.ID
 
     # Verify network output against training data.
     print '\nBest network output:'

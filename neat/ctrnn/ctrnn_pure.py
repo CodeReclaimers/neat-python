@@ -15,15 +15,15 @@ class CTNeuron(nn.Neuron):
         Adaptive Behavior 1(1):91-122.
     """
 
-    def __init__(self, neurontype, id=None, bias=0.0, response=1.0, activation_type='exp', tau=1.0):
-        super(CTNeuron, self).__init__(neurontype, id, bias, response, activation_type)
+    def __init__(self, neurontype, ID=None, bias=0.0, response=1.0, activation_type='exp', tau=1.0):
+        super(CTNeuron, self).__init__(neurontype, ID, bias, response, activation_type)
 
         # decay rate
         self.__tau = tau
         # needs to set the initial state (initial condition for the ODE)
         self.__state = 0.1  # TODO: Verify what's the "best" initial state
         # fist output
-        self._output = nn.sigmoid(self.__state + self._bias, self._response, self._activation_type)
+        self._output = nn.sigmoid(self.__state + self.bias, self.response, self.activation_type)
         # integration step
         self.__dt = 0.05  # depending on the tau constant, the integration step must
         # be adjusted accordingly to avoid numerical instability
@@ -33,13 +33,13 @@ class CTNeuron(nn.Neuron):
 
     def set_init_state(self, state):
         self.__state = state
-        self._output = nn.sigmoid(self.__state + self._bias, self._response, self._activation_type)
+        self._output = nn.sigmoid(self.__state + self.bias, self.response, self.activation_type)
 
     def activate(self):
         """ Updates neuron's state for a single time-step. . """
-        assert self._type is not 'INPUT'
+        assert self.type is not 'INPUT'
         self.__update_state()
-        return nn.sigmoid(self.__state + self._bias, self._response, self._activation_type)
+        return nn.sigmoid(self.__state + self.bias, self.response, self.activation_type)
 
     def __update_state(self):
         """ Returns neuron's next state using Forward-Euler method. """
@@ -59,4 +59,4 @@ def create_phenotype(chromo):
     conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
                  for cg in chromo.conn_genes.values() if cg.enabled]
 
-    return nn.Network(neurons_list, conn_list, chromo.sensors)
+    return nn.Network(neurons_list, conn_list, chromo.num_inputs)

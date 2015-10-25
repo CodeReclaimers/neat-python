@@ -68,7 +68,7 @@ def run():
     print "time per generation %.3f sec" % ((time.time() - t0) / pop.generation)
 
     winner = pop.stats()[0][-1]
-    print 'Number of evaluations: %d' % winner.id
+    print 'Number of evaluations: %d' % winner.ID
 
     # Verify network output against training data.
     print '\nBest network output:'

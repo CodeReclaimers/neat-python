@@ -103,7 +103,7 @@ def run():
     pop = population.Population(config, node_gene_type=genome.CTNodeGene)
     pop.epoch(evaluate_population, 2000, report=1, save_best=0)
 
-    print 'Number of evaluations: %d' % (pop.stats()[0][-1]).id
+    print 'Number of evaluations: %d' % (pop.stats()[0][-1]).ID
 
     # saves the winner
     with open('winner_chromosome', 'w') as f:
