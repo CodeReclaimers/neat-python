@@ -12,24 +12,18 @@ configuration file.
 
 * *input_nodes*
     The number of nodes through which the network receives input.
-
 * *output_nodes*
     The number of nodes to which the network delivers output.
-
 * *fully_connected*
     If this evaluates to **True**, then all individuals in the initial population will be created with
     no hidden nodes, and each output will have  randomly-configured connection to each input.
     Otherwise, the initial population's members will have no hidden nodes, and each output will have
     *only one* randomly-configured connection to a random input.
-
 * *max_weight*, *min_weight*
     Connection weights will be limited to this range.
-
 * *feedforward*
-
 * *nn_activation*
     Type of activation function to be used to build networks.
-
 * *hidden_nodes*
 * *weight_stdev*
     The standard deviation of the zero-centered normal distribution used to generate initial and replacement weights.
