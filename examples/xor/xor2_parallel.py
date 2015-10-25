@@ -11,11 +11,12 @@ parallel experiment in neat-python.
 import math
 import os
 import time
-
 from multiprocessing import Pool
 
-from neat import config, population, chromosome, genome, visualize
+from neat import population, visualize
+from neat.config import Config
 from neat.nn import nn_pure as nn
+
 
 # XOR-2
 INPUTS = ((0, 0), (0, 1), (1, 0), (1, 1))
@@ -51,10 +52,7 @@ def run():
     # Load the config file, which is assumed to live in
     # the same directory as this script.
     local_dir = os.path.dirname(__file__)
-    config.load(os.path.join(local_dir, 'xor2_config'))
-
-    # Temporary workaround
-    chromosome.node_gene_type = genome.NodeGene
+    config = Config(os.path.join(local_dir, 'xor2_config'))
 
     num_workers = 6
     pool = Pool(num_workers)
@@ -63,8 +61,8 @@ def run():
     def fitness(chromosomes):
         return eval_fitness(chromosomes, pool)
 
-    pop = population.Population()
-    pop.epoch(fitness, 400, report=True)
+    pop = population.Population(config)
+    pop.epoch(fitness, 400)
 
     print "total evolution time %.3f sec" % (time.time() - t0)
     print "time per generation %.3f sec" % ((time.time() - t0) / pop.generation)

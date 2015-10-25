@@ -17,9 +17,7 @@ Config.output_nodes = 1  # number of outputs
 # c1 = Chromosome.create_fully_connected()
 
 # creates a chromosome for feedforward networks
-chromosome.node_gene_type = genome.NodeGene
-
-c2 = chromosome.FFChromosome.create_fully_connected()
+c2 = chromosome.FFChromosome.create_fully_connected(genome.NodeGene, genome.ConnectionGene)
 # add two hidden nodes
 c2.add_hidden_nodes(2)
 # apply some mutations

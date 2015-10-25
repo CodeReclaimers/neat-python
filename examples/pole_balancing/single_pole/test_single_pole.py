@@ -4,11 +4,10 @@ import sys
 from random import randint
 import cPickle as pickle
 
-from neat import config, chromosome, genome
 from neat.nn import nn_pure as nn
+from neat.config import Config
 from evolve_single_pole import cart_pole, angle_limit
 
-chromosome.node_gene_type = genome.NodeGene
 
 # load the winner
 with open('winner_chromosome', 'r') as f:
@@ -17,7 +16,7 @@ with open('winner_chromosome', 'r') as f:
 print 'Loaded chromosome:'
 print c
 
-config.load('spole_config')
+config = Config('spole_config')
 net = nn.create_phenotype(c)
 
 # initial conditions (as used by Stanley)

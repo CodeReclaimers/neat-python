@@ -2,7 +2,9 @@
 import math
 import os
 
-from neat import config, population, chromosome, genome, iznn, visualize
+from neat import population, iznn, visualize
+from neat.config import Config
+
 
 # XOR-2
 INPUTS = ((0, 0), (0, 1), (1, 0), (1, 1))
@@ -38,16 +40,13 @@ def run():
     # Load the config file, which is assumed to live in
     # the same directory as this script.
     local_dir = os.path.dirname(__file__)
-    config.load(os.path.join(local_dir, 'xor2_config'))
-
-    # Temporary workaround
-    chromosome.node_gene_type = genome.NodeGene
+    config = Config(os.path.join(local_dir, 'xor2_config'))
 
     # For spiking networks
-    config.Config.output_nodes = 2
+    config.output_nodes = 2
 
-    pop = population.Population()
-    pop.epoch(eval_fitness, 500, report=True, save_best=False)
+    pop = population.Population(config)
+    pop.epoch(eval_fitness, 500)
 
     winner = pop.stats()[0][-1]
     print 'Number of evaluations: %d' % winner.id

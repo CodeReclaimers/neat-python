@@ -3,16 +3,20 @@ import random
 import math
 import time
 import cPickle as pickle
-from config import Config
 import species
 import chromosome
+from genome import NodeGene, ConnectionGene
 
 
 class Population(object):
     """ Manages all the species  """
 
-    def __init__(self, checkpoint_file=None, initial_population=None):
+    def __init__(self, config, checkpoint_file=None, initial_population=None,
+                 node_gene_type=NodeGene, conn_gene_type=ConnectionGene):
+        self.config = config
         self.population = None
+        self.node_gene_type = node_gene_type
+        self.conn_gene_type = conn_gene_type
 
         if checkpoint_file:
             # start from a previous point: creates an 'empty'
@@ -20,7 +24,7 @@ class Population(object):
             self.__resume_checkpoint(checkpoint_file)
         else:
             # total population size
-            self.__popsize = Config.pop_size
+            self.__popsize = self.config.pop_size
             # currently living species
             self.__species = []
             # species history
@@ -79,19 +83,24 @@ class Population(object):
 
     def __create_population(self):
 
-        if Config.feedforward:
+        if self.config.feedforward:
             genotypes = chromosome.FFChromosome
         else:
             genotypes = chromosome.Chromosome
 
         self.population = []
-        for i in xrange(self.__popsize):
-            g = genotypes.create_fully_connected() \
-                if Config.fully_connected \
-                else genotypes.create_minimally_connected()
-            if Config.hidden_nodes > 0:
-                g.add_hidden_nodes(Config.hidden_nodes)
-            self.population.append(g)
+        if self.config.fully_connected:
+            for i in xrange(self.__popsize):
+                g = genotypes.create_fully_connected(self.config, self.node_gene_type, self.conn_gene_type)
+                self.population.append(g)
+        else:
+            for i in xrange(self.__popsize):
+                g = genotypes.create_minimally_connected(self.config, self.node_gene_type, self.conn_gene_type)
+                self.population.append(g)
+
+        if self.config.hidden_nodes > 0:
+            for g in self.population:
+                g.add_hidden_nodes(self.config.hidden_nodes)
 
     def __repr__(self):
         s = "Population size: %d" % self.__popsize
@@ -104,7 +113,7 @@ class Population(object):
         for individual in self.population:
             found = False
             for s in self.__species:
-                if individual.distance(s.representant) < Config.compatibility_threshold:
+                if individual.distance(s.representant) < self.config.compatibility_threshold:
                     s.add(individual)
                     found = True
                     break
@@ -127,11 +136,11 @@ class Population(object):
 
     def __set_compatibility_threshold(self):
         """ Controls compatibility threshold """
-        if len(self.__species) > Config.species_size:
-            Config.compatibility_threshold += Config.compatibility_change
-        elif len(self.__species) < Config.species_size:
-            if Config.compatibility_threshold > Config.compatibility_change:
-                Config.compatibility_threshold -= Config.compatibility_change
+        if len(self.__species) > self.config.species_size:
+            self.config.compatibility_threshold += self.config.compatibility_change
+        elif len(self.__species) < self.config.species_size:
+            if self.config.compatibility_threshold > self.config.compatibility_change:
+                self.config.compatibility_threshold -= self.config.compatibility_change
             else:
                 print 'Compatibility threshold cannot be changed (minimum value has been reached)'
 
@@ -169,10 +178,10 @@ class Population(object):
         # TODO: does it really increase the overall performance?
         species_stats = []
         for s in self.__species:
-            if s.age < Config.youth_threshold:
-                species_stats.append(s.average_fitness() * Config.youth_boost)
-            elif s.age > Config.old_threshold:
-                species_stats.append(s.average_fitness() * Config.old_penalty)
+            if s.age < self.config.youth_threshold:
+                species_stats.append(s.average_fitness() * self.config.youth_boost)
+            elif s.age > self.config.old_threshold:
+                species_stats.append(s.average_fitness() * self.config.old_penalty)
             else:
                 species_stats.append(s.average_fitness())
 
@@ -271,7 +280,7 @@ class Population(object):
                 f.close()
 
             # Stops the simulation
-            if best.fitness > Config.max_fitness_threshold:
+            if best.fitness > self.config.max_fitness_threshold:
                 print '\nBest individual in epoch %s meets fitness threshold - complexity: %s' % (
                     self.generation, best.size())
                 break
@@ -284,7 +293,7 @@ class Population(object):
 
             # Remove stagnated species and its members (except if it has the best chromosome)
             for s in self.__species[:]:
-                if s.no_improvement_age > Config.max_stagnation:
+                if s.no_improvement_age > self.config.max_stagnation:
                     if not s.hasBest:
                         if report:
                             print "\n   Species %2d (with %2d individuals) is stagnated: removing it" \
@@ -300,7 +309,7 @@ class Population(object):
             # Remove "super-stagnated" species (even if it has the best chromosome)
             # It is not clear if it really avoids local minima
             for s in self.__species[:]:
-                if s.no_improvement_age > 2 * Config.max_stagnation:
+                if s.no_improvement_age > 2 * self.config.max_stagnation:
                     if report:
                         print "\n   Species %2d (with %2d individuals) is super-stagnated: removing it" \
                               % (s.id, len(s))
@@ -354,7 +363,7 @@ class Population(object):
 
             # Spawning new population
             for s in self.__species:
-                new_population.extend(s.reproduce())
+                new_population.extend(s.reproduce(self.config))
 
             # ----------------------------#
             # Controls under or overflow  #

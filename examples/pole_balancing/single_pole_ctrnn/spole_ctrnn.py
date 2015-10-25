@@ -6,7 +6,8 @@ import math
 import random
 import cPickle as pickle
 
-from neat import config, population, chromosome, genome, ctrnn, visualize
+from neat import population, ctrnn, visualize, genome
+from neat.config import Config
 
 
 def cart_pole(net_output, x, x_dot, theta, theta_dot):
@@ -97,12 +98,9 @@ def evaluate_population(pop):
 
 
 def run():
-    config.load('spole_ctrnn_config')
+    config = Config('spole_ctrnn_config')
 
-    # Temporary workaround
-    chromosome.node_gene_type = genome.CTNodeGene
-
-    pop = population.Population()
+    pop = population.Population(config, node_gene_type=genome.CTNodeGene)
     pop.epoch(evaluate_population, 2000, report=1, save_best=0)
 
     print 'Number of evaluations: %d' % (pop.stats()[0][-1]).id

@@ -4,7 +4,8 @@ import os
 import math
 import cPickle as pickle
 
-from neat import config, population, chromosome, genome, visualize
+from neat import population, visualize
+from neat.config import Config
 from neat.nn import nn_pure as nn
 
 angle_limit = 30 * math.pi / 180  # radians
@@ -93,12 +94,9 @@ if __name__ == "__main__":
     # Load the config file, which is assumed to live in
     # the same directory as this script.
     local_dir = os.path.dirname(__file__)
-    config.load(os.path.join(local_dir, 'spole_config'))
+    config = Config(os.path.join(local_dir, 'spole_config'))
 
-    # Temporary workaround
-    chromosome.node_gene_type = genome.NodeGene
-
-    pop = population.Population()
+    pop = population.Population(config)
     pop.epoch(evaluate_population, 200, report=True)
 
     print 'Number of evaluations: %d' % (pop.stats()[0][-1]).id

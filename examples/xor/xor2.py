@@ -2,8 +2,10 @@
 import math
 import os
 
-from neat import config, population, chromosome, genome, visualize
+from neat import population, visualize
+from neat.config import Config
 from neat.nn import nn_pure as nn
+
 
 # XOR-2
 INPUTS = [[0, 0], [0, 1], [1, 0], [1, 1]]
@@ -29,12 +31,9 @@ def run():
     # Load the config file, which is assumed to live in
     # the same directory as this script.
     local_dir = os.path.dirname(__file__)
-    config.load(os.path.join(local_dir, 'xor2_config'))
+    config = Config(os.path.join(local_dir, 'xor2_config'))
 
-    # set node gene type
-    chromosome.node_gene_type = genome.NodeGene
-
-    pop = population.Population()
+    pop = population.Population(config)
     pop.epoch(eval_fitness, 300)
 
     winner = pop.stats()[0][-1]

@@ -1,6 +1,5 @@
 # -*- coding: UTF-8 -*-
 import random
-from config import Config
 
 
 class Species(object):
@@ -82,7 +81,7 @@ class Species(object):
 
             return current
 
-    def reproduce(self):
+    def reproduce(self, config):
         """ Returns a list of 'spawn_amount' new individuals """
 
         offspring = []  # new offspring for this species
@@ -97,13 +96,13 @@ class Species(object):
         self.__subpopulation.sort()  # sort species's members by their fitness
         self.__subpopulation.reverse()  # best members first
 
-        if Config.elitism:
+        if config.elitism:
             # TODO: Wouldn't it be better if we set elitism=2,3,4...
             # depending on the size of each species?
             offspring.append(self.__subpopulation[0])
             self.spawn_amount -= 1
 
-        survivors = int(round(len(self) * Config.survival_threshold))  # keep a % of the best individuals
+        survivors = int(round(len(self) * config.survival_threshold))  # keep a % of the best individuals
 
         if survivors > 0:
             self.__subpopulation = self.__subpopulation[:survivors]

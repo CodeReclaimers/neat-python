@@ -99,13 +99,13 @@ def draw_net(chromosome, view=False, filename=None):
 
     for ng in chromosome.node_genes:
         if ng.type == 'INPUT':
-            dot.node(str(ng.id), _attributes=input_attrs)
+            dot.node(str(ng.ID), _attributes=input_attrs)
 
     for ng in chromosome.node_genes:
         if ng.type == 'OUTPUT':
-            dot.node(str(ng.id), _attributes=output_attrs)
+            dot.node(str(ng.ID), _attributes=output_attrs)
 
-    for cg in chromosome.conn_genes:
+    for cg in chromosome.conn_genes.values():
         a = str(cg.innodeid)
         b = str(cg.outnodeid)
         if cg.enabled is False:

@@ -3,11 +3,10 @@
 import random
 import cPickle as pickle
 
-from neat import config, chromosome, genome
+from neat.config import Config
 from neat import ctrnn
 import spole_ctrnn
 
-chromosome.node_gene_type = genome.CTNodeGene
 
 # load the winner
 file = open('winner_chromosome', 'r')
@@ -17,7 +16,7 @@ file.close()
 print 'Loaded chromosome:'
 print c
 
-config.load('spole_ctrnn_config')
+config = Config('spole_ctrnn_config')
 net = ctrnn.create_phenotype(c)
 
 
