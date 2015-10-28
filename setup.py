@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='neat-python',
-    version='0.1',
+    version='0.2',
     author='cesar.gomes, mirrorballu2',
     author_email='nobody@nowhere.com',
     maintainer='CodeReclaimers, LLC',
