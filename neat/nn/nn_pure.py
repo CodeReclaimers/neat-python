@@ -245,7 +245,7 @@ def create_ffphenotype(chromo):
     """ Receives a chromosome and returns its phenotype (a neural network) """
 
     # first create inputs
-    neurons_list = [Neuron('INPUT', ng.ID, 0, 0) \
+    neurons_list = [Neuron('INPUT', ng.ID, 0, 0)
                     for ng in chromo.node_genes.values() if ng.type == 'INPUT']
 
     # Add hidden nodes in the right order
@@ -254,12 +254,12 @@ def create_ffphenotype(chromo):
         neurons_list.append(Neuron('HIDDEN', ID, gene.bias, gene.response, gene.activation_type))
     # finally the output
     neurons_list.extend(Neuron('OUTPUT', ng.ID, ng.bias,
-                               ng.response, ng.activation_type) \
+                               ng.response, ng.activation_type)
                         for ng in chromo.node_genes.values() if ng.type == 'OUTPUT')
 
     assert (len(neurons_list) == len(chromo.node_genes))
 
-    conn_list = [(cg.in_node_id, cg.out_node_id, cg.weight) \
+    conn_list = [(cg.in_node_id, cg.out_node_id, cg.weight)
                  for cg in chromo.conn_genes.values() if cg.enabled]
 
     return Network(neurons_list, conn_list, chromo.num_inputs)

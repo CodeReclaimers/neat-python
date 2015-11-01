@@ -2,7 +2,7 @@
 
 import os
 import random
-import cPickle as pickle
+import cPickle
 
 from neat.config import Config
 from neat import ctrnn
@@ -11,7 +11,7 @@ import spole_ctrnn
 
 # load the winner
 with open('winner_chromosome') as f:
-    c = pickle.load(f)
+    c = cPickle.load(f)
 
 print 'Loaded chromosome:'
 print c

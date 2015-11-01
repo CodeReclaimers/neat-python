@@ -53,10 +53,10 @@ def create_phenotype(chromo):
                              ng.bias,
                              ng.response,
                              ng.activation_type,
-                             ng.time_constant) \
+                             ng.time_constant)
                     for ng in chromo.node_genes.values()]
 
-    conn_list = [(cg.in_node_id, cg.out_node_id, cg.weight) \
+    conn_list = [(cg.in_node_id, cg.out_node_id, cg.weight)
                  for cg in chromo.conn_genes.values() if cg.enabled]
 
     return nn.Network(neurons_list, conn_list, chromo.num_inputs)

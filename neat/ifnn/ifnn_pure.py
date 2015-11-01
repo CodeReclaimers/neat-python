@@ -57,7 +57,7 @@ def create_phenotype(chromosome):
         elif ng.type == 'OUTPUT':
             output_neurons.append(neurons[ng.ID])
 
-    synapses = [Synapse(neurons[cg.in_node_id], neurons[cg.out_node_id], cg.weight) \
+    synapses = [Synapse(neurons[cg.in_node_id], neurons[cg.out_node_id], cg.weight)
                 for cg in chromosome.conn_genes if cg.enabled]
 
     return Network(neurons, input_neurons, output_neurons, synapses)

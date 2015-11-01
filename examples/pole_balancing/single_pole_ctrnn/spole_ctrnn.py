@@ -5,7 +5,7 @@ Single pole balancing experiment
 import math
 import os
 import random
-import cPickle as pickle
+import cPickle
 
 from neat import population, ctrnn, visualize, genome
 from neat.config import Config
@@ -109,7 +109,7 @@ def run():
     winner = pop.most_fit_genomes[-1]
     print 'Number of evaluations: %d' % winner.ID
     with open('winner_chromosome', 'w') as f:
-        pickle.dump(winner, f)
+        cPickle.dump(winner, f)
 
     print winner
 

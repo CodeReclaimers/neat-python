@@ -45,7 +45,7 @@ class Chromosome(object):
         elif r() < self.config.prob_addconn:
             self._mutate_add_connection()
         elif r() < self.config.prob_deletenode:
-           self._mutate_delete_node()
+            self._mutate_delete_node()
         elif r() < self.config.prob_deleteconn:
             self._mutate_delete_connection()
         else:
@@ -138,8 +138,7 @@ class Chromosome(object):
 
     def _mutate_add_connection(self):
         # Only for recurrent networks
-        total_possible_conns = (len(self.node_genes) - self.num_inputs) \
-                               * len(self.node_genes)
+        total_possible_conns = (len(self.node_genes) - self.num_inputs) * len(self.node_genes)
         remaining_conns = total_possible_conns - len(self.conn_genes)
         # Check if new connection can be added:
         if remaining_conns > 0:
@@ -202,7 +201,6 @@ class Chromosome(object):
 
             assert len(self.conn_genes) > 0
             assert len(self.node_genes) >= self.num_inputs + self.num_outputs
-
 
     # compatibility function
     def distance(self, other):

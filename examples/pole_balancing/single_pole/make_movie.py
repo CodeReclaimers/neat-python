@@ -1,6 +1,6 @@
 import os
 from random import randint
-import cPickle as pickle
+import cPickle
 
 import numpy as np
 import gizeh as gz
@@ -21,7 +21,7 @@ pole = gz.rectangle(SCALE * 0.1, SCALE * 1.0, xy=(150, 55), stroke_width=1, fill
 
 # load the winner
 with open('winner_chromosome') as f:
-    c = pickle.load(f)
+    c = cPickle.load(f)
 
 print 'Loaded chromosome:'
 print c

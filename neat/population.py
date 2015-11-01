@@ -1,8 +1,8 @@
 import gzip
 import random
-import math
 import time
 import cPickle
+
 import chromosome
 from genome import NodeGene, ConnectionGene
 from species import Species
@@ -276,7 +276,8 @@ class Population(object):
             self.__log_species()
 
             if report:
-                print 'Population\'s average fitness: %3.5f stdev: %3.5f' % (self.avg_fitness_scores[-1], self.stdeviation())
+                print 'Population\'s average fitness: %3.5f stdev: %3.5f' % (self.avg_fitness_scores[-1],
+                                                                             self.stdeviation())
                 print 'Best fitness: %2.12s - size: %s - species %s - id %s' \
                       % (best.fitness, best.size(), best.species_id, best.ID)
 

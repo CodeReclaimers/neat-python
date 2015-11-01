@@ -3,7 +3,7 @@
 import os
 import sys
 from random import randint
-import cPickle as pickle
+import cPickle
 
 from neat.nn import nn_pure as nn
 from neat.config import Config
@@ -12,7 +12,7 @@ from evolve_single_pole import cart_pole, angle_limit
 
 # load the winner
 with open('winner_chromosome') as f:
-    c = pickle.load(f)
+    c = cPickle.load(f)
 
 print 'Loaded chromosome:'
 print c

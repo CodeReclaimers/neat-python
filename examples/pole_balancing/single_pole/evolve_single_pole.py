@@ -2,7 +2,7 @@
 import random
 import os
 import math
-import cPickle as pickle
+import cPickle
 
 from neat import population, visualize
 from neat.config import Config
@@ -97,13 +97,13 @@ if __name__ == "__main__":
     config = Config(os.path.join(local_dir, 'spole_config'))
 
     pop = population.Population(config)
-    pop.epoch(evaluate_population, 200, report=True)
+    pop.epoch(evaluate_population, 200)
 
     # Save the winner,
     winner = pop.most_fit_genomes[-1]
     print 'Number of evaluations: %d' % winner.ID
     with open('winner_chromosome', 'w') as f:
-        pickle.dump(winner, f)
+        cPickle.dump(winner, f)
 
     # Plot the evolution of the best/average fitness.
     visualize.plot_stats(pop.most_fit_genomes, pop.avg_fitness_scores, ylog=True)

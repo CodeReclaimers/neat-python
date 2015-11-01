@@ -1,6 +1,6 @@
 import os
 import sys
-import cPickle as pickle
+import cPickle
 
 from neat.config import Config
 from cart_pole import CartPole
@@ -12,7 +12,7 @@ if len(sys.argv) > 1:
 # load genome
 print "loading genome %s" % filename
 with open(filename) as f:
-    c = pickle.load(f)
+    c = cPickle.load(f)
 
 # load settings file
 local_dir = os.path.dirname(__file__)

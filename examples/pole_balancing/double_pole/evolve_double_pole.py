@@ -1,5 +1,5 @@
 """ Double pole balancing experiment """
-import cPickle as pickle
+import cPickle
 import os
 
 from neat import population, visualize
@@ -35,7 +35,7 @@ def run():
 
     # save the winner
     with open('winner_chromosome', 'w') as f:
-        pickle.dump(winner, f)
+        cPickle.dump(winner, f)
 
     # Plots the evolution of the best/average fitness
     visualize.plot_stats(pop.most_fit_genomes, pop.avg_fitness_scores, ylog=True)
