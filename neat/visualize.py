@@ -1,7 +1,22 @@
 # -*- coding: UTF-8 -*-
-import graphviz
-import matplotlib.pyplot as plt
-import numpy as np
+import warnings
+try:
+    import graphviz
+except ImportError:
+    graphviz = None
+    warnings.warn('WARNING: the visualize module could not import graphviz.')
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = None
+    warnings.warn('WARNING: the visualize module could not import matplotlib.')
+
+try:
+    import numpy as np
+except ImportError:
+    np = None
+    warnings.warn('WARNING: the visualize module could not import NumPy.')
 
 
 def plot_stats(best_genomes, avg_scores, ylog=False, view=False, filename='avg_fitness.svg'):

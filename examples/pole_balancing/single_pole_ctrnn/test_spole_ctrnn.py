@@ -1,5 +1,6 @@
 # test single pole performance
 
+import os
 import random
 import cPickle as pickle
 
@@ -15,7 +16,8 @@ with open('winner_chromosome') as f:
 print 'Loaded chromosome:'
 print c
 
-config = Config('spole_ctrnn_config')
+local_dir = os.path.dirname(__file__)
+config = Config(os.path.join(local_dir, 'spole_ctrnn_config'))
 net = ctrnn.create_phenotype(c)
 
 

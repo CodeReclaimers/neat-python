@@ -5,6 +5,7 @@
 #**************************************************#
 import math, sys
 import re, os
+from neat.math_util import mean, stdev
 
 p = re.compile('\d*\d')
 
@@ -14,25 +15,12 @@ total_conns = []
 total_evals = []
 total_score = []
 
-def average(values):
-    """ Returns the population average """
-    return sum(values)/len(values)
-
-def stdev(values):
-    """ Returns the population standard deviation """
-    # first compute the average
-    u = average(values)
-    error = 0.0
-    # now compute the distance from average
-    for x in values:
-        error += (u - x)**2
-    return math.sqrt(error/len(values))
 
 def report():
     print "\nNumber of runs: %s\n" %sys.argv[2]
     print "\t Gen. \t Nodes \t Conn. \t Evals. \t Score \n"
     print "average  %3.2f \t %2.2f \t %2.2f \t %2.2f \t %2.2f" \
-            %(average(total_gens), average(total_nodes), average(total_conns), average(total_evals), average(total_score))
+            %(mean(total_gens), mean(total_nodes), mean(total_conns), mean(total_evals), mean(total_score))
     print "stdev    %3.2f \t %2.2f \t %2.2f \t %2.2f \t %2.2f" \
             %(stdev(total_gens), stdev(total_nodes), stdev(total_conns), stdev(total_evals), stdev(total_score))
 

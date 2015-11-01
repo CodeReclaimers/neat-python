@@ -236,7 +236,6 @@ class Chromosome(object):
 
         disjoint += len(chromo2.conn_genes) - matching
 
-        #assert(matching > 0) # this can't happen
         distance = self.config.excess_coefficient * excess + self.config.disjoint_coefficient * disjoint
         if matching > 0:
             distance += self.config.weight_coefficient * (weight_diff / matching)

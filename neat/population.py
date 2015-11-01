@@ -6,6 +6,7 @@ import cPickle
 import chromosome
 from genome import NodeGene, ConnectionGene
 from species import Species
+from math_util import mean, stdev
 
 
 class Population(object):
@@ -129,27 +130,11 @@ class Population(object):
 
     def average_fitness(self):
         """ Returns the average raw fitness of population """
-        s = sum(c.fitness for c in self.population)
-        return s / len(self.population)
+        return mean([c.fitness for c in self.population])
 
     def stdeviation(self):
         """ Returns the population standard deviation """
-        # first compute the average
-        u = self.average_fitness()
-        error = 0.0
-
-        try:
-            # now compute the distance from average
-            for c in self.population:
-                error += (u - c.fitness) ** 2
-        except OverflowError:
-            # TODO: catch OverflowError: (34, 'Numerical result out of range')
-            print "Overflow - printing population status"
-            print "error = %f \t average = %f" % (error, u)
-            print "Population fitness:"
-            print [c.fitness for c in self]
-
-        return math.sqrt(error / len(self.population))
+        return stdev([c.fitness for c in self.population])
 
     def __compute_spawn_levels(self):
         """ Compute each species' spawn amount (Stanley, p. 40) """
@@ -191,23 +176,6 @@ class Population(object):
             if not found_specie:
                 temp.append(0)
         self.species_log.append(temp)
-
-    def __population_diversity(self):
-        """ Calculates the diversity of population: total average weights,
-            number of connections, nodes """
-
-        num_nodes = 0
-        num_conns = 0
-        avg_weights = 0.0
-
-        for c in self.population:
-            num_nodes += len(c.node_genes)
-            num_conns += len(c.conn_genes)
-            for cg in c.conn_genes:
-                avg_weights += cg.weight
-
-        total = len(self.population)
-        return (num_nodes / total, num_conns / total, avg_weights / total)
 
     def epoch(self, fitness_function, n, report=True, save_best=False, checkpoint_interval=10,
               checkpoint_generation=None):
@@ -308,7 +276,6 @@ class Population(object):
             self.__log_species()
 
             if report:
-                # print 'Population size: %d \t Diversity: %s' %(len(self.population), self.__population_diversity())
                 print 'Population\'s average fitness: %3.5f stdev: %3.5f' % (self.avg_fitness_scores[-1], self.stdeviation())
                 print 'Best fitness: %2.12s - size: %s - species %s - id %s' \
                       % (best.fitness, best.size(), best.species_id, best.ID)

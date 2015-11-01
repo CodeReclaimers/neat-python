@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
 import random
+from neat.math_util import mean
 
 
 class Species(object):
@@ -61,21 +62,16 @@ class Species(object):
 
     def average_fitness(self):
         """ Returns the raw average fitness for this species """
-        total_fitness = sum(c.fitness for c in self.members)
+        current = mean([c.fitness for c in self.members])
+        # controls species no improvement age
+        # if no_improvement_age > threshold, species will be removed
+        if current > self.__last_avg_fitness:
+            self.__last_avg_fitness = current
+            self.no_improvement_age = 0
+        else:
+            self.no_improvement_age += 1
 
-        try:
-            current = total_fitness / len(self)
-        except ZeroDivisionError:
-            print "Species %d, with length %d is empty! Why? " % (self.ID, len(self))
-        else:  # controls species no improvement age
-            # if no_improvement_age > threshold, species will be removed
-            if current > self.__last_avg_fitness:
-                self.__last_avg_fitness = current
-                self.no_improvement_age = 0
-            else:
-                self.no_improvement_age += 1
-
-            return current
+        return current
 
     def reproduce(self, config):
         """ Returns a list of 'spawn_amount' new individuals """

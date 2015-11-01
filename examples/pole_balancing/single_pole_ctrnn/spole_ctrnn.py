@@ -3,6 +3,7 @@ Single pole balancing experiment
 '''
 
 import math
+import os
 import random
 import cPickle as pickle
 
@@ -98,7 +99,8 @@ def evaluate_population(pop):
 
 
 def run():
-    config = Config('spole_ctrnn_config')
+    local_dir = os.path.dirname(__file__)
+    config = Config(os.path.join(local_dir, 'spole_ctrnn_config'))
 
     pop = population.Population(config, node_gene_type=genome.CTNodeGene)
     pop.epoch(evaluate_population, 2000, report=1, save_best=0)
