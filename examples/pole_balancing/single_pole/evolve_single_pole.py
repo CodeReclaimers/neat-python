@@ -97,17 +97,17 @@ if __name__ == "__main__":
     config = Config(os.path.join(local_dir, 'spole_config'))
 
     pop = population.Population(config)
-    pop.epoch(evaluate_population, 200)
-
-    print 'Number of evaluations: %d' % (pop.stats()[0][-1]).ID
+    pop.epoch(evaluate_population, 200, report=True)
 
     # Save the winner,
+    winner = pop.most_fit_genomes[-1]
+    print 'Number of evaluations: %d' % winner.ID
     with open('winner_chromosome', 'w') as f:
-        pickle.dump(pop.stats()[0][-1], f)
+        pickle.dump(winner, f)
 
     # Plot the evolution of the best/average fitness.
-    visualize.plot_stats(pop.stats(), ylog=True)
+    visualize.plot_stats(pop.most_fit_genomes, pop.avg_fitness_scores, ylog=True)
     # Visualizes speciation
-    visualize.plot_species(pop.species_log())
+    visualize.plot_species(pop.species_log)
     # Visualize the best network.
-    visualize.draw_net(pop.stats()[0][-1], view=True)
+    visualize.draw_net(winner, view=True)

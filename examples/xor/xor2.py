@@ -12,19 +12,17 @@ INPUTS = [[0, 0], [0, 1], [1, 0], [1, 1]]
 OUTPUTS = [0, 1, 1, 0]
 
 
-def eval_fitness(chromosomes):
-    for chromo in chromosomes:
-        net = nn.create_ffphenotype(chromo)
+def eval_fitness(genomes):
+    for g in genomes:
+        net = nn.create_ffphenotype(g)
 
         error = 0.0
         for i, inputs in enumerate(INPUTS):
-            # flush is not strictly necessary in feed-forward nets.
-            net.flush()
-            # serial activation
+            # Serial activation propagates the inputs through the entire network.
             output = net.sactivate(inputs)
             error += (output[0] - OUTPUTS[i]) ** 2
 
-        chromo.fitness = 1 - math.sqrt(error / len(OUTPUTS))
+        g.fitness = 1 - math.sqrt(error / len(OUTPUTS))
 
 
 def run():
@@ -36,7 +34,7 @@ def run():
     pop = population.Population(config)
     pop.epoch(eval_fitness, 300)
 
-    winner = pop.stats()[0][-1]
+    winner = pop.most_fit_genomes[-1]
     print 'Number of evaluations: %d' % winner.ID
 
     # Verify network output against training data.
@@ -47,8 +45,8 @@ def run():
         print "%1.5f \t %1.5f" % (OUTPUTS[i], output[0])
 
     # Visualize the winner network and plot statistics.
-    visualize.plot_stats(pop.stats())
-    visualize.plot_species(pop.species_log())
+    visualize.plot_stats(pop.most_fit_genomes, pop.avg_fitness_scores)
+    visualize.plot_species(pop.species_log)
     visualize.draw_net(winner, view=True)
 
 

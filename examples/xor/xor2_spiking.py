@@ -48,7 +48,7 @@ def run():
     pop = population.Population(config)
     pop.epoch(eval_fitness, 500)
 
-    winner = pop.stats()[0][-1]
+    winner = pop.most_fit_genomes[-1]
     print 'Number of evaluations: %d' % winner.ID
 
     # Verify network output against training data.
@@ -67,8 +67,8 @@ def run():
             print "%r expected %d got ?" % (inputData, outputData)
 
     # Visualize the winner network and plot statistics.
-    visualize.plot_stats(pop.stats())
-    visualize.plot_species(pop.species_log())
+    visualize.plot_stats(pop.most_fit_genomes, pop.avg_fitness_scores)
+    visualize.plot_species(pop.species_log)
     visualize.draw_net(winner, view=True)
 
 

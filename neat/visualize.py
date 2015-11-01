@@ -4,15 +4,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot_stats(stats, ylog=False, view=False, filename='avg_fitness.svg'):
+def plot_stats(best_genomes, avg_scores, ylog=False, view=False, filename='avg_fitness.svg'):
     """ Plots the population's average and best fitness. """
 
-    generation = [i for i in xrange(len(stats[0]))]
+    generation = range(len(best_genomes))
 
-    fitness = [c.fitness for c in stats[0]]
-    avg_pop = [avg for avg in stats[1]]
+    fitness = [c.fitness for c in best_genomes]
 
-    plt.plot(generation, avg_pop, 'b-', label="average")
+    plt.plot(generation, avg_scores, 'b-', label="average")
     plt.plot(generation, fitness, 'r-', label="best")
 
     plt.title("Population's average and best fitness")

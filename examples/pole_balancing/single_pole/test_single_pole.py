@@ -1,5 +1,6 @@
 # Test the performance of the genome produced by single_pole.py.
 
+import os
 import sys
 from random import randint
 import cPickle as pickle
@@ -16,7 +17,8 @@ with open('winner_chromosome') as f:
 print 'Loaded chromosome:'
 print c
 
-config = Config('spole_config')
+local_dir = os.path.dirname(__file__)
+config = Config(os.path.join(local_dir, 'spole_config'))
 net = nn.create_phenotype(c)
 
 # initial conditions (as used by Stanley)

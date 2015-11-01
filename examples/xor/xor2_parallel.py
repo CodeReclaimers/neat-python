@@ -67,7 +67,7 @@ def run():
     print "total evolution time %.3f sec" % (time.time() - t0)
     print "time per generation %.3f sec" % ((time.time() - t0) / pop.generation)
 
-    winner = pop.stats()[0][-1]
+    winner = pop.most_fit_genomes[-1]
     print 'Number of evaluations: %d' % winner.ID
 
     # Verify network output against training data.
@@ -78,8 +78,8 @@ def run():
         print "%1.5f \t %1.5f" % (OUTPUTS[i], output[0])
 
     # Visualize the winner network and plot statistics.
-    visualize.plot_stats(pop.stats())
-    visualize.plot_species(pop.species_log())
+    visualize.plot_stats(pop.most_fit_genomes, pop.avg_fitness_scores)
+    visualize.plot_species(pop.species_log)
     visualize.draw_net(winner, view=True)
 
 

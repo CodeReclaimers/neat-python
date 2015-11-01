@@ -28,7 +28,7 @@ def run():
     pop = population.Population(config)
     pop.epoch(evaluate_population, 200, report=1, save_best=0)
 
-    winner = pop.stats()[0][-1]
+    winner = pop.most_fit_genomes[-1]
 
     print 'Number of evaluations: %d' % winner.ID
     print 'Winner fitness: %f' % winner.fitness
@@ -38,9 +38,9 @@ def run():
         pickle.dump(winner, f)
 
     # Plots the evolution of the best/average fitness
-    visualize.plot_stats(pop.stats(), ylog=True)
+    visualize.plot_stats(pop.most_fit_genomes, pop.avg_fitness_scores, ylog=True)
     # Visualizes speciation
-    visualize.plot_species(pop.species_log())
+    visualize.plot_species(pop.species_log)
     # visualize the best topology
     visualize.draw_net(winner, view=True)
 

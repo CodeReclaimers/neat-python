@@ -2,10 +2,10 @@ import gzip
 import random
 import math
 import time
-import cPickle as pickle
-import species
+import cPickle
 import chromosome
 from genome import NodeGene, ConnectionGene
+from species import Species
 
 
 class Population(object):
@@ -28,11 +28,11 @@ class Population(object):
             # currently living species
             self.__species = []
             # species history
-            self.__species_log = []
+            self.species_log = []
 
-            # Statistics
-            self.__avg_fitness = []
-            self.__best_fitness = []
+            # List of statistics for all generations.
+            self.avg_fitness_scores = []
+            self.most_fit_genomes = []
 
             if initial_population is None:
                 self.__create_population()
@@ -40,46 +40,29 @@ class Population(object):
                 self.population = initial_population
             self.generation = -1
 
-    def stats(self):
-        return (self.__best_fitness, self.__avg_fitness)
-
-    def species_log(self):
-        return self.__species_log
-
     def __resume_checkpoint(self, checkpoint):
         """ Resumes the simulation from a previous saved point. """
-        try:
-            # file = open(checkpoint)
-            f = gzip.open(checkpoint)
-        except IOError:
-            raise
-        print 'Resuming from a previous point: %s' % checkpoint
-        # when unpickling __init__ is not called again
-        previous_pop = pickle.load(f)
-        self.__dict__ = previous_pop.__dict__
+        with gzip.open(checkpoint) as f:
+            print 'Resuming from a previous point: %s' % checkpoint
+            # when unpickling __init__ is not called again
+            previous_pop = cPickle.load(f)
+            self.__dict__ = previous_pop.__dict__
 
-        print 'Loading random state'
-        rstate = pickle.load(f)
-        random.setstate(rstate)
-        # random.jumpahead(1)
-        f.close()
+            print 'Loading random state'
+            rstate = cPickle.load(f)
+            random.setstate(rstate)
+            # random.jumpahead(1)
 
     def __create_checkpoint(self, report):
         """ Saves the current simulation state. """
-        # from time import strftime
-        # get current time
-        # date = strftime("%Y_%m_%d_%Hh%Mm%Ss")
         if report:
             print 'Creating checkpoint file at generation: %d' % self.generation
 
-        # dumps 'self'
-        # file = open('checkpoint_'+str(self.generation), 'w')
-        f = gzip.open('checkpoint_' + str(self.generation), 'w', compresslevel=5)
-        # dumps the population
-        pickle.dump(self, f, protocol=2)
-        # dumps the current random state
-        pickle.dump(random.getstate(), f, protocol=2)
-        f.close()
+        with gzip.open('checkpoint_' + str(self.generation), 'w', compresslevel=5) as f:
+            # dumps the population
+            cPickle.dump(self, f, protocol=cPickle.HIGHEST_PROTOCOL)
+            # dumps the current random state
+            cPickle.dump(random.getstate(), f, protocol=2)
 
     def __create_population(self):
 
@@ -119,7 +102,7 @@ class Population(object):
                     break
 
             if not found:  # create a new species for this lone chromosome
-                self.__species.append(species.Species(individual))
+                self.__species.append(Species(individual))
 
         # python technical note:
         # we need a "working copy" list when removing elements while looping
@@ -146,10 +129,7 @@ class Population(object):
 
     def average_fitness(self):
         """ Returns the average raw fitness of population """
-        s = 0.0
-        for c in self.population:
-            s += c.fitness
-
+        s = sum(c.fitness for c in self.population)
         return s / len(self.population)
 
     def stdeviation(self):
@@ -185,7 +165,7 @@ class Population(object):
             else:
                 species_stats.append(s.average_fitness())
 
-        # 2. Share fitness (only usefull for computing spawn amounts)
+        # 2. Share fitness (only useful for computing spawn amounts)
         # More info: http://tech.groups.yahoo.com/group/neat/message/2203
         # Sharing the fitness is only meaningful here
         # we don't really have to change each individual's raw fitness
@@ -196,13 +176,6 @@ class Population(object):
             # 3. Compute spawn
         for i, s in enumerate(self.__species):
             s.spawn_amount = int(round((species_stats[i] * self.__popsize / total_average)))
-
-    def __tournament_selection(self, k=2):
-        """ Tournament selection with size k (default k=2).
-            Make sure the population has at least k individuals """
-        random.shuffle(self.population)
-
-        return max(self.population[:k])
 
     def __log_species(self):
         """ Logging species data for visualizing speciation """
@@ -217,7 +190,7 @@ class Population(object):
                     break
             if not found_specie:
                 temp.append(0)
-        self.__species_log.append(temp)
+        self.species_log.append(temp)
 
     def __population_diversity(self):
         """ Calculates the diversity of population: total average weights,
@@ -261,12 +234,12 @@ class Population(object):
             self.__speciate(report)
 
             # Current generation's best chromosome
-            self.__best_fitness.append(max(self.population))
+            self.most_fit_genomes.append(max(self.population))
             # Current population's average fitness
-            self.__avg_fitness.append(self.average_fitness())
+            self.avg_fitness_scores.append(self.average_fitness())
 
             # Print some statistics
-            best = self.__best_fitness[-1]
+            best = self.most_fit_genomes[-1]
             # Which species has the best chromosome?
             for s in self.__species:
                 s.hasBest = False
@@ -276,7 +249,7 @@ class Population(object):
             # saves the best chromo from the current generation
             if save_best:
                 f = open('best_chromo_' + str(self.generation), 'w')
-                pickle.dump(best, f)
+                cPickle.dump(best, f)
                 f.close()
 
             # Stops the simulation
@@ -285,12 +258,6 @@ class Population(object):
                     print '\nBest individual in epoch %s meets fitness threshold - complexity: %s' % (
                         self.generation, best.size())
                 break
-
-            # -----------------------------------------
-            # Prints chromosome's parents id:  {dad_id, mom_id} -> child_id
-            # for chromosome in self.population:
-            #    print '{%3d; %3d} -> %3d' %(chromosome.parent1_id, chromosome.parent2_id, chromosome.id)
-            # -----------------------------------------
 
             # Remove stagnated species and its members (except if it has the best chromosome)
             for s in self.__species[:]:
@@ -342,12 +309,12 @@ class Population(object):
 
             if report:
                 # print 'Population size: %d \t Diversity: %s' %(len(self.population), self.__population_diversity())
-                print 'Population\'s average fitness: %3.5f stdev: %3.5f' % (self.__avg_fitness[-1], self.stdeviation())
+                print 'Population\'s average fitness: %3.5f stdev: %3.5f' % (self.avg_fitness_scores[-1], self.stdeviation())
                 print 'Best fitness: %2.12s - size: %s - species %s - id %s' \
                       % (best.fitness, best.size(), best.species_id, best.ID)
 
                 # print some "debugging" information
-                print 'Species length: %d totalizing %d individuals' \
+                print 'Species length: %d totaling %d individuals' \
                       % (len(self.__species), sum([len(s) for s in self.__species]))
                 print 'Species ID       : %s' % [s.ID for s in self.__species]
                 print 'Each species size: %s' % [len(s) for s in self.__species]
@@ -355,9 +322,6 @@ class Population(object):
                 print 'Species age      : %s' % [s.age for s in self.__species]
                 print 'Species no improv: %s' % [s.no_improvement_age for s in
                                                  self.__species]  # species no improvement age
-
-                # for s in self.__species:
-                #    print s
 
             # -------------------------- Producing new offspring -------------------------- #
             new_population = []  # next generation's population

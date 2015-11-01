@@ -103,20 +103,20 @@ def run():
     pop = population.Population(config, node_gene_type=genome.CTNodeGene)
     pop.epoch(evaluate_population, 2000, report=1, save_best=0)
 
-    print 'Number of evaluations: %d' % (pop.stats()[0][-1]).ID
-
     # saves the winner
+    winner = pop.most_fit_genomes[-1]
+    print 'Number of evaluations: %d' % winner.ID
     with open('winner_chromosome', 'w') as f:
-        pickle.dump(pop.stats()[0][-1], f)
+        pickle.dump(winner, f)
 
-    print pop.stats()[0][-1]
+    print winner
 
     # Plot the evolution of the best/average fitness.
-    visualize.plot_stats(pop.stats(), ylog=True, view=True)
+    visualize.plot_stats(pop.most_fit_genomes, pop.avg_fitness_scores, ylog=True, view=True)
     # Visualizes speciation
-    visualize.plot_species(pop.species_log())
+    visualize.plot_species(pop.species_log)
     # Visualize the best network.
-    visualize.draw_net(pop.stats()[0][-1], view=True)
+    visualize.draw_net(winner, view=True)
 
 
 if __name__ == "__main__":
