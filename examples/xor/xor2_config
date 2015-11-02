@@ -1,10 +1,10 @@
 #--- parameters for the XOR-2 experiment ---#
-# Stats for 500 runs:
-#                 mean      std dev
-#   Generations: 32.794     30.259
-#  hidden nodes:  3.756      2.905
-#   connections: 12.796      8.256
-#       enabled: 10.520      7.094
+# Stats for 5000 runs:
+#                mean    stdev
+#  Generations: 37.033  47.774
+# hidden nodes:  2.993   1.909
+#  connections: 10.493   4.482
+#      enabled:  8.801   3.673
 
 [phenotype]
 input_nodes         = 2

@@ -23,7 +23,7 @@ class CTNeuron(nn.Neuron):
         # needs to set the initial state (initial condition for the ODE)
         self.__state = 0.1  # TODO: Verify what's the "best" initial state
         # fist output
-        self._output = nn.sigmoid(self.__state + self.bias, self.response, self.activation_type)
+        self._output = self.activation(self.bias, self.response, self.__state)
         # integration step
         self.__dt = 0.05  # depending on the tau constant, the integration step must
         # be adjusted accordingly to avoid numerical instability
@@ -33,13 +33,13 @@ class CTNeuron(nn.Neuron):
 
     def set_init_state(self, state):
         self.__state = state
-        self._output = nn.sigmoid(self.__state + self.bias, self.response, self.activation_type)
+        self._output = self.activation(self.bias, self.response, self.__state)
 
     def activate(self):
         """ Updates neuron's state for a single time-step. . """
         assert self.type is not 'INPUT'
         self.__update_state()
-        return nn.sigmoid(self.__state + self.bias, self.response, self.activation_type)
+        return self.activation(self.bias, self.response, self.__state)
 
     def __update_state(self):
         """ Returns neuron's next state using Forward-Euler method. """

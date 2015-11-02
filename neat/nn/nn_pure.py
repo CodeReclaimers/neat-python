@@ -2,33 +2,27 @@ import math
 import random
 
 
-def sigmoid(x, response, activation_type):
+def exp_sigmoid(bias, response, x):
+    z = (bias + x) * response
+    z = max(-60.0, min(60.0, z))
+    return 1.0 / (1.0 + math.exp(-z))
+
+
+def tanh_sigmoid(bias, response, x):
+    z = (bias + x) * response
+    z = max(-60.0, min(60.0, z))
+    return math.tanh(z)
+
+
+def get_sigmoid_function(activation_type):
     """ Sigmoidal type of activation function """
-    output = 0
-    try:
-        if activation_type == 'exp':
-            if x < - 30:
-                output = 0.0
-            elif x > 30:
-                output = 1.0
-            else:
-                output = 1.0 / (1.0 + math.exp(-x * response))
-        elif activation_type == 'tanh':
-            if x < - 20:
-                output = -1.0
-            elif x > 20:
-                output = +1.0
-            else:
-                output = math.tanh(x * response)
-        else:
-            # raise exception
-            print 'Invalid activation type selected:', activation_type
-            # raise NameError('Invalid activation type selected:', activation_type)
+    if activation_type == 'exp':
+        return exp_sigmoid
 
-    except OverflowError:
-        print 'Overflow error: x = ', x
+    if activation_type == 'tanh':
+        return tanh_sigmoid
 
-    return output
+    raise NameError('Invalid activation type selected: %r' % activation_type)
 
 
 class Neuron(object):
@@ -53,7 +47,7 @@ class Neuron(object):
         self.type = neurontype
         assert (self.type in ('INPUT', 'OUTPUT', 'HIDDEN'))
 
-        self.activation_type = activation_type  # default is exponential
+        self.activation = get_sigmoid_function(activation_type)
 
         self.response = response  # default = 4.924273 (Stanley, p. 146)
         self.output = 0.0  # for recurrent networks all neurons must have an "initial state"
@@ -61,7 +55,7 @@ class Neuron(object):
     def activate(self):
         """Activates the neuron"""
         assert self.type is not 'INPUT'
-        return sigmoid(self._update_activation() + self.bias, self.response, self.activation_type)
+        return self.activation(self.bias, self.response, self._update_activation())
 
     def _update_activation(self):
         soma = 0.0
@@ -263,3 +257,88 @@ def create_ffphenotype(chromo):
                  for cg in chromo.conn_genes.values() if cg.enabled]
 
     return Network(neurons_list, conn_list, chromo.num_inputs)
+
+
+def find_feed_forward_layers(inputs, connections):
+    '''
+    Collect the layers whose members can be evaluated in parallel in a feed-forward network.
+    inputs: list of the network input nodes
+    connections: list of (input, output) connections in the network.
+
+    Returns a list of layers, with each layer consisting of a set of node identifiers.
+    '''
+
+    # TODO: Detect and omit nodes whose output is ultimately never used.
+
+    layers = []
+    S = set(inputs)
+    while 1:
+        # Find candidate nodes C for the next layer.  These nodes should connect
+        # a node in S to a node not in S.
+        C = set(b for (a, b) in connections if a in S and b not in S)
+        # Keep only the nodes whose entire input set is contained in S.
+        T = set()
+        for n in C:
+            if all(a in S for (a, b) in connections if b == n):
+                T.add(n)
+
+        if not T:
+            break
+
+        layers.append(T)
+        S = S.union(T)
+
+    return layers
+
+
+class FastFeedForwardNetwork(object):
+    def __init__(self, max_node, inputs, outputs, node_evals):
+        self.node_evals = node_evals
+        self.input_nodes = inputs
+        self.output_nodes = outputs
+        self.values = [0.0] * (1 + max_node)
+
+    def sactivate(self, inputs):
+        for i, v in zip(self.input_nodes, inputs):
+            self.values[i] = v
+
+        for node, func, bias, response, links in self.node_evals:
+            s = 0.0
+            for i, w in links:
+                s += self.values[i] * w
+            self.values[node] = func(bias, response, s)
+
+        return [self.values[i] for i in self.output_nodes]
+
+
+def create_fast_feedforward_phenotype(genome):
+    """ Receives a chromosome and returns its phenotype (a neural network) """
+
+    # Gather inputs and expressed connections.
+    inputs_nodes = [ng.ID for ng in genome.node_genes.values() if ng.type == 'INPUT']
+    output_nodes = [ng.ID for ng in genome.node_genes.values() if ng.type == 'OUTPUT']
+    connections = [(cg.in_node_id, cg.out_node_id) for cg in genome.conn_genes.values() if cg.enabled]
+
+    layers = find_feed_forward_layers(inputs_nodes, connections)
+    node_evals = []
+    used_nodes = set(inputs_nodes + output_nodes)
+    for layer in layers:
+        for node in layer:
+            inputs = []
+            for cg in genome.conn_genes.values():
+                if cg.out_node_id == node and cg.enabled:
+                    #print "    (%d->%d) % f" % (cg.in_node_id, cg.out_node_id, cg.weight)
+                    inputs.append((cg.in_node_id, cg.weight))
+                    used_nodes.add(cg.in_node_id)
+
+            #print "    eval %d" % node, inputs
+            used_nodes.add(node)
+            ng = genome.node_genes[node]
+            if ng.activation_type == "tanh":
+                activation_function = tanh_sigmoid
+            else:
+                activation_function = exp_sigmoid
+
+            node_evals.append((node, activation_function, ng.bias, ng.response, inputs))
+
+    return FastFeedForwardNetwork(max(used_nodes), inputs_nodes, output_nodes, node_evals)

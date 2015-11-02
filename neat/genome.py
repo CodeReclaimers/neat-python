@@ -30,15 +30,13 @@ class NodeGene(object):
         return ng
 
     def __mutate_bias(self, config):
-        self.bias += random.gauss(0, 1) * config.bias_mutation_power
-        if self.bias > config.max_weight:
-            self.bias = config.max_weight
-        elif self.bias < config.min_weight:
-            self.bias = config.min_weight
+        new_bias = self.bias + random.gauss(0, 1) * config.bias_mutation_power
+        self.bias = max(config.min_weight, min(config.max_weight, new_bias))
 
     def __mutate_response(self, config):
         """ Mutates the neuron's average firing response. """
-        self.response += random.gauss(0, 1) * config.response_mutation_power
+        new_response = self.response + random.gauss(0, 1) * config.response_mutation_power
+        self.response = max(config.min_weight, min(config.max_weight, new_response))
 
     def copy(self):
         return NodeGene(self.ID, self.type, self.bias,
@@ -134,16 +132,10 @@ class ConnectionGene(object):
         self.enabled = True
 
     def __mutate_weight(self, config):
-        # self.weight += random.uniform(-1,1) * Config.weight_mutation_power
-        self.weight += random.gauss(0, 1) * config.weight_mutation_power
-
-        if self.weight > config.max_weight:
-            self.weight = config.max_weight
-        elif self.weight < config.min_weight:
-            self.weight = config.min_weight
+        new_weight = self.weight + random.gauss(0, 1) * config.weight_mutation_power
+        self.weight = max(config.min_weight, min(config.max_weight, new_weight))
 
     def __weight_replaced(self, config):
-        # self.weight = random.uniform(-Config.random_range, Config.random_range)
         self.weight = random.gauss(0, config.weight_stdev)
 
     @classmethod

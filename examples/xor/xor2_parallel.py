@@ -35,7 +35,7 @@ def eval_fitness(chromosomes, pool):
 
 def parallel_evaluation(chromo):
     """ This function will run in parallel """
-    net = nn.create_ffphenotype(chromo)
+    net = nn.create_fast_feedforward_phenotype(chromo)
 
     error = 0.0
     for inputData, outputData in zip(INPUTS, OUTPUTS):
@@ -72,7 +72,7 @@ def run():
 
     # Verify network output against training data.
     print '\nBest network output:'
-    net = nn.create_ffphenotype(winner)
+    net = nn.create_fast_feedforward_phenotype(winner)
     for i, inputs in enumerate(INPUTS):
         output = net.sactivate(inputs)  # serial activation
         print "%1.5f \t %1.5f" % (OUTPUTS[i], output[0])

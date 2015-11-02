@@ -14,7 +14,7 @@ OUTPUTS = [0, 1, 1, 0]
 
 def eval_fitness(genomes):
     for g in genomes:
-        net = nn.create_ffphenotype(g)
+        net = nn.create_fast_feedforward_phenotype(g)
 
         error = 0.0
         for i, inputs in enumerate(INPUTS):
@@ -39,7 +39,7 @@ def run():
 
     # Verify network output against training data.
     print '\nBest network output:'
-    net = nn.create_ffphenotype(winner)
+    net = nn.create_fast_feedforward_phenotype(winner)
     for i, inputs in enumerate(INPUTS):
         output = net.sactivate(inputs)  # serial activation
         print "%1.5f \t %1.5f" % (OUTPUTS[i], output[0])
