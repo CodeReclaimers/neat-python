@@ -4,23 +4,26 @@ try:
     import graphviz
 except ImportError:
     graphviz = None
-    warnings.warn('WARNING: the visualize module could not import graphviz.')
+    warnings.warn('Could not import optional dependency graphviz.')
 
 try:
     import matplotlib.pyplot as plt
 except ImportError:
     plt = None
-    warnings.warn('WARNING: the visualize module could not import matplotlib.')
+    warnings.warn('Could not import optional dependency matplotlib.')
 
 try:
     import numpy as np
 except ImportError:
     np = None
-    warnings.warn('WARNING: the visualize module could not import NumPy.')
+    warnings.warn('Could not import optional dependency NumPy.')
 
 
 def plot_stats(best_genomes, avg_scores, ylog=False, view=False, filename='avg_fitness.svg'):
     """ Plots the population's average and best fitness. """
+    if plt is None:
+        warnings.warn("This display is not available due to a missing optional dependency (matplotlib)")
+        return
 
     generation = range(len(best_genomes))
 
@@ -46,6 +49,10 @@ def plot_stats(best_genomes, avg_scores, ylog=False, view=False, filename='avg_f
 
 def plot_spikes(spikes, view=False, filename=None):
     """ Plots the trains for a single spiking neuron. """
+    if plt is None:
+        warnings.warn("This display is not available due to a missing optional dependency (matplotlib)")
+        return
+
     plt.title("Izhikevich's spiking neuron model")
     plt.ylabel("Membrane Potential")
     plt.xlabel("Time (in ms)")
@@ -60,6 +67,10 @@ def plot_spikes(spikes, view=False, filename=None):
 
 def plot_species(species_log, view=False, filename='speciation.svg'):
     """ Visualizes speciation throughout evolution. """
+    if plt is None:
+        warnings.warn("This display is not available due to a missing optional dependency (matplotlib)")
+        return
+
     num_generations = len(species_log)
     print num_generations
     num_species = max(map(len, species_log))
@@ -88,6 +99,10 @@ def plot_species(species_log, view=False, filename='speciation.svg'):
 def draw_net(chromosome, view=False, filename=None):
     """ Receives a chromosome and draws a neural network with arbitrary topology. """
     # Attributes for network nodes.
+    if graphviz is None:
+        warnings.warn("This display is not available due to a missing optional dependency (graphviz)")
+        return
+
     node_attrs = {
         'shape': 'circle',
         'fontsize': '9',
