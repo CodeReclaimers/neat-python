@@ -38,6 +38,7 @@ class Neuron(object):
         return ID
 
     def __init__(self, neurontype, ID=None, bias=0.0, response=1.0, activation_type='exp'):
+        assert activation_type is not None
 
         self.ID = Neuron.__get_next_id(ID)  # every neuron has an ID
 
