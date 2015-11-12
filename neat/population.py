@@ -298,9 +298,7 @@ class Population(object):
             for s in self.__species:
                 new_population.extend(s.reproduce(self.config))
 
-            # ----------------------------#
             # Controls under or overflow  #
-            # ----------------------------#
             fill = self.__popsize - len(new_population)
             if fill < 0:  # overflow
                 if report:
@@ -312,8 +310,7 @@ class Population(object):
                 if report:
                     print '   Producing %d more individual(s) to fill up the new population' % fill
 
-                # TODO:
-                # what about producing new individuals instead of reproducing?
+                # TODO: what about producing new individuals instead of reproducing?
                 # increasing diversity from time to time might help
                 while fill > 0:
                     # Selects a random chromosome from population

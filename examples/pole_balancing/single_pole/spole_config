@@ -27,6 +27,7 @@ bias_mutation_power   = 1.0
 prob_mutate_response  = 0.2
 response_mutation_power = 0.1
 prob_mutate_weight    = 0.5
+prob_replace_weight   = 0.1
 weight_mutation_power = 1.8    
 prob_togglelink       = 0.01
 

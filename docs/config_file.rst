@@ -56,6 +56,8 @@ configuration file.
     The standard deviation of the zero-centered normal distribution from which a response change is drawn.
 * *prob_mutate_weight*
     The probability that mutation will change the weight of a connection by adding a random value.
+* *prob_replace_weight*
+    The probability that mutation will replace the weight of a connection with a new random value.
 * *weight_mutation_power*
     The standard deviation of the zero-centered normal distribution from which a weight change is drawn.
 * *prob_togglelink*
@@ -87,9 +89,9 @@ configuration file.
 * *youth_threshold*
     The number of generations beyond which species are considered young.
 * *old_penalty*
-    The multiplicative fitness adjustment to be applied to old species' average fitness.
+    The multiplicative fitness adjustment to be applied to old species' average fitness.  This value is typically on (0.0, 1.0].
 * *youth_boost*
-    The multiplicative fitness adjustment to be applied to young species' average fitness.
+    The multiplicative fitness adjustment to be applied to young species' average fitness.  This value is typically on [1.0, 2.0].
 * *max_stagnation*
     Species that have not shown improvement in more than this number of generations will be considered stagnant and removed.
 

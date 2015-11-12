@@ -38,6 +38,7 @@ class Config(object):
         self.prob_mutate_response = float(parameters.get('genetic', 'prob_mutate_response'))
         self.response_mutation_power = float(parameters.get('genetic', 'response_mutation_power'))
         self.prob_mutate_weight = float(parameters.get('genetic', 'prob_mutate_weight'))
+        self.prob_replace_weight = float(parameters.get('genetic', 'prob_replace_weight'))
         self.weight_mutation_power = float(parameters.get('genetic', 'weight_mutation_power'))
         self.prob_togglelink = float(parameters.get('genetic', 'prob_togglelink'))
         self.elitism = float(parameters.get('genetic', 'elitism'))
@@ -51,10 +52,9 @@ class Config(object):
 
         # species
         self.species_size = int(parameters.get('species', 'species_size'))
-        # survival_threshold is the fraction for each species allowed to reproduce
         self.survival_threshold = float(parameters.get('species', 'survival_threshold'))
         self.old_threshold = int(parameters.get('species', 'old_threshold'))
         self.youth_threshold = int(parameters.get('species', 'youth_threshold'))
-        self.old_penalty = float(parameters.get('species', 'old_penalty'))  # always in (0,1)
-        self.youth_boost = float(parameters.get('species', 'youth_boost'))  # always in (1,2)
+        self.old_penalty = float(parameters.get('species', 'old_penalty'))
+        self.youth_boost = float(parameters.get('species', 'youth_boost'))
         self.max_stagnation = int(parameters.get('species', 'max_stagnation'))

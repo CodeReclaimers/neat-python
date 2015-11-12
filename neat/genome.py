@@ -99,7 +99,12 @@ class CTNodeGene(NodeGene):
 
 class ConnectionGene(object):
     __global_innov_number = 0
-    __innovations = {}  # A list of innovations.
+    __innovations = {}
+
+    @classmethod
+    def __get_new_innov_number(cls):
+        cls.__global_innov_number += 1
+        return cls.__global_innov_number
 
     def __init__(self, innodeid, outnodeid, weight, enabled, innov=None):
         self.in_node_id = innodeid
@@ -120,13 +125,12 @@ class ConnectionGene(object):
 
     def mutate(self, config):
         r = random.random
+        if r() < config.prob_replace_weight:
+            self.__replace_weight(config)
         if r() < config.prob_mutate_weight:
             self.__mutate_weight(config)
         if r() < config.prob_togglelink:
-            self.enable()
-            # TODO: Remove weight_replaced?
-            # if r() < 0.001:
-            #    self.__weight_replaced()
+            self.enabled = not self.enabled
 
     def enable(self):
         """ Enables a link. """
@@ -136,13 +140,8 @@ class ConnectionGene(object):
         new_weight = self.weight + random.gauss(0, 1) * config.weight_mutation_power
         self.weight = max(config.min_weight, min(config.max_weight, new_weight))
 
-    def __weight_replaced(self, config):
+    def __replace_weight(self, config):
         self.weight = random.gauss(0, config.weight_stdev)
-
-    @classmethod
-    def __get_new_innov_number(cls):
-        cls.__global_innov_number += 1
-        return cls.__global_innov_number
 
     def __str__(self):
         s = "In %2d, Out %2d, Weight %+3.5f, " % (self.in_node_id, self.out_node_id, self.weight)
