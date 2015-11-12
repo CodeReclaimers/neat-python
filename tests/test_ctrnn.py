@@ -1,4 +1,3 @@
-import numpy as np
 from neat.nn import nn_pure as nn
 from neat.ctrnn import CTNeuron
 
@@ -22,5 +21,3 @@ def test_basic():
         output = net.pactivate()
         outputs.append(output)
         print "%.17f %.17f" % (output[0], output[1])
-
-    outputs = np.array(outputs).T

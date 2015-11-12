@@ -3,7 +3,7 @@ import random
 
 
 class NodeGene(object):
-    def __init__(self, ID, nodetype, bias=0.0, response=4.924273, activation_type=None):
+    def __init__(self, ID, nodetype, bias=0.0, response=4.924273, activation_type="exp"):
         """ A node gene encodes the basic artificial neuron model.
             nodetype should be "INPUT", "HIDDEN", or "OUTPUT"
         """
@@ -12,6 +12,7 @@ class NodeGene(object):
         self.bias = bias
         self.response = response
         self.activation_type = activation_type
+        assert activation_type is not None
 
         assert (self.type in ('INPUT', 'OUTPUT', 'HIDDEN'))
 

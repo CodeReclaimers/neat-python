@@ -1,9 +1,12 @@
-# sets the configuration parameters for NEAT
 from ConfigParser import SafeConfigParser
 import os
 
 
 class Config(object):
+    '''
+    A simple container for all of the user-configurable parameters of NEAT.
+    '''
+
     def __init__(self, filename):
         if not os.path.isfile(filename):
             raise Exception('No such config file: ' + os.path.abspath(filename))
