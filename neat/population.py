@@ -110,7 +110,7 @@ class Population(object):
         # otherwise we might end up having sync issues
         for s in self.__species[:]:
             # this happens when no chromosomes are compatible with the species
-            if len(s) == 0:
+            if len(s.members) == 0:
                 if report:
                     print "Removing species %d for being empty" % s.ID
                 # remove empty species
@@ -167,13 +167,13 @@ class Population(object):
         higher = max([s.ID for s in self.__species])
         temp = []
         for i in xrange(1, higher + 1):
-            found_specie = False
+            found_species = False
             for s in self.__species:
                 if i == s.ID:
-                    temp.append(len(s))
-                    found_specie = True
+                    temp.append(len(s.members))
+                    found_species = True
                     break
-            if not found_specie:
+            if not found_species:
                 temp.append(0)
         self.species_log.append(temp)
 
@@ -233,7 +233,7 @@ class Population(object):
                     if not s.hasBest:
                         if report:
                             print "\n   Species %2d (with %2d individuals) is stagnated: removing it" \
-                                  % (s.ID, len(s))
+                                  % (s.ID, len(s.members))
                         # removing species
                         self.__species.remove(s)
                         # removing all the species' members
@@ -242,13 +242,14 @@ class Population(object):
                             if c.species_id == s.ID:
                                 self.population.remove(c)
 
+            # TODO: Check whether "super-stagnation" is a common/canonical feature of NEAT and remove it if not.
             # Remove "super-stagnated" species (even if it has the best chromosome)
             # It is not clear if it really avoids local minima
             for s in self.__species[:]:
                 if s.no_improvement_age > 2 * self.config.max_stagnation:
                     if report:
                         print "\n   Species %2d (with %2d individuals) is super-stagnated: removing it" \
-                              % (s.ID, len(s))
+                              % (s.ID, len(s.members))
                     # removing species
                     self.__species.remove(s)
                     # removing all the species' members
@@ -283,9 +284,9 @@ class Population(object):
 
                 # print some "debugging" information
                 print 'Species length: %d totaling %d individuals' \
-                      % (len(self.__species), sum([len(s) for s in self.__species]))
+                      % (len(self.__species), sum([len(s.members) for s in self.__species]))
                 print 'Species ID       : %s' % [s.ID for s in self.__species]
-                print 'Each species size: %s' % [len(s) for s in self.__species]
+                print 'Each species size: %s' % [len(s.members) for s in self.__species]
                 print 'Amount to spawn  : %s' % [s.spawn_amount for s in self.__species]
                 print 'Species age      : %s' % [s.age for s in self.__species]
                 print 'Species no improv: %s' % [s.no_improvement_age for s in

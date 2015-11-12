@@ -4,7 +4,8 @@ Configuration file format
 
 The configuration file is in the format described in the `Python ConfigParser documentation
 <https://docs.python.org/2/library/configparser.html>`_.  Currently, all values must be explicitly enumerated in the
-configuration file.
+configuration file.  This makes it less likely that code changes will result in your project silently using different
+NEAT settings.
 
 
 [phenotype] section
@@ -87,11 +88,11 @@ configuration file.
 * *old_threshold*
     The number of generations beyond which species are considered old.
 * *youth_threshold*
-    The number of generations beyond which species are considered young.
+    The number of generations below which species are considered young.
 * *old_penalty*
-    The multiplicative fitness adjustment to be applied to old species' average fitness.  This value is typically on (0.0, 1.0].
+    The multiplicative fitness adjustment applied to old species' average fitness.  This value is typically on (0.0, 1.0].
 * *youth_boost*
-    The multiplicative fitness adjustment to be applied to young species' average fitness.  This value is typically on [1.0, 2.0].
+    The multiplicative fitness adjustment applied to young species' average fitness.  This value is typically on [1.0, 2.0].
 * *max_stagnation*
     Species that have not shown improvement in more than this number of generations will be considered stagnant and removed.
 

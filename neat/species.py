@@ -38,14 +38,6 @@ class Species(object):
         # choose a new random representative for the species
         self.representative = random.choice(self.members)
 
-    def __iter__(self):
-        """ Iterates over individuals """
-        return iter(self.members)
-
-    def __len__(self):
-        """ Returns the total number of individuals in this species """
-        return len(self.members)
-
     def __str__(self):
         s = "\n   Species %2d   size: %3d   age: %3d   spawn: %3d   " \
             % (self.ID, len(self), self.age, self.spawn_amount)
@@ -94,19 +86,17 @@ class Species(object):
             offspring.append(self.members[0])
             self.spawn_amount -= 1
 
-        survivors = int(round(len(self) * config.survival_threshold))  # keep a % of the best individuals
-
-        if survivors > 0:
-            self.members = self.members[:survivors]
-        else:
-            # ensure that we have at least one chromosome to reproduce
-            self.members = self.members[:1]
+        # Keep a fraction of the current population for reproduction.
+        survivors = int(round(len(self.members) * config.survival_threshold))
+        # We always need at least one member for reproduction.
+        survivors = max(1, survivors)
+        self.members = self.members[:survivors]
 
         while self.spawn_amount > 0:
 
             self.spawn_amount -= 1
 
-            if len(self) > 1:
+            if len(self.members) > 1:
                 # Selects two parents from the remaining species and produces a single individual
                 # Stanley selects at random, here we use tournament selection (although it is not
                 # clear if has any advantages)
