@@ -12,34 +12,30 @@ configuration file.
 
 * *input_nodes*
     The number of nodes through which the network receives input.
-
 * *output_nodes*
     The number of nodes to which the network delivers output.
-
 * *fully_connected*
     If this evaluates to **True**, then all individuals in the initial population will be created with each output will
     having randomly-configured connections to all inputs. Otherwise, the initial population's members will have only
     *only one* randomly-configured connection from a random input to each input.
 
     In both cases, the initial networks contain no hidden nodes.
-
 * *max_weight*, *min_weight*
-    Connection weights will be limited to this range.
-
+    Connection weights (as well as node bias and response) will be limited to this range.
 * *feedforward*
     If this evaluates to **True**, generated networks will not be allowed to have recurrent connections.  Otherwise
     they may be (but are not forced to be) recurrent.
-
 * *nn_activation*
     Type of activation function to be used to build networks.
-
 * *hidden_nodes*
+    The number of hidden nodes to add to each genome in the initial population.
 * *weight_stdev*
     The standard deviation of the zero-centered normal distribution used to generate initial and replacement weights.
 
 [genetic] section
 -----------------
 * *pop_size*
+    The number of individuals in each generation.
 * *max_fitness_threshold*
     When at least one individual's measured fitness exceeds this threshold, the evolution process will terminate.
 * *prob_addconn*
@@ -70,19 +66,31 @@ configuration file.
 [genotype compatibility] section
 --------------------------------
 * *compatibility_threshold*
+    Individuals whose genomic distance is less than this threshold are considered to be in the same species.
 * *compatibility_change*
+    The amount by which *compatibility_threshold* may be adjusted during a generation to maintain target *species_size*.
 * *excess_coefficient*
+    The coefficient for the excess gene count's contribution to the genomic distance.
 * *disjoint_coefficient*
+    The coefficient for the disjoint gene count's contribution to the genomic distance.
 * *weight_coefficient*
+    The coefficient for the average weight difference's contribution to the genomic distance.
 
 [species] section
 -----------------
 * *species_size*
+    The target number of individuals to maintain in each species.
 * *survival_threshold*
+    The fraction for each species allowed to reproduce on each generation.
 * *old_threshold*
+    The number of generations beyond which species are considered old.
 * *youth_threshold*
+    The number of generations beyond which species are considered young.
 * *old_penalty*
+    The multiplicative fitness adjustment to be applied to old species' average fitness.
 * *youth_boost*
+    The multiplicative fitness adjustment to be applied to young species' average fitness.
 * *max_stagnation*
+    Species that have not shown improvement in more than this number of generations will be considered stagnant and removed.
 
 
