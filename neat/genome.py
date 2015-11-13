@@ -5,23 +5,23 @@ import random
 class NodeGene(object):
     def __init__(self, ID, nodetype, bias=0.0, response=4.924273, activation_type="exp"):
         """ A node gene encodes the basic artificial neuron model.
-            nodetype should be "INPUT", "HIDDEN", or "OUTPUT"
+            nodetype must be "INPUT", "HIDDEN", or "OUTPUT"
         """
+        assert activation_type is not None
+        assert nodetype in ('INPUT', 'OUTPUT', 'HIDDEN')
+
         self.ID = ID
         self.type = nodetype
         self.bias = bias
         self.response = response
         self.activation_type = activation_type
-        assert activation_type is not None
-
-        assert (self.type in ('INPUT', 'OUTPUT', 'HIDDEN'))
 
     def __str__(self):
         return "Node %2d %6s, bias %+2.10s, response %+2.10s" \
                % (self.ID, self.type, self.bias, self.response)
 
     def get_child(self, other):
-        """ Creates a new NodeGene randomly inheriting its attributes from parents """
+        """ Creates a new NodeGene randomly inheriting attributes from its parents."""
         assert (self.ID == other.ID)
 
         ng = NodeGene(self.ID, self.type,

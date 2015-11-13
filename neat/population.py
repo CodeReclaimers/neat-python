@@ -141,6 +141,7 @@ class Population(object):
 
         # 1. Boost if young and penalize if old
         # TODO: does it really increase the overall performance?
+        # TODO: Factor out the fitness sharing/diversity mechanism to allow users to more easily use something different.
         species_stats = []
         for s in self.__species:
             if s.age < self.config.youth_threshold:

@@ -1,4 +1,4 @@
-import random
+from random import choice, gauss, randint, random
 import math
 
 
@@ -36,27 +36,26 @@ class Chromosome(object):
     def mutate(self):
         """ Mutates this chromosome """
 
-        # TODO: Doesn't this mutation selection scheme make the user-specified probabilities somewhat misleading?
-        # TODO: Is it necessary to restrict mutations to a single type, or should we allow more than one
-        #       mutation type to occur per call?
-        r = random.random
-        if r() < self.config.prob_addnode:
+        if random() < self.config.prob_addnode:
             self._mutate_add_node()
-        elif r() < self.config.prob_addconn:
-            self._mutate_add_connection()
-        elif r() < self.config.prob_deletenode:
-            self._mutate_delete_node()
-        elif r() < self.config.prob_deleteconn:
-            self._mutate_delete_connection()
-        else:
-            # mutate weights
-            for cg in self.conn_genes.values():
-                cg.mutate(self.config)
 
-            # mutate bias, response, and etc...
-            for ng in self.node_genes.values():
-                if ng.type != "INPUT":
-                    ng.mutate(self.config)
+        if random() < self.config.prob_addconn:
+            self._mutate_add_connection()
+
+        if random() < self.config.prob_deletenode:
+            self._mutate_delete_node()
+
+        if random() < self.config.prob_deleteconn:
+            self._mutate_delete_connection()
+
+        # Mutate connection genes (weights, enabled, etc.).
+        for cg in self.conn_genes.values():
+            cg.mutate(self.config)
+
+        # Mutate node genes (bias, response, etc.).
+        for ng in self.node_genes.values():
+            if ng.type != "INPUT":
+                ng.mutate(self.config)
 
         return self
 
@@ -126,7 +125,7 @@ class Chromosome(object):
 
     def _mutate_add_node(self):
         # Choose a random connection to split
-        conn_to_split = random.choice(self.conn_genes.values())
+        conn_to_split = choice(self.conn_genes.values())
         new_node_id = self.get_new_hidden_id()
         ng = self._node_gene_type(new_node_id, 'HIDDEN', activation_type=self.config.nn_activation)
         assert ng.ID not in self.node_genes
@@ -142,7 +141,7 @@ class Chromosome(object):
         remaining_conns = total_possible_conns - len(self.conn_genes)
         # Check if new connection can be added:
         if remaining_conns > 0:
-            n = random.randint(0, remaining_conns - 1)
+            n = randint(0, remaining_conns - 1)
             count = 0
             # Count connections
             for in_node in self.node_genes.values():
@@ -155,7 +154,7 @@ class Chromosome(object):
                     if (in_node.ID, out_node.ID) not in self.conn_genes.keys():
                         # Free connection
                         if count == n:  # Connection to create
-                            weight = random.gauss(0, self.config.weight_stdev)
+                            weight = gauss(0, self.config.weight_stdev)
                             cg = self._conn_gene_type(in_node.ID, out_node.ID, weight, True)
                             self.conn_genes[cg.key] = cg
                             return
@@ -168,7 +167,7 @@ class Chromosome(object):
             return -1
 
         while 1:
-            idx = random.choice(self.node_genes.keys())
+            idx = choice(self.node_genes.keys())
             if self.node_genes[idx].type == "HIDDEN":
                 break
 
@@ -196,7 +195,7 @@ class Chromosome(object):
 
     def _mutate_delete_connection(self):
         if len(self.conn_genes) > self.num_inputs + self.num_outputs:
-            key = random.choice(self.conn_genes.keys())
+            key = choice(self.conn_genes.keys())
             del self.conn_genes[key]
 
             assert len(self.conn_genes) > 0
@@ -281,7 +280,7 @@ class Chromosome(object):
             node_id += 1
             # Connect all nodes to it
             for pre in self.node_genes.values():
-                weight = random.gauss(0, self.config.weight_stdev)
+                weight = gauss(0, self.config.weight_stdev)
                 cg = self._conn_gene_type(pre.id, node_gene.id, weight, True)
                 self.conn_genes[cg.key] = cg
             # Connect it to all nodes except input nodes
@@ -289,7 +288,7 @@ class Chromosome(object):
                 if post.type == "INPUT":
                     continue
 
-                weight = random.gauss(0, self.config.weight_stdev)
+                weight = gauss(0, self.config.weight_stdev)
                 cg = self._conn_gene_type(node_gene.id, post.id, weight, True)
                 self.conn_genes[cg.key] = cg
 
@@ -297,7 +296,7 @@ class Chromosome(object):
     def create_unconnected(cls, config, node_gene_type, conn_gene_type):
         """
         Factory method
-        Creates a chromosome for an unconnected feedforward network with no hidden nodes.
+        Creates a chromosome for an unconnected feed-forward network with no hidden nodes.
         """
         c = cls(config, 0, 0, node_gene_type, conn_gene_type)
         node_id = 1
@@ -321,7 +320,7 @@ class Chromosome(object):
     def create_minimally_connected(cls, config, node_gene_type, conn_gene_type):
         """
         Factory method
-        Creates a chromosome for a minimally connected feedforward network with no hidden nodes. That is,
+        Creates a chromosome for a minimally connected feed-forward network with no hidden nodes. That is,
         each output node will have a single connection from a randomly chosen input node.
         """
         c = cls.create_unconnected(config, node_gene_type, conn_gene_type)
@@ -331,12 +330,12 @@ class Chromosome(object):
 
             # Connect it to a random input node
             while 1:
-                idx = random.choice(c.node_genes.keys())
+                idx = choice(c.node_genes.keys())
                 if c.node_genes[idx].type == "INPUT":
                     break
 
             input_node = c.node_genes[idx]
-            weight = random.gauss(0, config.weight_stdev)
+            weight = gauss(0, config.weight_stdev)
 
             cg = c._conn_gene_type(input_node.ID, node_gene.ID, weight, True)
             c.conn_genes[cg.key] = cg
@@ -347,7 +346,7 @@ class Chromosome(object):
     def create_fully_connected(cls, config, node_gene_type, conn_gene_type):
         """
         Factory method
-        Creates a chromosome for a fully connected feedforward network with no hidden nodes.
+        Creates a chromosome for a fully connected feed-forward network with no hidden nodes.
         """
         c = cls.create_unconnected(config, node_gene_type, conn_gene_type)
         for node_gene in c.node_genes.values():
@@ -357,7 +356,7 @@ class Chromosome(object):
             # Connect it to all input nodes
             for input_node in c.node_genes.values():
                 if input_node.type == "INPUT":
-                    weight = random.gauss(0, config.weight_stdev)
+                    weight = gauss(0, config.weight_stdev)
                     cg = c._conn_gene_type(input_node.ID, node_gene.ID, weight, True)
                     c.conn_genes[cg.key] = cg
 
@@ -365,13 +364,13 @@ class Chromosome(object):
 
 
 class FFChromosome(Chromosome):
-    """ A chromosome for feedforward neural networks. Feedforward
+    """ A chromosome for feed-forward neural networks. Feed-forward
         topologies are a particular case of Recurrent NNs.
     """
 
     def __init__(self, config, parent1_id, parent2_id, node_gene_type, conn_gene_type):
         super(FFChromosome, self).__init__(config, parent1_id, parent2_id, node_gene_type, conn_gene_type)
-        self.node_order = []  # hidden node order (for feedforward networks)
+        self.node_order = []  # hidden node order (for feed-forward networks)
 
     def _inherit_genes(self, parent1, parent2):
         super(FFChromosome, self)._inherit_genes(parent1, parent2)
@@ -394,22 +393,21 @@ class FFChromosome(Chromosome):
         else:
             # Postsynaptic node is an output node, not hidden node
             maxi = len(self.node_order)
-        self.node_order.insert(random.randint(mini, maxi), ng.ID)
+        self.node_order.insert(randint(mini, maxi), ng.ID)
         assert (len(self.node_order) == len([n for n in self.node_genes.values() if n.type == 'HIDDEN']))
         return (ng, split_conn)
 
     def _mutate_add_connection(self):
-        # Only for feedforward networks
-        num_hidden = len(self.node_order)
-        num_output = len(self.node_genes) - self.num_inputs - num_hidden
+        # Only for feed-forward networks
+        nhidden = len(self.node_order)
+        nout = len(self.node_genes) - self.num_inputs - nhidden
 
-        total_possible_conns = (num_hidden + num_output) * (self.num_inputs + num_hidden) - \
-                               sum(range(num_hidden + 1))
+        total_possible_conns = (nhidden + nout) * (self.num_inputs + nhidden) - sum(range(nhidden + 1))
 
         remaining_conns = total_possible_conns - len(self.conn_genes)
         # Check if new connection can be added:
         if remaining_conns > 0:
-            n = random.randint(0, remaining_conns - 1)
+            n = randint(0, remaining_conns - 1)
             count = 0
             # Count connections
             for in_node in self.node_genes.values():
@@ -425,7 +423,7 @@ class FFChromosome(Chromosome):
                         # Free connection
                         if count == n:  # Connection to create
                             # weight = random.uniform(-self.config.random_range, self.config.random_range)
-                            weight = random.gauss(0, self.config.weight_stdev)
+                            weight = gauss(0, self.config.weight_stdev)
                             cg = self._conn_gene_type(in_node.ID, out_node.ID, weight, True)
                             self.conn_genes[cg.key] = cg
                             return
@@ -461,20 +459,20 @@ class FFChromosome(Chromosome):
             # Connect all input nodes to it
             for pre in self.node_genes.values():
                 if pre.type == "INPUT":
-                    weight = random.gauss(0, self.config.weight_stdev)
+                    weight = gauss(0, self.config.weight_stdev)
                     cg = self._conn_gene_type(pre.id, node_gene.id, weight, True)
                     self.conn_genes[cg.key] = cg
                     assert self.__is_connection_feedforward(pre, node_gene)
             # Connect all previous hidden nodes to it
             for pre_id in self.node_order[:-1]:
                 assert pre_id != node_gene.id
-                weight = random.gauss(0, self.config.weight_stdev)
+                weight = gauss(0, self.config.weight_stdev)
                 cg = self._conn_gene_type(pre_id, node_gene.id, weight, True)
                 self.conn_genes[cg.key] = cg
             # Connect it to all output nodes
             for post in self.node_genes.values():
                 if post.type == 'OUTPUT':
-                    weight = random.gauss(0, self.config.weight_stdev)
+                    weight = gauss(0, self.config.weight_stdev)
                     cg = self._conn_gene_type(node_gene.id, post.id, weight, True)
                     self.conn_genes[cg.key] = cg
                     assert self.__is_connection_feedforward(node_gene, post)

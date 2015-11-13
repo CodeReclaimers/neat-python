@@ -23,9 +23,11 @@ class Species(object):
         self.add(first_individual)
         self.hasBest = False  # Does this species has the best individual of the population?
         self.spawn_amount = 0
-        self.no_improvement_age = 0  # the age species has shown no improvements on average
 
-        self.__last_avg_fitness = 0
+        # The number of generations since the mean fitness increased.
+        self.no_improvement_age = 0
+
+        self.last_avg_fitness = 0
 
         self.representative = first_individual
 
@@ -42,7 +44,7 @@ class Species(object):
         s = "\n   Species %2d   size: %3d   age: %3d   spawn: %3d   " \
             % (self.ID, len(self), self.age, self.spawn_amount)
         s += "\n   No improvement: %3d \t avg. fitness: %1.8f" \
-             % (self.no_improvement_age, self.__last_avg_fitness)
+             % (self.no_improvement_age, self.last_avg_fitness)
         return s
 
     def tournament_selection(self, k=2):
@@ -55,10 +57,10 @@ class Species(object):
     def average_fitness(self):
         """ Returns the raw average fitness for this species """
         current = mean([c.fitness for c in self.members])
-        # controls species no improvement age
-        # if no_improvement_age > threshold, species will be removed
-        if current > self.__last_avg_fitness:
-            self.__last_avg_fitness = current
+
+        # Check for increase in mean fitness and adjust "no improvement" count as necessary.
+        if current > self.last_avg_fitness:
+            self.last_avg_fitness = current
             self.no_improvement_age = 0
         else:
             self.no_improvement_age += 1
