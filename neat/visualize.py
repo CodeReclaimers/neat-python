@@ -119,11 +119,6 @@ def draw_net(chromosome, view=False, filename=None):
         'style': 'filled',
         'color': 'lightblue'}
 
-    # Attributes for disabled network connections.
-    disabled_attrs = {
-        'style': 'dotted',
-        'color': 'cornflowerblue'}
-
     dot = graphviz.Digraph(format='svg', node_attr=node_attrs)
 
     for ng_id, ng in chromosome.node_genes.items():
@@ -137,9 +132,9 @@ def draw_net(chromosome, view=False, filename=None):
     for cg in chromosome.conn_genes.values():
         a = str(cg.in_node_id)
         b = str(cg.out_node_id)
-        if cg.enabled is False:
-            dot.edge(a, b, _attributes=disabled_attrs)
-        else:
-            dot.edge(a, b)
+        style = 'solid' if cg.enabled else 'dotted'
+        color = 'green' if cg.weight > 0 else 'red'
+        width = str(0.1 + abs(cg.weight / 5.0))
+        dot.edge(a, b, _attributes={'style': style, 'color': color, 'penwidth': width})
 
     dot.render(filename, view=view)
