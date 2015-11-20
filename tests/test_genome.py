@@ -1,11 +1,11 @@
+from neat import genes
 from neat import genome
-from neat import chromosome
 from neat.config import Config
 
 
 def test_recurrent():
     config = Config('test_configuration')
-    c1 = chromosome.Chromosome.create_fully_connected(config, genome.NodeGene, genome.ConnectionGene)
+    c1 = genome.Genome.create_fully_connected(config, genes.NodeGene, genes.ConnectionGene)
 
     # add two hidden nodes
     #c1.add_hidden_nodes(2)
@@ -17,7 +17,7 @@ def test_recurrent():
 
 def test_feed_forward():
     config = Config('test_configuration')
-    c2 = chromosome.FFChromosome.create_fully_connected(config, genome.NodeGene, genome.ConnectionGene)
+    c2 = genome.FFGenome.create_fully_connected(config, genes.NodeGene, genes.ConnectionGene)
 
     # add two hidden nodes
     #c2.add_hidden_nodes(2)

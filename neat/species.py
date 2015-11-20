@@ -1,23 +1,22 @@
 # -*- coding: UTF-8 -*-
 import random
+from neat.indexer import Indexer
 from neat.math_util import mean
 
 
 class Species(object):
     """ A subpopulation containing similar individiduals """
-    __next_id = 1  # global species id counter
+    _indexer = Indexer(1)
 
-    @classmethod
-    def __get_next_id(cls, previous_id):
+    def _get_next_id(self, previous_id):
         if previous_id is None:
-            previous_id = cls.__next_id
-            cls.__next_id += 1
+            previous_id = self._indexer.next()
 
         return previous_id
 
     def __init__(self, first_individual, previous_id=None):
         """ A species requires at least one individual to come to existence """
-        self.ID = self.__get_next_id(previous_id)  # species's id
+        self.ID = self._get_next_id(previous_id)  # species's id
         self.age = 0  # species's age
         self.members = []  # species's individuals
         self.add(first_individual)
@@ -42,7 +41,7 @@ class Species(object):
 
     def __str__(self):
         s = "\n   Species %2d   size: %3d   age: %3d   spawn: %3d   " \
-            % (self.ID, len(self), self.age, self.spawn_amount)
+            % (self.ID, len(self.members), self.age, self.spawn_amount)
         s += "\n   No improvement: %3d \t avg. fitness: %1.8f" \
              % (self.no_improvement_age, self.last_avg_fitness)
         return s

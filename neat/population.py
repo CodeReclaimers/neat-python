@@ -3,10 +3,10 @@ import random
 import time
 import cPickle
 
-import chromosome
-from genome import NodeGene, ConnectionGene
-from species import Species
-from math_util import mean, stdev
+from neat import genome
+from neat.genes import NodeGene, ConnectionGene
+from neat.species import Species
+from neat.math_util import mean, stdev
 
 
 class Population(object):
@@ -68,9 +68,9 @@ class Population(object):
     def __create_population(self):
 
         if self.config.feedforward:
-            genotypes = chromosome.FFChromosome
+            genotypes = genome.FFGenome
         else:
-            genotypes = chromosome.Chromosome
+            genotypes = genome.Genome
 
         self.population = []
         if self.config.fully_connected:
@@ -141,7 +141,7 @@ class Population(object):
 
         # 1. Boost if young and penalize if old
         # TODO: does it really increase the overall performance?
-        # TODO: Factor out the fitness sharing/diversity mechanism to allow users to more easily use something different.
+        # TODO: Factor out the fitness sharing/diversity mechanism to allow easier use of something different.
         species_stats = []
         for s in self.__species:
             if s.age < self.config.youth_threshold:
@@ -329,7 +329,7 @@ class Population(object):
                     if not found:
                         # If no mate was found, just mutate it
                         new_population.append(parent1.mutate())
-                    # new_population.append(chromosome.FFChromosome.create_fully_connected())
+                    # new_population.append(chromosome.FFGenome.create_fully_connected())
                     fill -= 1
 
             assert self.__popsize == len(new_population), 'Different population sizes!'

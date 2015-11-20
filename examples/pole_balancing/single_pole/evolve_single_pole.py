@@ -1,93 +1,44 @@
 """ Single pole balancing experiment """
-import random
 import os
-import math
 import cPickle
 
 from neat import population, visualize
 from neat.config import Config
 from neat.nn import nn_pure as nn
+from cart_pole import CartPole, position_limit, angle_limit_radians
 
-angle_limit = 30 * math.pi / 180  # radians
-
-
-def cart_pole(net_output, x, x_dot, theta, theta_dot):
-    """ Directly copied from Stanley's C++ source code """
-
-    GRAVITY = 9.8  # m/sec^2
-    MASSCART = 1.0  # kg
-    MASSPOLE = 0.1  # kg
-    TOTAL_MASS = (MASSPOLE + MASSCART)
-    LENGTH = 0.5  # meters, actually half the pole's length
-    POLEMASS_LENGTH = (MASSPOLE * LENGTH)
-    FORCE_MAG = 10.0  # newtons
-    TAU = 0.02  # seconds between state updates
-    FOURTHIRDS = 1.3333333333333
-
-    # If the net output is 0.5 or greater, apply a force to the
-    # right, otherwise apply force to the left.
-    force = 0
-    if net_output > 0.5:
-        force = FORCE_MAG
-    elif net_output < 0.5:
-        force = -FORCE_MAG
-
-    costheta = math.cos(theta)
-    sintheta = math.sin(theta)
-
-    temp = (force + POLEMASS_LENGTH * theta_dot * theta_dot * sintheta) / TOTAL_MASS
-
-    thetaacc = (GRAVITY * sintheta - costheta * temp) \
-               / (LENGTH * (FOURTHIRDS - MASSPOLE * costheta * costheta / TOTAL_MASS))
-
-    xacc = temp - POLEMASS_LENGTH * thetaacc * costheta / TOTAL_MASS
-
-    # Update the four state variables, using Euler's method
-    x += TAU * x_dot
-    x_dot += TAU * xacc
-    theta += TAU * theta_dot
-    theta_dot += TAU * thetaacc
-
-    return x, x_dot, theta, theta_dot
+num_steps = 10 ** 5
+runs_per_net = 5
 
 
-def evaluate_population(chromosomes):
-    num_steps = 10 ** 5
-
-    for chromo in chromosomes:
-
-        net = nn.create_phenotype(chromo)
-
-        # initial conditions (as used by Stanley)        
-        x = random.randint(0, 4799) / 1000.0 - 2.4
-        x_dot = random.randint(0, 1999) / 1000.0 - 1.0
-        theta = random.randint(0, 399) / 1000.0 - 0.2
-        theta_dot = random.randint(0, 2999) / 1000.0 - 1.5
+def evaluate_population(genomes):
+    for g in genomes:
+        net = nn.create_phenotype(g)
 
         fitness = 0
 
-        for trials in xrange(num_steps):
-            # maps into [0,1]
-            inputs = [(x + 2.4) / 4.8,
-                      (x_dot + 0.75) / 1.5,
-                      (theta + angle_limit) / 0.41,
-                      (theta_dot + 1.0) / 2.0]
+        for runs in xrange(runs_per_net):
+            sim = CartPole()
 
-            action = net.pactivate(inputs)
-            action[0] += 0.4 * (random.random() - 0.5)
+            for trials in xrange(num_steps):
+                inputs = sim.get_scaled_state()
+                action = net.pactivate(inputs)
+                # action[0] += 0.4 * (random.random() - 0.5)
 
-            # Apply action to the simulated cart-pole
-            x, x_dot, theta, theta_dot = cart_pole(action[0], x, x_dot, theta, theta_dot)
+                # Apply action to the simulated cart-pole
+                force = 10.0 if action[0] > 0.5 else -10.0
+                sim.step(force)
 
-            # Check for failure.  If so, return steps
-            # the number of steps indicates the fitness: higher = better
-            fitness += 1
-            if abs(x) >= 2.4 or abs(theta) >= angle_limit:
-                # if abs(theta) > angle_limit: # Igel (p. 5) uses theta criteria only
-                # the cart/pole has run/inclined out of the limits
-                break
+                # Stop if the network fails to keep the cart within the position or angle limits.
+                # The per-run fitness is the number of time steps the network can balance the pole
+                # without exceeding these limits.
+                if abs(sim.x) >= position_limit or abs(sim.theta) >= angle_limit_radians:
+                    break
 
-        chromo.fitness = fitness
+                fitness += 1
+
+        # The genome's fitness is its average performance across all runs.
+        g.fitness = fitness / float(runs_per_net)
 
 
 if __name__ == "__main__":
@@ -97,9 +48,9 @@ if __name__ == "__main__":
     config = Config(os.path.join(local_dir, 'spole_config'))
 
     pop = population.Population(config)
-    pop.epoch(evaluate_population, 200)
+    pop.epoch(evaluate_population, 1000)
 
-    # Save the winner,
+    # Save the winner.
     winner = pop.most_fit_genomes[-1]
     print 'Number of evaluations: %d' % winner.ID
     with open('winner_chromosome', 'w') as f:

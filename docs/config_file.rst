@@ -47,7 +47,7 @@ NEAT settings.
     The probability that mutation will delete an existing connection. Valid values are on [0.0, 1.0].
 * *prob_deletenode*
     The probability that mutation will delete an existing hidden node and any connections to it.  Valid values are on [0.0, 1.0].
-* *prob_mutatebias*
+* *prob_mutate_bias*
     The probability that mutation will change the bias of a node by adding a random value.
 * *bias_mutation_power*
     The standard deviation of the zero-centered normal distribution from which a bias change is drawn.

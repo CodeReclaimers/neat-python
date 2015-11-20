@@ -1,5 +1,6 @@
 import math
 import random
+from neat.indexer import Indexer
 
 
 def exp_sigmoid(bias, response, x):
@@ -27,20 +28,18 @@ def get_sigmoid_function(activation_type):
 
 class Neuron(object):
     """ A simple sigmoidal neuron """
-    __next_id = 1
+    _indexer = Indexer(1)
 
-    @classmethod
-    def __get_next_id(cls, ID):
+    def _get_next_id(self, ID):
         if ID is None:
-            ID = cls.__next_id
-            cls.__next_id += 1
+            ID = self._indexer.next()
 
         return ID
 
     def __init__(self, neurontype, ID=None, bias=0.0, response=1.0, activation_type='exp'):
         assert activation_type is not None
 
-        self.ID = Neuron.__get_next_id(ID)  # every neuron has an ID
+        self.ID = self._get_next_id(ID)  # every neuron has an ID
 
         self._synapses = []
 
@@ -328,11 +327,11 @@ def create_fast_feedforward_phenotype(genome):
             inputs = []
             for cg in genome.conn_genes.values():
                 if cg.out_node_id == node and cg.enabled:
-                    #print "    (%d->%d) % f" % (cg.in_node_id, cg.out_node_id, cg.weight)
+                    # print "    (%d->%d) % f" % (cg.in_node_id, cg.out_node_id, cg.weight)
                     inputs.append((cg.in_node_id, cg.weight))
                     used_nodes.add(cg.in_node_id)
 
-            #print "    eval %d" % node, inputs
+            # print "    eval %d" % node, inputs
             used_nodes.add(node)
             ng = genome.node_genes[node]
             if ng.activation_type == "tanh":

@@ -1,5 +1,6 @@
 '''Commonly used functions not available in the Python2 standard library.'''
 from math import sqrt
+from random import random
 
 
 def mean(values):
@@ -13,3 +14,7 @@ def variance(values):
 
 def stdev(values):
     return sqrt(variance(values))
+
+
+def randrange(a, b):
+    return a + random() * (b - a)

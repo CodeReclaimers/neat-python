@@ -7,7 +7,7 @@ import os
 import random
 import cPickle
 
-from neat import population, ctrnn, visualize, genome
+from neat import population, ctrnn, visualize, genes
 from neat.config import Config
 
 
@@ -102,7 +102,7 @@ def run():
     local_dir = os.path.dirname(__file__)
     config = Config(os.path.join(local_dir, 'spole_ctrnn_config'))
 
-    pop = population.Population(config, node_gene_type=genome.CTNodeGene)
+    pop = population.Population(config, node_gene_type=genes.CTNodeGene)
     pop.epoch(evaluate_population, 2000, report=1, save_best=0)
 
     # saves the winner
