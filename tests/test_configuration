@@ -12,18 +12,18 @@ weight_stdev        = 0.9
 [genetic]
 pop_size              = 150
 max_fitness_threshold = 0.9
-prob_addconn          = 0.05
-prob_addnode          = 0.03
-prob_deleteconn       = 0.01
-prob_deletenode       = 0.01
-prob_mutate_bias       = 0.5
+prob_add_conn         = 0.05
+prob_add_node         = 0.03
+prob_delete_conn      = 0.01
+prob_delete_node      = 0.01
+prob_mutate_bias      = 0.5
 bias_mutation_power   = 0.5
 prob_mutate_response  = 0.5
 response_mutation_power = 0.5
 prob_mutate_weight    = 0.9
 prob_replace_weight   = 0.1
 weight_mutation_power = 1.5
-prob_togglelink       = 0.01
+prob_toggle_link      = 0.01
 elitism               = 1
 
 [genotype compatibility]

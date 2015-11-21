@@ -20,8 +20,7 @@ class Population(object):
         self.conn_gene_type = conn_gene_type
 
         if checkpoint_file:
-            # start from a previous point: creates an 'empty'
-            # population and point its __dict__ to the previous one
+            # Start from a saved checkpoint.
             self.__resume_checkpoint(checkpoint_file)
         else:
             # total population size
@@ -42,7 +41,12 @@ class Population(object):
             self.generation = -1
 
     def __resume_checkpoint(self, checkpoint):
-        """ Resumes the simulation from a previous saved point. """
+        '''
+        Resumes the simulation from a previous saved point. This is done by swapping out our existing
+        __dict__ with the loaded population's.
+        '''
+        # TODO: Wouldn't it just be better to create a class method to load and return the stored Population
+        # object as-is?  I don't know if there are hidden side effects to directly replacing __dict__.
         with gzip.open(checkpoint) as f:
             print 'Resuming from a previous point: %s' % checkpoint
             # when unpickling __init__ is not called again
@@ -50,9 +54,7 @@ class Population(object):
             self.__dict__ = previous_pop.__dict__
 
             print 'Loading random state'
-            rstate = cPickle.load(f)
-            random.setstate(rstate)
-            # random.jumpahead(1)
+            random.setstate(cPickle.load(f))
 
     def __create_checkpoint(self, report):
         """ Saves the current simulation state. """
@@ -60,9 +62,9 @@ class Population(object):
             print 'Creating checkpoint file at generation: %d' % self.generation
 
         with gzip.open('checkpoint_' + str(self.generation), 'w', compresslevel=5) as f:
-            # dumps the population
+            # Write the entire population state.
             cPickle.dump(self, f, protocol=cPickle.HIGHEST_PROTOCOL)
-            # dumps the current random state
+            # Remember the current random number state.
             cPickle.dump(random.getstate(), f, protocol=2)
 
     def __create_population(self):

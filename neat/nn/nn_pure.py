@@ -173,7 +173,7 @@ class Network(object):
 
 
 class FeedForward(Network):
-    """ A feedforward network is a particular class of neural network.
+    """ A feed-forward network is a particular class of neural network.
         Only one hidden layer is considered for now.
     """
 

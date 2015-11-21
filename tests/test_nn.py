@@ -1,10 +1,14 @@
 from neat.nn.nn_pure import FeedForward, Neuron, Network
 
+# TODO: These tests are just smoke tests to make sure nothing has become badly broken.  Expand
+# to include more detailed tests of actual functionality.
+
 
 def test_feed_forward():
     nn = FeedForward([2, 10, 3], activation_type='exp')
     nn.sactivate([1, 1])
-    nn.pactivate([1,1])
+    nn.pactivate([1, 1])
+    repr(nn)
 
 
 def test_manual_network():

@@ -1,8 +1,6 @@
 # Test the performance of the genome produced by single_pole.py.
-
 import os
 import sys
-from random import randint
 import cPickle
 
 from neat.nn import nn_pure as nn

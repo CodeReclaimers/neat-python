@@ -26,13 +26,15 @@ x = (random.randint(0, 2 ** 31) % 4800) / 1000.0 - 2.4
 x_dot = (random.randint(0, 2 ** 31) % 2000) / 1000.0 - 1
 theta = (random.randint(0, 2 ** 31) % 400) / 1000.0 - .2
 theta_dot = (random.randint(0, 2 ** 31) % 3000) / 1000.0 - 1.5
-# x = 0.0
-# x_dot = 0.0
-# theta = 0.0
-# theta_dot = 0.0
 
-print "\nInitial conditions:"
-print "%2.4f   %2.4f   %2.4f   %2.4f" % (x, x_dot, theta, theta_dot)
+print
+print "Initial conditions:"
+print "        x = %.4f" % x
+print "    x_dot = %.4f" % x_dot
+print "    theta = %.4f" % theta
+print "theta_dot = %.4f" % theta_dot
+print
+
 for step in xrange(10 ** 5):
 
     twelve_degrees = 0.2094384
@@ -49,11 +51,13 @@ for step in xrange(10 ** 5):
     x, x_dot, theta, theta_dot = spole_ctrnn.cart_pole(action[0], x, x_dot, theta, theta_dot)
 
     if abs(x) >= 2.5 or abs(theta) >= twelve_degrees:
-        # if abs(theta) >= twelve_degrees: # Igel (p. 5)
         import sys
 
-        sys.stderr.write('\nFailed at step %d \n' % step)
-        print "%2.4f   %2.4f   %2.4f   %2.4f" % (x, x_dot, theta, theta_dot)
+        print 'FAILED at step %d' % step
+        print "        x = %.4f" % x
+        print "    x_dot = %.4f" % x_dot
+        print "    theta = %.4f" % theta
+        print "theta_dot = %.4f" % theta_dot
         sys.exit(0)
 
-print '\nPole balanced for 10^5 time steps!'
+print 'Pole balanced for 10^5 time steps!'

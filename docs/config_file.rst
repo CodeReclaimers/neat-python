@@ -39,13 +39,13 @@ NEAT settings.
     The number of individuals in each generation.
 * *max_fitness_threshold*
     When at least one individual's measured fitness exceeds this threshold, the evolution process will terminate.
-* *prob_addconn*
+* *prob_add_conn*
     The probability that mutation will add a connection between existing nodes. Valid values are on [0.0, 1.0].
-* *prob_addnode*
+* *prob_add_node*
     The probability that mutation will add a new hidden node into an existing connection. Valid values are on [0.0, 1.0].
-* *prob_deleteconn*
+* *prob_delete_conn*
     The probability that mutation will delete an existing connection. Valid values are on [0.0, 1.0].
-* *prob_deletenode*
+* *prob_delete_node*
     The probability that mutation will delete an existing hidden node and any connections to it.  Valid values are on [0.0, 1.0].
 * *prob_mutate_bias*
     The probability that mutation will change the bias of a node by adding a random value.
@@ -61,7 +61,7 @@ NEAT settings.
     The probability that mutation will replace the weight of a connection with a new random value.
 * *weight_mutation_power*
     The standard deviation of the zero-centered normal distribution from which a weight change is drawn.
-* *prob_togglelink*
+* *prob_toggle_link*
     The probability that the enabled status of a connection will be toggled.
 * *elitism*
     The number of individuals in each species that will be preserved from one generation to the next.

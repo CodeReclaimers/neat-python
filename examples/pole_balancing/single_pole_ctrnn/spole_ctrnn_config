@@ -15,20 +15,18 @@ weight_stdev        = 0.9
 [genetic]
 pop_size              = 100
 max_fitness_threshold = 99999
-
-# Human reasoning
-prob_addconn          = 0.3
-prob_addnode          = 0.01    
-prob_deleteconn       = 0.05
-prob_deletenode       = 0.0
-prob_mutate_bias       = 0.5
+prob_add_conn         = 0.3
+prob_add_node         = 0.01
+prob_delete_conn      = 0.05
+prob_delete_node      = 0.0
+prob_mutate_bias      = 0.5
 bias_mutation_power   = 1.0    
 prob_mutate_response  = 0.2
 response_mutation_power = 0.1
 prob_mutate_weight    = 0.5
 prob_replace_weight   = 0.1
 weight_mutation_power = 1.8    
-prob_togglelink       = 0.01
+prob_toggle_link      = 0.01
 elitism               = 1
 
 [genotype compatibility]

@@ -5,14 +5,12 @@ from neat.math_util import mean
 
 
 class Species(object):
-    """ A subpopulation containing similar individiduals """
+    """ A collection of genetically similar individuals."""
     _indexer = Indexer(1)
 
-    def _get_next_id(self, previous_id):
-        if previous_id is None:
-            previous_id = self._indexer.next()
-
-        return previous_id
+    @classmethod
+    def _get_next_id(cls, previous_id):
+        return Species._indexer.next(previous_id)
 
     def __init__(self, first_individual, previous_id=None):
         """ A species requires at least one individual to come to existence """

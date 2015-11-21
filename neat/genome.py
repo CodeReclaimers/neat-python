@@ -9,7 +9,7 @@ class Genome(object):
 
     def __init__(self, config, parent1_id, parent2_id, node_gene_type, conn_gene_type):
         self.config = config
-        self.ID = self._indexer.next()
+        self.ID = Genome._indexer.next()
         self.num_inputs = config.input_nodes
         self.num_outputs = config.output_nodes
 
@@ -33,16 +33,16 @@ class Genome(object):
 
         # TODO: Make a configuration item to choose whether or not multiple mutations can happen at once.
 
-        if random() < self.config.prob_addnode:
+        if random() < self.config.prob_add_node:
             self._mutate_add_node()
 
-        if random() < self.config.prob_addconn:
+        if random() < self.config.prob_add_conn:
             self._mutate_add_connection()
 
-        if random() < self.config.prob_deletenode:
+        if random() < self.config.prob_delete_node:
             self._mutate_delete_node()
 
-        if random() < self.config.prob_deleteconn:
+        if random() < self.config.prob_delete_conn:
             self._mutate_delete_connection()
 
         # Mutate connection genes (weights, enabled, etc.).
@@ -51,7 +51,7 @@ class Genome(object):
 
         # Mutate node genes (bias, response, etc.).
         for ng in self.node_genes.values():
-            if ng.type != "INPUT":
+            if ng.type != 'INPUT':
                 ng.mutate(self.config)
 
         return self
@@ -130,7 +130,7 @@ class Genome(object):
         new_conn1, new_conn2 = conn_to_split.split(ng.ID)
         self.conn_genes[new_conn1.key] = new_conn1
         self.conn_genes[new_conn2.key] = new_conn2
-        return (ng, conn_to_split)  # the return is only used in genome_feedforward
+        return ng, conn_to_split  # the return is only used in genome_feedforward
 
     def _mutate_add_connection(self):
         # Only for recurrent networks
@@ -145,7 +145,7 @@ class Genome(object):
                 for out_node in self.node_genes.values():
                     # TODO: We do this filtering of input/output/hidden nodes a lot; they should probably
                     # be separate collections.
-                    if out_node.type == "INPUT":
+                    if out_node.type == 'INPUT':
                         continue
 
                     if (in_node.ID, out_node.ID) not in self.conn_genes.keys():
@@ -165,7 +165,7 @@ class Genome(object):
 
         while 1:
             idx = choice(self.node_genes.keys())
-            if self.node_genes[idx].type == "HIDDEN":
+            if self.node_genes[idx].type == 'HIDDEN':
                 break
 
         node = self.node_genes[idx]
@@ -245,7 +245,7 @@ class Genome(object):
         # number of enabled connections
         conns_enabled = sum([1 for cg in self.conn_genes.values() if cg.enabled is True])
 
-        return (num_hidden, conns_enabled)
+        return num_hidden, conns_enabled
 
     def __cmp__(self, other):
         """ First compare chromosomes by their fitness and then by their id.
@@ -270,7 +270,7 @@ class Genome(object):
         node_id = self.get_new_hidden_id()
         for i in range(num_hidden):
             node_gene = self._node_gene_type(node_id,
-                                             nodetype='HIDDEN',
+                                             node_type='HIDDEN',
                                              activation_type=self.config.nn_activation)
             assert node_gene.ID not in self.node_genes
             self.node_genes[node_gene.ID] = node_gene
@@ -282,7 +282,7 @@ class Genome(object):
                 self.conn_genes[cg.key] = cg
             # Connect it to all nodes except input nodes
             for post in self.node_genes.values():
-                if post.type == "INPUT":
+                if post.type == 'INPUT':
                     continue
 
                 weight = gauss(0, self.config.weight_stdev)
@@ -305,7 +305,7 @@ class Genome(object):
         # c.num_inputs += num_input
         for i in range(config.output_nodes):
             node_gene = c._node_gene_type(node_id,
-                                          nodetype='OUTPUT',
+                                          node_type='OUTPUT',
                                           activation_type=config.nn_activation)
             assert node_gene.ID not in c.node_genes
             c.node_genes[node_gene.ID] = node_gene
@@ -328,7 +328,7 @@ class Genome(object):
             # Connect it to a random input node
             while 1:
                 idx = choice(c.node_genes.keys())
-                if c.node_genes[idx].type == "INPUT":
+                if c.node_genes[idx].type == 'INPUT':
                     break
 
             input_node = c.node_genes[idx]
@@ -352,7 +352,7 @@ class Genome(object):
 
             # Connect it to all input nodes
             for input_node in c.node_genes.values():
-                if input_node.type == "INPUT":
+                if input_node.type == 'INPUT':
                     weight = gauss(0, config.weight_stdev)
                     cg = c._conn_gene_type(input_node.ID, node_gene.ID, weight, True)
                     c.conn_genes[cg.key] = cg
@@ -392,7 +392,7 @@ class FFGenome(Genome):
             maxi = len(self.node_order)
         self.node_order.insert(randint(mini, maxi), ng.ID)
         assert (len(self.node_order) == len([n for n in self.node_genes.values() if n.type == 'HIDDEN']))
-        return (ng, split_conn)
+        return ng, split_conn
 
     def _mutate_add_connection(self):
         # Only for feed-forward networks
@@ -408,11 +408,11 @@ class FFGenome(Genome):
             count = 0
             # Count connections
             for in_node in self.node_genes.values():
-                if in_node.type == "OUTPUT":
+                if in_node.type == 'OUTPUT':
                     continue
 
                 for out_node in self.node_genes.values():
-                    if out_node.type == "INPUT":
+                    if out_node.type == 'INPUT':
                         continue
 
                     if (in_node.ID, out_node.ID) not in self.conn_genes.keys() and \
@@ -447,7 +447,7 @@ class FFGenome(Genome):
         node_id = self.get_new_hidden_id()
         for i in range(num_hidden):
             node_gene = self._node_gene_type(node_id,
-                                             nodetype='HIDDEN',
+                                             node_type='HIDDEN',
                                              activation_type=self.config.nn_activation)
             assert node_gene.ID not in self.node_genes
             self.node_genes[node_gene.ID] = node_gene
@@ -455,7 +455,7 @@ class FFGenome(Genome):
             node_id += 1
             # Connect all input nodes to it
             for pre in self.node_genes.values():
-                if pre.type == "INPUT":
+                if pre.type == 'INPUT':
                     weight = gauss(0, self.config.weight_stdev)
                     cg = self._conn_gene_type(pre.id, node_gene.id, weight, True)
                     self.conn_genes[cg.key] = cg

@@ -29,10 +29,10 @@ class Config(object):
         # Genetic algorithm configuration
         self.pop_size = int(parameters.get('genetic', 'pop_size'))
         self.max_fitness_threshold = float(parameters.get('genetic', 'max_fitness_threshold'))
-        self.prob_addconn = float(parameters.get('genetic', 'prob_addconn'))
-        self.prob_addnode = float(parameters.get('genetic', 'prob_addnode'))
-        self.prob_deleteconn = float(parameters.get('genetic', 'prob_deleteconn'))
-        self.prob_deletenode = float(parameters.get('genetic', 'prob_deletenode'))
+        self.prob_add_conn = float(parameters.get('genetic', 'prob_add_conn'))
+        self.prob_add_node = float(parameters.get('genetic', 'prob_add_node'))
+        self.prob_delete_conn = float(parameters.get('genetic', 'prob_delete_conn'))
+        self.prob_delete_node = float(parameters.get('genetic', 'prob_delete_node'))
         self.prob_mutate_bias = float(parameters.get('genetic', 'prob_mutate_bias'))
         self.bias_mutation_power = float(parameters.get('genetic', 'bias_mutation_power'))
         self.prob_mutate_response = float(parameters.get('genetic', 'prob_mutate_response'))
@@ -40,7 +40,7 @@ class Config(object):
         self.prob_mutate_weight = float(parameters.get('genetic', 'prob_mutate_weight'))
         self.prob_replace_weight = float(parameters.get('genetic', 'prob_replace_weight'))
         self.weight_mutation_power = float(parameters.get('genetic', 'weight_mutation_power'))
-        self.prob_togglelink = float(parameters.get('genetic', 'prob_togglelink'))
+        self.prob_toggle_link = float(parameters.get('genetic', 'prob_toggle_link'))
         self.elitism = float(parameters.get('genetic', 'elitism'))
 
         # genotype compatibility

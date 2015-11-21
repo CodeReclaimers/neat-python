@@ -8,4 +8,4 @@ for i in range(1000):
     print '%d\t%f' % (i, n.potential)
     n.advance()
 
-visualize.plot_spikes(spike_train, view=True, filename='spiking_neuron.svg')
+visualize.plot_spikes(spike_train, view=True)

@@ -4,15 +4,15 @@ from neat.indexer import Indexer
 
 
 class NodeGene(object):
-    def __init__(self, ID, nodetype, bias=0.0, response=4.924273, activation_type="exp"):
+    def __init__(self, ID, node_type, bias=0.0, response=4.924273, activation_type="exp"):
         """ A node gene encodes the basic artificial neuron model.
-            nodetype must be "INPUT", "HIDDEN", or "OUTPUT"
+            node_type must be 'INPUT', 'HIDDEN', or 'OUTPUT'
         """
         assert activation_type is not None
-        assert nodetype in ('INPUT', 'OUTPUT', 'HIDDEN')
+        assert node_type in ('INPUT', 'OUTPUT', 'HIDDEN')
 
         self.ID = ID
-        self.type = nodetype
+        self.type = node_type
         self.bias = bias
         self.response = response
         self.activation_type = activation_type
@@ -57,8 +57,8 @@ class CTNodeGene(NodeGene):
         a decay rate given by the time constant.
     """
 
-    def __init__(self, ID, nodetype, bias=1.0, response=1.0, activation_type='exp', time_constant=1.0):
-        super(CTNodeGene, self).__init__(ID, nodetype, bias, response, activation_type)
+    def __init__(self, ID, node_type, bias=1.0, response=1.0, activation_type='exp', time_constant=1.0):
+        super(CTNodeGene, self).__init__(ID, node_type, bias, response, activation_type)
         self.time_constant = time_constant
 
     def mutate(self, config):
@@ -111,7 +111,7 @@ class ConnectionGene(object):
             try:
                 self.__innov_number = self.__innovations[self.key]
             except KeyError:
-                self.__innov_number = self._indexer.next()
+                self.__innov_number = ConnectionGene._indexer.next()
                 self.__innovations[self.key] = self.__innov_number
         else:
             self.__innov_number = innov
@@ -123,9 +123,11 @@ class ConnectionGene(object):
         r = random.random
         if r() < config.prob_replace_weight:
             self.__replace_weight(config)
+
         if r() < config.prob_mutate_weight:
             self.__mutate_weight(config)
-        if r() < config.prob_togglelink:
+
+        if r() < config.prob_toggle_link:
             self.enabled = not self.enabled
 
     def enable(self):
