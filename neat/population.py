@@ -176,11 +176,6 @@ class Population(object):
 
             # Print some statistics
             best = self.most_fit_genomes[-1]
-            # Which species has the best chromosome?
-            for s in self.__species:
-                s.hasBest = False
-                if best.species_id == s.ID:
-                    s.hasBest = True
 
             # saves the best chromo from the current generation
             if save_best:
@@ -198,25 +193,8 @@ class Population(object):
             # Remove stagnated species and its members (except if it has the best chromosome)
             for s in self.__species[:]:
                 if s.no_improvement_age > self.config.max_stagnation:
-                    if not s.hasBest:
-                        if report:
-                            print "\n   Species %2d (with %2d individuals) is stagnated: removing it" \
-                                  % (s.ID, len(s.members))
-                        # removing species
-                        self.__species.remove(s)
-                        # removing all the species' members
-                        # TODO: can be optimized!
-                        for c in self.population[:]:
-                            if c.species_id == s.ID:
-                                self.population.remove(c)
-
-            # TODO: Check whether "super-stagnation" is a common/canonical feature of NEAT and remove it if not.
-            # Remove "super-stagnated" species (even if it has the best chromosome)
-            # It is not clear if it really avoids local minima
-            for s in self.__species[:]:
-                if s.no_improvement_age > 2 * self.config.max_stagnation:
                     if report:
-                        print "\n   Species %2d (with %2d individuals) is super-stagnated: removing it" \
+                        print "\n   Species %2d (with %2d individuals) is stagnated: removing it" \
                               % (s.ID, len(s.members))
                     # removing species
                     self.__species.remove(s)

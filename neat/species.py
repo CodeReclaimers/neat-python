@@ -8,31 +8,18 @@ class Species(object):
     """ A collection of genetically similar individuals."""
     _indexer = Indexer(1)
 
-    @classmethod
-    def _get_next_id(cls, previous_id):
-        return Species._indexer.next(previous_id)
-
     def __init__(self, first_individual, previous_id=None):
-        """ A species requires at least one individual to come to existence """
-        self.ID = self._get_next_id(previous_id)  # species's id
-        self.age = 0  # species's age
-        self.members = []  # species's individuals
+        self.representative = first_individual
+        self.ID = Species._indexer.next(previous_id)
+        self.age = 0
+        self.members = []
         self.add(first_individual)
-        self.hasBest = False  # Does this species has the best individual of the population?
         self.spawn_amount = 0
-
-        # The number of generations since the mean fitness increased.
+        self.last_avg_fitness = 0
         self.no_improvement_age = 0
 
-        self.last_avg_fitness = 0
-
-        self.representative = first_individual
-
     def add(self, individual):
-        """ Add a new individual to the species """
-        # set individual's species id
         individual.species_id = self.ID
-        # add new individual
         self.members.append(individual)
         # choose a new random representative for the species
         self.representative = random.choice(self.members)
@@ -47,22 +34,24 @@ class Species(object):
     def tournament_selection(self, k=2):
         """ Tournament selection with size k (default k=2).
             Make sure the population has at least k individuals """
+        # TODO: Unless some side-effect of this shuffle is necessary, it is inefficient given
+        # that we only want to select two members without replacement.
         random.shuffle(self.members)
 
         return max(self.members[:k])
 
     def average_fitness(self):
         """ Returns the raw average fitness for this species """
-        current = mean([c.fitness for c in self.members])
+        avg_fitness = mean([c.fitness for c in self.members])
 
         # Check for increase in mean fitness and adjust "no improvement" count as necessary.
-        if current > self.last_avg_fitness:
-            self.last_avg_fitness = current
+        if avg_fitness > self.last_avg_fitness:
+            self.last_avg_fitness = avg_fitness
             self.no_improvement_age = 0
         else:
             self.no_improvement_age += 1
 
-        return current
+        return avg_fitness
 
     def reproduce(self, config):
         """ Returns a list of 'spawn_amount' new individuals """
@@ -74,7 +63,7 @@ class Species(object):
 
         # this condition is useless since no species with spawn_amount < 0 will
         # reach this point - at least it shouldn't happen.
-        # assert self.spawn_amount > 0, "Species %d with zero spawn amount!" % (self.ID)
+        assert self.spawn_amount > 0, "Species %d with non-positive spawn amount!" % self.ID
 
         self.members.sort()  # sort species's members by their fitness
         self.members.reverse()  # best members first
@@ -108,7 +97,7 @@ class Species(object):
             else:
                 # mutate only
                 parent1 = self.members[0]
-                # TODO: temporary hack - the child needs a new id (not the father's)
+                # TODO: temporary hack - the child needs a new id (not the parent's)
                 child = parent1.crossover(parent1)
                 offspring.append(child.mutate())
 
