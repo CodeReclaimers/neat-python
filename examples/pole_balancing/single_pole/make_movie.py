@@ -37,7 +37,7 @@ sim = CartPole()
 
 def make_frame(t):
     inputs = sim.get_scaled_state()
-    action = net.pactivate(inputs)
+    action = net.parallel_activate(inputs)
     # action[0] += 0.4 * (np.random.random() - 0.5)
 
     # Apply action to the simulated cart-pole

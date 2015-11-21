@@ -19,7 +19,7 @@ def eval_fitness(genomes):
         error = 0.0
         for i, inputs in enumerate(INPUTS):
             # Serial activation propagates the inputs through the entire network.
-            output = net.sactivate(inputs)
+            output = net.serial_activate(inputs)
             error += (output[0] - OUTPUTS[i]) ** 2
 
         g.fitness = 1 - math.sqrt(error / len(OUTPUTS))
@@ -41,7 +41,7 @@ def run():
     print '\nBest network output:'
     net = nn.create_fast_feedforward_phenotype(winner)
     for i, inputs in enumerate(INPUTS):
-        output = net.sactivate(inputs)  # serial activation
+        output = net.serial_activate(inputs)
         print "%1.5f \t %1.5f" % (OUTPUTS[i], output[0])
 
     # Visualize the winner network and plot statistics.

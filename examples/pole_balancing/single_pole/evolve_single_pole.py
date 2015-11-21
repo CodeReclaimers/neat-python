@@ -22,7 +22,7 @@ def evaluate_population(genomes):
 
             for trials in xrange(num_steps):
                 inputs = sim.get_scaled_state()
-                action = net.pactivate(inputs)
+                action = net.parallel_activate(inputs)
                 # action[0] += 0.4 * (random.random() - 0.5)
 
                 # Apply action to the simulated cart-pole

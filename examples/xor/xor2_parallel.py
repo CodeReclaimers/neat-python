@@ -40,7 +40,7 @@ def parallel_evaluation(chromo):
     error = 0.0
     for inputData, outputData in zip(INPUTS, OUTPUTS):
         # serial activation
-        output = net.sactivate(inputData)
+        output = net.serial_activate(inputData)
         error += (output[0] - outputData) ** 2
 
     return 1 - math.sqrt(error / len(OUTPUTS))
@@ -74,7 +74,7 @@ def run():
     print '\nBest network output:'
     net = nn.create_fast_feedforward_phenotype(winner)
     for i, inputs in enumerate(INPUTS):
-        output = net.sactivate(inputs)  # serial activation
+        output = net.serial_activate(inputs)  # serial activation
         print "%1.5f \t %1.5f" % (OUTPUTS[i], output[0])
 
     # Visualize the winner network and plot statistics.

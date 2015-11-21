@@ -6,8 +6,8 @@ from neat.nn import FeedForward, Neuron, Network
 
 def test_feed_forward():
     nn = FeedForward([2, 10, 3], activation_type='exp')
-    nn.sactivate([1, 1])
-    nn.pactivate([1, 1])
+    nn.serial_activate([1, 1])
+    nn.parallel_activate([1, 1])
     repr(nn)
 
 
@@ -16,6 +16,6 @@ def test_manual_network():
     connections = [(1, 2, 0.5), (1, 3, 0.5), (2, 3, 0.5)]
 
     net = Network(neurons, connections, 1)
-    net.sactivate([0.04])
-    net.pactivate([0.04])
+    net.serial_activate([0.04])
+    net.parallel_activate([0.04])
     repr(net)

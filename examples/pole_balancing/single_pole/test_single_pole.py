@@ -26,7 +26,7 @@ print "%2.4f   %2.4f   %2.4f   %2.4f" % (sim.x, sim.dx, sim.theta, sim.dtheta)
 for step in xrange(10 ** 5):
     # maps into [0,1]
     inputs = sim.get_scaled_state()
-    action = net.pactivate(inputs)
+    action = net.parallel_activate(inputs)
     force = action[0]
 
     # Apply action to the simulated cart-pole

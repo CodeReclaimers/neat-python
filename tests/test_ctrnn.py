@@ -18,6 +18,6 @@ def test_basic():
     print "%.17f %.17f" % (n1.output, n2.output)
     outputs = []
     for i in xrange(1000):
-        output = net.pactivate()
+        output = net.parallel_activate()
         outputs.append(output)
         print "%.17f %.17f" % (output[0], output[1])

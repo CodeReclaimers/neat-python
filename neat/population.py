@@ -3,28 +3,29 @@ import random
 import time
 import cPickle
 
-from neat import genome
+from neat.genome import Genome, FFGenome
 from neat.genes import NodeGene, ConnectionGene
 from neat.species import Species
 from neat.math_util import mean, stdev
+from neat.diversity import AgedFitnessSharing
 
 
 class Population(object):
     """ Manages all the species  """
 
     def __init__(self, config, checkpoint_file=None, initial_population=None,
-                 node_gene_type=NodeGene, conn_gene_type=ConnectionGene):
+                 node_gene_type=NodeGene, conn_gene_type=ConnectionGene,
+                 diversity_type=AgedFitnessSharing):
         self.config = config
         self.population = None
         self.node_gene_type = node_gene_type
         self.conn_gene_type = conn_gene_type
+        self.diversity = diversity_type(self.config)
 
         if checkpoint_file:
             # Start from a saved checkpoint.
             self.__resume_checkpoint(checkpoint_file)
         else:
-            # total population size
-            self.__popsize = self.config.pop_size
             # currently living species
             self.__species = []
             # species history
@@ -68,19 +69,18 @@ class Population(object):
             cPickle.dump(random.getstate(), f, protocol=2)
 
     def __create_population(self):
-
         if self.config.feedforward:
-            genotypes = genome.FFGenome
+            genotypes = FFGenome
         else:
-            genotypes = genome.Genome
+            genotypes = Genome
 
         self.population = []
         if self.config.fully_connected:
-            for i in xrange(self.__popsize):
+            for i in xrange(self.config.pop_size):
                 g = genotypes.create_fully_connected(self.config, self.node_gene_type, self.conn_gene_type)
                 self.population.append(g)
         else:
-            for i in xrange(self.__popsize):
+            for i in xrange(self.config.pop_size):
                 g = genotypes.create_minimally_connected(self.config, self.node_gene_type, self.conn_gene_type)
                 self.population.append(g)
 
@@ -89,7 +89,7 @@ class Population(object):
                 g.add_hidden_nodes(self.config.hidden_nodes)
 
     def __repr__(self):
-        s = "Population size: %d" % self.__popsize
+        s = "Population size: %d" % self.config.pop_size
         s += "\nTotal species: %d" % len(self.__species)
         return s
 
@@ -130,40 +130,9 @@ class Population(object):
             else:
                 print 'Compatibility threshold cannot be changed (minimum value has been reached)'
 
-    def average_fitness(self):
-        """ Returns the average raw fitness of population """
-        return mean([c.fitness for c in self.population])
-
-    def stdeviation(self):
-        """ Returns the population standard deviation """
-        return stdev([c.fitness for c in self.population])
-
     def __compute_spawn_levels(self):
         """ Compute each species' spawn amount (Stanley, p. 40) """
-
-        # 1. Boost if young and penalize if old
-        # TODO: does it really increase the overall performance?
-        # TODO: Factor out the fitness sharing/diversity mechanism to allow easier use of something different.
-        species_stats = []
-        for s in self.__species:
-            if s.age < self.config.youth_threshold:
-                species_stats.append(s.average_fitness() * self.config.youth_boost)
-            elif s.age > self.config.old_threshold:
-                species_stats.append(s.average_fitness() * self.config.old_penalty)
-            else:
-                species_stats.append(s.average_fitness())
-
-        # 2. Share fitness (only useful for computing spawn amounts)
-        # More info: http://tech.groups.yahoo.com/group/neat/message/2203
-        # Sharing the fitness is only meaningful here
-        # we don't really have to change each individual's raw fitness
-        total_average = 0.0
-        for s in species_stats:
-            total_average += s
-
-            # 3. Compute spawn
-        for i, s in enumerate(self.__species):
-            s.spawn_amount = int(round((species_stats[i] * self.__popsize / total_average)))
+        self.diversity.compute_spawn_amount(self.__species)
 
     def __log_species(self):
         """ Logging species data for visualizing speciation """
@@ -207,7 +176,7 @@ class Population(object):
             # Current generation's best chromosome
             self.most_fit_genomes.append(max(self.population))
             # Current population's average fitness
-            self.avg_fitness_scores.append(self.average_fitness())
+            self.avg_fitness_scores.append(mean([c.fitness for c in self.population]))
 
             # Print some statistics
             best = self.most_fit_genomes[-1]
@@ -280,20 +249,17 @@ class Population(object):
             self.__log_species()
 
             if report:
-                print 'Population\'s average fitness: %3.5f stdev: %3.5f' % (self.avg_fitness_scores[-1],
-                                                                             self.stdeviation())
+                std_dev = stdev([c.fitness for c in self.population])
+                print 'Population\'s average fitness: %3.5f stdev: %3.5f' % (self.avg_fitness_scores[-1], std_dev)
                 print 'Best fitness: %2.12s - size: %s - species %s - id %s' \
                       % (best.fitness, best.size(), best.species_id, best.ID)
-
-                # print some "debugging" information
                 print 'Species length: %d totaling %d individuals' \
                       % (len(self.__species), sum([len(s.members) for s in self.__species]))
                 print 'Species ID       : %s' % [s.ID for s in self.__species]
                 print 'Each species size: %s' % [len(s.members) for s in self.__species]
                 print 'Amount to spawn  : %s' % [s.spawn_amount for s in self.__species]
                 print 'Species age      : %s' % [s.age for s in self.__species]
-                print 'Species no improv: %s' % [s.no_improvement_age for s in
-                                                 self.__species]  # species no improvement age
+                print 'Species no improv: %s' % [s.no_improvement_age for s in self.__species]
 
             # -------------------------- Producing new offspring -------------------------- #
             new_population = []  # next generation's population
@@ -303,7 +269,7 @@ class Population(object):
                 new_population.extend(s.reproduce(self.config))
 
             # Controls under or overflow  #
-            fill = self.__popsize - len(new_population)
+            fill = self.config.pop_size - len(new_population)
             if fill < 0:  # overflow
                 if report:
                     print '   Removing %d excess individual(s) from the new population' % -fill
@@ -334,7 +300,7 @@ class Population(object):
                     # new_population.append(chromosome.FFGenome.create_fully_connected())
                     fill -= 1
 
-            assert self.__popsize == len(new_population), 'Different population sizes!'
+            assert self.config.pop_size == len(new_population), 'Different population sizes!'
             # Updates current population
             self.population = new_population[:]
 

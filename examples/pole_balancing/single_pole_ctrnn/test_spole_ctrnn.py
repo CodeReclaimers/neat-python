@@ -45,7 +45,7 @@ for step in xrange(10 ** 5):
               (theta + twelve_degrees) / 0.41,
               (theta_dot + 1.0) / 2.0]
 
-    action = net.pactivate(inputs)
+    action = net.parallel_activate(inputs)
 
     # Apply action to the simulated cart-pole
     x, x_dot, theta, theta_dot = spole_ctrnn.cart_pole(action[0], x, x_dot, theta, theta_dot)

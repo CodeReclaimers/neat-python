@@ -82,7 +82,7 @@ def evaluate_population(pop):
                       (theta + twelve_degrees) / 0.41,
                       (theta_dot + 1.0) / 2.0]
 
-            action = net.pactivate(inputs)
+            action = net.parallel_activate(inputs)
 
             # Apply action to the simulated cart-pole
             x, x_dot, theta, theta_dot = cart_pole(action[0], x, x_dot, theta, theta_dot)
