@@ -82,7 +82,7 @@ NEAT settings.
 [species] section
 -----------------
 * *species_size*
-    The target number of individuals to maintain in each species.
+    The target number of species to maintain.  When the number of species is different from *species_size*, *compatibility_threshold* will be adjusted up or down as necessary to attempt to return to *species_size*.
 * *survival_threshold*
     The fraction for each species allowed to reproduce on each generation.
 * *old_threshold*
