@@ -1,8 +1,14 @@
+'''
+General settings and implementation of the single-pole cart system dynamics.
+'''
+
 from math import cos, pi, sin
-from neat.math_util import randrange
+import random
 
 position_limit = 2.4
 angle_limit_radians = 45 * pi / 180
+num_steps = 10 ** 5
+runs_per_net = 5
 
 
 class CartPole(object):
@@ -14,16 +20,16 @@ class CartPole(object):
 
     def __init__(self, x=None, theta=None, dx=None, dtheta=None):
         if x is None:
-            x = randrange(-position_limit, position_limit)
+            x = random.uniform(-0.8 * position_limit, 0.8 * position_limit)
 
         if theta is None:
-            theta = randrange(-0.2, 0.2)
+            theta = random.uniform(-0.8 * angle_limit_radians, 0.8 * angle_limit_radians)
 
         if dx is None:
-            dx = randrange(-1.0, 1.0)
+            dx = random.uniform(-1.0, 1.0)
 
         if dtheta is None:
-            dtheta = randrange(-1.5, 1.5)
+            dtheta = random.uniform(-1.0, 1.0)
 
         self.t = 0.0
         self.x = x
@@ -81,3 +87,32 @@ class CartPole(object):
                 (self.dtheta + 1.0) / 2.0]
 
 
+def discrete_actuator_force(action):
+    return 10.0 if action[0] > 0.5 else -10.0
+
+
+def noisy_actuator_force(action):
+    a = action[0] + random.uniform(-0.2, 0.2)
+    return 10.0 if a > 0.5 else -10.0
+
+
+def run_simulation(sim, net, force_func):
+    '''
+    Run the given simulation for up to num_steps time steps.
+    Returns the number of time steps during which the position and angle were within limits.
+    '''
+    for trials in xrange(num_steps):
+        inputs = sim.get_scaled_state()
+        action = net.parallel_activate(inputs)
+
+        # Apply action to the simulated cart-pole
+        force = force_func(action)
+        sim.step(force)
+
+        # Stop if the network fails to keep the cart within the position or angle limits.
+        # The per-run fitness is the number of time steps the network can balance the pole
+        # without exceeding these limits.
+        if abs(sim.x) >= position_limit or abs(sim.theta) >= angle_limit_radians:
+            return trials
+
+    return num_steps

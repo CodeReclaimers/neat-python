@@ -118,17 +118,21 @@ class Population(object):
                 # remove empty species
                 self.__species.remove(s)
 
-        self.__set_compatibility_threshold()
+        self.__set_compatibility_threshold(report)
 
-    def __set_compatibility_threshold(self):
+    def __set_compatibility_threshold(self, report):
         """ Controls compatibility threshold """
+        t = self.config.compatibility_threshold
+        dt = self.config.compatibility_change
         if len(self.__species) > self.config.species_size:
-            self.config.compatibility_threshold += self.config.compatibility_change
+            t += dt
         elif len(self.__species) < self.config.species_size:
-            if self.config.compatibility_threshold > self.config.compatibility_change:
-                self.config.compatibility_threshold -= self.config.compatibility_change
-            else:
-                print 'Compatibility threshold cannot be changed (minimum value has been reached)'
+            t = max(0.0, t - dt)
+
+        if self.config.compatibility_threshold != t:
+            if report:
+                print("Adjusted compatibility threshold to %f" % t)
+            self.config.compatibility_threshold = t
 
     def __log_species(self):
         """ Logging species data for visualizing speciation """

@@ -137,4 +137,4 @@ def draw_net(chromosome, view=False, filename=None):
         width = str(0.1 + abs(cg.weight / 5.0))
         dot.edge(a, b, _attributes={'style': style, 'color': color, 'penwidth': width})
 
-    dot.render(filename, view=view)
+    return dot.render(filename, view=view)
