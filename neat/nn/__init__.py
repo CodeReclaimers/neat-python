@@ -15,41 +15,24 @@ def tanh_sigmoid(bias, response, x):
     return math.tanh(z)
 
 
-def get_sigmoid_function(activation_type):
-    """ Sigmoidal type of activation function """
-    if activation_type == 'exp':
-        return exp_sigmoid
-
-    if activation_type == 'tanh':
-        return tanh_sigmoid
-
-    raise NameError('Invalid activation type selected: %r' % activation_type)
-
-
 class Neuron(object):
     """ A simple sigmoidal neuron """
     _indexer = Indexer(1)
 
-    def _get_next_id(self, ID):
-        if ID is None:
-            ID = self._indexer.next()
-
-        return ID
-
     def __init__(self, neuron_type, ID=None, bias=0.0, response=1.0, activation_type='exp'):
-        assert activation_type is not None
+        assert neuron_type in ('INPUT', 'OUTPUT', 'HIDDEN')
+        assert activation_type in ('exp', 'tanh')
 
-        self.ID = self._get_next_id(ID)  # every neuron has an ID
+        self.type = neuron_type
+        self.ID = self._indexer.next(ID)  # every neuron has an ID
+        self.bias = bias
+        self.response = response
+        if activation_type == 'exp':
+            self.activation = exp_sigmoid
+        elif activation_type == 'tanh':
+            self.activation = tanh_sigmoid
 
         self._synapses = []
-
-        self.bias = bias
-        self.type = neuron_type
-        assert (self.type in ('INPUT', 'OUTPUT', 'HIDDEN'))
-
-        self.activation = get_sigmoid_function(activation_type)
-
-        self.response = response  # default = 4.924273 (Stanley, p. 146)
         self.output = 0.0  # for recurrent networks all neurons must have an "initial state"
 
     def activate(self):
