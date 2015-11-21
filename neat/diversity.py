@@ -2,11 +2,13 @@
 Implementations of diversity maintenance rules.
 '''
 
+
 class AgedFitnessSharing(object):
     '''
     This class encapsulates a fitness sharing scheme. It is responsible for computing the number of
     individuals to be spawned for each species in the next generation, based on species fitness, age, and size.
     '''
+
     def __init__(self, config):
         self.config = config
 

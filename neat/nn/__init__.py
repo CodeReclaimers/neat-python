@@ -36,7 +36,7 @@ class Neuron(object):
 
         return ID
 
-    def __init__(self, neurontype, ID=None, bias=0.0, response=1.0, activation_type='exp'):
+    def __init__(self, neuron_type, ID=None, bias=0.0, response=1.0, activation_type='exp'):
         assert activation_type is not None
 
         self.ID = self._get_next_id(ID)  # every neuron has an ID
@@ -44,7 +44,7 @@ class Neuron(object):
         self._synapses = []
 
         self.bias = bias
-        self.type = neurontype
+        self.type = neuron_type
         assert (self.type in ('INPUT', 'OUTPUT', 'HIDDEN'))
 
         self.activation = get_sigmoid_function(activation_type)

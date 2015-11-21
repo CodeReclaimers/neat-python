@@ -15,8 +15,8 @@ class CTNeuron(nn.Neuron):
         Adaptive Behavior 1(1):91-122.
     """
 
-    def __init__(self, neurontype, ID=None, bias=0.0, response=1.0, activation_type='exp', tau=1.0):
-        super(CTNeuron, self).__init__(neurontype, ID, bias, response, activation_type)
+    def __init__(self, neuron_type, ID=None, bias=0.0, response=1.0, activation_type='exp', tau=1.0):
+        super(CTNeuron, self).__init__(neuron_type, ID, bias, response, activation_type)
 
         # decay rate
         self.__tau = tau

@@ -130,10 +130,6 @@ class Population(object):
             else:
                 print 'Compatibility threshold cannot be changed (minimum value has been reached)'
 
-    def __compute_spawn_levels(self):
-        """ Compute each species' spawn amount (Stanley, p. 40) """
-        self.diversity.compute_spawn_amount(self.__species)
-
     def __log_species(self):
         """ Logging species data for visualizing speciation """
         higher = max([s.ID for s in self.__species])
@@ -231,7 +227,7 @@ class Population(object):
                             self.population.remove(c)
 
             # Compute spawn levels for each remaining species
-            self.__compute_spawn_levels()
+            self.diversity.compute_spawn_amount(self.__species)
 
             # Removing species with spawn amount = 0
             for s in self.__species[:]:

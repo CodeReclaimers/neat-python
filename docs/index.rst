@@ -20,7 +20,7 @@ If you need an easy performance boost, JIT-enabled `PyPy
 the most recent version is almost certainly going to break your code until the version number approaches 1.0.
 
 For further information regarding general concepts and theory, please see `Selected Publications
-<http://www.cs.ucf.edu/~kstanley/#publications>`_ in Stanley's website.
+<http://www.cs.ucf.edu/~kstanley/#publications>`_ on Stanley's website.
 
 If you encounter any confusing or incorrect information in this documentation, please open an issue in the `GitHub project
 <https://github.com/CodeReclaimers/neat-python>`_.

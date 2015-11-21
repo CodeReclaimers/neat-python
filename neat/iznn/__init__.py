@@ -8,6 +8,7 @@ Simple Model of Spiking Neurons
 IEEE TRANSACTIONS ON NEURAL NETWORKS, VOL. 14, NO. 6, NOVEMBER 2003
 """
 
+
 class Neuron(object):
     def __init__(self, bias=0, a=0.02, b=0.2, c=-65.0, d=8.0):
         """
