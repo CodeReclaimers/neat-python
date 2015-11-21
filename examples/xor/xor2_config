@@ -25,19 +25,19 @@ prob_add_conn           = 0.5
 prob_add_node           = 0.01
 prob_delete_conn        = 0.1
 prob_delete_node        = 0.03
-prob_mutate_bias        = 0.4
+prob_mutate_bias        = 0.3
 bias_mutation_power     = 1.0
 prob_mutate_response    = 0.01
 response_mutation_power = 0.5
 prob_mutate_weight      = 0.9
-prob_replace_weight     = 0.02
-weight_mutation_power   = 3.6
+prob_replace_weight     = 0.03
+weight_mutation_power   = 3.7
 prob_toggle_link        = 0.01
 elitism                 = 1
 
 [genotype compatibility]
 compatibility_threshold = 3.0
-compatibility_change    = 0.0
+compatibility_change    = 0.1
 excess_coefficient      = 1.0
 disjoint_coefficient    = 1.0
 weight_coefficient      = 0.4

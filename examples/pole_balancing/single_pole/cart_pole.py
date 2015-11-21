@@ -8,7 +8,6 @@ import random
 position_limit = 2.4
 angle_limit_radians = 45 * pi / 180
 num_steps = 10 ** 5
-runs_per_net = 5
 
 
 class CartPole(object):

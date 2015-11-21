@@ -1,4 +1,6 @@
-from cart_pole import CartPole, runs_per_net, run_simulation
+from cart_pole import CartPole, run_simulation
+
+runs_per_net = 5
 
 
 def evaluate_population(genomes, create_func, force_func):
