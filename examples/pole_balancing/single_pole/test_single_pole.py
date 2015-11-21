@@ -3,7 +3,7 @@ import os
 import sys
 import cPickle
 
-from neat.nn import nn_pure as nn
+from neat import nn
 from neat.config import Config
 from cart_pole import CartPole, angle_limit_radians
 

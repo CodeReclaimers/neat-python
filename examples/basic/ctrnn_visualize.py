@@ -3,7 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from neat.nn import nn_pure as nn
+from neat import nn
 from neat.ctrnn import CTNeuron
 
 # create two output neurons (they won't receive any external inputs)

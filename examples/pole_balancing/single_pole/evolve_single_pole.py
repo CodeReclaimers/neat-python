@@ -4,7 +4,7 @@ import cPickle
 
 from neat import population, visualize
 from neat.config import Config
-from neat.nn import nn_pure as nn
+from neat import nn
 from cart_pole import CartPole, position_limit, angle_limit_radians
 
 num_steps = 10 ** 5

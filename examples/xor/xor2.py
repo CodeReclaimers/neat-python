@@ -4,7 +4,7 @@ import os
 
 from neat import population, visualize
 from neat.config import Config
-from neat.nn import nn_pure as nn
+from neat import nn
 
 
 # XOR-2

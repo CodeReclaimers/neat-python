@@ -5,7 +5,7 @@ import gizeh as gz
 import moviepy.editor as mpy
 
 from neat.config import Config
-from neat.nn import nn_pure as nn
+from neat import nn
 from neat import visualize
 from evolve_single_pole import CartPole
 

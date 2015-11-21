@@ -1,4 +1,4 @@
-from neat.nn import nn_pure as nn
+from neat import nn
 from neat.ctrnn import CTNeuron
 
 

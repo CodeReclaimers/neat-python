@@ -1,4 +1,4 @@
-from neat.nn.nn_pure import FeedForward, Neuron, Network
+from neat.nn import FeedForward, Neuron, Network
 
 # TODO: These tests are just smoke tests to make sure nothing has become badly broken.  Expand
 # to include more detailed tests of actual functionality.
