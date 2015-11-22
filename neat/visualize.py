@@ -47,19 +47,43 @@ def plot_stats(best_genomes, avg_scores, ylog=False, view=False, filename='avg_f
     plt.close()
 
 
-def plot_spikes(spikes, view=False, filename=None):
+def plot_spikes(spikes, view=False, filename=None, title=None):
     """ Plots the trains for a single spiking neuron. """
     if plt is None:
         warnings.warn("This display is not available due to a missing optional dependency (matplotlib)")
         return
 
-    plt.title("Izhikevich's spiking neuron model")
-    plt.ylabel("Membrane Potential")
+    t_values = [t for t, I, v, u in spikes]
+    v_values = [v for t, I, v, u in spikes]
+    u_values = [u for t, I, v, u in spikes]
+    I_values = [I for t, I, v, u in spikes]
+
+    plt.subplot(3,1,1)
+    plt.ylabel("Potential (v)")
     plt.xlabel("Time (in ms)")
     plt.grid()
-    plt.plot(spikes, "g-")
+    plt.plot(t_values, v_values, "g-")
+
+    if title is None:
+        plt.title("Izhikevich's spiking neuron model")
+    else:
+        plt.title("Izhikevich's spiking neuron model (%s)" % title)
+
+    plt.subplot(3,1,2)
+    plt.ylabel("Recovery (u)")
+    plt.xlabel("Time (in ms)")
+    plt.grid()
+    plt.plot(t_values, u_values, "r-")
+
+    plt.subplot(3,1,3)
+    plt.ylabel("Current (I)")
+    plt.xlabel("Time (in ms)")
+    plt.grid()
+    plt.plot(t_values, I_values, "r-o")
+
     if filename is not None:
         plt.savefig(filename)
+
     if view:
         plt.show()
     plt.close()

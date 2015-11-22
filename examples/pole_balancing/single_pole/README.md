@@ -18,5 +18,6 @@ These instructions reference the discrete-time sample; to run the continuous-tim
     - `nn_winner_genome`: A pickled version of the most fit genome.
     
 * Run `nn_test.py`.  It will load the most fit genome from `nn_winner_genome` and run it in a new simulation to test its
-performance.  It will also run a second simulation, and produce a movie `nn_movie.mp4` showing the behavior.
+performance.  It will also run a second simulation, and produce a movie `nn_movie.mp4` showing the behavior.  (See a sample
+movie [here](http://gfycat.com/CavernousCheeryIbadanmalimbe).)
 

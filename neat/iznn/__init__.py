@@ -39,7 +39,13 @@ class Neuron(object):
         self.current = self.__bias
 
     def advance(self):
-        """Advances time in 1 ms."""
+        """Advances time in 1 ms.
+
+        v' = 0.04 * v^2 + 5v + 140 - u + I
+        u' = a * (b * v - u)
+
+        if v >= 30 then v <- c, u <- u + d
+        """
         self.__v += 0.5 * (0.04 * self.__v ** 2 + 5 * self.__v + 140 - self.__u + self.current)
         self.__v += 0.5 * (0.04 * self.__v ** 2 + 5 * self.__v + 140 - self.__u + self.current)
         self.__u += self.__a * (self.__b * self.__v - self.__u)
@@ -59,6 +65,7 @@ class Neuron(object):
         self.current = self.__bias
 
     potential = property(lambda self: self.__v, doc='Membrane potential')
+    recovery = property(lambda self: self.__u, doc='Membrane recovery')
     has_fired = property(lambda self: self.__has_fired,
                          doc='Indicates whether the neuron has fired')
 
@@ -74,7 +81,7 @@ class Synapse(object):
     def advance(self):
         """Advances time in 1 ms."""
         if self.__source.has_fired:
-            self.__dest.current += self.__weight  # dest.current or dest.__v ?
+            self.__dest.current += self.__weight
 
 
 class Network(object):
@@ -106,8 +113,8 @@ class Network(object):
 
     def advance(self, inputs):
         assert len(inputs) == len(self.__input_neurons), "Wrong number of inputs."
-        for i, input_index in enumerate(inputs):
-            self.__input_neurons[i].current += input_index
+        for i, n in zip(inputs, self.__input_neurons):
+            n.current += i
         for s in self.__synapses:
             s.advance()
         for n in self.__neurons.values():
@@ -129,6 +136,8 @@ def create_phenotype(chromosome):
     input_neurons = []
     output_neurons = []
     for ng in chromosome.node_genes.values():
+        # TODO: It seems like we should have a separate node gene implementation
+        # that encodes more (all?) of the Izhikevitch model parameters.
         neurons[ng.ID] = Neuron(ng.bias)
         if ng.type == 'INPUT':
             input_neurons.append(neurons[ng.ID])
