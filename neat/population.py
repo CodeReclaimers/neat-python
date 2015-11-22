@@ -136,17 +136,18 @@ class Population(object):
 
     def __log_species(self):
         """ Logging species data for visualizing speciation """
-        higher = max([s.ID for s in self.__species])
         temp = []
-        for i in xrange(1, higher + 1):
-            found_species = False
-            for s in self.__species:
-                if i == s.ID:
-                    temp.append(len(s.members))
-                    found_species = True
-                    break
-            if not found_species:
-                temp.append(0)
+        if self.__species:
+            higher = max([s.ID for s in self.__species])
+            for i in xrange(1, higher + 1):
+                found_species = False
+                for s in self.__species:
+                    if i == s.ID:
+                        temp.append(len(s.members))
+                        found_species = True
+                        break
+                if not found_species:
+                    temp.append(0)
         self.species_log.append(temp)
 
     def epoch(self, fitness_function, n, report=True, save_best=False, checkpoint_interval=10,
@@ -227,60 +228,67 @@ class Population(object):
             self.__log_species()
 
             if report:
-                std_dev = stdev([c.fitness for c in self.population])
-                print 'Population\'s average fitness: %3.5f stdev: %3.5f' % (self.avg_fitness_scores[-1], std_dev)
-                print 'Best fitness: %2.12s - size: %s - species %s - id %s' \
-                      % (best.fitness, best.size(), best.species_id, best.ID)
-                print 'Species length: %d totaling %d individuals' \
-                      % (len(self.__species), sum([len(s.members) for s in self.__species]))
-                print 'Species ID       : %s' % [s.ID for s in self.__species]
-                print 'Each species size: %s' % [len(s.members) for s in self.__species]
-                print 'Amount to spawn  : %s' % [s.spawn_amount for s in self.__species]
-                print 'Species age      : %s' % [s.age for s in self.__species]
-                print 'Species no improv: %s' % [s.no_improvement_age for s in self.__species]
+                if self.population:
+                    std_dev = stdev([c.fitness for c in self.population])
+                    print 'Population\'s average fitness: %3.5f stdev: %3.5f' % (self.avg_fitness_scores[-1], std_dev)
+                    print 'Best fitness: %2.12s - size: %s - species %s - id %s' \
+                          % (best.fitness, best.size(), best.species_id, best.ID)
+                    print 'Species length: %d totaling %d individuals' \
+                          % (len(self.__species), sum([len(s.members) for s in self.__species]))
+                    print 'Species ID       : %s' % [s.ID for s in self.__species]
+                    print 'Each species size: %s' % [len(s.members) for s in self.__species]
+                    print 'Amount to spawn  : %s' % [s.spawn_amount for s in self.__species]
+                    print 'Species age      : %s' % [s.age for s in self.__species]
+                    print 'Species no improv: %s' % [s.no_improvement_age for s in self.__species]
+                else:
+                    print 'All species extinct.'
 
             # -------------------------- Producing new offspring -------------------------- #
             new_population = []  # next generation's population
 
-            # Spawning new population
-            for s in self.__species:
-                new_population.extend(s.reproduce(self.config))
+            # If no species are left, create a new population from scratch, otherwise top off
+            # population by reproducing existing species.
+            if self.__species:
+                for s in self.__species:
+                    new_population.extend(s.reproduce(self.config))
 
-            # Controls under or overflow  #
-            fill = self.config.pop_size - len(new_population)
-            if fill < 0:  # overflow
-                if report:
-                    print '   Removing %d excess individual(s) from the new population' % -fill
-                # TODO: This is dangerous! I can't remove a species' representative!
-                new_population = new_population[:fill]  # Removing the last added members
+                # Controls under or overflow  #
+                fill = self.config.pop_size - len(new_population)
+                if fill < 0:  # overflow
+                    if report:
+                        print '   Removing %d excess individual(s) from the new population' % -fill
+                    # TODO: This is dangerous! I can't remove a species' representative!
+                    new_population = new_population[:fill]  # Removing the last added members
 
-            if fill > 0:  # underflow
-                if report:
-                    print '   Producing %d more individual(s) to fill up the new population' % fill
+                if fill > 0:  # underflow
+                    if report:
+                        print '   Producing %d more individual(s) to fill up the new population' % fill
 
-                # TODO: what about producing new individuals instead of reproducing?
-                # increasing diversity from time to time might help
-                while fill > 0:
-                    # Selects a random chromosome from population
-                    parent1 = random.choice(self.population)
-                    # Search for a mate within the same species
-                    found = False
-                    for c in self.population:
-                        # what if c is parent1 itself?
-                        if c.species_id == parent1.species_id:
-                            child = parent1.crossover(c)
-                            new_population.append(child.mutate())
-                            found = True
-                            break
-                    if not found:
-                        # If no mate was found, just mutate it
-                        new_population.append(parent1.mutate())
-                    # new_population.append(chromosome.FFGenome.create_fully_connected())
-                    fill -= 1
+                    # TODO: what about producing new individuals instead of reproducing?
+                    # increasing diversity from time to time might help
+                    while fill > 0:
+                        # Selects a random chromosome from population
+                        parent1 = random.choice(self.population)
+                        # Search for a mate within the same species
+                        found = False
+                        for c in self.population:
+                            # what if c is parent1 itself?
+                            if c.species_id == parent1.species_id:
+                                child = parent1.crossover(c)
+                                new_population.append(child.mutate())
+                                found = True
+                                break
+                        if not found:
+                            # If no mate was found, just mutate it
+                            new_population.append(parent1.mutate())
+                        # new_population.append(chromosome.FFGenome.create_fully_connected())
+                        fill -= 1
 
-            assert self.config.pop_size == len(new_population), 'Different population sizes!'
-            # Updates current population
-            self.population = new_population[:]
+                assert self.config.pop_size == len(new_population), 'Different population sizes!'
+                # Updates current population
+                self.population = new_population[:]
+            else:
+                self.__create_population()
 
             if checkpoint_interval is not None and time.time() > t0 + 60 * checkpoint_interval:
                 self.__create_checkpoint(report)

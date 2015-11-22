@@ -30,7 +30,9 @@ class AgedFitnessSharing(object):
             adjusted_fitnesses.append(af)
             total_adjusted_fitness += af
 
-        # Compute target size for next generation.
-        r = self.config.pop_size / total_adjusted_fitness
-        for s, af in zip(species, adjusted_fitnesses):
-            s.spawn_amount = int(round((af * r)))
+        # If total adjusted fitness is nonzero, compute target size for next generation,
+        # otherwise leave spawn amounts as they were.
+        if total_adjusted_fitness > 0:
+            r = self.config.pop_size / total_adjusted_fitness
+            for s, af in zip(species, adjusted_fitnesses):
+                s.spawn_amount = int(round((af * r)))
