@@ -1,4 +1,4 @@
-## Single-pole balancing examples ##
+## XOR examples ##
 
 The scripts in this directory show how to evolve networks that implement the 2-input XOR function.  These XOR examples
 are intended to be "Hello World" style samples, so that you can see the minimal amount of code you need to write in order
