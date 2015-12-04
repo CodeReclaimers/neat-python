@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/codereclaimers/neat-python.png?branch=master)](https://travis-ci.org/codereclaimers/neat-python)
+[![Build Status](https://travis-ci.org/CodeReclaimers/neat-python.svg)](https://travis-ci.org/CodeReclaimers/neat-python)
 
 ## About ##
 
