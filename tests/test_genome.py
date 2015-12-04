@@ -1,10 +1,12 @@
+import os
 from neat import genes
 from neat import genome
 from neat.config import Config
 
 
 def test_recurrent():
-    config = Config('test_configuration')
+    local_dir = os.path.dirname(__file__)
+    config = Config(os.path.join(local_dir, 'test_configuration'))
     c1 = genome.Genome.create_fully_connected(config, genes.NodeGene, genes.ConnectionGene)
 
     # add two hidden nodes
@@ -16,7 +18,8 @@ def test_recurrent():
 
 
 def test_feed_forward():
-    config = Config('test_configuration')
+    local_dir = os.path.dirname(__file__)
+    config = Config(os.path.join(local_dir, 'test_configuration'))
     c2 = genome.FFGenome.create_fully_connected(config, genes.NodeGene, genes.ConnectionGene)
 
     # add two hidden nodes

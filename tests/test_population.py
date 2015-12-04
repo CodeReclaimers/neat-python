@@ -1,3 +1,4 @@
+import os
 from neat.population import Population
 from neat.config import Config
 
@@ -9,7 +10,8 @@ def test_minimal():
             individual.fitness = 1.0
 
     # creates the population
-    config = Config('test_configuration')
+    local_dir = os.path.dirname(__file__)
+    config = Config(os.path.join(local_dir, 'test_configuration'))
 
     pop = Population(config)
     # runs the simulation for 250 epochs

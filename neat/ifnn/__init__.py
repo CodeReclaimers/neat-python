@@ -1,5 +1,4 @@
-from neat.iznn.iznn_pure import Synapse
-from neat.iznn.network import Network
+from neat.iznn import Network, Synapse
 
 
 class Neuron(object):
