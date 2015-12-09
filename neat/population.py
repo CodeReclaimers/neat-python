@@ -127,7 +127,7 @@ class Population(object):
         # otherwise we might end up having sync issues
         for s in self.__species[:]:
             # this happens when no genomes are compatible with the species
-            if len(s.members) == 0:
+            if not s.members:
                 if report:
                     print("Removing species %d for being empty" % s.ID)
                 # remove empty species

@@ -5,11 +5,11 @@ from neat.indexer import Indexer
 
 class Genome(object):
     """ A genome for general recurrent neural networks. """
-    _indexer = Indexer(1)
+    indexer = Indexer(1)
 
     def __init__(self, config, parent1_id, parent2_id, node_gene_type, conn_gene_type):
         self.config = config
-        self.ID = Genome._indexer.next()
+        self.ID = Genome.indexer.next()
         self.num_inputs = config.input_nodes
         self.num_outputs = config.output_nodes
 

@@ -10,14 +10,15 @@ from neat.nn import exp_sigmoid, tanh_sigmoid
 
 class Neuron(object):
     """ A simple sigmoidal neuron """
-    _indexer = Indexer(0)
+    # TODO: Get rid of these global indexers.
+    indexer = Indexer(0)
 
     def __init__(self, neuron_type, ID, bias, response, activation_type):
         assert neuron_type in ('INPUT', 'OUTPUT', 'HIDDEN')
         assert activation_type in ('exp', 'tanh')
 
         self.type = neuron_type
-        self.ID = self._indexer.next(ID)  # every neuron has an ID
+        self.ID = self.indexer.next(ID)
         self.bias = bias
         self.response = response
         if activation_type == 'exp':

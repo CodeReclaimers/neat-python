@@ -99,7 +99,7 @@ class CTNodeGene(NodeGene):
 
 
 class ConnectionGene(object):
-    _indexer = Indexer(0)
+    indexer = Indexer(0)
     __innovations = {}
 
     def __init__(self, innodeid, outnodeid, weight, enabled, innov=None):
@@ -111,7 +111,7 @@ class ConnectionGene(object):
             try:
                 self.__innov_number = self.__innovations[self.key]
             except KeyError:
-                self.__innov_number = ConnectionGene._indexer.next()
+                self.__innov_number = ConnectionGene.indexer.next()
                 self.__innovations[self.key] = self.__innov_number
         else:
             self.__innov_number = innov

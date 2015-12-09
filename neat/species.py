@@ -6,11 +6,11 @@ from neat.math_util import mean
 
 class Species(object):
     """ A collection of genetically similar individuals."""
-    _indexer = Indexer(1)
+    indexer = Indexer(1)
 
     def __init__(self, first_individual, previous_id=None):
         self.representative = first_individual
-        self.ID = Species._indexer.next(previous_id)
+        self.ID = Species.indexer.next(previous_id)
         self.age = 0
         self.members = []
         self.add(first_individual)
