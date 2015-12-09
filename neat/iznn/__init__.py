@@ -85,7 +85,7 @@ class IzNetwork(object):
     def __init__(self, neurons, inputs, outputs, connections):
         self.neurons = neurons
         self.connections = []
-        all_nodes = inputs + outputs + self.neurons.keys()
+        all_nodes = inputs + outputs + list(self.neurons.keys())
         for i, o, w in connections:
             self.connections.append((neurons[i], o, w))
             all_nodes += [i, o]

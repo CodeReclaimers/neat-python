@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from neat import nn
 from neat.ctrnn import CTNeuron
 
@@ -15,9 +17,9 @@ def test_basic():
     # create the network
     net = nn.Network(neurons_list, conn_list)
     # activates the network
-    print "%.17f %.17f" % (n1.output, n2.output)
+    print("%.17f %.17f" % (n1.output, n2.output))
     outputs = []
     for i in xrange(1000):
         output = net.parallel_activate()
         outputs.append(output)
-        print "%.17f %.17f" % (output[0], output[1])
+        print("%.17f %.17f" % (output[0], output[1]))
