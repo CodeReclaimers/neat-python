@@ -1,4 +1,5 @@
 """ 2-input XOR example using Izhikevich's spiking neuron model. """
+from __future__ import print_function
 import os
 import matplotlib.pyplot as plt
 
@@ -94,7 +95,7 @@ def run():
     pop.epoch(eval_fitness, 200)
 
     winner = pop.most_fit_genomes[-1]
-    print 'Number of evaluations: %d' % winner.ID
+    print('Number of evaluations: %d' % winner.ID)
 
     # Visualize the winner network and plot statistics.
     visualize.plot_stats(pop.most_fit_genomes, pop.avg_fitness_scores)
@@ -102,7 +103,7 @@ def run():
     visualize.draw_net(winner, view=True)
 
     # Verify network output against training data.
-    print '\nBest network output:'
+    print('\nBest network output:')
     net = iznn.create_phenotype(winner, *iz_params)
     error, simulated = simulate(winner)
 
@@ -110,7 +111,7 @@ def run():
     plt.figure(figsize=(12,12))
     for r, (inputData, outputData, t0, t1, neuron_data) in enumerate(simulated):
         response = compute_output(t0, t1)
-        print "%r expected %.3f got %.3f" % (inputData, outputData, response)
+        print("%r expected %.3f got %.3f" % (inputData, outputData, response))
 
         plt.subplot(4, 1, r + 1)
         plt.title("Traces for XOR input {%.1f, %.1f}" % inputData, fontsize=12)

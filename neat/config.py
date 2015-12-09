@@ -1,8 +1,7 @@
 try:
-    from configparser import SafeConfigParser
+    from configparser import ConfigParser
 except ImportError:
-    from ConfigParser import SafeConfigParser
-
+    from ConfigParser import SafeConfigParser as ConfigParser
 import os
 
 
@@ -23,8 +22,8 @@ class Config(object):
             raise Exception('No such config file: ' + os.path.abspath(filename))
 
         with open(filename) as f:
-            parameters = SafeConfigParser()
-            parameters.readfp(f)
+            parameters = ConfigParser()
+            parameters.read_file(f)
 
         # Phenotype configuration
         self.input_nodes = int(parameters.get('phenotype', 'input_nodes'))

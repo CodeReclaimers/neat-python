@@ -2,6 +2,7 @@
 Single-pole balancing experiment using a discrete-time recurrent neural network.
 """
 
+from __future__ import print_function
 import os
 import pickle
 
@@ -25,8 +26,8 @@ pop.epoch(fitness_function, 1000)
 
 # Save the winner.
 winner = pop.most_fit_genomes[-1]
-print 'Number of evaluations: %d' % winner.ID
-with open('nn_winner_genome', 'w') as f:
+print('Number of evaluations: %d' % winner.ID)
+with open('nn_winner_genome', 'wb') as f:
     pickle.dump(winner, f)
 
 # Plot the evolution of the best/average fitness.

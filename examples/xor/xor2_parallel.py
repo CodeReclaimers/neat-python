@@ -8,6 +8,7 @@ The example below is only a general idea of how to implement a
 parallel experiment in neat-python.
 """
 
+from __future__ import print_function
 import math
 import os
 import time
@@ -56,7 +57,7 @@ def run():
 
     num_workers = 6
     pool = Pool(num_workers)
-    print "Starting with %d workers" % num_workers
+    print("Starting with %d workers" % num_workers)
 
     def fitness(genomes):
         return eval_fitness(genomes, pool)
@@ -64,18 +65,18 @@ def run():
     pop = population.Population(config)
     pop.epoch(fitness, 400)
 
-    print "total evolution time %.3f sec" % (time.time() - t0)
-    print "time per generation %.3f sec" % ((time.time() - t0) / pop.generation)
+    print("total evolution time %.3f sec" % (time.time() - t0))
+    print("time per generation %.3f sec" % ((time.time() - t0) / pop.generation))
 
     winner = pop.most_fit_genomes[-1]
-    print 'Number of evaluations: %d' % winner.ID
+    print('Number of evaluations: %d' % winner.ID)
 
     # Verify network output against training data.
-    print '\nBest network output:'
+    print('\nBest network output:')
     net = nn.create_feed_forward_phenotype(winner)
     for i, inputs in enumerate(INPUTS):
         output = net.serial_activate(inputs)  # serial activation
-        print "%1.5f \t %1.5f" % (OUTPUTS[i], output[0])
+        print( "%1.5f \t %1.5f" % (OUTPUTS[i], output[0]))
 
     # Visualize the winner network and plot statistics.
     visualize.plot_stats(pop.most_fit_genomes, pop.avg_fitness_scores)

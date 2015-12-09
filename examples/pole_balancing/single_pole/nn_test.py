@@ -1,4 +1,5 @@
 # Test the performance of the best genome produced by nn_evolve.py.
+from __future__ import print_function
 import os
 import pickle
 
@@ -9,14 +10,14 @@ from movie import make_movie
 
 
 # load the winner
-with open('nn_winner_genome') as f:
+with open('nn_winner_genome', 'rb') as f:
     c = pickle.load(f)
 
-print 'Loaded genome:'
-print c
-print
-print 'Python implementation of network:'
-print nn.create_feed_forward_function(c)
+print('Loaded genome:')
+print(c)
+print()
+print('Python implementation of network:')
+print(nn.create_feed_forward_function(c))
 
 local_dir = os.path.dirname(__file__)
 config = Config(os.path.join(local_dir, 'nn_config'))
@@ -24,24 +25,22 @@ net = nn.create_feed_forward_phenotype(c)
 
 sim = CartPole()
 
-print
-print "Initial conditions:"
-print "        x = %.4f" % sim.x
-print "    x_dot = %.4f" % sim.dx
-print "    theta = %.4f" % sim.theta
-print "theta_dot = %.4f" % sim.dtheta
-print
-
+print()
+print("Initial conditions:")
+print("        x = %.4f" % sim.x)
+print("    x_dot = %.4f" % sim.dx)
+print("    theta = %.4f" % sim.theta)
+print("theta_dot = %.4f" % sim.dtheta)
+print()
 n = run_simulation(sim, net, discrete_actuator_force)
-print 'Pole balanced for %d of %d time steps' % (n, num_steps)
+print('Pole balanced for %d of %d time steps' % (n, num_steps))
 
-print
-print "Final conditions:"
-print "        x = %.4f" % sim.x
-print "    x_dot = %.4f" % sim.dx
-print "    theta = %.4f" % sim.theta
-print "theta_dot = %.4f" % sim.dtheta
-print
-
-print "Making movie..."
+print()
+print("Final conditions:")
+print("        x = %.4f" % sim.x)
+print("    x_dot = %.4f" % sim.dx)
+print("    theta = %.4f" % sim.theta)
+print("theta_dot = %.4f" % sim.dtheta)
+print()
+print("Making movie...")
 make_movie(net, discrete_actuator_force, 15.0, "nn_movie.mp4")

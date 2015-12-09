@@ -1,4 +1,5 @@
 """ 2-input XOR example """
+from __future__ import print_function
 from neat import population, visualize
 from neat import nn
 
@@ -26,16 +27,16 @@ def run():
     pop.epoch(eval_fitness, 300)
 
     winner = pop.most_fit_genomes[-1]
-    print 'Number of evaluations: %d' % winner.ID
+    print('Number of evaluations: %d' % winner.ID)
 
     # Verify network output against training data.
-    print '\nBest network output:'
+    print('\nBest network output:')
     net = nn.create_feed_forward_phenotype(winner)
     for inputs, expected in zip(INPUTS, OUTPUTS):
         output = net.serial_activate(inputs)
-        print "expected %1.5f got %1.5f" % (expected, output[0])
+        print("expected %1.5f got %1.5f" % (expected, output[0]))
 
-    print nn.create_feed_forward_function(winner)
+    print(nn.create_feed_forward_function(winner))
 
     # Visualize the winner network and plot statistics.
     visualize.plot_stats(pop.most_fit_genomes, pop.avg_fitness_scores)

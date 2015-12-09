@@ -1,10 +1,10 @@
 # This example follows from Beer's C++ source code available at:
 # http://mypage.iu.edu/~rdbeer/
+from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 
-from neat import nn
-from neat.ctrnn import CTNeuron
+from neat.ctrnn import CTNeuron, Network
 
 # create two output neurons (they won't receive any external inputs)
 N1 = CTNeuron('OUTPUT', 1, -2.75, 1.0, 'exp', 0.5)
@@ -16,14 +16,14 @@ neurons_list = [N1, N2]
 # create some synapses
 conn_list = [(1, 1, 4.5), (1, 2, -1.0), (2, 1, 1.0), (2, 2, 4.5)]
 # create the network
-net = nn.Network(neurons_list, conn_list)
+net = Network(neurons_list, conn_list)
 # activates the network
-print "%.17f %.17f" % (N1.output, N2.output)
+print("%.17f %.17f" % (N1.output, N2.output))
 outputs = []
 for i in range(1000):
     output = net.parallel_activate()
     outputs.append(output)
-    print "%.17f %.17f" % (output[0], output[1])
+    print("%.17f %.17f" % (output[0], output[1]))
 
 outputs = np.array(outputs).T
 

@@ -1,7 +1,6 @@
 from __future__ import print_function
 
-from neat import nn
-from neat.ctrnn import CTNeuron
+from neat.ctrnn import CTNeuron, Network
 
 
 def test_basic():
@@ -15,7 +14,7 @@ def test_basic():
     # create some synapses
     conn_list = [(1, 1, 4.5), (1, 2, -1.0), (2, 1, 1.0), (2, 2, 4.5)]
     # create the network
-    net = nn.Network(neurons_list, conn_list)
+    net = Network(neurons_list, conn_list)
     # activates the network
     print("%.17f %.17f" % (n1.output, n2.output))
     outputs = []

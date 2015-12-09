@@ -2,6 +2,7 @@
 Single-pole balancing experiment using a continuous-time recurrent neural network (CTRNN).
 '''
 
+from __future__ import print_function
 import os
 import pickle
 
@@ -25,11 +26,11 @@ pop.epoch(fitness_function, 2000, report=1, save_best=0)
 
 # Save the winner.
 winner = pop.most_fit_genomes[-1]
-print 'Number of evaluations: %d' % winner.ID
-with open('ctrnn_winner_genome', 'w') as f:
+print('Number of evaluations: %d' % winner.ID)
+with open('ctrnn_winner_genome', 'wb') as f:
     pickle.dump(winner, f)
 
-print winner
+print(winner)
 
 # Plot the evolution of the best/average fitness.
 visualize.plot_stats(pop.most_fit_genomes, pop.avg_fitness_scores, ylog=True, filename="ctrnn_fitness.svg")

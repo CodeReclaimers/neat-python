@@ -122,7 +122,7 @@ class Genome(object):
 
     def _mutate_add_node(self):
         # Choose a random connection to split
-        conn_to_split = choice(self.conn_genes.values())
+        conn_to_split = choice(list(self.conn_genes.values()))
         new_node_id = self.get_new_hidden_id()
         ng = self._node_gene_type(new_node_id, 'HIDDEN', activation_type=self.config.nn_activation)
         assert ng.ID not in self.node_genes
@@ -164,7 +164,7 @@ class Genome(object):
             return -1
 
         while 1:
-            idx = choice(self.node_genes.keys())
+            idx = choice(list(self.node_genes.keys()))
             if self.node_genes[idx].type == 'HIDDEN':
                 break
 
@@ -192,7 +192,7 @@ class Genome(object):
 
     def _mutate_delete_connection(self):
         if len(self.conn_genes) > self.num_inputs + self.num_outputs:
-            key = choice(self.conn_genes.keys())
+            key = choice(list(self.conn_genes.keys()))
             del self.conn_genes[key]
 
             assert len(self.conn_genes) > 0
@@ -248,18 +248,18 @@ class Genome(object):
 
         return num_hidden, conns_enabled
 
-    def __cmp__(self, other):
+    def __lt__(self, other):
         """
         Compare genomes by their fitness.
         """
-        return cmp(self.fitness, other.fitness)
+        return self.fitness < other.fitness
 
     def __str__(self):
         s = "Nodes:"
         for ng in self.node_genes.values():
             s += "\n\t" + str(ng)
         s += "\nConnections:"
-        connections = self.conn_genes.values()
+        connections = list(self.conn_genes.values())
         connections.sort()
         for c in connections:
             s += "\n\t" + str(c)

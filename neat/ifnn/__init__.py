@@ -9,7 +9,7 @@ class Synapse(object):
     def advance(self):
         """Advances time in 1 ms."""
         if self.__source.has_fired:
-            self.__dest.current += self.__weight * self._source.output
+            self.__dest.current += self.__weight * self.__source.output
 
 
 class Network(object):

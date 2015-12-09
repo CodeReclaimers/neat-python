@@ -1,4 +1,5 @@
 # -*- coding: UTF-8 -*-
+from __future__ import print_function
 import warnings
 try:
     import graphviz
@@ -96,7 +97,7 @@ def plot_species(species_log, view=False, filename='speciation.svg'):
         return
 
     num_generations = len(species_log)
-    print num_generations
+    print(num_generations)
     num_species = max(map(len, species_log))
     curves = []
     for gen in species_log:
