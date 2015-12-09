@@ -3,7 +3,7 @@ Single-pole balancing experiment using a continuous-time recurrent neural networ
 '''
 
 import os
-import cPickle
+import pickle
 
 from neat import ctrnn, genes, population, visualize
 from neat.config import Config
@@ -27,7 +27,7 @@ pop.epoch(fitness_function, 2000, report=1, save_best=0)
 winner = pop.most_fit_genomes[-1]
 print 'Number of evaluations: %d' % winner.ID
 with open('ctrnn_winner_genome', 'w') as f:
-    cPickle.dump(winner, f)
+    pickle.dump(winner, f)
 
 print winner
 

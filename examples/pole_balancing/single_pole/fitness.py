@@ -9,7 +9,7 @@ def evaluate_population(genomes, create_func, force_func):
 
         fitness = 0
 
-        for runs in xrange(runs_per_net):
+        for runs in range(runs_per_net):
             sim = CartPole()
             fitness += run_simulation(sim, net, force_func)
 

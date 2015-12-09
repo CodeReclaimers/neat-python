@@ -3,7 +3,7 @@ Single-pole balancing experiment using a discrete-time recurrent neural network.
 """
 
 import os
-import cPickle
+import pickle
 
 from neat import nn, population, visualize
 from neat.config import Config
@@ -27,7 +27,7 @@ pop.epoch(fitness_function, 1000)
 winner = pop.most_fit_genomes[-1]
 print 'Number of evaluations: %d' % winner.ID
 with open('nn_winner_genome', 'w') as f:
-    cPickle.dump(winner, f)
+    pickle.dump(winner, f)
 
 # Plot the evolution of the best/average fitness.
 visualize.plot_stats(pop.most_fit_genomes, pop.avg_fitness_scores, ylog=True, filename="nn_fitness.svg")

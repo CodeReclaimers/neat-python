@@ -100,7 +100,7 @@ def run_simulation(sim, net, force_func):
     Run the given simulation for up to num_steps time steps.
     Returns the number of time steps during which the position and angle were within limits.
     '''
-    for trials in xrange(num_steps):
+    for trials in range(num_steps):
         inputs = sim.get_scaled_state()
         action = net.serial_activate(inputs)
 

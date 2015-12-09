@@ -1,6 +1,6 @@
 # Test the performance of the best genome produced by nn_evolve.py.
 import os
-import cPickle
+import pickle
 
 from neat import nn
 from neat.config import Config
@@ -10,7 +10,7 @@ from movie import make_movie
 
 # load the winner
 with open('nn_winner_genome') as f:
-    c = cPickle.load(f)
+    c = pickle.load(f)
 
 print 'Loaded genome:'
 print c

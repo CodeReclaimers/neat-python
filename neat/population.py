@@ -3,7 +3,7 @@ from __future__ import print_function
 import gzip
 import random
 import time
-import cPickle
+import pickle
 
 from neat.config import Config
 from neat.genome import Genome, FFGenome
@@ -60,11 +60,11 @@ class Population(object):
         with gzip.open(checkpoint) as f:
             print('Resuming from a previous point: %s' % checkpoint)
             # when unpickling __init__ is not called again
-            previous_pop = cPickle.load(f)
+            previous_pop = pickle.load(f)
             self.__dict__ = previous_pop.__dict__
 
             print('Loading random state')
-            random.setstate(cPickle.load(f))
+            random.setstate(pickle.load(f))
 
     def __create_checkpoint(self, report):
         """ Saves the current simulation state. """
@@ -73,9 +73,9 @@ class Population(object):
 
         with gzip.open('checkpoint_' + str(self.generation), 'w', compresslevel=5) as f:
             # Write the entire population state.
-            cPickle.dump(self, f, protocol=cPickle.HIGHEST_PROTOCOL)
+            pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
             # Remember the current random number state.
-            cPickle.dump(random.getstate(), f, protocol=2)
+            pickle.dump(random.getstate(), f, protocol=2)
 
     def __create_population(self):
         if self.config.feedforward:
@@ -91,11 +91,11 @@ class Population(object):
         # 2. "minimally" connected, which isn't really minimal (one random input to each output)
         # 3. FS-NEAT connected (one random connection)
         if self.config.fully_connected:
-            for i in xrange(self.config.pop_size):
+            for i in range(self.config.pop_size):
                 g = genotypes.create_fully_connected(self.config, self.node_gene_type, self.conn_gene_type)
                 self.population.append(g)
         else:
-            for i in xrange(self.config.pop_size):
+            for i in range(self.config.pop_size):
                 g = genotypes.create_minimally_connected(self.config, self.node_gene_type, self.conn_gene_type)
                 self.population.append(g)
 
@@ -154,7 +154,7 @@ class Population(object):
         temp = []
         if self.__species:
             higher = max([s.ID for s in self.__species])
-            for i in xrange(1, higher + 1):
+            for i in range(1, higher + 1):
                 found_species = False
                 for s in self.__species:
                     if i == s.ID:
@@ -178,7 +178,7 @@ class Population(object):
         """
         t0 = time.time()  # for saving checkpoints
 
-        for g in xrange(n):
+        for g in range(n):
             self.generation += 1
 
             if report:
@@ -200,7 +200,7 @@ class Population(object):
             # saves the best genome from the current generation
             if save_best:
                 f = open('best_genome_' + str(self.generation), 'w')
-                cPickle.dump(best, f)
+                pickle.dump(best, f)
                 f.close()
 
             # Stops the simulation

@@ -20,7 +20,7 @@ net = nn.Network(neurons_list, conn_list)
 # activates the network
 print "%.17f %.17f" % (N1.output, N2.output)
 outputs = []
-for i in xrange(1000):
+for i in range(1000):
     output = net.parallel_activate()
     outputs.append(output)
     print "%.17f %.17f" % (output[0], output[1])
