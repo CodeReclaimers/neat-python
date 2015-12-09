@@ -23,7 +23,10 @@ class Config(object):
 
         with open(filename) as f:
             parameters = ConfigParser()
-            parameters.read_file(f)
+            if hasattr(parameters, 'read_file'):
+                parameters.read_file(f)
+            else:
+                parameters.readfp(f)
 
         # Phenotype configuration
         self.input_nodes = int(parameters.get('phenotype', 'input_nodes'))
