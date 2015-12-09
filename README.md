@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/CodeReclaimers/neat-python.svg)](https://travis-ci.org/CodeReclaimers/neat-python)
 
+[![Code Issues](https://www.quantifiedcode.com/api/v1/project/2bb1d19f57684f4589cb4700f99dd75e/badge.svg)](https://www.quantifiedcode.com/app/project/2bb1d19f57684f4589cb4700f99dd75e)
+
 ## About ##
 
 NEAT (NeuroEvolution of Augmenting Topologies) is a method developed by Kenneth O. Stanley for evolving arbitrary neural 
