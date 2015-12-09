@@ -3,12 +3,12 @@ from neat.iznn import Neuron
 
 
 def show(title, a, b, c, d):
-    n = Neuron(0, a, b, c, d)
+    n = Neuron(0.0, a, b, c, d)
     spike_train = []
     for i in range(1000):
-        n.current = 0.0 if i < 100 else 10.0
-        spike_train.append((0.1 * i, n.current, n.potential, n.recovery))
-        print '%d\t%f\t%f\t%f' % (i, n.current, n.potential, n.recovery)
+        n.current = 0.0 if i < 100 or i > 800 else 10.0
+        spike_train.append((1.0 * i, n.current, n.v, n.u))
+        print '%d\t%f\t%f\t%f' % (i, n.current, n.v, n.u)
         n.advance()
 
     visualize.plot_spikes(spike_train, view=True, title=title)

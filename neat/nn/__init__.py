@@ -1,25 +1,25 @@
 import math
-import random
+
 from neat.indexer import Indexer
 
 
 def exp_sigmoid(bias, response, x):
-    z = (bias + x) * response
+    z = bias + x * response
     z = max(-60.0, min(60.0, z))
     return 1.0 / (1.0 + math.exp(-z))
 
 
 def tanh_sigmoid(bias, response, x):
-    z = (bias + x) * response
+    z = bias + x * response
     z = max(-60.0, min(60.0, z))
     return math.tanh(z)
 
 
 class Neuron(object):
     """ A simple sigmoidal neuron """
-    _indexer = Indexer(1)
+    _indexer = Indexer(0)
 
-    def __init__(self, neuron_type, ID=None, bias=0.0, response=1.0, activation_type='exp'):
+    def __init__(self, neuron_type, ID, bias, response, activation_type):
         assert neuron_type in ('INPUT', 'OUTPUT', 'HIDDEN')
         assert activation_type in ('exp', 'tanh')
 
@@ -155,98 +155,11 @@ class Network(object):
         return net_output
 
 
-class FeedForward(Network):
-    """ A feed-forward network is a particular class of neural network.
-        Only one hidden layer is considered for now.
-    """
-
-    def __init__(self, layers, use_bias=False, activation_type=None):
-        super(FeedForward, self).__init__()
-
-        self.__input_layer = layers[0]
-        self.__output_layer = layers[-1]
-        self.__hidden_layers = layers[1:-1]
-        self.__use_bias = use_bias
-
-        self._num_inputs = layers[0]
-        self.__create_net(activation_type)
-
-    def __create_net(self, activation_type):
-
-        # assign random weights for bias
-        if self.__use_bias:
-            r = random.uniform
-        else:
-            r = lambda a, b: 0
-
-        for i in xrange(self.__input_layer):
-            self.add_neuron(Neuron('INPUT'))
-
-        for i in xrange(self.__hidden_layers[0]):
-            self.add_neuron(Neuron('HIDDEN', bias=r(-1, 1),
-                                   response=1,
-                                   activation_type=activation_type))
-
-        for i in xrange(self.__output_layer):
-            self.add_neuron(Neuron('OUTPUT', bias=r(-1, 1),
-                                   response=1,
-                                   activation_type=activation_type))
-
-        r = random.uniform  # assign random weights
-        # inputs -> hidden
-        for i in self.neurons[:self.__input_layer]:
-            for h in self.neurons[self.__input_layer:-self.__output_layer]:
-                self.add_synapse(Synapse(i, h, r(-1, 1)))
-        # hidden -> outputs
-        for h in self.neurons[self.__input_layer:-self.__output_layer]:
-            for o in self.neurons[-self.__output_layer:]:
-                self.add_synapse(Synapse(h, o, r(-1, 1)))
-
-
-def create_phenotype(chromo):
-    """ Receives a chromosome and returns its phenotype (a neural network) """
-
-    neurons_list = [Neuron(ng.type, ng.ID,
-                           ng.bias,
-                           ng.response,
-                           ng.activation_type)
-                    for ng in chromo.node_genes.values()]
-
-    conn_list = [(cg.in_node_id, cg.out_node_id, cg.weight)
-                 for cg in chromo.conn_genes.values() if cg.enabled]
-
-    return Network(neurons_list, conn_list, chromo.num_inputs)
-
-
-def create_ffphenotype(chromo):
-    """ Receives a chromosome and returns its phenotype (a neural network) """
-
-    # first create inputs
-    neurons_list = [Neuron('INPUT', ng.ID, 0, 0)
-                    for ng in chromo.node_genes.values() if ng.type == 'INPUT']
-
-    # Add hidden nodes in the right order
-    for ID in chromo.node_order:
-        gene = chromo.node_genes[ID]
-        neurons_list.append(Neuron('HIDDEN', ID, gene.bias, gene.response, gene.activation_type))
-    # finally the output
-    neurons_list.extend(Neuron('OUTPUT', ng.ID, ng.bias,
-                               ng.response, ng.activation_type)
-                        for ng in chromo.node_genes.values() if ng.type == 'OUTPUT')
-
-    assert (len(neurons_list) == len(chromo.node_genes))
-
-    conn_list = [(cg.in_node_id, cg.out_node_id, cg.weight)
-                 for cg in chromo.conn_genes.values() if cg.enabled]
-
-    return Network(neurons_list, conn_list, chromo.num_inputs)
-
-
 def find_feed_forward_layers(inputs, connections):
     '''
     Collect the layers whose members can be evaluated in parallel in a feed-forward network.
-    inputs: list of the network input nodes
-    connections: list of (input, output) connections in the network.
+    :param inputs: list of the network input nodes
+    :param connections: list of (input, output) connections in the network.
 
     Returns a list of layers, with each layer consisting of a set of node identifiers.
     '''
@@ -274,7 +187,7 @@ def find_feed_forward_layers(inputs, connections):
     return layers
 
 
-class FastFeedForwardNetwork(object):
+class FeedForwardNetwork(object):
     def __init__(self, max_node, inputs, outputs, node_evals):
         self.node_evals = node_evals
         self.input_nodes = inputs
@@ -294,27 +207,25 @@ class FastFeedForwardNetwork(object):
         return [self.values[i] for i in self.output_nodes]
 
 
-def create_fast_feedforward_phenotype(genome):
-    """ Receives a chromosome and returns its phenotype (a neural network) """
+def create_feed_forward_phenotype(genome):
+    """ Receives a genome and returns its phenotype (a neural network). """
 
     # Gather inputs and expressed connections.
-    inputs_nodes = [ng.ID for ng in genome.node_genes.values() if ng.type == 'INPUT']
+    input_nodes = [ng.ID for ng in genome.node_genes.values() if ng.type == 'INPUT']
     output_nodes = [ng.ID for ng in genome.node_genes.values() if ng.type == 'OUTPUT']
     connections = [(cg.in_node_id, cg.out_node_id) for cg in genome.conn_genes.values() if cg.enabled]
 
-    layers = find_feed_forward_layers(inputs_nodes, connections)
+    layers = find_feed_forward_layers(input_nodes, connections)
     node_evals = []
-    used_nodes = set(inputs_nodes + output_nodes)
+    used_nodes = set(input_nodes + output_nodes)
     for layer in layers:
         for node in layer:
             inputs = []
             for cg in genome.conn_genes.values():
                 if cg.out_node_id == node and cg.enabled:
-                    # print "    (%d->%d) % f" % (cg.in_node_id, cg.out_node_id, cg.weight)
                     inputs.append((cg.in_node_id, cg.weight))
                     used_nodes.add(cg.in_node_id)
 
-            # print "    eval %d" % node, inputs
             used_nodes.add(node)
             ng = genome.node_genes[node]
             if ng.activation_type == "tanh":
@@ -324,4 +235,37 @@ def create_fast_feedforward_phenotype(genome):
 
             node_evals.append((node, activation_function, ng.bias, ng.response, inputs))
 
-    return FastFeedForwardNetwork(max(used_nodes), inputs_nodes, output_nodes, node_evals)
+    return FeedForwardNetwork(max(used_nodes), input_nodes, output_nodes, node_evals)
+
+
+def create_feed_forward_function(genome):
+    """ Receives a genome and returns a function implementing its neural network. """
+
+    f = ['def f(values):']
+
+    # Gather inputs and expressed connections.
+    input_nodes = [ng.ID for ng in genome.node_genes.values() if ng.type == 'INPUT']
+    connections = [(cg.in_node_id, cg.out_node_id) for cg in genome.conn_genes.values() if cg.enabled]
+
+    layers = find_feed_forward_layers(input_nodes, connections)
+    for i, layer in enumerate(layers):
+        f.append('    # evaluate layer %d' % i)
+        for node in layer:
+            ev = []
+            for cg in genome.conn_genes.values():
+                if cg.out_node_id == node and cg.enabled:
+                    ev.append('(%f * values[%d])' % (cg.weight, cg.in_node_id))
+
+            ev = ' + '.join(ev)
+            f.append('    z = ' + ev)
+
+            ng = genome.node_genes[node]
+            if ng.activation_type == 'tanh':
+                activation_function = 'tanh_sigmoid'
+            else:
+                activation_function = 'exp_sigmoid'
+
+            f.append('    values[%d] = %s(%f, %f, z)' % (node, activation_function, ng.bias, ng.response))
+            f.append('')
+
+    return '\n'.join(f)

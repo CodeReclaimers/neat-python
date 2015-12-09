@@ -12,7 +12,7 @@ from movie import make_movie
 with open('ctrnn_winner_genome') as f:
     c = cPickle.load(f)
 
-print 'Loaded chromosome:'
+print 'Loaded genome:'
 print c
 
 local_dir = os.path.dirname(__file__)

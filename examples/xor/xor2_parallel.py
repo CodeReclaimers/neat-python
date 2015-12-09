@@ -23,19 +23,19 @@ INPUTS = ((0, 0), (0, 1), (1, 0), (1, 1))
 OUTPUTS = (0, 1, 1, 0)
 
 
-def eval_fitness(chromosomes, pool):
+def eval_fitness(genomes, pool):
     jobs = []
-    for chromo in chromosomes:
-        jobs.append(pool.apply_async(parallel_evaluation, (chromo,)))
+    for genome in genomes:
+        jobs.append(pool.apply_async(parallel_evaluation, (genome,)))
 
-    # assign the fitness back to each chromosome
-    for job, chromo in zip(jobs, chromosomes):
-        chromo.fitness = job.get(timeout=1)
+    # assign the fitness back to each genome
+    for job, genome in zip(jobs, genomes):
+        genome.fitness = job.get(timeout=1)
 
 
-def parallel_evaluation(chromo):
+def parallel_evaluation(genome):
     """ This function will run in parallel """
-    net = nn.create_fast_feedforward_phenotype(chromo)
+    net = nn.create_feed_forward_phenotype(genome)
 
     error = 0.0
     for inputData, outputData in zip(INPUTS, OUTPUTS):
@@ -58,8 +58,8 @@ def run():
     pool = Pool(num_workers)
     print "Starting with %d workers" % num_workers
 
-    def fitness(chromosomes):
-        return eval_fitness(chromosomes, pool)
+    def fitness(genomes):
+        return eval_fitness(genomes, pool)
 
     pop = population.Population(config)
     pop.epoch(fitness, 400)
@@ -72,7 +72,7 @@ def run():
 
     # Verify network output against training data.
     print '\nBest network output:'
-    net = nn.create_fast_feedforward_phenotype(winner)
+    net = nn.create_feed_forward_phenotype(winner)
     for i, inputs in enumerate(INPUTS):
         output = net.serial_activate(inputs)  # serial activation
         print "%1.5f \t %1.5f" % (OUTPUTS[i], output[0])

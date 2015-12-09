@@ -59,7 +59,7 @@ def plot_spikes(spikes, view=False, filename=None, title=None):
     I_values = [I for t, I, v, u in spikes]
 
     plt.subplot(3,1,1)
-    plt.ylabel("Potential (v)")
+    plt.ylabel("Potential (mv)")
     plt.xlabel("Time (in ms)")
     plt.grid()
     plt.plot(t_values, v_values, "g-")
@@ -120,8 +120,8 @@ def plot_species(species_log, view=False, filename='speciation.svg'):
     plt.close()
 
 
-def draw_net(chromosome, view=False, filename=None):
-    """ Receives a chromosome and draws a neural network with arbitrary topology. """
+def draw_net(genome, view=False, filename=None):
+    """ Receives a genome and draws a neural network with arbitrary topology. """
     # Attributes for network nodes.
     if graphviz is None:
         warnings.warn("This display is not available due to a missing optional dependency (graphviz)")
@@ -145,15 +145,15 @@ def draw_net(chromosome, view=False, filename=None):
 
     dot = graphviz.Digraph(format='svg', node_attr=node_attrs)
 
-    for ng_id, ng in chromosome.node_genes.items():
+    for ng_id, ng in genome.node_genes.items():
         if ng.type == 'INPUT':
             dot.node(str(ng_id), _attributes=input_attrs)
 
-    for ng_id, ng in chromosome.node_genes.items():
+    for ng_id, ng in genome.node_genes.items():
         if ng.type == 'OUTPUT':
             dot.node(str(ng_id), _attributes=output_attrs)
 
-    for cg in chromosome.conn_genes.values():
+    for cg in genome.conn_genes.values():
         a = str(cg.in_node_id)
         b = str(cg.out_node_id)
         style = 'solid' if cg.enabled else 'dotted'

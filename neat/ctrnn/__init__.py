@@ -46,17 +46,17 @@ class CTNeuron(nn.Neuron):
         self.__state += self.__dt * (1.0 / self.__tau) * (-self.__state + self._update_activation())
 
 
-def create_phenotype(chromo):
-    """ Receives a chromosome and returns its phenotype (a CTRNN). """
+def create_phenotype(genome):
+    """ Receives a genome and returns its phenotype (a CTRNN). """
     neurons_list = [CTNeuron(ng.type,
                              ng.ID,
                              ng.bias,
                              ng.response,
                              ng.activation_type,
                              ng.time_constant)
-                    for ng in chromo.node_genes.values()]
+                    for ng in genome.node_genes.values()]
 
     conn_list = [(cg.in_node_id, cg.out_node_id, cg.weight)
-                 for cg in chromo.conn_genes.values() if cg.enabled]
+                 for cg in genome.conn_genes.values() if cg.enabled]
 
-    return nn.Network(neurons_list, conn_list, chromo.num_inputs)
+    return nn.Network(neurons_list, conn_list, genome.num_inputs)

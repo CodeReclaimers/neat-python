@@ -10,7 +10,7 @@ IEEE TRANSACTIONS ON NEURAL NETWORKS, VOL. 14, NO. 6, NOVEMBER 2003
 
 
 class Neuron(object):
-    def __init__(self, bias=0, a=0.02, b=0.2, c=-65.0, d=8.0):
+    def __init__(self, bias, a, b, c, d, time_step_msec=1.0):
         """
         a, b, c, d are the parameters of this model.
         a: the time scale of the recovery variable.
@@ -19,132 +19,130 @@ class Neuron(object):
         d: after-spike reset of the recovery variable.
 
         The following parameters produce some known spiking behaviors:
-
-        Regular spiking: a = 0.02, b = 0.2, c = -65.0, d = 8.0
-        Intrinsically bursting: a = 0.02, b = 0.2, c = -55.0, d = 4.0
-        Chattering: a = 0.02, b = 0.2, c = -50.0, d = 2.0
-        Fast spiking: a = 0.1, b = 0.2, c = -65.0, d = 2.0
-        Thalamo-cortical: a = 0.02, b = 0.25, c = -65.0, d = 0.05
-        Resonator: a = 0.1, b = 0.25, c = -65.0, d = 2.0
-        Low-threshold spiking: a = 0.02, b = 0.25, c = -65, d = 2.0
+            Regular spiking: a = 0.02, b = 0.2, c = -65.0, d = 8.0
+            Intrinsically bursting: a = 0.02, b = 0.2, c = -55.0, d = 4.0
+            Chattering: a = 0.02, b = 0.2, c = -50.0, d = 2.0
+            Fast spiking: a = 0.1, b = 0.2, c = -65.0, d = 2.0
+            Thalamo-cortical: a = 0.02, b = 0.25, c = -65.0, d = 0.05
+            Resonator: a = 0.1, b = 0.25, c = -65.0, d = 2.0
+            Low-threshold spiking: a = 0.02, b = 0.25, c = -65, d = 2.0
         """
-        self.__a = a
-        self.__b = b
-        self.__c = c
-        self.__d = d
-        self.__v = self.__c  # membrane potential
-        self.__u = self.__b * self.__v  # membrane recovery variable
-        self.__has_fired = False
-        self.__bias = bias
-        self.current = self.__bias
+        self.a = a
+        self.b = b
+        self.c = c
+        self.d = d
+        self.bias = bias
+        self.dt_msec = time_step_msec
+
+        # Membrane potential (millivolts).
+        self.v = self.c
+
+        # Membrane recovery variable.
+        self.u = self.b * self.v
+
+        self.output = 0.0
+        self.current = self.bias
 
     def advance(self):
-        """Advances time in 1 ms.
+        """
+        Advances simulation time by 1 ms.
 
         v' = 0.04 * v^2 + 5v + 140 - u + I
         u' = a * (b * v - u)
 
-        if v >= 30 then v <- c, u <- u + d
+        if v >= 30 then
+            v <- c, u <- u + d
         """
-        self.__v += 0.5 * (0.04 * self.__v ** 2 + 5 * self.__v + 140 - self.__u + self.current)
-        self.__v += 0.5 * (0.04 * self.__v ** 2 + 5 * self.__v + 140 - self.__u + self.current)
-        self.__u += self.__a * (self.__b * self.__v - self.__u)
-        if self.__v > 30:
-            self.__has_fired = True
-            self.__v = self.__c
-            self.__u += self.__d
-        else:
-            self.__has_fired = False
-        self.current = self.__bias
+        # TODO: Make the time step adjustable, and choose an appropriate
+        # numerical integration method to maintain stability.
+        # TODO: The need to catch overflows indicates that the current method is
+        # not stable for all possible network configurations and states.
+        try:
+            self.v += 0.5 * self.dt_msec * (0.04 * self.v ** 2 + 5 * self.v + 140 - self.u + self.current)
+            self.v += 0.5 * self.dt_msec * (0.04 * self.v ** 2 + 5 * self.v + 140 - self.u + self.current)
+            self.u += self.dt_msec * self.a * (self.b * self.v - self.u)
+        except OverflowError:
+            # Reset without producing a spike.
+            self.v = self.c
+            self.u = self.b * self.v
+
+        self.output = 0.0
+        if self.v > 30.0:
+            # Output spike and reset.
+            self.output = 1.0
+            self.v = self.c
+            self.u += self.d
 
     def reset(self):
         """Resets all state variables."""
-        self.__v = self.__c
-        self.__u = self.__b * self.__v
-        self.__has_fired = False
-        self.current = self.__bias
-
-    potential = property(lambda self: self.__v, doc='Membrane potential')
-    recovery = property(lambda self: self.__u, doc='Membrane recovery')
-    has_fired = property(lambda self: self.__has_fired,
-                         doc='Indicates whether the neuron has fired')
+        self.v = self.c
+        self.u = self.b * self.v
+        self.output = 0.0
+        self.current = self.bias
 
 
-class Synapse(object):
-    """ A synapse indicates the connection strength between two neurons (or itself) """
+class IzNetwork(object):
+    def __init__(self, neurons, inputs, outputs, connections):
+        self.neurons = neurons
+        self.connections = []
+        all_nodes = inputs + outputs + self.neurons.keys()
+        for i, o, w in connections:
+            self.connections.append((neurons[i], o, w))
+            all_nodes += [i, o]
 
-    def __init__(self, source, dest, weight):
-        self.__weight = weight
-        self.__source = source
-        self.__dest = dest
+        self.inputs = inputs
+        self.outputs = outputs
+        max_node = max(all_nodes)
+        self.currents = [0.0] * (1 + max_node)
 
-    def advance(self):
-        """Advances time in 1 ms."""
-        if self.__source.has_fired:
-            self.__dest.current += self.__weight
-
-
-class Network(object):
-    """ A neural network has a list of neurons linked by synapses """
-
-    def __init__(self, neurons=None, input_neurons=None, output_neurons=None, synapses=None):
-        if neurons is None:
-            self.__neurons = {}
-        else:
-            self.__neurons = neurons
-
-        if input_neurons is None:
-            self.__input_neurons = []
-        else:
-            self.__input_neurons = input_neurons
-
-        if output_neurons is None:
-            self.__output_neurons = []
-        else:
-            self.__output_neurons = output_neurons
-
-        if synapses is None:
-            self.__synapses = []
-        else:
-            self.__synapses = synapses
-
-    def __repr__(self):
-        return '%d nodes and %d synapses' % (len(self.__neurons), len(self.__synapses))
-
-    def advance(self, inputs):
-        assert len(inputs) == len(self.__input_neurons), "Wrong number of inputs."
-        for i, n in zip(inputs, self.__input_neurons):
-            n.current += i
-        for s in self.__synapses:
-            s.advance()
-        for n in self.__neurons.values():
-            n.advance()
-        return [n.has_fired for n in self.__output_neurons]
+    def set_inputs(self, inputs):
+        assert len(inputs) == len(self.inputs)
+        for i, v in zip(self.inputs, inputs):
+            self.currents[i] = 0.0
+            self.neurons[i].current = 0.0
+            self.neurons[i].output = v
 
     def reset(self):
-        """Resets the network's state."""
-        for n in self.__neurons.values():
+        # Reset all neurons.
+        for i, n in self.neurons.items():
             n.reset()
 
-    neurons = property(lambda self: self.__neurons.values())
+    def advance(self):
+        # Initialize all non-input neuron currents to the bias value.
+        for i, n in self.neurons.items():
+            if i not in self.inputs:
+                self.currents[i] = n.bias
+
+        # Add weight-adjusted output currents.
+        for i, o, w in self.connections:
+            self.currents[o] += i.output * w
+
+        for i, n in self.neurons.items():
+            if i not in self.inputs:
+                n.current = self.currents[i]
+                n.advance()
+
+        return [self.neurons[i].output for i in self.outputs]
 
 
-def create_phenotype(chromosome):
-    """ Receives a chromosome and returns its phenotype (a neural network) """
+def create_phenotype(genome, a, b, c, d, time_step_msec=1.0):
+    """ Receives a genome and returns its phenotype (a neural network) """
 
     neurons = {}
-    input_neurons = []
-    output_neurons = []
-    for ng in chromosome.node_genes.values():
+    inputs = []
+    outputs = []
+    for ng in genome.node_genes.values():
         # TODO: It seems like we should have a separate node gene implementation
         # that encodes more (all?) of the Izhikevitch model parameters.
-        neurons[ng.ID] = Neuron(ng.bias)
+        neurons[ng.ID] = Neuron(ng.bias, a, b, c, d, time_step_msec)
         if ng.type == 'INPUT':
-            input_neurons.append(neurons[ng.ID])
+            inputs.append(ng.ID)
         elif ng.type == 'OUTPUT':
-            output_neurons.append(neurons[ng.ID])
+            outputs.append(ng.ID)
 
-    synapses = [Synapse(neurons[cg.in_node_id], neurons[cg.out_node_id], cg.weight)
-                for cg in chromosome.conn_genes.values() if cg.enabled]
+    connections = []
+    for cg in genome.conn_genes.values():
+        if cg.enabled:
+            connections.append((cg.in_node_id, cg.out_node_id, cg.weight))
 
-    return Network(neurons, input_neurons, output_neurons, synapses)
+    return IzNetwork(neurons, inputs, outputs, connections)

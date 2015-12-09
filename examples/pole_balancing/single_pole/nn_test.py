@@ -12,12 +12,15 @@ from movie import make_movie
 with open('nn_winner_genome') as f:
     c = cPickle.load(f)
 
-print 'Loaded chromosome:'
+print 'Loaded genome:'
 print c
+print
+print 'Python implementation of network:'
+print nn.create_feed_forward_function(c)
 
 local_dir = os.path.dirname(__file__)
 config = Config(os.path.join(local_dir, 'nn_config'))
-net = nn.create_phenotype(c)
+net = nn.create_feed_forward_phenotype(c)
 
 sim = CartPole()
 

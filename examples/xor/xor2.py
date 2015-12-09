@@ -1,37 +1,28 @@
 """ 2-input XOR example """
-import math
-import os
-
 from neat import population, visualize
-from neat.config import Config
 from neat import nn
 
-
-# XOR-2
 INPUTS = [[0, 0], [0, 1], [1, 0], [1, 1]]
 OUTPUTS = [0, 1, 1, 0]
 
 
 def eval_fitness(genomes):
     for g in genomes:
-        net = nn.create_fast_feedforward_phenotype(g)
+        net = nn.create_feed_forward_phenotype(g)
 
         error = 0.0
-        for i, inputs in enumerate(INPUTS):
+        for inputs, expected in zip(INPUTS, OUTPUTS):
             # Serial activation propagates the inputs through the entire network.
             output = net.serial_activate(inputs)
-            error += (output[0] - OUTPUTS[i]) ** 2
+            error += (output[0] - expected) ** 2
 
-        g.fitness = 1 - math.sqrt(error / len(OUTPUTS))
+        # When the output matches expected for all inputs, fitness will reach
+        # its maximum value of 1.0.
+        g.fitness = 1 - error
 
 
 def run():
-    # Load the config file, which is assumed to live in
-    # the same directory as this script.
-    local_dir = os.path.dirname(__file__)
-    config = Config(os.path.join(local_dir, 'xor2_config'))
-
-    pop = population.Population(config)
+    pop = population.Population('xor2_config')
     pop.epoch(eval_fitness, 300)
 
     winner = pop.most_fit_genomes[-1]
@@ -39,10 +30,12 @@ def run():
 
     # Verify network output against training data.
     print '\nBest network output:'
-    net = nn.create_fast_feedforward_phenotype(winner)
-    for i, inputs in enumerate(INPUTS):
+    net = nn.create_feed_forward_phenotype(winner)
+    for inputs, expected in zip(INPUTS, OUTPUTS):
         output = net.serial_activate(inputs)
-        print "%1.5f \t %1.5f" % (OUTPUTS[i], output[0])
+        print "expected %1.5f got %1.5f" % (expected, output[0])
+
+    print nn.create_feed_forward_function(winner)
 
     # Visualize the winner network and plot statistics.
     visualize.plot_stats(pop.most_fit_genomes, pop.avg_fitness_scores)

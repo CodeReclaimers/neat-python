@@ -13,7 +13,7 @@ from fitness import evaluate_population
 
 # Use the nn network phenotype and the discrete actuator force function.
 def fitness_function(genomes):
-    evaluate_population(genomes, nn.create_phenotype, discrete_actuator_force)
+    evaluate_population(genomes, nn.create_feed_forward_phenotype, discrete_actuator_force)
 
 # Load the config file, which is assumed to live in
 # the same directory as this script.

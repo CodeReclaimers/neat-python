@@ -7,6 +7,13 @@ class Config(object):
     A simple container for all of the user-configurable parameters of NEAT.
     '''
 
+    # TODO: Split out the configuration into implementation-specific sections. For example,
+    # a node gene class FooNode would expect to find a [FooNode] section within the configuration
+    # file, and the NEAT framework doesn't need to know about this section in any way. This
+    # allows all the configuration to stay in one text file, without unnecessary complication.
+    # It also makes the config file and associated setup code somewhat self-documenting, as the
+    # classes you need to give to NEAT are shown in the config file.
+
     def __init__(self, filename):
         if not os.path.isfile(filename):
             raise Exception('No such config file: ' + os.path.abspath(filename))

@@ -1,4 +1,43 @@
-from neat.iznn import Network, Synapse
+class Synapse(object):
+    """ A synapse indicates the connection strength between two neurons (or itself) """
+
+    def __init__(self, source, dest, weight):
+        self.__weight = weight
+        self.__source = source
+        self.__dest = dest
+
+    def advance(self):
+        """Advances time in 1 ms."""
+        if self.__source.has_fired:
+            self.__dest.current += self.__weight * self._source.output
+
+
+class Network(object):
+    """ A neural network has a list of neurons linked by synapses """
+
+    def __init__(self, neurons, input_neurons, output_neurons, synapses):
+        self.neurons = neurons
+        self.input_neurons = input_neurons
+        self.output_neurons = output_neurons
+        self.synapses = synapses
+
+    def __repr__(self):
+        return '%d nodes and %d synapses' % (len(self.neurons), len(self.synapses))
+
+    def advance(self, inputs):
+        assert len(inputs) == len(self.input_neurons), "Wrong number of inputs."
+        for i, n in zip(inputs, self.input_neurons):
+            n.current = n.bias + i
+        for s in self.synapses:
+            s.advance()
+        for n in self.neurons.values():
+            n.advance()
+        return [n.has_fired for n in self.output_neurons]
+
+    def reset(self):
+        """Resets the network's state."""
+        for n in self.neurons.values():
+            n.reset()
 
 
 class Neuron(object):
@@ -43,13 +82,13 @@ class Neuron(object):
                          doc='Indicates whether the neuron has fired')
 
 
-def create_phenotype(chromosome):
-    """ Receives a chromosome and returns its phenotype (a neural network) """
+def create_phenotype(genome):
+    """ Receives a genome and returns its phenotype (a neural network) """
 
     neurons = {}
     input_neurons = []
     output_neurons = []
-    for ng in chromosome.node_genes.values():
+    for ng in genome.node_genes.values():
         neurons[ng.ID] = Neuron(ng.bias)
         if ng.type == 'INPUT':
             input_neurons.append(neurons[ng.ID])
@@ -57,6 +96,6 @@ def create_phenotype(chromosome):
             output_neurons.append(neurons[ng.ID])
 
     synapses = [Synapse(neurons[cg.in_node_id], neurons[cg.out_node_id], cg.weight)
-                for cg in chromosome.conn_genes if cg.enabled]
+                for cg in genome.conn_genes if cg.enabled]
 
     return Network(neurons, input_neurons, output_neurons, synapses)

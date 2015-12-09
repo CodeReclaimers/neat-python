@@ -4,7 +4,7 @@ from neat.indexer import Indexer
 
 
 class Genome(object):
-    """ A chromosome for general recurrent neural networks. """
+    """ A genome for general recurrent neural networks. """
     _indexer = Indexer(1)
 
     def __init__(self, config, parent1_id, parent2_id, node_gene_type, conn_gene_type):
@@ -13,7 +13,7 @@ class Genome(object):
         self.num_inputs = config.input_nodes
         self.num_outputs = config.output_nodes
 
-        # The types of node and connection genes the chromosome carries.
+        # The types of node and connection genes the genome carries.
         self._node_gene_type = node_gene_type
         self._conn_gene_type = conn_gene_type
 
@@ -24,12 +24,12 @@ class Genome(object):
         self.fitness = None
         self.species_id = None
 
-        # my parents id: helps in tracking chromosome's genealogy
+        # my parents id: helps in tracking genome's genealogy
         self.parent1_id = parent1_id
         self.parent2_id = parent2_id
 
     def mutate(self):
-        """ Mutates this chromosome """
+        """ Mutates this genome """
 
         # TODO: Make a configuration item to choose whether or not multiple mutations can happen at once.
 
@@ -57,7 +57,7 @@ class Genome(object):
         return self
 
     def crossover(self, other):
-        """ Crosses over parents' chromosomes and returns a child. """
+        """ Crosses over parents' genomes and returns a child. """
 
         # This can't happen! Parents must belong to the same species.
         assert self.species_id == other.species_id, 'Different parents species ID: %d vs %d' \
@@ -200,26 +200,27 @@ class Genome(object):
 
     # compatibility function
     def distance(self, other):
-        """ Returns the distance between this chromosome and the other. """
+        """ Returns the distance between this genome and the other. """
         if len(self.conn_genes) > len(other.conn_genes):
-            chromo1 = self
-            chromo2 = other
+            genome1 = self
+            genome2 = other
         else:
-            chromo1 = other
-            chromo2 = self
+            genome1 = other
+            genome2 = self
 
+        N = len(genome1.conn_genes)
         weight_diff = 0
         matching = 0
         disjoint = 0
         excess = 0
 
-        max_cg_chromo2 = max(chromo2.conn_genes.values())
+        max_cg_genome2 = max(genome2.conn_genes.values())
 
-        for cg1 in chromo1.conn_genes.values():
+        for cg1 in genome1.conn_genes.values():
             try:
-                cg2 = chromo2.conn_genes[cg1.key]
+                cg2 = genome2.conn_genes[cg1.key]
             except KeyError:
-                if cg1 > max_cg_chromo2:
+                if cg1 > max_cg_genome2:
                     excess += 1
                 else:
                     disjoint += 1
@@ -228,16 +229,16 @@ class Genome(object):
                 weight_diff += math.fabs(cg1.weight - cg2.weight)
                 matching += 1
 
-        disjoint += len(chromo2.conn_genes) - matching
+        disjoint += len(genome2.conn_genes) - matching
 
-        distance = self.config.excess_coefficient * excess + self.config.disjoint_coefficient * disjoint
+        distance = self.config.excess_coefficient * float(excess) / N + self.config.disjoint_coefficient * float(disjoint) / N
         if matching > 0:
             distance += self.config.weight_coefficient * (weight_diff / matching)
 
         return distance
 
     def size(self):
-        """ Defines chromosome 'complexity': number of hidden nodes plus
+        """ Defines genome 'complexity': number of hidden nodes plus
             number of enabled connections (bias is not considered)
         """
         # number of hidden nodes
@@ -248,11 +249,9 @@ class Genome(object):
         return num_hidden, conns_enabled
 
     def __cmp__(self, other):
-        """ First compare chromosomes by their fitness and then by their id.
-            Older chromosomes (lower ids) should be preferred if newer ones
-            performs the same.
         """
-        # return cmp(self.fitness, other.fitness) or cmp(other.id, self.id)
+        Compare genomes by their fitness.
+        """
         return cmp(self.fitness, other.fitness)
 
     def __str__(self):
@@ -293,10 +292,10 @@ class Genome(object):
     def create_unconnected(cls, config, node_gene_type, conn_gene_type):
         """
         Factory method
-        Creates a chromosome for an unconnected feed-forward network with no hidden nodes.
+        Creates a genome for an unconnected feed-forward network with no hidden nodes.
         """
         c = cls(config, 0, 0, node_gene_type, conn_gene_type)
-        node_id = 1
+        node_id = 0
         # Create node genes
         for i in range(config.input_nodes):
             assert node_id not in c.node_genes
@@ -310,14 +309,14 @@ class Genome(object):
             assert node_gene.ID not in c.node_genes
             c.node_genes[node_gene.ID] = node_gene
             node_id += 1
-        assert node_id == len(c.node_genes) + 1
+        assert node_id == len(c.node_genes)
         return c
 
     @classmethod
     def create_minimally_connected(cls, config, node_gene_type, conn_gene_type):
         """
         Factory method
-        Creates a chromosome for a minimally connected feed-forward network with no hidden nodes. That is,
+        Creates a genome for a minimally connected feed-forward network with no hidden nodes. That is,
         each output node will have a single connection from a randomly chosen input node.
         """
         c = cls.create_unconnected(config, node_gene_type, conn_gene_type)
@@ -343,7 +342,7 @@ class Genome(object):
     def create_fully_connected(cls, config, node_gene_type, conn_gene_type):
         """
         Factory method
-        Creates a chromosome for a fully connected feed-forward network with no hidden nodes.
+        Creates a genome for a fully connected feed-forward network with no hidden nodes.
         """
         c = cls.create_unconnected(config, node_gene_type, conn_gene_type)
         for node_gene in c.node_genes.values():
@@ -361,7 +360,7 @@ class Genome(object):
 
 
 class FFGenome(Genome):
-    """ A chromosome for feed-forward neural networks. Feed-forward
+    """ A genome for feed-forward neural networks. Feed-forward
         topologies are a particular case of Recurrent NNs.
     """
 

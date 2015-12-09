@@ -3,6 +3,7 @@ import random
 import time
 import cPickle
 
+from neat.config import Config
 from neat.genome import Genome, FFGenome
 from neat.genes import NodeGene, ConnectionGene
 from neat.species import Species
@@ -16,7 +17,13 @@ class Population(object):
     def __init__(self, config, checkpoint_file=None, initial_population=None,
                  node_gene_type=NodeGene, conn_gene_type=ConnectionGene,
                  diversity_type=AgedFitnessSharing):
+
+        # If config is not a Config object, assume it is a path to the config file.
+        if not isinstance(config, Config):
+            config = Config(config)
+
         self.config = config
+
         self.population = None
         self.node_gene_type = node_gene_type
         self.conn_gene_type = conn_gene_type
@@ -75,6 +82,12 @@ class Population(object):
             genotypes = Genome
 
         self.population = []
+        # TODO: Add FS-NEAT support, which creates an empty connection set, and then performs a
+        # single add connection mutation.
+        # This would give three initialization methods:
+        # 1. Fully connected (each input connected to all outputs)
+        # 2. "minimally" connected, which isn't really minimal (one random input to each output)
+        # 3. FS-NEAT connected (one random connection)
         if self.config.fully_connected:
             for i in xrange(self.config.pop_size):
                 g = genotypes.create_fully_connected(self.config, self.node_gene_type, self.conn_gene_type)
@@ -94,7 +107,7 @@ class Population(object):
         return s
 
     def __speciate(self, report):
-        """ Group chromosomes into species by similarity """
+        """ Group genomes into species by similarity """
         # Speciate the population
         for individual in self.population:
             found = False
@@ -104,14 +117,14 @@ class Population(object):
                     found = True
                     break
 
-            if not found:  # create a new species for this lone chromosome
+            if not found:  # create a new species for this lone genome
                 self.__species.append(Species(individual))
 
         # python technical note:
         # we need a "working copy" list when removing elements while looping
         # otherwise we might end up having sync issues
         for s in self.__species[:]:
-            # this happens when no chromosomes are compatible with the species
+            # this happens when no genomes are compatible with the species
             if len(s.members) == 0:
                 if report:
                     print "Removing species %d for being empty" % s.ID
@@ -156,7 +169,7 @@ class Population(object):
 
             Keyword arguments:
             report -- show stats at each epoch (default True)
-            save_best -- save the best chromosome from each epoch (default False)
+            save_best -- save the best genome from each epoch (default False)
             checkpoint_interval -- time in minutes between saving checkpoints (default 10 minutes)
             checkpoint_generation -- time in generations between saving checkpoints
                 (default None -- option disabled)
@@ -174,7 +187,7 @@ class Population(object):
             # Speciates the population
             self.__speciate(report)
 
-            # Current generation's best chromosome
+            # Current generation's best genome
             self.most_fit_genomes.append(max(self.population))
             # Current population's average fitness
             self.avg_fitness_scores.append(mean([c.fitness for c in self.population]))
@@ -182,9 +195,9 @@ class Population(object):
             # Print some statistics
             best = self.most_fit_genomes[-1]
 
-            # saves the best chromo from the current generation
+            # saves the best genome from the current generation
             if save_best:
-                f = open('best_chromo_' + str(self.generation), 'w')
+                f = open('best_genome_' + str(self.generation), 'w')
                 cPickle.dump(best, f)
                 f.close()
 
@@ -195,7 +208,7 @@ class Population(object):
                         self.generation, best.size())
                 break
 
-            # Remove stagnated species and its members (except if it has the best chromosome)
+            # Remove stagnated species and its members (except if it has the best genome)
             for s in self.__species[:]:
                 if s.no_improvement_age > self.config.max_stagnation:
                     if report:
@@ -267,7 +280,7 @@ class Population(object):
                     # TODO: what about producing new individuals instead of reproducing?
                     # increasing diversity from time to time might help
                     while fill > 0:
-                        # Selects a random chromosome from population
+                        # Selects a random genome from population
                         parent1 = random.choice(self.population)
                         # Search for a mate within the same species
                         found = False
@@ -281,7 +294,7 @@ class Population(object):
                         if not found:
                             # If no mate was found, just mutate it
                             new_population.append(parent1.mutate())
-                        # new_population.append(chromosome.FFGenome.create_fully_connected())
+                        # new_population.append(genome.FFGenome.create_fully_connected())
                         fill -= 1
 
                 assert self.config.pop_size == len(new_population), 'Different population sizes!'

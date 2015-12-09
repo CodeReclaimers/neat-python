@@ -102,7 +102,7 @@ def run_simulation(sim, net, force_func):
     '''
     for trials in xrange(num_steps):
         inputs = sim.get_scaled_state()
-        action = net.parallel_activate(inputs)
+        action = net.serial_activate(inputs)
 
         # Apply action to the simulated cart-pole
         force = force_func(action)

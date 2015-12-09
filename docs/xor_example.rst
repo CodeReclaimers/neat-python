@@ -29,8 +29,8 @@ the expected output, its fitness is 1, otherwise it is a value less than 1, with
 incorrect the network responses are.
 
 This fitness computation is implemented in the ``eval_fitness`` function.  The single argument to this function is a list
-of chromosomes in the current population.  neat-python expects the fitness function to calculate a fitness for each
-chromosome and assign this value to the chromosome's ``fitness`` member.
+of genomes in the current population.  neat-python expects the fitness function to calculate a fitness for each
+genome and assign this value to the genome's ``fitness`` member.
 
 Running NEAT
 ------------
