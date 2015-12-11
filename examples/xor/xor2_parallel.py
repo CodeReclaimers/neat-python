@@ -57,7 +57,7 @@ def run():
 
     num_workers = 6
     pool = Pool(num_workers)
-    print("Starting with %d workers" % num_workers)
+    print("Starting with {0:d} workers".format(num_workers))
 
     def fitness(genomes):
         return eval_fitness(genomes, pool)
@@ -65,18 +65,18 @@ def run():
     pop = population.Population(config)
     pop.epoch(fitness, 400)
 
-    print("total evolution time %.3f sec" % (time.time() - t0))
-    print("time per generation %.3f sec" % ((time.time() - t0) / pop.generation))
+    print("total evolution time {0:.3f} sec".format((time.time() - t0)))
+    print("time per generation {0:.3f} sec".format(((time.time() - t0) / pop.generation)))
 
     winner = pop.most_fit_genomes[-1]
-    print('Number of evaluations: %d' % winner.ID)
+    print('Number of evaluations: {0:d}'.format(winner.ID))
 
     # Verify network output against training data.
     print('\nBest network output:')
     net = nn.create_feed_forward_phenotype(winner)
     for i, inputs in enumerate(INPUTS):
         output = net.serial_activate(inputs)  # serial activation
-        print( "%1.5f \t %1.5f" % (OUTPUTS[i], output[0]))
+        print( "{0:1.5f} \t {1:1.5f}".format(OUTPUTS[i], output[0]))
 
     # Visualize the winner network and plot statistics.
     visualize.plot_stats(pop.most_fit_genomes, pop.avg_fitness_scores)

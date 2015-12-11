@@ -107,12 +107,12 @@ def create_feed_forward_function(genome):
 
     layers = find_feed_forward_layers(input_nodes, connections)
     for i, layer in enumerate(layers):
-        f.append('    # evaluate layer %d' % i)
+        f.append('    # evaluate layer {0:d}'.format(i))
         for node in layer:
             ev = []
             for cg in genome.conn_genes.values():
                 if cg.out_node_id == node and cg.enabled:
-                    ev.append('(%f * values[%d])' % (cg.weight, cg.in_node_id))
+                    ev.append('({0:f} * values[{1:d}])'.format(cg.weight, cg.in_node_id))
 
             ev = ' + '.join(ev)
             f.append('    z = ' + ev)
@@ -123,7 +123,7 @@ def create_feed_forward_function(genome):
             else:
                 activation_function = 'exp_sigmoid'
 
-            f.append('    values[%d] = %s(%f, %f, z)' % (node, activation_function, ng.bias, ng.response))
+            f.append('    values[{0:d}] = {1!s}({2:f}, {3:f}, z)'.format(node, activation_function, ng.bias, ng.response))
             f.append('')
 
     return '\n'.join(f)

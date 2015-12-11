@@ -26,7 +26,7 @@ pop.epoch(fitness_function, 1000)
 
 # Save the winner.
 winner = pop.most_fit_genomes[-1]
-print('Number of evaluations: %d' % winner.ID)
+print('Number of evaluations: {0:d}'.format(winner.ID))
 with open('nn_winner_genome', 'wb') as f:
     pickle.dump(winner, f)
 

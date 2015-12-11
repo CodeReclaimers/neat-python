@@ -95,7 +95,7 @@ def run():
     pop.epoch(eval_fitness, 200)
 
     winner = pop.most_fit_genomes[-1]
-    print('Number of evaluations: %d' % winner.ID)
+    print('Number of evaluations: {0:d}'.format(winner.ID))
 
     # Visualize the winner network and plot statistics.
     visualize.plot_stats(pop.most_fit_genomes, pop.avg_fitness_scores)
@@ -111,14 +111,14 @@ def run():
     plt.figure(figsize=(12,12))
     for r, (inputData, outputData, t0, t1, neuron_data) in enumerate(simulated):
         response = compute_output(t0, t1)
-        print("%r expected %.3f got %.3f" % (inputData, outputData, response))
+        print("{0!r} expected {1:.3f} got {2:.3f}".format(inputData, outputData, response))
 
         plt.subplot(4, 1, r + 1)
-        plt.title("Traces for XOR input {%.1f, %.1f}" % inputData, fontsize=12)
+        plt.title("Traces for XOR input {{{0:.1f}, {1:.1f}}}".format(*inputData), fontsize=12)
         for i, s in neuron_data.items():
             if i not in net.inputs:
                 t, v = zip(*s)
-                plt.plot(t, v, "-", label="neuron %d" % i)
+                plt.plot(t, v, "-", label="neuron {0:d}".format(i))
 
         plt.ylabel("Potential (mv)", fontsize=10)
         plt.ylim(-100, 50)

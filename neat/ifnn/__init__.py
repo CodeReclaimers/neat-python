@@ -22,7 +22,7 @@ class Network(object):
         self.synapses = synapses
 
     def __repr__(self):
-        return '%d nodes and %d synapses' % (len(self.neurons), len(self.synapses))
+        return '{0:d} nodes and {1:d} synapses'.format(len(self.neurons), len(self.synapses))
 
     def advance(self, inputs):
         assert len(inputs) == len(self.input_neurons), "Wrong number of inputs."

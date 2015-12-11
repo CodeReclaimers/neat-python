@@ -16,9 +16,9 @@ def test_basic():
     # create the network
     net = Network(neurons_list, conn_list)
     # activates the network
-    print("%.17f %.17f" % (n1.output, n2.output))
+    print("{0:.17f} {1:.17f}".format(n1.output, n2.output))
     outputs = []
     for i in range(1000):
         output = net.parallel_activate()
         outputs.append(output)
-        print("%.17f %.17f" % (output[0], output[1]))
+        print("{0:.17f} {1:.17f}".format(output[0], output[1]))
