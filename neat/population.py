@@ -231,7 +231,7 @@ class Population(object):
                 # This rarely happens
                 if s.spawn_amount == 0:
                     if report:
-                        print('   Species {0:2d} age {1:2!s} removed: produced no offspring'.format(s.ID, s.age))
+                        print('   Species {0:2d} age {1:2} removed: produced no offspring'.format(s.ID, s.age))
                     for c in self.population[:]:
                         if c.species_id == s.ID:
                             self.population.remove(c)
@@ -245,12 +245,13 @@ class Population(object):
                 if self.population:
                     std_dev = stdev([c.fitness for c in self.population])
                     print('Population\'s average fitness: {0:3.5f} stdev: {1:3.5f}'.format(self.avg_fitness_scores[-1], std_dev))
-                    print('Best fitness: {0:2.12!s} - size: {1!s} - species {2!s} - id {3!s}'.format(best.fitness, best.size(), best.species_id, best.ID))
+                    print('Best fitness: {0:2.12} - size: {1!r} - species {2} - id {3}'.format(best.fitness, best.size(), best.species_id, best.ID))
                     print('Species length: {0:d} totaling {1:d} individuals'.format(len(self.__species), sum([len(s.members) for s in self.__species])))
                     print('Species ID       : {0!s}'.format([s.ID for s in self.__species]))
                     print('Each species size: {0!s}'.format([len(s.members) for s in self.__species]))
                     print('Amount to spawn  : {0!s}'.format([s.spawn_amount for s in self.__species]))
                     print('Species age      : {0!s}'.format([s.age for s in self.__species]))
+                    print('Species avg fit  : {0!s}'.format([s.average_fitness() for s in self.__species]))
                     print('Species no improv: {0!s}'.format([s.no_improvement_age for s in self.__species]))
                 else:
                     print('All species extinct.')
