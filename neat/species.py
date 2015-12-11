@@ -15,7 +15,7 @@ class Species(object):
         self.members = []
         self.add(first_individual)
         self.spawn_amount = 0
-        self.last_avg_fitness = 0
+        self.last_avg_fitness = None
         self.no_improvement_age = 0
 
     def add(self, individual):
@@ -43,7 +43,7 @@ class Species(object):
         avg_fitness = mean([c.fitness for c in self.members])
 
         # Check for increase in mean fitness and adjust "no improvement" count as necessary.
-        if avg_fitness > self.last_avg_fitness:
+        if self.last_avg_fitness is None or avg_fitness > self.last_avg_fitness:
             self.last_avg_fitness = avg_fitness
             self.no_improvement_age = 0
         else:
