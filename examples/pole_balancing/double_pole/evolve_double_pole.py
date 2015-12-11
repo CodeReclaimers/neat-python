@@ -30,8 +30,8 @@ def run():
 
     winner = pop.most_fit_genomes[-1]
 
-    print 'Number of evaluations: %d' % winner.ID
-    print 'Winner fitness: %f' % winner.fitness
+    print 'Number of evaluations: {0:d}'.format(winner.ID)
+    print 'Winner fitness: {0:f}'.format(winner.fitness)
 
     # save the winner
     with open('winner_chromosome', 'w') as f:

@@ -36,7 +36,7 @@ class CartPole(object):
                 if testing:
                     # cart's position, first pole's angle, second pole's angle
                     # print "\nInitial conditions:"
-                    print "%f \t %f \t %f" % (self.__state[0], self.__state[2], self.__state[4])
+                    print "{0:f} \t {1:f} \t {2:f}".format(self.__state[0], self.__state[2], self.__state[4])
                     pass
 
                 steps = 0
@@ -59,8 +59,7 @@ class CartPole(object):
                     if self.__outside_bounds():
                         # network failed to solve the task
                         if testing:
-                            print "Failed at step %d \t %+1.2f \t %+1.2f \t %+1.2f" \
-                                  % (steps, self.__state[0], self.__state[2], self.__state[4])
+                            print "Failed at step {0:d} \t {1:+1.2f} \t {2:+1.2f} \t {3:+1.2f}".format(steps, self.__state[0], self.__state[2], self.__state[4])
                             sys.exit(0)
                         else:
                             break
@@ -88,7 +87,7 @@ class CartPole(object):
 
             best = max(self.__population)  # selects the best network
             if self.print_status:
-                print "\t\nBest chromosome of generation: %d" % best.ID
+                print "\t\nBest chromosome of generation: {0:d}".format(best.ID)
 
             # ** *******************#
             #  GENERALIZATION TEST  #
@@ -111,17 +110,17 @@ class CartPole(object):
 
                 if balanced > 200:
                     if self.print_status:
-                        print "\tWinner passed the generalization test with score: %d\n" % balanced
+                        print "\tWinner passed the generalization test with score: {0:d}\n".format(balanced)
                     # set chromosome's fitness to 100k (and ceases the simulation)
                     best.fitness = 100000
                     best.score = balanced
                 else:
                     if self.print_status:
-                        print "\tWinner failed the generalization test with score: %d\n" % balanced
+                        print "\tWinner failed the generalization test with score: {0:d}\n".format(balanced)
 
             else:
                 if self.print_status:
-                    print "\tWinner failed at the 100k test with score %d\n " % score
+                    print "\tWinner failed at the 100k test with score {0:d}\n ".format(score)
 
     def __non_markov(self, network, max_steps, testing):
         # variables used in Gruau's fitness function
@@ -146,8 +145,7 @@ class CartPole(object):
             if self.__outside_bounds():
                 # network failed to solve the task
                 if testing:
-                    print "Failed at step %d \t %+1.2f \t %+1.2f \t %+1.2f" \
-                          % (steps, self.__state[0], self.__state[2], self.__state[4])
+                    print "Failed at step {0:d} \t {1:+1.2f} \t {2:+1.2f} \t {3:+1.2f}".format(steps, self.__state[0], self.__state[2], self.__state[4])
                     break
                 else:
                     # print "Failed at step %d" %steps
@@ -194,10 +192,10 @@ class CartPole(object):
                         if score > 999:
                             balanced += 1
                             if self.print_status:
-                                print "Test %d succeeded with score: %d" % (test_number, score)
+                                print "Test {0:d} succeeded with score: {1:d}".format(test_number, score)
                         else:
                             if self.print_status:
-                                print "Test %d failed with score...: %d" % (test_number, score)
+                                print "Test {0:d} failed with score...: {1:d}".format(test_number, score)
         return balanced
 
     def __initial_state(self):

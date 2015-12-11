@@ -58,7 +58,7 @@ class Population(object):
         # TODO: Wouldn't it just be better to create a class method to load and return the stored Population
         # object as-is?  I don't know if there are hidden side effects to directly replacing __dict__.
         with gzip.open(checkpoint) as f:
-            print('Resuming from a previous point: %s' % checkpoint)
+            print('Resuming from a previous point: {0!s}'.format(checkpoint))
             # when unpickling __init__ is not called again
             previous_pop = pickle.load(f)
             self.__dict__ = previous_pop.__dict__
@@ -69,7 +69,7 @@ class Population(object):
     def __create_checkpoint(self, report):
         """ Saves the current simulation state. """
         if report:
-            print('Creating checkpoint file at generation: %d' % self.generation)
+            print('Creating checkpoint file at generation: {0:d}'.format(self.generation))
 
         with gzip.open('checkpoint_' + str(self.generation), 'w', compresslevel=5) as f:
             # Write the entire population state.
@@ -104,8 +104,8 @@ class Population(object):
                 g.add_hidden_nodes(self.config.hidden_nodes)
 
     def __repr__(self):
-        s = "Population size: %d" % self.config.pop_size
-        s += "\nTotal species: %d" % len(self.__species)
+        s = "Population size: {0:d}".format(self.config.pop_size)
+        s += "\nTotal species: {0:d}".format(len(self.__species))
         return s
 
     def __speciate(self, report):
@@ -129,7 +129,7 @@ class Population(object):
             # this happens when no genomes are compatible with the species
             if not s.members:
                 if report:
-                    print("Removing species %d for being empty" % s.ID)
+                    print("Removing species {0:d} for being empty".format(s.ID))
                 # remove empty species
                 self.__species.remove(s)
 
@@ -146,7 +146,7 @@ class Population(object):
 
         if self.config.compatibility_threshold != t:
             if report:
-                print("Adjusted compatibility threshold to %f" % t)
+                print("Adjusted compatibility threshold to {0:f}".format(t))
             self.config.compatibility_threshold = t
 
     def __log_species(self):
@@ -182,7 +182,7 @@ class Population(object):
             self.generation += 1
 
             if report:
-                print('\n ****** Running generation %d ****** \n' % self.generation)
+                print('\n ****** Running generation {0:d} ****** \n'.format(self.generation))
 
             # Evaluate individuals
             fitness_function(self.population)
@@ -206,7 +206,7 @@ class Population(object):
             # Stops the simulation
             if best.fitness > self.config.max_fitness_threshold:
                 if report:
-                    print('\nBest individual in epoch %s meets fitness threshold - complexity: %s' % (
+                    print('\nBest individual in epoch {0!s} meets fitness threshold - complexity: {1!s}'.format(
                         self.generation, best.size()))
                 break
 
@@ -214,8 +214,7 @@ class Population(object):
             for s in self.__species[:]:
                 if s.no_improvement_age > self.config.max_stagnation:
                     if report:
-                        print("\n   Species %2d (with %2d individuals) is stagnated: removing it" \
-                              % (s.ID, len(s.members)))
+                        print("\n   Species {0:2d} (with {1:2d} individuals) is stagnated: removing it".format(s.ID, len(s.members)))
                     # removing species
                     self.__species.remove(s)
                     # removing all the species' members
@@ -232,7 +231,7 @@ class Population(object):
                 # This rarely happens
                 if s.spawn_amount == 0:
                     if report:
-                        print('   Species %2d age %2s removed: produced no offspring' % (s.ID, s.age))
+                        print('   Species {0:2d} age {1:2!s} removed: produced no offspring'.format(s.ID, s.age))
                     for c in self.population[:]:
                         if c.species_id == s.ID:
                             self.population.remove(c)
@@ -245,16 +244,14 @@ class Population(object):
             if report:
                 if self.population:
                     std_dev = stdev([c.fitness for c in self.population])
-                    print('Population\'s average fitness: %3.5f stdev: %3.5f' % (self.avg_fitness_scores[-1], std_dev))
-                    print('Best fitness: %2.12s - size: %s - species %s - id %s' \
-                          % (best.fitness, best.size(), best.species_id, best.ID))
-                    print('Species length: %d totaling %d individuals' \
-                          % (len(self.__species), sum([len(s.members) for s in self.__species])))
-                    print('Species ID       : %s' % [s.ID for s in self.__species])
-                    print('Each species size: %s' % [len(s.members) for s in self.__species])
-                    print('Amount to spawn  : %s' % [s.spawn_amount for s in self.__species])
-                    print('Species age      : %s' % [s.age for s in self.__species])
-                    print('Species no improv: %s' % [s.no_improvement_age for s in self.__species])
+                    print('Population\'s average fitness: {0:3.5f} stdev: {1:3.5f}'.format(self.avg_fitness_scores[-1], std_dev))
+                    print('Best fitness: {0:2.12!s} - size: {1!s} - species {2!s} - id {3!s}'.format(best.fitness, best.size(), best.species_id, best.ID))
+                    print('Species length: {0:d} totaling {1:d} individuals'.format(len(self.__species), sum([len(s.members) for s in self.__species])))
+                    print('Species ID       : {0!s}'.format([s.ID for s in self.__species]))
+                    print('Each species size: {0!s}'.format([len(s.members) for s in self.__species]))
+                    print('Amount to spawn  : {0!s}'.format([s.spawn_amount for s in self.__species]))
+                    print('Species age      : {0!s}'.format([s.age for s in self.__species]))
+                    print('Species no improv: {0!s}'.format([s.no_improvement_age for s in self.__species]))
                 else:
                     print('All species extinct.')
 
@@ -271,13 +268,13 @@ class Population(object):
                 fill = self.config.pop_size - len(new_population)
                 if fill < 0:  # overflow
                     if report:
-                        print('   Removing %d excess individual(s) from the new population' % -fill)
+                        print('   Removing {0:d} excess individual(s) from the new population'.format(-fill))
                     # TODO: This is dangerous! I can't remove a species' representative!
                     new_population = new_population[:fill]  # Removing the last added members
 
                 if fill > 0:  # underflow
                     if report:
-                        print('   Producing %d more individual(s) to fill up the new population' % fill)
+                        print('   Producing {0:d} more individual(s) to fill up the new population'.format(fill))
 
                     # TODO: what about producing new individuals instead of reproducing?
                     # increasing diversity from time to time might help

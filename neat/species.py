@@ -25,10 +25,8 @@ class Species(object):
         self.representative = random.choice(self.members)
 
     def __str__(self):
-        s = "\n   Species %2d   size: %3d   age: %3d   spawn: %3d   " \
-            % (self.ID, len(self.members), self.age, self.spawn_amount)
-        s += "\n   No improvement: %3d \t avg. fitness: %1.8f" \
-             % (self.no_improvement_age, self.last_avg_fitness)
+        s = "\n   Species {0:2d}   size: {1:3d}   age: {2:3d}   spawn: {3:3d}   ".format(self.ID, len(self.members), self.age, self.spawn_amount)
+        s += "\n   No improvement: {0:3d} \t avg. fitness: {1:1.8f}".format(self.no_improvement_age, self.last_avg_fitness)
         return s
 
     def tournament_selection(self, k=2):
@@ -63,7 +61,7 @@ class Species(object):
 
         # this condition is useless since no species with spawn_amount < 0 will
         # reach this point - at least it shouldn't happen.
-        assert self.spawn_amount > 0, "Species %d with non-positive spawn amount!" % self.ID
+        assert self.spawn_amount > 0, "Species {0:d} with non-positive spawn amount!".format(self.ID)
 
         self.members.sort()  # sort species's members by their fitness
         self.members.reverse()  # best members first

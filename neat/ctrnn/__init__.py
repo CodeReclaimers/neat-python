@@ -44,7 +44,7 @@ class Neuron(object):
         self._synapses.append(s)
 
     def __repr__(self):
-        return '%d %s' % (self.ID, self.type)
+        return '{0:d} {1!s}'.format(self.ID, self.type)
 
 
 class CTNeuron(Neuron):
@@ -100,7 +100,7 @@ class Synapse(object):
         return self.weight * self.source.output
 
     def __repr__(self):
-        return '%s -> %s -> %s' % (self.source.ID, self.weight, self.destination.ID)
+        return '{0!s} -> {1!s} -> {2!s}'.format(self.source.ID, self.weight, self.destination.ID)
 
 
 class Network(object):
@@ -131,7 +131,7 @@ class Network(object):
         self.synapses.append(synapse)
 
     def __repr__(self):
-        return '%d nodes and %d synapses' % (len(self.neurons), len(self.synapses))
+        return '{0:d} nodes and {1:d} synapses'.format(len(self.neurons), len(self.synapses))
 
     def serial_activate(self, inputs):
         """Serial (asynchronous) network activation method. Mostly

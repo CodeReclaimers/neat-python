@@ -60,8 +60,7 @@ class Genome(object):
         """ Crosses over parents' genomes and returns a child. """
 
         # This can't happen! Parents must belong to the same species.
-        assert self.species_id == other.species_id, 'Different parents species ID: %d vs %d' \
-                                                    % (self.species_id, other.species_id)
+        assert self.species_id == other.species_id, 'Different parents species ID: {0:d} vs {1:d}'.format(self.species_id, other.species_id)
 
         # TODO: if they're of equal fitness, choose the shortest
         if self.fitness > other.fitness:

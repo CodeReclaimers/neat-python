@@ -18,8 +18,7 @@ class NodeGene(object):
         self.activation_type = activation_type
 
     def __str__(self):
-        return "Node %2d %6s, bias %+2.10s, response %+2.10s" \
-               % (self.ID, self.type, self.bias, self.response)
+        return "Node {0:2d} {1:6!s}, bias {2:2.10!s}, response {3:2.10!s}".format(self.ID, self.type, self.bias, self.response)
 
     def get_child(self, other):
         """ Creates a new NodeGene randomly inheriting attributes from its parents."""
@@ -89,8 +88,7 @@ class CTNodeGene(NodeGene):
         return ng
 
     def __str__(self):
-        return "Node %2d %6s, bias %+2.10s, response %+2.10s, activation %s, time constant %+2.5s" \
-               % (self.ID, self.type, self.bias, self.response,
+        return "Node {0:2d} {1:6!s}, bias {2:2.10!s}, response {3:2.10!s}, activation {4!s}, time constant {5:2.5!s}".format(self.ID, self.type, self.bias, self.response,
                   self.activation_type, self.time_constant)
 
     def copy(self):
@@ -138,12 +136,12 @@ class ConnectionGene(object):
         self.enabled = True
 
     def __str__(self):
-        s = "In %2d, Out %2d, Weight %+3.5f, " % (self.in_node_id, self.out_node_id, self.weight)
+        s = "In {0:2d}, Out {1:2d}, Weight {2:+3.5f}, ".format(self.in_node_id, self.out_node_id, self.weight)
         if self.enabled:
             s += "Enabled, "
         else:
             s += "Disabled, "
-        return s + "Innov %d" % (self.__innov_number,)
+        return s + "Innov {0:d}".format(self.__innov_number)
 
     def __lt__(self, other):
         return self.__innov_number < other.__innov_number
