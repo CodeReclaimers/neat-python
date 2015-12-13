@@ -8,5 +8,9 @@ python:
   - "pypy3"
   - "nightly"
 
-install: pip install nose
-script: nosetests
+install:
+    pip install nose coveralls coverage
+script:
+    nosetests --with-coverage
+after_success:
+    coveralls
