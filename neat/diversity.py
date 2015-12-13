@@ -1,7 +1,7 @@
 '''
 Implementations of diversity maintenance schemes.
 '''
-
+from math import ceil
 
 class AgedFitnessSharing(object):
     '''
@@ -22,7 +22,7 @@ class AgedFitnessSharing(object):
             return
 
         # Get average fitnesses and their range.
-        fitnesses = [s.average_fitness() for s in species]
+        fitnesses = [s.get_average_fitness() for s in species]
         min_fitness = min(fitnesses)
         max_fitness = max(fitnesses)
         # This shift is used to compute an adjusted fitness that is
@@ -46,6 +46,8 @@ class AgedFitnessSharing(object):
             total_adjusted_fitness += af
 
         # Distribute spawn amounts among the species based on their share of adjusted fitness.
-        r = self.config.pop_size / total_adjusted_fitness
+        # Each species is guaranteed a minimum spawn of survival_threshold * (current member count).
+        r = self.config.pop_size * (1 - self.config.survival_threshold) / total_adjusted_fitness
         for s, af in zip(species, adjusted_fitnesses):
-            s.spawn_amount = int(round((af * r)))
+            min_spawn = len(s.members) * self.config.survival_threshold
+            s.spawn_amount = int(ceil((min_spawn + af * r)))

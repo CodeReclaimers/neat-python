@@ -1,21 +1,20 @@
 """ 2-input XOR example using Izhikevich's spiking neuron model. """
 from __future__ import print_function
+
 import os
+
 import matplotlib.pyplot as plt
 
 from neat import population, iznn, visualize
 from neat.config import Config
 
-
 # XOR-2
 xor_inputs = ((0, 0), (0, 1), (1, 0), (1, 1))
 xor_outputs = (0, 1, 1, 0)
 
-# Maximum amount of simulated time (in milliseconds) we will
-# wait for the network to produce an output.
+# Maximum amount of simulated time (in milliseconds) to wait for the network to produce an output.
 max_time = 50.0
-# Izhikevitch parameters for "fast spiking" neurons, simulation time
-# step of 1/4 millisecond.
+# Parameters for "fast spiking" Izhikevitch neurons, simulation time step 0.25 millisecond.
 iz_params = [0.1, 0.2, -65.0, 2.0, 0.25]
 
 

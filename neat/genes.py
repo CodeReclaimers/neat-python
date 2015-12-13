@@ -4,11 +4,12 @@ from neat.indexer import Indexer
 
 
 class NodeGene(object):
-    def __init__(self, ID, node_type, bias=0.0, response=4.924273, activation_type="exp"):
+    def __init__(self, ID, node_type, bias=0.0, response=4.924273, activation_type='exp'):
         """ A node gene encodes the basic artificial neuron model.
             node_type must be 'INPUT', 'HIDDEN', or 'OUTPUT'
         """
         assert activation_type is not None
+        # TODO: Node genes probably shouldn't need to know whether they are input/output/hidden.
         assert node_type in ('INPUT', 'OUTPUT', 'HIDDEN')
 
         self.ID = ID
@@ -18,7 +19,8 @@ class NodeGene(object):
         self.activation_type = activation_type
 
     def __str__(self):
-        return "Node {0:2d} {1:6!s}, bias {2:2.10!s}, response {3:2.10!s}".format(self.ID, self.type, self.bias, self.response)
+        return 'NodeGene(id={0}, type={1}, bias={2}, response={3}, activation={4})'.format(
+            self.ID, self.type, self.bias, self.response, self.activation_type)
 
     def get_child(self, other):
         """ Creates a new NodeGene randomly inheriting attributes from its parents."""
@@ -50,50 +52,7 @@ class NodeGene(object):
             self.__mutate_response(config)
 
 
-class CTNodeGene(NodeGene):
-    """ Continuous-time node gene - used in CTRNNs.
-        The main difference here is the addition of
-        a decay rate given by the time constant.
-    """
 
-    def __init__(self, ID, node_type, bias=1.0, response=1.0, activation_type='exp', time_constant=1.0):
-        super(CTNodeGene, self).__init__(ID, node_type, bias, response, activation_type)
-        self.time_constant = time_constant
-
-    def mutate(self, config):
-        super(CTNodeGene, self).mutate(config)
-        # mutating the time constant could bring numerical instability
-        # do it with caution
-        # if random.random() < 0.1:
-        #    self.__mutate_time_constant()
-
-    def __mutate_time_constant(self, config):
-        """ Warning: perturbing the time constant (tau) may result in numerical instability """
-        self.time_constant += random.gauss(1.0, 0.5) * 0.001
-        if self.time_constant > config.max_weight:
-            self.time_constant = config.max_weight
-        elif self.time_constant < config.min_weight:
-            self.time_constant = config.min_weight
-        return self
-
-    def get_child(self, other):
-        """ Creates a new NodeGene ramdonly inheriting its attributes from parents """
-        assert (self.ID == other.ID)
-
-        ng = CTNodeGene(self.ID, self.type,
-                        random.choice((self.bias, other.bias)),
-                        random.choice((self.response, other.response)),
-                        self.activation_type,
-                        random.choice((self.time_constant, other.time_constant)))
-        return ng
-
-    def __str__(self):
-        return "Node {0:2d} {1:6!s}, bias {2:2.10!s}, response {3:2.10!s}, activation {4!s}, time constant {5:2.5!s}".format(self.ID, self.type, self.bias, self.response,
-                  self.activation_type, self.time_constant)
-
-    def copy(self):
-        return CTNodeGene(self.ID, self.type, self.bias,
-                          self.response, self.activation_type, self.time_constant)
 
 
 class ConnectionGene(object):
@@ -136,12 +95,8 @@ class ConnectionGene(object):
         self.enabled = True
 
     def __str__(self):
-        s = "In {0:2d}, Out {1:2d}, Weight {2:+3.5f}, ".format(self.in_node_id, self.out_node_id, self.weight)
-        if self.enabled:
-            s += "Enabled, "
-        else:
-            s += "Disabled, "
-        return s + "Innov {0:d}".format(self.__innov_number)
+        return 'ConnectionGene(in={0}, out={1}, weight={2}, enabled={3}, innov={4})'.format(
+            self.in_node_id, self.out_node_id, self.weight, self.enabled, self.__innov_number)
 
     def __lt__(self, other):
         return self.__innov_number < other.__innov_number

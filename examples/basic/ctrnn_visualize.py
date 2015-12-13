@@ -16,14 +16,14 @@ neurons_list = [N1, N2]
 # create some synapses
 conn_list = [(1, 1, 4.5), (1, 2, -1.0), (2, 1, 1.0), (2, 2, 4.5)]
 # create the network
-net = Network(neurons_list, conn_list)
+net = Network(neurons_list, conn_list, 0)
 # activates the network
-print("{0:.17f} {1:.17f}".format(N1.output, N2.output))
+print("{0:.7f} {1:.7f}".format(N1.output, N2.output))
 outputs = []
 for i in range(1000):
     output = net.parallel_activate()
     outputs.append(output)
-    print("{0:.17f} {1:.17f}".format(output[0], output[1]))
+    print("{0:.7f} {1:.7f}".format(output[0], output[1]))
 
 outputs = np.array(outputs).T
 

@@ -1,27 +1,24 @@
-# -*- coding: UTF-8 -*-
 """
 A parallel version of XOR using multiprocessing.Pool.
 
 Since XOR is a simple experiment, a parallel version won't actually
-take any advantages of it due to overhead and transfer-communication.
+take any advantages of it due to overhead and inter-process communication.
 The example below is only a general idea of how to implement a
 parallel experiment in neat-python.
 """
 
 from __future__ import print_function
+
 import math
 import os
 import time
 from multiprocessing import Pool
 
-from neat import population, visualize
+from neat import nn, population, visualize
 from neat.config import Config
-from neat import nn
 
-
-# XOR-2
-INPUTS = ((0, 0), (0, 1), (1, 0), (1, 1))
-OUTPUTS = (0, 1, 1, 0)
+xor_inputs = ((0, 0), (0, 1), (1, 0), (1, 1))
+xor_outputs = (0, 1, 1, 0)
 
 
 def eval_fitness(genomes, pool):
@@ -39,12 +36,12 @@ def parallel_evaluation(genome):
     net = nn.create_feed_forward_phenotype(genome)
 
     error = 0.0
-    for inputData, outputData in zip(INPUTS, OUTPUTS):
+    for inputData, outputData in zip(xor_inputs, xor_outputs):
         # serial activation
         output = net.serial_activate(inputData)
         error += (output[0] - outputData) ** 2
 
-    return 1 - math.sqrt(error / len(OUTPUTS))
+    return 1 - math.sqrt(error / len(xor_outputs))
 
 
 def run():
@@ -74,9 +71,9 @@ def run():
     # Verify network output against training data.
     print('\nBest network output:')
     net = nn.create_feed_forward_phenotype(winner)
-    for i, inputs in enumerate(INPUTS):
+    for i, inputs in enumerate(xor_inputs):
         output = net.serial_activate(inputs)  # serial activation
-        print( "{0:1.5f} \t {1:1.5f}".format(OUTPUTS[i], output[0]))
+        print( "{0:1.5f} \t {1:1.5f}".format(xor_outputs[i], output[0]))
 
     # Visualize the winner network and plot statistics.
     visualize.plot_stats(pop.most_fit_genomes, pop.avg_fitness_scores)

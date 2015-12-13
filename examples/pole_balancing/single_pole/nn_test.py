@@ -1,13 +1,14 @@
 # Test the performance of the best genome produced by nn_evolve.py.
 from __future__ import print_function
+
 import os
 import pickle
 
-from neat import nn
-from neat.config import Config
 from cart_pole import CartPole, run_simulation, num_steps, discrete_actuator_force
 from movie import make_movie
 
+from neat import nn
+from neat.config import Config
 
 # load the winner
 with open('nn_winner_genome', 'rb') as f:

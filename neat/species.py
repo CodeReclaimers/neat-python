@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
 import random
+import sys
 from neat.indexer import Indexer
 from neat.math_util import mean
 
@@ -15,7 +16,7 @@ class Species(object):
         self.members = []
         self.add(first_individual)
         self.spawn_amount = 0
-        self.last_avg_fitness = None
+        self.last_avg_fitness = -sys.float_info.max
         self.no_improvement_age = 0
 
     def add(self, individual):
@@ -29,39 +30,26 @@ class Species(object):
         s += "\n   No improvement: {0:3d} \t avg. fitness: {1:1.8f}".format(self.no_improvement_age, self.last_avg_fitness)
         return s
 
-    def tournament_selection(self, k=2):
-        """ Tournament selection with size k (default k=2).
-            Make sure the population has at least k individuals """
-        # TODO: Unless some side-effect of this shuffle is necessary, it is inefficient given
-        # that we only want to select two members without replacement.
-        random.shuffle(self.members)
+    def get_average_fitness(self):
+        """ Returns the raw average fitness over all members in the species."""
+        return mean([c.fitness for c in self.members])
 
-        return max(self.members[:k])
-
-    def average_fitness(self):
-        """ Returns the raw average fitness for this species """
-        avg_fitness = mean([c.fitness for c in self.members])
+    def update_stagnation(self):
+        """ Updates no_improvement_age based on average fitness progress."""
+        fitness = self.get_average_fitness()
 
         # Check for increase in mean fitness and adjust "no improvement" count as necessary.
-        if self.last_avg_fitness is None or avg_fitness > self.last_avg_fitness:
-            self.last_avg_fitness = avg_fitness
+        if fitness > self.last_avg_fitness:
+            self.last_avg_fitness = fitness
             self.no_improvement_age = 0
         else:
             self.no_improvement_age += 1
 
-        return avg_fitness
-
     def reproduce(self, config):
-        """ Returns a list of 'spawn_amount' new individuals """
+        """ Returns a list of 'self.spawn_amount' new individuals """
 
         offspring = []  # new offspring for this species
         self.age += 1  # increment species age
-
-        # print "Reproducing species %d with %d members" %(self.id, len(self.members))
-
-        # this condition is useless since no species with spawn_amount < 0 will
-        # reach this point - at least it shouldn't happen.
-        assert self.spawn_amount > 0, "Species {0:d} with non-positive spawn amount!".format(self.ID)
 
         self.members.sort()  # sort species's members by their fitness
         self.members.reverse()  # best members first
@@ -79,25 +67,16 @@ class Species(object):
         self.members = self.members[:survivors]
 
         while self.spawn_amount > 0:
-
             self.spawn_amount -= 1
 
-            if len(self.members) > 1:
-                # Selects two parents from the remaining species and produces a single individual
-                # Stanley selects at random, here we use tournament selection (although it is not
-                # clear if has any advantages)
-                parent1 = self.tournament_selection()
-                parent2 = self.tournament_selection()
+            # Select two parents at random from the remaining members.
+            parent1 = random.choice(self.members)
+            parent2 = random.choice(self.members)
 
-                assert parent1.species_id == parent2.species_id, "Parents has different species id."
-                child = parent1.crossover(parent2)
-                offspring.append(child.mutate())
-            else:
-                # mutate only
-                parent1 = self.members[0]
-                # TODO: temporary hack - the child needs a new id (not the parent's)
-                child = parent1.crossover(parent1)
-                offspring.append(child.mutate())
+            # Note that if the parents are not distinct, crossover should
+            # be idempotent. TODO: Write a test for that.
+            child = parent1.crossover(parent2)
+            offspring.append(child.mutate())
 
         # reset species (new members will be added again when speciating)
         self.members = []

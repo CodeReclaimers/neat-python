@@ -41,5 +41,3 @@ youth_threshold     = 10
 old_penalty         = 0.2
 youth_boost         = 1.2
 max_stagnation      = 15
-
-

@@ -3,13 +3,15 @@ Single-pole balancing experiment using a discrete-time recurrent neural network.
 """
 
 from __future__ import print_function
+
 import os
 import pickle
 
-from neat import nn, population, visualize
-from neat.config import Config
 from cart_pole import discrete_actuator_force
 from fitness import evaluate_population
+
+from neat import nn, population, visualize
+from neat.config import Config
 
 
 # Use the nn network phenotype and the discrete actuator force function.

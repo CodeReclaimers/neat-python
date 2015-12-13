@@ -59,8 +59,8 @@ class Genome(object):
     def crossover(self, other):
         """ Crosses over parents' genomes and returns a child. """
 
-        # This can't happen! Parents must belong to the same species.
-        assert self.species_id == other.species_id, 'Different parents species ID: {0:d} vs {1:d}'.format(self.species_id, other.species_id)
+        # Parents must belong to the same species.
+        assert self.species_id == other.species_id, 'Different parents species ID: {0} vs {1}'.format(self.species_id, other.species_id)
 
         # TODO: if they're of equal fitness, choose the shortest
         if self.fitness > other.fitness:
@@ -76,7 +76,6 @@ class Genome(object):
         child._inherit_genes(parent1, parent2)
 
         child.species_id = parent1.species_id
-        # child.num_inputs = parent1.num_inputs
 
         return child
 
@@ -95,7 +94,6 @@ class Genome(object):
                 if cg2.is_same_innov(cg1):  # Always true for *global* INs
                     # Homologous gene found
                     new_gene = cg1.get_child(cg2)
-                    # new_gene.enable() # avoids disconnected neurons
                 else:
                     new_gene = cg1.copy()
                 self.conn_genes[new_gene.key] = new_gene
@@ -276,7 +274,7 @@ class Genome(object):
             # Connect all nodes to it
             for pre in self.node_genes.values():
                 weight = gauss(0, self.config.weight_stdev)
-                cg = self._conn_gene_type(pre.id, node_gene.id, weight, True)
+                cg = self._conn_gene_type(pre.ID, node_gene.ID, weight, True)
                 self.conn_genes[cg.key] = cg
             # Connect it to all nodes except input nodes
             for post in self.node_genes.values():
@@ -284,7 +282,7 @@ class Genome(object):
                     continue
 
                 weight = gauss(0, self.config.weight_stdev)
-                cg = self._conn_gene_type(node_gene.id, post.id, weight, True)
+                cg = self._conn_gene_type(node_gene.ID, post.ID, weight, True)
                 self.conn_genes[cg.key] = cg
 
     @classmethod
@@ -325,7 +323,7 @@ class Genome(object):
 
             # Connect it to a random input node
             while 1:
-                idx = choice(c.node_genes.keys())
+                idx = choice(list(c.node_genes.keys()))
                 if c.node_genes[idx].type == 'INPUT':
                     break
 
@@ -417,7 +415,6 @@ class FFGenome(Genome):
                             self.__is_connection_feedforward(in_node, out_node):
                         # Free connection
                         if count == n:  # Connection to create
-                            # weight = random.uniform(-self.config.random_range, self.config.random_range)
                             weight = gauss(0, self.config.weight_stdev)
                             cg = self._conn_gene_type(in_node.ID, out_node.ID, weight, True)
                             self.conn_genes[cg.key] = cg
@@ -449,26 +446,26 @@ class FFGenome(Genome):
                                              activation_type=self.config.nn_activation)
             assert node_gene.ID not in self.node_genes
             self.node_genes[node_gene.ID] = node_gene
-            self.node_order.append(node_gene.id)
+            self.node_order.append(node_gene.ID)
             node_id += 1
             # Connect all input nodes to it
             for pre in self.node_genes.values():
                 if pre.type == 'INPUT':
                     weight = gauss(0, self.config.weight_stdev)
-                    cg = self._conn_gene_type(pre.id, node_gene.id, weight, True)
+                    cg = self._conn_gene_type(pre.ID, node_gene.ID, weight, True)
                     self.conn_genes[cg.key] = cg
                     assert self.__is_connection_feedforward(pre, node_gene)
             # Connect all previous hidden nodes to it
             for pre_id in self.node_order[:-1]:
-                assert pre_id != node_gene.id
+                assert pre_id != node_gene.ID
                 weight = gauss(0, self.config.weight_stdev)
-                cg = self._conn_gene_type(pre_id, node_gene.id, weight, True)
+                cg = self._conn_gene_type(pre_id, node_gene.ID, weight, True)
                 self.conn_genes[cg.key] = cg
             # Connect it to all output nodes
             for post in self.node_genes.values():
                 if post.type == 'OUTPUT':
                     weight = gauss(0, self.config.weight_stdev)
-                    cg = self._conn_gene_type(node_gene.id, post.id, weight, True)
+                    cg = self._conn_gene_type(node_gene.ID, post.ID, weight, True)
                     self.conn_genes[cg.key] = cg
                     assert self.__is_connection_feedforward(node_gene, post)
 

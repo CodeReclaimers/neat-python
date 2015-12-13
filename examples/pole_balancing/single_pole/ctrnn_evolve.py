@@ -3,13 +3,15 @@ Single-pole balancing experiment using a continuous-time recurrent neural networ
 '''
 
 from __future__ import print_function
+
 import os
 import pickle
 
-from neat import ctrnn, genes, population, visualize
-from neat.config import Config
 from cart_pole import discrete_actuator_force
 from fitness import evaluate_population
+
+from neat import ctrnn, population, visualize
+from neat.config import Config
 
 
 # Use the CTRNN network phenotype and the discrete actuator force function.
@@ -21,7 +23,7 @@ def fitness_function(genomes):
 local_dir = os.path.dirname(__file__)
 config = Config(os.path.join(local_dir, 'ctrnn_config'))
 
-pop = population.Population(config, node_gene_type=genes.CTNodeGene)
+pop = population.Population(config, node_gene_type=ctrnn.CTNodeGene)
 pop.epoch(fitness_function, 2000, report=1, save_best=0)
 
 # Save the winner.

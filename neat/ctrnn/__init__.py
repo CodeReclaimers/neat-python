@@ -1,11 +1,57 @@
 """
  Module for Continuous-Time Recurrent Neural Networks.
  This pure python version solves the differential equations
- using a simple Forward-Euler method. For a higher precision
- method, use the C++ extension with 4th order Runge-Kutta.
+ using the forward Euler method.
 """
+import random
 from neat.indexer import Indexer
 from neat.nn import exp_sigmoid, tanh_sigmoid
+from neat.genes import NodeGene
+
+
+class CTNodeGene(NodeGene):
+    """ Continuous-time node gene - used in CTRNNs.
+        The main difference here is the addition of
+        a decay rate given by the time constant.
+    """
+    def __init__(self, ID, node_type, bias=0.0, response=4.924273, activation_type='exp', time_constant=1.0):
+        super(CTNodeGene, self).__init__(ID, node_type, bias, response, activation_type)
+        self.time_constant = time_constant
+
+    def mutate(self, config):
+        super(CTNodeGene, self).mutate(config)
+        # mutating the time constant could bring numerical instability
+        # do it with caution
+        # if random.random() < 0.1:
+        #    self.__mutate_time_constant()
+
+    def __mutate_time_constant(self, config):
+        """ Warning: perturbing the time constant (tau) may result in numerical instability """
+        self.time_constant += random.gauss(1.0, 0.5) * 0.001
+        if self.time_constant > config.max_weight:
+            self.time_constant = config.max_weight
+        elif self.time_constant < config.min_weight:
+            self.time_constant = config.min_weight
+        return self
+
+    def get_child(self, other):
+        """ Creates a new NodeGene randomly inheriting its attributes from parents """
+        assert (self.ID == other.ID)
+
+        ng = CTNodeGene(self.ID, self.type,
+                        random.choice((self.bias, other.bias)),
+                        random.choice((self.response, other.response)),
+                        self.activation_type,
+                        random.choice((self.time_constant, other.time_constant)))
+        return ng
+
+    def __str__(self):
+        return 'CTNodeGene(id={0}, type={1}, bias={2}, response={3}, activation={4}, time_constant={5})'.format(
+            self.ID, self.type, self.bias, self.response, self.activation_type, self.time_constant)
+
+    def copy(self):
+        return CTNodeGene(self.ID, self.type, self.bias,
+                          self.response, self.activation_type, self.time_constant)
 
 
 class Neuron(object):
@@ -55,13 +101,13 @@ class CTNeuron(Neuron):
         Adaptive Behavior 1(1):91-122.
     """
 
-    def __init__(self, neuron_type, ID=None, bias=0.0, response=1.0, activation_type='exp', tau=1.0):
+    def __init__(self, neuron_type, ID, bias, response, activation_type, tau):
         super(CTNeuron, self).__init__(neuron_type, ID, bias, response, activation_type)
 
         # decay rate
         self.__tau = tau
         # needs to set the initial state (initial condition for the ODE)
-        self.__state = 0.1  # TODO: Verify what's the "best" initial state
+        self.__state = 0.1
         # fist output
         self._output = self.activation(self.bias, self.response, self.__state)
         # integration step
@@ -85,6 +131,7 @@ class CTNeuron(Neuron):
         """ Returns neuron's next state using Forward-Euler method. """
         self.__state += self.__dt * (1.0 / self.__tau) * (-self.__state + self._update_activation())
 
+
 class Synapse(object):
     """A synapse indicates the connection strength between two neurons (or itself)"""
 
@@ -106,7 +153,7 @@ class Synapse(object):
 class Network(object):
     """A neural network has a list of neurons linked by synapses"""
 
-    def __init__(self, neurons=None, links=None, num_inputs=0):
+    def __init__(self, neurons, links, num_inputs):
         if not neurons:
             neurons = []
         self.neurons = neurons
@@ -187,7 +234,7 @@ class Network(object):
 
 
 def create_phenotype(genome):
-    """ Receives a genome and returns its phenotype (a CTRNN). """
+    """ Receives a genome and returns its phenotype (a continuous-time recurrent neural network). """
     neurons_list = [CTNeuron(ng.type,
                              ng.ID,
                              ng.bias,

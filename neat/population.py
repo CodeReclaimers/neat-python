@@ -112,14 +112,20 @@ class Population(object):
         """ Group genomes into species by similarity """
         # Speciate the population
         for individual in self.population:
-            found = False
+            # Find the species with the most similar representative.
+            min_distance = None
+            closest_species = None
             for s in self.__species:
-                if individual.distance(s.representative) < self.config.compatibility_threshold:
-                    s.add(individual)
-                    found = True
-                    break
+                distance = individual.distance(s.representative)
+                if distance < self.config.compatibility_threshold:
+                    if min_distance is None or distance < min_distance:
+                        closest_species = s
+                        min_distance = distance
 
-            if not found:  # create a new species for this lone genome
+            if closest_species:
+                closest_species.add(individual)
+            else:
+                # No species is similar enough, create a new species for this individual.
                 self.__species.append(Species(individual))
 
         # python technical note:
@@ -128,6 +134,7 @@ class Population(object):
         for s in self.__species[:]:
             # this happens when no genomes are compatible with the species
             if not s.members:
+                #raise Exception('TODO: fix this')
                 if report:
                     print("Removing species {0:d} for being empty".format(s.ID))
                 # remove empty species
@@ -212,6 +219,7 @@ class Population(object):
 
             # Remove stagnated species and its members (except if it has the best genome)
             for s in self.__species[:]:
+                s.update_stagnation()
                 if s.no_improvement_age > self.config.max_stagnation:
                     if report:
                         print("\n   Species {0:2d} (with {1:2d} individuals) is stagnated: removing it".format(s.ID, len(s.members)))
@@ -226,17 +234,11 @@ class Population(object):
             # Compute spawn levels for each remaining species
             self.diversity.compute_spawn_amount(self.__species)
 
-            # Removing species with spawn amount = 0
-            for s in self.__species[:]:
-                # This rarely happens
-                if s.spawn_amount == 0:
-                    if report:
-                        print('   Species {0:2d} age {1:2} removed: produced no offspring'.format(s.ID, s.age))
-                    for c in self.population[:]:
-                        if c.species_id == s.ID:
-                            self.population.remove(c)
-                            # self.remove(c)
-                    self.__species.remove(s)
+            # Verify that all species received non-zero spawn counts, as the speciation mechanism
+            # is intended to allow initially less-fit species time to improve before making them
+            # extinct via the stagnation mechanism.
+            for s in self.__species:
+                assert s.spawn_amount > 0
 
             # Logging speciation stats
             self.__log_species()
@@ -250,8 +252,8 @@ class Population(object):
                     print('Species ID       : {0!s}'.format([s.ID for s in self.__species]))
                     print('Each species size: {0!s}'.format([len(s.members) for s in self.__species]))
                     print('Amount to spawn  : {0!s}'.format([s.spawn_amount for s in self.__species]))
-                    print('Species age      : {0!s}'.format([s.age for s in self.__species]))
-                    print('Species avg fit  : {0!s}'.format([s.average_fitness() for s in self.__species]))
+                    print('Species age      : {0}'.format([s.age for s in self.__species]))
+                    print('Species avg fit  : {0!s}'.format([s.get_average_fitness() for s in self.__species]))
                     print('Species no improv: {0!s}'.format([s.no_improvement_age for s in self.__species]))
                 else:
                     print('All species extinct.')
@@ -277,8 +279,6 @@ class Population(object):
                     if report:
                         print('   Producing {0:d} more individual(s) to fill up the new population'.format(fill))
 
-                    # TODO: what about producing new individuals instead of reproducing?
-                    # increasing diversity from time to time might help
                     while fill > 0:
                         # Selects a random genome from population
                         parent1 = random.choice(self.population)
@@ -299,7 +299,7 @@ class Population(object):
 
                 assert self.config.pop_size == len(new_population), 'Different population sizes!'
                 # Updates current population
-                self.population = new_population[:]
+                self.population = new_population
             else:
                 self.__create_population()
 

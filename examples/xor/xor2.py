@@ -1,10 +1,11 @@
 """ 2-input XOR example """
 from __future__ import print_function
-from neat import population, visualize
-from neat import nn
 
-INPUTS = [[0, 0], [0, 1], [1, 0], [1, 1]]
-OUTPUTS = [0, 1, 1, 0]
+from neat import nn
+from neat import population, visualize
+
+xor_inputs = [[0, 0], [0, 1], [1, 0], [1, 1]]
+xor_outputs = [0, 1, 1, 0]
 
 
 def eval_fitness(genomes):
@@ -12,7 +13,7 @@ def eval_fitness(genomes):
         net = nn.create_feed_forward_phenotype(g)
 
         error = 0.0
-        for inputs, expected in zip(INPUTS, OUTPUTS):
+        for inputs, expected in zip(xor_inputs, xor_outputs):
             # Serial activation propagates the inputs through the entire network.
             output = net.serial_activate(inputs)
             error += (output[0] - expected) ** 2
@@ -32,11 +33,9 @@ def run():
     # Verify network output against training data.
     print('\nBest network output:')
     net = nn.create_feed_forward_phenotype(winner)
-    for inputs, expected in zip(INPUTS, OUTPUTS):
+    for inputs, expected in zip(xor_inputs, xor_outputs):
         output = net.serial_activate(inputs)
         print("expected {0:1.5f} got {1:1.5f}".format(expected, output[0]))
-
-    print(nn.create_feed_forward_function(winner))
 
     # Visualize the winner network and plot statistics.
     visualize.plot_stats(pop.most_fit_genomes, pop.avg_fitness_scores)
