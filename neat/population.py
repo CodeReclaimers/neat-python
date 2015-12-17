@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import copy
 import gzip
 import random
 import time
@@ -197,7 +198,7 @@ class Population(object):
             self.__speciate(report)
 
             # Current generation's best genome
-            self.most_fit_genomes.append(max(self.population))
+            self.most_fit_genomes.append(copy.deepcopy(max(self.population)))
             # Current population's average fitness
             self.avg_fitness_scores.append(mean([c.fitness for c in self.population]))
 
