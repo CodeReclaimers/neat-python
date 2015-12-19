@@ -40,6 +40,7 @@ class Population(object):
             self.__species = []
             # species history
             self.species_log = []
+            self.species_fitness_log = []
 
             # List of statistics for all generations.
             self.avg_fitness_scores = []
@@ -158,20 +159,27 @@ class Population(object):
             self.config.compatibility_threshold = t
 
     def __log_species(self):
-        """ Logging species data for visualizing speciation """
-        temp = []
+        """ Logging species data for visualizing speciation and getting statistics"""
+        temp_species_count = []
+        temp_species_fitness = []
         if self.__species:
             higher = max([s.ID for s in self.__species])
+            temp_species_fitness = range(1,higher+1)
             for i in range(1, higher + 1):
                 found_species = False
                 for s in self.__species:
+                    temp_species_fitness[i-1] = "NA"
                     if i == s.ID:
-                        temp.append(len(s.members))
+                        temp_species_count.append(len(s.members))
+                        temp_species_fitness[i-1] = s.get_average_fitness()
                         found_species = True
                         break
                 if not found_species:
-                    temp.append(0)
-        self.species_log.append(temp)
+                    temp_species_count.append(0)
+                    temp_species_fitness[i-1] = "NA"
+
+        self.species_log.append(temp_species_count)
+        self.species_fitness_log.append(temp_species_fitness)
 
     def epoch(self, fitness_function, n, report=True, save_best=False, checkpoint_interval=10,
               checkpoint_generation=None):
