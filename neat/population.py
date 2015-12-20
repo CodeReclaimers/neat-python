@@ -52,6 +52,10 @@ class Population(object):
                 self.population = initial_population
             self.generation = -1
 
+    def __del__(self):
+        if self.__species:
+            self.__species[0].clearIndexer()
+
     def __resume_checkpoint(self, checkpoint):
         '''
         Resumes the simulation from a previous saved point. This is done by swapping out our existing
