@@ -26,22 +26,16 @@ prob_mutate_weight    = 0.9
 prob_replace_weight   = 0.1
 weight_mutation_power = 1.5
 prob_toggle_link      = 0.01
-elitism               = 1
+elitism               = 2
 
 [genotype compatibility]
 compatibility_threshold = 3.0
-compatibility_change    = 0.0
 excess_coefficient      = 1.0
 disjoint_coefficient    = 1.0
 weight_coefficient      = 0.4
 
 [species]
-species_size        = 10
 survival_threshold  = 0.2
-old_threshold       = 80
-youth_threshold     = 10
-old_penalty         = 1.0
-youth_boost         = 1.0
 max_stagnation      = 20
 
 

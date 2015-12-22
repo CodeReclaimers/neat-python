@@ -11,7 +11,10 @@ from neat.genome import Genome, FFGenome
 from neat.genes import NodeGene, ConnectionGene
 from neat.species import Species
 from neat.math_util import mean, stdev
-from neat.diversity import AgedFitnessSharing
+from neat.diversity import ExplicitFitnessSharing
+
+class MassExtinctionException(Exception):
+    pass
 
 
 class Population(object):
@@ -19,70 +22,70 @@ class Population(object):
 
     def __init__(self, config, checkpoint_file=None, initial_population=None,
                  node_gene_type=NodeGene, conn_gene_type=ConnectionGene,
-                 diversity_type=AgedFitnessSharing):
+                 diversity_type=ExplicitFitnessSharing):
 
         # If config is not a Config object, assume it is a path to the config file.
         if not isinstance(config, Config):
             config = Config(config)
 
         self.config = config
-
-        self.population = None
+        # TODO: Move node_gene_type, conn_gene_type, and diversity_type to the configuration object.
         self.node_gene_type = node_gene_type
         self.conn_gene_type = conn_gene_type
         self.diversity = diversity_type(self.config)
 
+        self.population = None
+        self.species = []
+        self.species_log = []
+        self.fitness_scores = []
+        self.most_fit_genomes = []
+        self.generation = -1
+        self.total_evaluations = 0
+
         if checkpoint_file:
-            # Start from a saved checkpoint.
-            self.__resume_checkpoint(checkpoint_file)
+            assert initial_population is None
+            self._load_checkpoint(checkpoint_file)
+        elif initial_population is None:
+            self._create_population()
         else:
-            # currently living species
-            self.__species = []
-            # species history
-            self.species_log = []
+            self.population = initial_population
 
-            # List of statistics for all generations.
-            self.avg_fitness_scores = []
-            self.most_fit_genomes = []
+        # Partition the population into species based on current configuration.
+        self._speciate()
 
-            if initial_population is None:
-                self.__create_population()
-            else:
-                self.population = initial_population
-            self.generation = -1
-
-    def __resume_checkpoint(self, checkpoint):
-        '''
-        Resumes the simulation from a previous saved point. This is done by swapping out our existing
-        __dict__ with the loaded population's.
-        '''
-        # TODO: Wouldn't it just be better to create a class method to load and return the stored Population
-        # object as-is?  I don't know if there are hidden side effects to directly replacing __dict__.
+    def _load_checkpoint(self, checkpoint):
+        '''Resumes the simulation from a previous saved point.'''
         with gzip.open(checkpoint) as f:
-            print('Resuming from a previous point: {0!s}'.format(checkpoint))
-            # when unpickling __init__ is not called again
-            previous_pop = pickle.load(f)
-            self.__dict__ = previous_pop.__dict__
+            print('Resuming from a previous point: {0}'.format(checkpoint))
 
-            print('Loading random state')
-            random.setstate(pickle.load(f))
+            (self.population,
+             self.species,
+             self.species_log,
+             self.fitness_scores,
+             self.most_fit_genomes,
+             self.generation,
+             random_state) = pickle.load(f)
 
-    def __create_checkpoint(self, report):
-        """ Saves the current simulation state. """
-        if report:
-            print('Creating checkpoint file at generation: {0:d}'.format(self.generation))
+            random.setstate(random_state)
 
-        with gzip.open('checkpoint_' + str(self.generation), 'w', compresslevel=5) as f:
-            # Write the entire population state.
-            pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
-            # Remember the current random number state.
-            pickle.dump(random.getstate(), f, protocol=2)
+    def _create_checkpoint(self):
+        """ Save the current simulation state. """
+        fn = 'neat-checkpoint-{0}'.format(self.generation)
+        with gzip.open(fn, 'w', compresslevel=5) as f:
+            data = (self.population,
+                    self.species,
+                    self.species_log,
+                    self.fitness_scores,
+                    self.most_fit_genomes,
+                    self.generation,
+                    random.getstate())
+            pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-    def __create_population(self):
+    def _create_population(self):
         if self.config.feedforward:
-            genotypes = FFGenome
+            genotype = FFGenome
         else:
-            genotypes = Genome
+            genotype = Genome
 
         self.population = []
         # TODO: Add FS-NEAT support, which creates an empty connection set, and then performs a
@@ -93,30 +96,24 @@ class Population(object):
         # 3. FS-NEAT connected (one random connection)
         if self.config.fully_connected:
             for i in range(self.config.pop_size):
-                g = genotypes.create_fully_connected(self.config, self.node_gene_type, self.conn_gene_type)
+                g = genotype.create_fully_connected(self.config, self.node_gene_type, self.conn_gene_type)
                 self.population.append(g)
         else:
             for i in range(self.config.pop_size):
-                g = genotypes.create_minimally_connected(self.config, self.node_gene_type, self.conn_gene_type)
+                g = genotype.create_minimally_connected(self.config, self.node_gene_type, self.conn_gene_type)
                 self.population.append(g)
 
         if self.config.hidden_nodes > 0:
             for g in self.population:
                 g.add_hidden_nodes(self.config.hidden_nodes)
 
-    def __repr__(self):
-        s = "Population size: {0:d}".format(self.config.pop_size)
-        s += "\nTotal species: {0:d}".format(len(self.__species))
-        return s
-
-    def __speciate(self, report):
-        """ Group genomes into species by similarity """
-        # Speciate the population
+    def _speciate(self):
+        """Group genomes into species by genetic similarity."""
         for individual in self.population:
             # Find the species with the most similar representative.
             min_distance = None
             closest_species = None
-            for s in self.__species:
+            for s in self.species:
                 distance = individual.distance(s.representative)
                 if distance < self.config.compatibility_threshold:
                     if min_distance is None or distance < min_distance:
@@ -127,51 +124,19 @@ class Population(object):
                 closest_species.add(individual)
             else:
                 # No species is similar enough, create a new species for this individual.
-                self.__species.append(Species(individual))
+                self.species.append(Species(individual))
 
-        # python technical note:
-        # we need a "working copy" list when removing elements while looping
-        # otherwise we might end up having sync issues
-        for s in self.__species[:]:
-            # this happens when no genomes are compatible with the species
+        # Verify that no species are empty.
+        for s in self.species:
             if not s.members:
-                #raise Exception('TODO: fix this')
-                if report:
-                    print("Removing species {0:d} for being empty".format(s.ID))
-                # remove empty species
-                self.__species.remove(s)
+                raise Exception('TODO: fix empty species bug')
 
-        self.__set_compatibility_threshold(report)
-
-    def __set_compatibility_threshold(self, report):
-        """ Controls compatibility threshold """
-        t = self.config.compatibility_threshold
-        dt = self.config.compatibility_change
-        if len(self.__species) > self.config.species_size:
-            t += dt
-        elif len(self.__species) < self.config.species_size:
-            t = max(0.0, t - dt)
-
-        if self.config.compatibility_threshold != t:
-            if report:
-                print("Adjusted compatibility threshold to {0:f}".format(t))
-            self.config.compatibility_threshold = t
-
-    def __log_species(self):
-        """ Logging species data for visualizing speciation """
-        temp = []
-        if self.__species:
-            higher = max([s.ID for s in self.__species])
-            for i in range(1, higher + 1):
-                found_species = False
-                for s in self.__species:
-                    if i == s.ID:
-                        temp.append(len(s.members))
-                        found_species = True
-                        break
-                if not found_species:
-                    temp.append(0)
-        self.species_log.append(temp)
+    def _log_stats(self):
+        """ Gather data for visualization/reporting purposes. """
+        species_sizes = dict((s.ID, len(s.members)) for s in self.species)
+        self.species_log.append(species_sizes)
+        self.most_fit_genomes.append(copy.deepcopy(max(self.population)))
+        self.fitness_scores.append([c.fitness for c in self.population])
 
     def epoch(self, fitness_function, n, report=True, save_best=False, checkpoint_interval=10,
               checkpoint_generation=None):
@@ -190,122 +155,82 @@ class Population(object):
             self.generation += 1
 
             if report:
-                print('\n ****** Running generation {0:d} ****** \n'.format(self.generation))
+                print('\n ****** Running generation {0} ****** \n'.format(self.generation))
 
             # Evaluate individuals
             fitness_function(self.population)
-            # Speciates the population
-            self.__speciate(report)
+            self.total_evaluations += len(self.population)
 
-            # Current generation's best genome
-            self.most_fit_genomes.append(copy.deepcopy(max(self.population)))
-            # Current population's average fitness
-            self.avg_fitness_scores.append(mean([c.fitness for c in self.population]))
+            # Gather statistics.
+            self._log_stats()
 
             # Print some statistics
             best = self.most_fit_genomes[-1]
+            if report:
+                fit_mean = mean([c.fitness for c in self.population])
+                fit_std = stdev([c.fitness for c in self.population])
+                print('Population\'s average fitness: {0:3.5f} stdev: {1:3.5f}'.format(fit_mean, fit_std))
+                print('Best fitness: {0:3.5f} - size: {1!r} - species {2} - id {3}'.format(best.fitness, best.size(),
+                                                                                           best.species_id, best.ID))
+                print('Species length: {0:d} totaling {1:d} individuals'.format(len(self.species), sum([len(s.members) for s in self.species])))
+                print('Species ID       : {0!s}'.format([s.ID for s in self.species]))
+                print('Each species size: {0!s}'.format([len(s.members) for s in self.species]))
+                print('Amount to spawn  : {0!s}'.format([s.spawn_amount for s in self.species]))
+                print('Species age      : {0}'.format([s.age for s in self.species]))
+                print('Species avg fit  : {0!r}'.format([s.get_average_fitness() for s in self.species]))
+                print('Species no improv: {0!r}'.format([s.no_improvement_age for s in self.species]))
 
-            # saves the best genome from the current generation
+            # Saves the best genome from the current generation if requested.
             if save_best:
                 f = open('best_genome_' + str(self.generation), 'w')
                 pickle.dump(best, f)
                 f.close()
 
-            # Stops the simulation
-            if best.fitness > self.config.max_fitness_threshold:
+            # End when the fitness threshold is reached.
+            if best.fitness >= self.config.max_fitness_threshold:
                 if report:
-                    print('\nBest individual in epoch {0!s} meets fitness threshold - complexity: {1!s}'.format(
+                    print('\nBest individual in epoch {0} meets fitness threshold - complexity: {1!r}'.format(
                         self.generation, best.size()))
                 break
 
-            # Remove stagnated species and its members (except if it has the best genome)
-            for s in self.__species[:]:
+            # Remove stagnated species.
+            #TODO: Log species removal for visualization purposes.
+            new_species = []
+            for s in self.species:
                 s.update_stagnation()
-                if s.no_improvement_age > self.config.max_stagnation:
-                    if report:
-                        print("\n   Species {0:2d} (with {1:2d} individuals) is stagnated: removing it".format(s.ID, len(s.members)))
-                    # removing species
-                    self.__species.remove(s)
-                    # removing all the species' members
-                    # TODO: can be optimized!
-                    for c in self.population[:]:
-                        if c.species_id == s.ID:
-                            self.population.remove(c)
-
-            # Compute spawn levels for each remaining species
-            self.diversity.compute_spawn_amount(self.__species)
-
-            # Verify that all species received non-zero spawn counts, as the speciation mechanism
-            # is intended to allow initially less-fit species time to improve before making them
-            # extinct via the stagnation mechanism.
-            for s in self.__species:
-                assert s.spawn_amount > 0
-
-            # Logging speciation stats
-            self.__log_species()
-
-            if report:
-                if self.population:
-                    std_dev = stdev([c.fitness for c in self.population])
-                    print('Population\'s average fitness: {0:3.5f} stdev: {1:3.5f}'.format(self.avg_fitness_scores[-1], std_dev))
-                    print('Best fitness: {0:2.12} - size: {1!r} - species {2} - id {3}'.format(best.fitness, best.size(), best.species_id, best.ID))
-                    print('Species length: {0:d} totaling {1:d} individuals'.format(len(self.__species), sum([len(s.members) for s in self.__species])))
-                    print('Species ID       : {0!s}'.format([s.ID for s in self.__species]))
-                    print('Each species size: {0!s}'.format([len(s.members) for s in self.__species]))
-                    print('Amount to spawn  : {0!s}'.format([s.spawn_amount for s in self.__species]))
-                    print('Species age      : {0}'.format([s.age for s in self.__species]))
-                    print('Species avg fit  : {0!s}'.format([s.get_average_fitness() for s in self.__species]))
-                    print('Species no improv: {0!s}'.format([s.no_improvement_age for s in self.__species]))
+                if s.no_improvement_age <= self.config.max_stagnation:
+                    new_species.append(s)
                 else:
+                    if report:
+                        print("\n   Species {0} with {1} members is stagnated: removing it".format(s.ID, len(s.members)))
+            self.species = new_species
+
+            # Check for complete extinction.
+            if not self.species:
+                if report:
                     print('All species extinct.')
+                raise MassExtinctionException()
 
-            # -------------------------- Producing new offspring -------------------------- #
-            new_population = []  # next generation's population
+            # Compute spawn levels for all current species and then reproduce.
+            self.diversity.compute_spawn_amount(self.species)
+            self.population = []
+            for s in self.species:
+                # Verify that all species received non-zero spawn counts, as the speciation mechanism
+                # is intended to allow initially less fit species time to improve before making them
+                # extinct via the stagnation mechanism.
+                assert s.spawn_amount > 0
+                self.population.extend(s.reproduce(self.config))
 
-            # If no species are left, create a new population from scratch, otherwise top off
-            # population by reproducing existing species.
-            if self.__species:
-                for s in self.__species:
-                    new_population.extend(s.reproduce(self.config))
-
-                # Controls under or overflow  #
-                fill = self.config.pop_size - len(new_population)
-                if fill < 0:  # overflow
-                    if report:
-                        print('   Removing {0:d} excess individual(s) from the new population'.format(-fill))
-                    # TODO: This is dangerous! I can't remove a species' representative!
-                    new_population = new_population[:fill]  # Removing the last added members
-
-                if fill > 0:  # underflow
-                    if report:
-                        print('   Producing {0:d} more individual(s) to fill up the new population'.format(fill))
-
-                    while fill > 0:
-                        # Selects a random genome from population
-                        parent1 = random.choice(self.population)
-                        # Search for a mate within the same species
-                        found = False
-                        for c in self.population:
-                            # what if c is parent1 itself?
-                            if c.species_id == parent1.species_id:
-                                child = parent1.crossover(c)
-                                new_population.append(child.mutate())
-                                found = True
-                                break
-                        if not found:
-                            # If no mate was found, just mutate it
-                            new_population.append(parent1.mutate())
-                        # new_population.append(genome.FFGenome.create_fully_connected())
-                        fill -= 1
-
-                assert self.config.pop_size == len(new_population), 'Different population sizes!'
-                # Updates current population
-                self.population = new_population
-            else:
-                self.__create_population()
+            self._speciate()
 
             if checkpoint_interval is not None and time.time() > t0 + 60 * checkpoint_interval:
-                self.__create_checkpoint(report)
-                t0 = time.time()  # updates the counter
+                if report:
+                    print('Creating timed checkpoint file at generation: {0}'.format(self.generation))
+                self._create_checkpoint()
+
+                # Update the checkpoint time.
+                t0 = time.time()
             elif checkpoint_generation is not None and self.generation % checkpoint_generation == 0:
-                self.__create_checkpoint(report)
+                if report:
+                    print('Creating generation checkpoint file at generation: {0}'.format(self.generation))
+                self._create_checkpoint()

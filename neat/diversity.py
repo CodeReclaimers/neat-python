@@ -3,11 +3,12 @@ Implementations of diversity maintenance schemes.
 '''
 from math import ceil
 
-class AgedFitnessSharing(object):
+
+class ExplicitFitnessSharing(object):
     '''
     This class encapsulates a fitness sharing scheme. It is responsible for
     computing the number of individuals to be spawned for each species in the
-    next generation, based on species fitness, age, and size.
+    next generation, based on species fitness and size.
 
     Fitness inside a species is shared by all its members, so that a species
     that happens to end up with a large initial number of members is less
@@ -35,13 +36,6 @@ class AgedFitnessSharing(object):
         for f, s in zip(fitnesses, species):
             # Make all adjusted fitnesses positive, and apply adjustment for population size.
             af = (f + fitness_shift) / len(s.members)
-
-            # Apply adjustments for species age.
-            if s.age < self.config.youth_threshold:
-                af *= self.config.youth_boost
-            elif s.age > self.config.old_threshold:
-                af *= self.config.old_penalty
-
             adjusted_fitnesses.append(af)
             total_adjusted_fitness += af
 

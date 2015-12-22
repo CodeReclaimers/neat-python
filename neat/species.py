@@ -22,23 +22,14 @@ class Species(object):
     def add(self, individual):
         individual.species_id = self.ID
         self.members.append(individual)
-        # choose a new random representative for the species
-        self.representative = random.choice(self.members)
-
-    def __str__(self):
-        s = "\n   Species {0:2d}   size: {1:3d}   age: {2:3d}   spawn: {3:3d}   ".format(self.ID, len(self.members), self.age, self.spawn_amount)
-        s += "\n   No improvement: {0:3d} \t avg. fitness: {1:1.8f}".format(self.no_improvement_age, self.last_avg_fitness)
-        return s
 
     def get_average_fitness(self):
-        """ Returns the raw average fitness over all members in the species."""
+        """ Returns the average fitness over all members in the species."""
         return mean([c.fitness for c in self.members])
 
     def update_stagnation(self):
         """ Updates no_improvement_age based on average fitness progress."""
         fitness = self.get_average_fitness()
-
-        # Check for increase in mean fitness and adjust "no improvement" count as necessary.
         if fitness > self.last_avg_fitness:
             self.last_avg_fitness = fitness
             self.no_improvement_age = 0
@@ -46,19 +37,18 @@ class Species(object):
             self.no_improvement_age += 1
 
     def reproduce(self, config):
-        """ Returns a list of 'self.spawn_amount' new individuals """
+        """
+        Update species age, clear the current membership list, and return a list of 'self.spawn_amount' new individuals.
+        """
+        self.age += 1
 
-        offspring = []  # new offspring for this species
-        self.age += 1  # increment species age
+        # Sort with most fit members first.
+        self.members.sort(reverse=True)
 
-        self.members.sort()  # sort species's members by their fitness
-        self.members.reverse()  # best members first
-
-        if config.elitism:
-            # TODO: Wouldn't it be better if we set elitism=2,3,4...
-            # depending on the size of each species?
-            offspring.append(self.members[0])
-            self.spawn_amount -= 1
+        offspring = []
+        if config.elitism > 0:
+            offspring.extend(self.members[:config.elitism])
+            self.spawn_amount -= config.elitism
 
         # Keep a fraction of the current population for reproduction.
         survivors = int(round(len(self.members) * config.survival_threshold))
@@ -69,19 +59,19 @@ class Species(object):
         while self.spawn_amount > 0:
             self.spawn_amount -= 1
 
-            # Select two parents at random from the remaining members.
+            # Select two parents at random from the given set of members.
             parent1 = random.choice(self.members)
             parent2 = random.choice(self.members)
 
-            # Note that if the parents are not distinct, crossover should
-            # be idempotent. TODO: Write a test for that.
+            # Note that if the parents are not distinct, crossover should produce a
+            # genetically identical clone of the parent (but with a different ID).
             child = parent1.crossover(parent2)
             offspring.append(child.mutate())
 
-        # reset species (new members will be added again when speciating)
+        # Reset species members--the speciation process in Population will repopulate this list.
         self.members = []
 
-        # select a new random representative member
+        # Select a new random representative member from the new offspring.
         self.representative = random.choice(offspring)
 
         return offspring

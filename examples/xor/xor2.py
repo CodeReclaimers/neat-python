@@ -1,8 +1,7 @@
 """ 2-input XOR example """
 from __future__ import print_function
 
-from neat import nn
-from neat import population, visualize
+from neat import nn, population, visualize
 
 xor_inputs = [[0, 0], [0, 1], [1, 0], [1, 1]]
 xor_outputs = [0, 1, 1, 0]
@@ -23,25 +22,20 @@ def eval_fitness(genomes):
         g.fitness = 1 - error
 
 
-def run():
-    pop = population.Population('xor2_config')
-    pop.epoch(eval_fitness, 300)
+pop = population.Population('xor2_config')
+pop.epoch(eval_fitness, 300)
 
-    winner = pop.most_fit_genomes[-1]
-    print('Number of evaluations: {0:d}'.format(winner.ID))
+print('Number of evaluations: {0}'.format(pop.total_evaluations))
 
-    # Verify network output against training data.
-    print('\nBest network output:')
-    net = nn.create_feed_forward_phenotype(winner)
-    for inputs, expected in zip(xor_inputs, xor_outputs):
-        output = net.serial_activate(inputs)
-        print("expected {0:1.5f} got {1:1.5f}".format(expected, output[0]))
+# Verify network output against training data.
+print('\nBest network output:')
+winner = pop.most_fit_genomes[-1]
+net = nn.create_feed_forward_phenotype(winner)
+for inputs, expected in zip(xor_inputs, xor_outputs):
+    output = net.serial_activate(inputs)
+    print("expected {0:1.5f} got {1:1.5f}".format(expected, output[0]))
 
-    # Visualize the winner network and plot statistics.
-    visualize.plot_stats(pop.most_fit_genomes, pop.avg_fitness_scores)
-    visualize.plot_species(pop.species_log)
-    visualize.draw_net(winner, view=True)
-
-
-if __name__ == '__main__':
-    run()
+# Visualize the winner network and plot statistics.
+visualize.plot_stats(pop.most_fit_genomes, pop.fitness_scores)
+visualize.plot_species(pop.species_log)
+visualize.draw_net(winner, view=True)

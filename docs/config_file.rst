@@ -64,14 +64,12 @@ NEAT settings.
 * *prob_toggle_link*
     The probability that the enabled status of a connection will be toggled.
 * *elitism*
-    The number of individuals in each species that will be preserved from one generation to the next.
+    The number of most fit individuals in each species that will be preserved as-is from one generation to the next.
 
 [genotype compatibility] section
 --------------------------------
 * *compatibility_threshold*
     Individuals whose genomic distance is less than this threshold are considered to be in the same species.
-* *compatibility_change*
-    The amount by which *compatibility_threshold* may be adjusted during a generation to maintain target *species_size*.
 * *excess_coefficient*
     The coefficient for the excess gene count's contribution to the genomic distance.
 * *disjoint_coefficient*
@@ -81,18 +79,8 @@ NEAT settings.
 
 [species] section
 -----------------
-* *species_size*
-    The target number of species to maintain.  When the number of species is different from *species_size*, *compatibility_threshold* will be adjusted up or down as necessary to attempt to return to *species_size*.
 * *survival_threshold*
     The fraction for each species allowed to reproduce on each generation.
-* *old_threshold*
-    The number of generations beyond which species are considered old.
-* *youth_threshold*
-    The number of generations below which species are considered young.
-* *old_penalty*
-    The multiplicative fitness adjustment applied to old species' average fitness.  This value is typically on (0.0, 1.0].
-* *youth_boost*
-    The multiplicative fitness adjustment applied to young species' average fitness.  This value is typically on [1.0, 2.0].
 * *max_stagnation*
     Species that have not shown improvement in more than this number of generations will be considered stagnant and removed.
 

@@ -52,9 +52,6 @@ class NodeGene(object):
             self.__mutate_response(config)
 
 
-
-
-
 class ConnectionGene(object):
     indexer = Indexer(0)
     __innovations = {}

@@ -65,18 +65,18 @@ def run():
     print("total evolution time {0:.3f} sec".format((time.time() - t0)))
     print("time per generation {0:.3f} sec".format(((time.time() - t0) / pop.generation)))
 
-    winner = pop.most_fit_genomes[-1]
-    print('Number of evaluations: {0:d}'.format(winner.ID))
+    print('Number of evaluations: {0:d}'.format(pop.total_evaluations))
 
     # Verify network output against training data.
     print('\nBest network output:')
+    winner = pop.most_fit_genomes[-1]
     net = nn.create_feed_forward_phenotype(winner)
     for i, inputs in enumerate(xor_inputs):
         output = net.serial_activate(inputs)  # serial activation
         print( "{0:1.5f} \t {1:1.5f}".format(xor_outputs[i], output[0]))
 
     # Visualize the winner network and plot statistics.
-    visualize.plot_stats(pop.most_fit_genomes, pop.avg_fitness_scores)
+    visualize.plot_stats(pop.most_fit_genomes, pop.fitness_scores)
     visualize.plot_species(pop.species_log)
     visualize.draw_net(winner, view=True)
 

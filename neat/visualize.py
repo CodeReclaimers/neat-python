@@ -20,7 +20,10 @@ except ImportError:
     warnings.warn('Could not import optional dependency NumPy.')
 
 
-def plot_stats(best_genomes, avg_scores, ylog=False, view=False, filename='avg_fitness.svg'):
+from neat.math_util import mean
+
+
+def plot_stats(best_genomes, fitness_scores, ylog=False, view=False, filename='avg_fitness.svg'):
     """ Plots the population's average and best fitness. """
     if plt is None:
         warnings.warn("This display is not available due to a missing optional dependency (matplotlib)")
@@ -29,6 +32,8 @@ def plot_stats(best_genomes, avg_scores, ylog=False, view=False, filename='avg_f
     generation = range(len(best_genomes))
 
     fitness = [c.fitness for c in best_genomes]
+
+    avg_scores = [mean(f) for f in fitness_scores]
 
     plt.plot(generation, avg_scores, 'b-', label="average")
     plt.plot(generation, fitness, 'r-', label="best")
@@ -97,11 +102,15 @@ def plot_species(species_log, view=False, filename='speciation.svg'):
         return
 
     num_generations = len(species_log)
-    num_species = max(map(len, species_log))
+    all_species = set()
+    for gen_data in species_log:
+        for sid, scount in gen_data.items():
+            all_species.add(sid)
+
+    max_species = max(all_species)
     curves = []
-    for gen in species_log:
-        species = [0] * num_species
-        species[:len(gen)] = gen
+    for gen_data in species_log:
+        species = [gen_data.get(sid, 0) for sid in range(max_species + 1)]
         curves.append(np.array(species))
     curves = np.array(curves).T
 
@@ -120,12 +129,17 @@ def plot_species(species_log, view=False, filename='speciation.svg'):
     plt.close()
 
 
-def draw_net(genome, view=False, filename=None):
+def draw_net(genome, view=False, filename=None, node_names=None):
     """ Receives a genome and draws a neural network with arbitrary topology. """
     # Attributes for network nodes.
     if graphviz is None:
         warnings.warn("This display is not available due to a missing optional dependency (graphviz)")
         return
+
+    if node_names is None:
+        node_names = {}
+
+    assert type(node_names) is dict
 
     node_attrs = {
         'shape': 'circle',
@@ -147,15 +161,17 @@ def draw_net(genome, view=False, filename=None):
 
     for ng_id, ng in genome.node_genes.items():
         if ng.type == 'INPUT':
-            dot.node(str(ng_id), _attributes=input_attrs)
+            name = node_names.get(ng_id, str(ng_id))
+            dot.node(name, _attributes=input_attrs)
 
     for ng_id, ng in genome.node_genes.items():
         if ng.type == 'OUTPUT':
-            dot.node(str(ng_id), _attributes=output_attrs)
+            name = node_names.get(ng_id, str(ng_id))
+            dot.node(name, _attributes=output_attrs)
 
     for cg in genome.conn_genes.values():
-        a = str(cg.in_node_id)
-        b = str(cg.out_node_id)
+        a = node_names.get(cg.in_node_id, str(cg.in_node_id))
+        b = node_names.get(cg.out_node_id, str(cg.out_node_id))
         style = 'solid' if cg.enabled else 'dotted'
         color = 'green' if cg.weight > 0 else 'red'
         width = str(0.1 + abs(cg.weight / 5.0))

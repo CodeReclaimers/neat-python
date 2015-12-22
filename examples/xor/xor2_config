@@ -37,16 +37,10 @@ elitism                 = 1
 
 [genotype compatibility]
 compatibility_threshold = 3.0
-compatibility_change    = 0.0
 excess_coefficient      = 1.0
 disjoint_coefficient    = 1.0
 weight_coefficient      = 0.4
 
 [species]
-species_size        = 10
 survival_threshold  = 0.2
-old_threshold       = 30
-youth_threshold     = 10
-old_penalty         = 1.0
-youth_boost         = 1.0
 max_stagnation      = 100

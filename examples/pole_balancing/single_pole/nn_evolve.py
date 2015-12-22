@@ -27,13 +27,13 @@ pop = population.Population(config)
 pop.epoch(fitness_function, 1000)
 
 # Save the winner.
+print('Number of evaluations: {0:d}'.format(pop.total_evaluations))
 winner = pop.most_fit_genomes[-1]
-print('Number of evaluations: {0:d}'.format(winner.ID))
 with open('nn_winner_genome', 'wb') as f:
     pickle.dump(winner, f)
 
 # Plot the evolution of the best/average fitness.
-visualize.plot_stats(pop.most_fit_genomes, pop.avg_fitness_scores, ylog=True, filename="nn_fitness.svg")
+visualize.plot_stats(pop.most_fit_genomes, pop.fitness_scores, ylog=True, filename="nn_fitness.svg")
 # Visualizes speciation
 visualize.plot_species(pop.species_log, filename="nn_speciation.svg")
 # Visualize the best network.
