@@ -3,6 +3,7 @@ from neat import ctrnn
 # TODO: These tests are just smoke tests to make sure nothing has become badly broken.  Expand
 # to include more detailed tests of actual functionality.
 
+
 def create_simple():
     neurons = [ctrnn.Neuron('INPUT', 1, 0.0, 5.0, 'exp'),
                ctrnn.Neuron('HIDDEN', 2, 0.0, 5.0, 'exp'),

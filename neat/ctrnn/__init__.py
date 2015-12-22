@@ -23,9 +23,9 @@ class CTNodeGene(NodeGene):
         # mutating the time constant could bring numerical instability
         # do it with caution
         # if random.random() < 0.1:
-        #    self.__mutate_time_constant()
+        #    self.mutate_time_constant()
 
-    def __mutate_time_constant(self, config):
+    def mutate_time_constant(self, config):
         """ Warning: perturbing the time constant (tau) may result in numerical instability """
         self.time_constant += random.gauss(1.0, 0.5) * 0.001
         if self.time_constant > config.max_weight:
@@ -221,7 +221,7 @@ class Network(object):
         # representing all neuron's state at that time (think of it as a clock)
         current_state = []
         for n in self.neurons:
-            if n.type != 'INPUT': # hidden or output neurons
+            if n.type != 'INPUT':  # hidden or output neurons
                 current_state.append(n.activate())
         # updates all neurons at once
         net_output = []

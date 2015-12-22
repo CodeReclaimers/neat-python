@@ -7,15 +7,11 @@ class Genome(object):
     """ A genome for general recurrent neural networks. """
     indexer = Indexer(1)
 
-    def __init__(self, config, parent1_id, parent2_id, node_gene_type, conn_gene_type):
+    def __init__(self, config, parent1_id, parent2_id):
         self.config = config
         self.ID = Genome.indexer.next()
         self.num_inputs = config.input_nodes
         self.num_outputs = config.output_nodes
-
-        # The types of node and connection genes the genome carries.
-        self._node_gene_type = node_gene_type
-        self._conn_gene_type = conn_gene_type
 
         # (id, gene) pairs for connection and node gene sets.
         self.conn_genes = {}
@@ -34,16 +30,16 @@ class Genome(object):
         # TODO: Make a configuration item to choose whether or not multiple mutations can happen at once.
 
         if random() < self.config.prob_add_node:
-            self._mutate_add_node()
+            self.mutate_add_node()
 
         if random() < self.config.prob_add_conn:
-            self._mutate_add_connection()
+            self.mutate_add_connection()
 
         if random() < self.config.prob_delete_node:
-            self._mutate_delete_node()
+            self.mutate_delete_node()
 
         if random() < self.config.prob_delete_conn:
-            self._mutate_delete_connection()
+            self.mutate_delete_connection()
 
         # Mutate connection genes (weights, enabled, etc.).
         for cg in self.conn_genes.values():
@@ -60,7 +56,8 @@ class Genome(object):
         """ Crosses over parents' genomes and returns a child. """
 
         # Parents must belong to the same species.
-        assert self.species_id == other.species_id, 'Different parents species ID: {0} vs {1}'.format(self.species_id, other.species_id)
+        assert self.species_id == other.species_id, 'Different parents species ID: {0} vs {1}'.format(self.species_id,
+                                                                                                      other.species_id)
 
         # TODO: if they're of equal fitness, choose the shortest
         if self.fitness > other.fitness:
@@ -71,15 +68,15 @@ class Genome(object):
             parent2 = self
 
         # creates a new child
-        child = self.__class__(self.config, self.ID, other.ID, self._node_gene_type, self._conn_gene_type)
+        child = self.__class__(self.config, self.ID, other.ID)
 
-        child._inherit_genes(parent1, parent2)
+        child.inherit_genes(parent1, parent2)
 
         child.species_id = parent1.species_id
 
         return child
 
-    def _inherit_genes(self, parent1, parent2):
+    def inherit_genes(self, parent1, parent2):
         """ Applies the crossover operator. """
         assert (parent1.fitness >= parent2.fitness)
 
@@ -117,11 +114,11 @@ class Genome(object):
             new_id += 1
         return new_id
 
-    def _mutate_add_node(self):
+    def mutate_add_node(self):
         # Choose a random connection to split
         conn_to_split = choice(list(self.conn_genes.values()))
         new_node_id = self.get_new_hidden_id()
-        ng = self._node_gene_type(new_node_id, 'HIDDEN', activation_type=self.config.nn_activation)
+        ng = self.config.node_gene_type(new_node_id, 'HIDDEN', activation_type=self.config.nn_activation)
         assert ng.ID not in self.node_genes
         self.node_genes[ng.ID] = ng
         new_conn1, new_conn2 = conn_to_split.split(ng.ID)
@@ -129,7 +126,7 @@ class Genome(object):
         self.conn_genes[new_conn2.key] = new_conn2
         return ng, conn_to_split  # the return is only used in genome_feedforward
 
-    def _mutate_add_connection(self):
+    def mutate_add_connection(self):
         '''
         Attempt to add a new connection, the only restriction being that the output
         node cannot be one of the network input nodes.
@@ -146,10 +143,10 @@ class Genome(object):
         if key not in self.conn_genes:
             weight = gauss(0, self.config.weight_stdev)
             enabled = choice([False, True])
-            cg = self._conn_gene_type(in_node.ID, out_node.ID, weight, enabled)
+            cg = self.config.conn_gene_type(in_node.ID, out_node.ID, weight, enabled)
             self.conn_genes[cg.key] = cg
 
-    def _mutate_delete_node(self):
+    def mutate_delete_node(self):
         # Do nothing if there are no hidden nodes.
         if len(self.node_genes) <= self.num_inputs + self.num_outputs:
             return -1
@@ -181,7 +178,7 @@ class Genome(object):
 
         return node_id
 
-    def _mutate_delete_connection(self):
+    def mutate_delete_connection(self):
         if len(self.conn_genes) > self.num_inputs + self.num_outputs:
             key = choice(list(self.conn_genes.keys()))
             del self.conn_genes[key]
@@ -228,7 +225,8 @@ class Genome(object):
 
         disjoint += len(genome2.conn_genes) - matching
 
-        distance = self.config.excess_coefficient * float(excess) / N + self.config.disjoint_coefficient * float(disjoint) / N
+        distance = self.config.excess_coefficient * float(excess) / N + self.config.disjoint_coefficient * float(
+            disjoint) / N
         if matching > 0:
             distance += self.config.weight_coefficient * (weight_diff / matching)
 
@@ -258,9 +256,9 @@ class Genome(object):
     def add_hidden_nodes(self, num_hidden):
         node_id = self.get_new_hidden_id()
         for i in range(num_hidden):
-            node_gene = self._node_gene_type(node_id,
-                                             node_type='HIDDEN',
-                                             activation_type=self.config.nn_activation)
+            node_gene = self.config.node_gene_type(node_id,
+                                                   node_type='HIDDEN',
+                                                   activation_type=self.config.nn_activation)
             assert node_gene.ID not in self.node_genes
             self.node_genes[node_gene.ID] = node_gene
             node_id += 1
@@ -281,21 +279,21 @@ class Genome(object):
             #     self.conn_genes[cg.key] = cg
 
     @classmethod
-    def create_unconnected(cls, config, node_gene_type, conn_gene_type):
+    def create_unconnected(cls, config):
         '''Create a genome for a network with no hidden nodes and no connections.'''
 
-        c = cls(config, 0, 0, node_gene_type, conn_gene_type)
+        c = cls(config, 0, 0)
         node_id = 0
         # Create node genes
         for i in range(config.input_nodes):
             assert node_id not in c.node_genes
-            c.node_genes[node_id] = c._node_gene_type(node_id, 'INPUT')
+            c.node_genes[node_id] = config.node_gene_type(node_id, 'INPUT')
             node_id += 1
 
         for i in range(config.output_nodes):
-            node_gene = c._node_gene_type(node_id,
-                                          node_type='OUTPUT',
-                                          activation_type=config.nn_activation)
+            node_gene = config.node_gene_type(node_id,
+                                              node_type='OUTPUT',
+                                              activation_type=config.nn_activation)
             assert node_gene.ID not in c.node_genes
             c.node_genes[node_gene.ID] = node_gene
             node_id += 1
@@ -304,12 +302,12 @@ class Genome(object):
         return c
 
     @classmethod
-    def create_minimally_connected(cls, config, node_gene_type, conn_gene_type):
+    def create_minimally_connected(cls, config):
         """
         Create a genome for a minimally connected feed-forward network with no hidden nodes.
         Each output node will have a single connection from a randomly chosen input node.
         """
-        c = cls.create_unconnected(config, node_gene_type, conn_gene_type)
+        c = cls.create_unconnected(config)
         for node_gene in c.node_genes.values():
             if node_gene.type != 'OUTPUT':
                 continue
@@ -323,17 +321,17 @@ class Genome(object):
             input_node = c.node_genes[idx]
             weight = gauss(0, config.weight_stdev)
 
-            cg = c._conn_gene_type(input_node.ID, node_gene.ID, weight, True)
+            cg = config.conn_gene_type(input_node.ID, node_gene.ID, weight, True)
             c.conn_genes[cg.key] = cg
 
         return c
 
     @classmethod
-    def create_fully_connected(cls, config, node_gene_type, conn_gene_type):
+    def create_fully_connected(cls, config):
         """
         Create a genome for a fully connected feed-forward network with no hidden nodes.
         """
-        c = cls.create_unconnected(config, node_gene_type, conn_gene_type)
+        c = cls.create_unconnected(config)
         for node_gene in c.node_genes.values():
             if node_gene.type != 'OUTPUT':
                 continue
@@ -342,7 +340,7 @@ class Genome(object):
             for input_node in c.node_genes.values():
                 if input_node.type == 'INPUT':
                     weight = gauss(0, config.weight_stdev)
-                    cg = c._conn_gene_type(input_node.ID, node_gene.ID, weight, True)
+                    cg = config.conn_gene_type(input_node.ID, node_gene.ID, weight, True)
                     c.conn_genes[cg.key] = cg
 
         return c
@@ -353,19 +351,19 @@ class FFGenome(Genome):
         topologies are a particular case of Recurrent NNs.
     """
 
-    def __init__(self, config, parent1_id, parent2_id, node_gene_type, conn_gene_type):
-        super(FFGenome, self).__init__(config, parent1_id, parent2_id, node_gene_type, conn_gene_type)
-        self.node_order = []  # hidden node order (for feed-forward networks)
+    def __init__(self, config, parent1_id, parent2_id):
+        super(FFGenome, self).__init__(config, parent1_id, parent2_id)
+        self.node_order = []  # hidden node order
 
-    def _inherit_genes(self, parent1, parent2):
-        super(FFGenome, self)._inherit_genes(parent1, parent2)
+    def inherit_genes(self, parent1, parent2):
+        super(FFGenome, self).inherit_genes(parent1, parent2)
 
         self.node_order = list(parent1.node_order)
 
         assert (len(self.node_order) == len([n for n in self.node_genes.values() if n.type == 'HIDDEN']))
 
-    def _mutate_add_node(self):
-        ng, split_conn = super(FFGenome, self)._mutate_add_node()
+    def mutate_add_node(self):
+        ng, split_conn = super(FFGenome, self).mutate_add_node()
         # Add node to node order list: after the presynaptic node of the split connection
         # and before the postsynaptic node of the split connection
         if self.node_genes[split_conn.in_node_id].type == 'HIDDEN':
@@ -382,7 +380,7 @@ class FFGenome(Genome):
         assert (len(self.node_order) == len([n for n in self.node_genes.values() if n.type == 'HIDDEN']))
         return ng, split_conn
 
-    def _mutate_add_connection(self):
+    def mutate_add_connection(self):
         '''
         Attempt to add a new connection, with the restrictions that (1) the output node
         cannot be one of the network input nodes, and (2) the connection must be feed-forward.
@@ -399,11 +397,11 @@ class FFGenome(Genome):
             if key not in self.conn_genes:
                 weight = gauss(0, self.config.weight_stdev)
                 enabled = choice([False, True])
-                cg = self._conn_gene_type(in_node.ID, out_node.ID, weight, enabled)
+                cg = self.config.conn_gene_type(in_node.ID, out_node.ID, weight, enabled)
                 self.conn_genes[cg.key] = cg
 
-    def _mutate_delete_node(self):
-        deleted_id = super(FFGenome, self)._mutate_delete_node()
+    def mutate_delete_node(self):
+        deleted_id = super(FFGenome, self).mutate_delete_node()
         if deleted_id != -1:
             self.node_order.remove(deleted_id)
 
@@ -421,9 +419,9 @@ class FFGenome(Genome):
     def add_hidden_nodes(self, num_hidden):
         node_id = self.get_new_hidden_id()
         for i in range(num_hidden):
-            node_gene = self._node_gene_type(node_id,
-                                             node_type='HIDDEN',
-                                             activation_type=self.config.nn_activation)
+            node_gene = self.config.node_gene_type(node_id,
+                                                   node_type='HIDDEN',
+                                                   activation_type=self.config.nn_activation)
             assert node_gene.ID not in self.node_genes
             self.node_genes[node_gene.ID] = node_gene
             self.node_order.append(node_gene.ID)

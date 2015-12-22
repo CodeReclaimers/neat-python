@@ -1,7 +1,7 @@
 import gizeh as gz
 import moviepy.editor as mpy
-
 from cart_pole import CartPole
+
 
 def make_movie(net, force_function, duration_seconds, output_filename):
     w, h = 300, 100

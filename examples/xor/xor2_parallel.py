@@ -8,12 +8,10 @@ parallel experiment in neat-python.
 """
 
 from __future__ import print_function
-
 import math
 import os
 import time
 from multiprocessing import Pool
-
 from neat import nn, population, visualize
 from neat.config import Config
 
@@ -73,7 +71,7 @@ def run():
     net = nn.create_feed_forward_phenotype(winner)
     for i, inputs in enumerate(xor_inputs):
         output = net.serial_activate(inputs)  # serial activation
-        print( "{0:1.5f} \t {1:1.5f}".format(xor_outputs[i], output[0]))
+        print("{0:1.5f} \t {1:1.5f}".format(xor_outputs[i], output[0]))
 
     # Visualize the winner network and plot statistics.
     visualize.plot_stats(pop.most_fit_genomes, pop.fitness_scores)

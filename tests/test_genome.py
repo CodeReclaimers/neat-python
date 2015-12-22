@@ -1,20 +1,20 @@
 import os
-from neat import genes
+
 from neat import genome
 from neat.config import Config
 
 
-def check_simple(type):
+def check_simple(genome_type):
     local_dir = os.path.dirname(__file__)
     config = Config(os.path.join(local_dir, 'test_configuration'))
-    c1 = type.create_fully_connected(config, genes.NodeGene, genes.ConnectionGene)
+    c1 = genome_type.create_fully_connected(config)
 
     # add two hidden nodes
     c1.add_hidden_nodes(2)
 
     # apply some mutations
-    c1._mutate_add_node()
-    c1._mutate_add_connection()
+    c1.mutate_add_node()
+    c1.mutate_add_connection()
 
 
 def test_recurrent():
@@ -25,11 +25,11 @@ def test_feed_forward():
     check_simple(genome.FFGenome)
 
 
-def check_self_crossover(type):
+def check_self_crossover(genome_type):
     # Check that self-crossover produces a genetically identical child (with a different ID).
     local_dir = os.path.dirname(__file__)
     config = Config(os.path.join(local_dir, 'test_configuration'))
-    c = type.create_fully_connected(config, genes.NodeGene, genes.ConnectionGene)
+    c = genome_type.create_fully_connected(config)
     c.fitness = 0.0
 
     cnew = c.crossover(c)
@@ -65,7 +65,7 @@ def test_feed_forward_self_crossover():
     check_self_crossover(genome.FFGenome)
 
 
-def check_add_connection(type, feed_forward):
+def check_add_connection(genome_type, feed_forward):
     local_dir = os.path.dirname(__file__)
     config = Config(os.path.join(local_dir, 'test_configuration'))
     config.input_nodes = 3
@@ -76,10 +76,10 @@ def check_add_connection(type, feed_forward):
 
     connections = {}
     for a in range(100):
-        g = type.create_unconnected(config, genes.NodeGene, genes.ConnectionGene)
+        g = genome_type.create_unconnected(config)
         g.add_hidden_nodes(config.hidden_nodes)
         for b in range(1000):
-            g._mutate_add_connection()
+            g.mutate_add_connection()
         for c in g.conn_genes.values():
             connections[c.key] = connections.get(c.key, 0) + 1
 

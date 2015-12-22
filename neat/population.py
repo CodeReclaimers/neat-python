@@ -2,16 +2,16 @@ from __future__ import print_function
 
 import copy
 import gzip
+import pickle
 import random
 import time
-import pickle
 
 from neat.config import Config
-from neat.genome import Genome, FFGenome
-from neat.genes import NodeGene, ConnectionGene
-from neat.species import Species
-from neat.math_util import mean, stdev
 from neat.diversity import ExplicitFitnessSharing
+from neat.genome import Genome, FFGenome
+from neat.math_util import mean, stdev
+from neat.species import Species
+
 
 class MassExtinctionException(Exception):
     pass
@@ -21,7 +21,6 @@ class Population(object):
     """ Manages all the species  """
 
     def __init__(self, config, checkpoint_file=None, initial_population=None,
-                 node_gene_type=NodeGene, conn_gene_type=ConnectionGene,
                  diversity_type=ExplicitFitnessSharing):
 
         # If config is not a Config object, assume it is a path to the config file.
@@ -29,9 +28,7 @@ class Population(object):
             config = Config(config)
 
         self.config = config
-        # TODO: Move node_gene_type, conn_gene_type, and diversity_type to the configuration object.
-        self.node_gene_type = node_gene_type
-        self.conn_gene_type = conn_gene_type
+        # TODO: Move diversity_type to the configuration object.
         self.diversity = diversity_type(self.config)
 
         self.population = None
@@ -96,11 +93,11 @@ class Population(object):
         # 3. FS-NEAT connected (one random connection)
         if self.config.fully_connected:
             for i in range(self.config.pop_size):
-                g = genotype.create_fully_connected(self.config, self.node_gene_type, self.conn_gene_type)
+                g = genotype.create_fully_connected(self.config)
                 self.population.append(g)
         else:
             for i in range(self.config.pop_size):
-                g = genotype.create_minimally_connected(self.config, self.node_gene_type, self.conn_gene_type)
+                g = genotype.create_minimally_connected(self.config)
                 self.population.append(g)
 
         if self.config.hidden_nodes > 0:
@@ -172,7 +169,8 @@ class Population(object):
                 print('Population\'s average fitness: {0:3.5f} stdev: {1:3.5f}'.format(fit_mean, fit_std))
                 print('Best fitness: {0:3.5f} - size: {1!r} - species {2} - id {3}'.format(best.fitness, best.size(),
                                                                                            best.species_id, best.ID))
-                print('Species length: {0:d} totaling {1:d} individuals'.format(len(self.species), sum([len(s.members) for s in self.species])))
+                print('Species length: {0:d} totaling {1:d} individuals'.format(len(self.species), sum(
+                    [len(s.members) for s in self.species])))
                 print('Species ID       : {0!s}'.format([s.ID for s in self.species]))
                 print('Each species size: {0!s}'.format([len(s.members) for s in self.species]))
                 print('Amount to spawn  : {0!s}'.format([s.spawn_amount for s in self.species]))
@@ -194,7 +192,7 @@ class Population(object):
                 break
 
             # Remove stagnated species.
-            #TODO: Log species removal for visualization purposes.
+            # TODO: Log species removal for visualization purposes.
             new_species = []
             for s in self.species:
                 s.update_stagnation()

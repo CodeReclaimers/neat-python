@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 from __future__ import print_function
 import warnings
+
 try:
     import graphviz
 except ImportError:
@@ -18,7 +19,6 @@ try:
 except ImportError:
     np = None
     warnings.warn('Could not import optional dependency NumPy.')
-
 
 from neat.math_util import mean
 
@@ -64,7 +64,7 @@ def plot_spikes(spikes, view=False, filename=None, title=None):
     u_values = [u for t, I, v, u in spikes]
     I_values = [I for t, I, v, u in spikes]
 
-    plt.subplot(3,1,1)
+    plt.subplot(3, 1, 1)
     plt.ylabel("Potential (mv)")
     plt.xlabel("Time (in ms)")
     plt.grid()
@@ -75,13 +75,13 @@ def plot_spikes(spikes, view=False, filename=None, title=None):
     else:
         plt.title("Izhikevich's spiking neuron model ({0!s})".format(title))
 
-    plt.subplot(3,1,2)
+    plt.subplot(3, 1, 2)
     plt.ylabel("Recovery (u)")
     plt.xlabel("Time (in ms)")
     plt.grid()
     plt.plot(t_values, u_values, "r-")
 
-    plt.subplot(3,1,3)
+    plt.subplot(3, 1, 3)
     plt.ylabel("Current (I)")
     plt.xlabel("Time (in ms)")
     plt.grid()

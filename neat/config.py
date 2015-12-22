@@ -1,8 +1,11 @@
+import os
+
+from neat.genes import NodeGene, ConnectionGene
+
 try:
     from configparser import ConfigParser
 except ImportError:
     from ConfigParser import SafeConfigParser as ConfigParser
-import os
 
 
 class Config(object):
@@ -65,3 +68,7 @@ class Config(object):
         # species
         self.survival_threshold = float(parameters.get('species', 'survival_threshold'))
         self.max_stagnation = int(parameters.get('species', 'max_stagnation'))
+
+        # Gene types
+        self.node_gene_type = NodeGene
+        self.conn_gene_type = ConnectionGene

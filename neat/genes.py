@@ -32,11 +32,11 @@ class NodeGene(object):
                       self.activation_type)
         return ng
 
-    def __mutate_bias(self, config):
+    def mutate_bias(self, config):
         new_bias = self.bias + random.gauss(0, 1) * config.bias_mutation_power
         self.bias = max(config.min_weight, min(config.max_weight, new_bias))
 
-    def __mutate_response(self, config):
+    def mutate_response(self, config):
         """ Mutates the neuron's average firing response. """
         new_response = self.response + random.gauss(0, 1) * config.response_mutation_power
         self.response = max(config.min_weight, min(config.max_weight, new_response))
@@ -47,9 +47,9 @@ class NodeGene(object):
 
     def mutate(self, config):
         if random.random() < config.prob_mutate_bias:
-            self.__mutate_bias(config)
+            self.mutate_bias(config)
         if random.random() < config.prob_mutate_response:
-            self.__mutate_response(config)
+            self.mutate_response(config)
 
 
 class ConnectionGene(object):

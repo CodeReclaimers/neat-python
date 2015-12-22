@@ -123,7 +123,8 @@ def create_feed_forward_function(genome):
             else:
                 activation_function = 'exp_sigmoid'
 
-            f.append('    values[{0:d}] = {1!s}({2:f}, {3:f}, z)'.format(node, activation_function, ng.bias, ng.response))
+            f.append('    values[{0:d}] = {1!s}({2:f}, {3:f}, z)'.format(node, activation_function,
+                                                                         ng.bias, ng.response))
             f.append('')
 
     return '\n'.join(f)

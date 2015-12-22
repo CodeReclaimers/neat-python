@@ -1,10 +1,7 @@
 """ 2-input XOR example using Izhikevich's spiking neuron model. """
 from __future__ import print_function
-
 import os
-
 import matplotlib.pyplot as plt
-
 from neat import population, iznn, visualize
 from neat.config import Config
 
@@ -97,7 +94,7 @@ def run():
 
     # Visualize the winner network and plot statistics.
     winner = pop.most_fit_genomes[-1]
-    visualize.draw_net(winner, view=True, node_names={0:'A', 1:'B', 2:'Out1', 3:'Out2'})
+    visualize.draw_net(winner, view=True, node_names={0: 'A', 1: 'B', 2: 'Out1', 3: 'Out2'})
     visualize.plot_stats(pop.most_fit_genomes, pop.fitness_scores)
     visualize.plot_species(pop.species_log)
 
@@ -107,7 +104,7 @@ def run():
     error, simulated = simulate(winner)
 
     # Create a plot of the traces out to the max time for each set of inputs.
-    plt.figure(figsize=(12,12))
+    plt.figure(figsize=(12, 12))
     for r, (inputData, outputData, t0, t1, neuron_data) in enumerate(simulated):
         response = compute_output(t0, t1)
         print("{0!r} expected {1:.3f} got {2:.3f}".format(inputData, outputData, response))
@@ -121,7 +118,7 @@ def run():
 
         plt.ylabel("Potential (mv)", fontsize=10)
         plt.ylim(-100, 50)
-        plt.tick_params(axis='both', labelsize=8)
+        plt.tick_params(labelsize=8)
         plt.grid()
 
     plt.xlabel("Time (in ms)", fontsize=10)

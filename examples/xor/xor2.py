@@ -30,9 +30,9 @@ print('Number of evaluations: {0}'.format(pop.total_evaluations))
 # Verify network output against training data.
 print('\nBest network output:')
 winner = pop.most_fit_genomes[-1]
-net = nn.create_feed_forward_phenotype(winner)
+winner_net = nn.create_feed_forward_phenotype(winner)
 for inputs, expected in zip(xor_inputs, xor_outputs):
-    output = net.serial_activate(inputs)
+    output = winner_net.serial_activate(inputs)
     print("expected {0:1.5f} got {1:1.5f}".format(expected, output[0]))
 
 # Visualize the winner network and plot statistics.
