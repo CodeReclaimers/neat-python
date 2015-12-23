@@ -75,3 +75,7 @@ class Species(object):
         self.representative = random.choice(offspring)
 
         return offspring
+
+    def clearIndexer(self):
+        Species.indexer.clear()
+
