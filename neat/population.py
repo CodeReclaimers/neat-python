@@ -33,8 +33,7 @@ class Population(object):
 
         self.population = None
         self.species = []
-        self.species_log = []
-        self.fitness_scores = []
+        self.generation_statistics = []
         self.most_fit_genomes = []
         self.generation = -1
         self.total_evaluations = 0
@@ -49,6 +48,10 @@ class Population(object):
 
         # Partition the population into species based on current configuration.
         self._speciate()
+
+    @staticmethod
+    def clear_indexer(cls):
+        Species.clear_indexer()
 
     def _load_checkpoint(self, checkpoint):
         '''Resumes the simulation from a previous saved point.'''
@@ -130,10 +133,15 @@ class Population(object):
 
     def _log_stats(self):
         """ Gather data for visualization/reporting purposes. """
-        species_sizes = dict((s.ID, len(s.members)) for s in self.species)
-        self.species_log.append(species_sizes)
+        # Keep a deep copy of the best genome, so that future modifications to the genome
+        # do not produce an unexpected change in statistics.
         self.most_fit_genomes.append(copy.deepcopy(max(self.population)))
-        self.fitness_scores.append([c.fitness for c in self.population])
+
+        # Store the fitnesses of the members of each currently active species.
+        species_stats = {}
+        for s in self.species:
+            species_stats[s.ID] = [c.fitness for c in s.members]
+        self.generation_statistics.append(species_stats)
 
     def epoch(self, fitness_function, n, report=True, save_best=False, checkpoint_interval=10,
               checkpoint_generation=None):

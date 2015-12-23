@@ -34,8 +34,8 @@ with open('ctrnn_winner_genome', 'wb') as f:
 print(winner)
 
 # Plot the evolution of the best/average fitness.
-visualize.plot_stats(pop.most_fit_genomes, pop.fitness_scores, ylog=True, filename="ctrnn_fitness.svg")
+visualize.plot_stats(pop, ylog=True, filename="ctrnn_fitness.svg")
 # Visualizes speciation
-visualize.plot_species(pop.species_log, filename="ctrnn_speciation.svg")
+visualize.plot_species(pop, filename="ctrnn_speciation.svg")
 # Visualize the best network.
 visualize.draw_net(winner, view=True, filename="ctrnn_winner.gv")

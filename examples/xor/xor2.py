@@ -1,7 +1,7 @@
 """ 2-input XOR example """
 from __future__ import print_function
 
-from neat import nn, population, visualize
+from neat import nn, population, statistics, visualize
 
 xor_inputs = [[0, 0], [0, 1], [1, 0], [1, 1]]
 xor_outputs = [0, 1, 1, 0]
@@ -35,7 +35,10 @@ for inputs, expected in zip(xor_inputs, xor_outputs):
     output = winner_net.serial_activate(inputs)
     print("expected {0:1.5f} got {1:1.5f}".format(expected, output[0]))
 
-# Visualize the winner network and plot statistics.
-visualize.plot_stats(pop.most_fit_genomes, pop.fitness_scores)
-visualize.plot_species(pop.species_log)
+# Visualize the winner network and plot/log statistics.
+visualize.plot_stats(pop)
+visualize.plot_species(pop)
 visualize.draw_net(winner, view=True)
+statistics.save_stats(pop)
+statistics.save_species_count(pop)
+statistics.save_species_fitness(pop)

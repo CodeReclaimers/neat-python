@@ -9,6 +9,10 @@ class Species(object):
     """ A collection of genetically similar individuals."""
     indexer = Indexer(1)
 
+    @classmethod
+    def clear_indexer(cls):
+        cls.indexer.clear()
+
     def __init__(self, first_individual, previous_id=None):
         self.representative = first_individual
         self.ID = Species.indexer.next(previous_id)
@@ -75,7 +79,3 @@ class Species(object):
         self.representative = random.choice(offspring)
 
         return offspring
-
-    def clearIndexer(self):
-        Species.indexer.clear()
-

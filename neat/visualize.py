@@ -1,6 +1,9 @@
 # -*- coding: UTF-8 -*-
 from __future__ import print_function
+
 import warnings
+
+from neat.statistics import get_average_fitness, get_species_sizes
 
 try:
     import graphviz
@@ -20,23 +23,19 @@ except ImportError:
     np = None
     warnings.warn('Could not import optional dependency NumPy.')
 
-from neat.math_util import mean
 
-
-def plot_stats(best_genomes, fitness_scores, ylog=False, view=False, filename='avg_fitness.svg'):
+def plot_stats(population, ylog=False, view=False, filename='avg_fitness.svg'):
     """ Plots the population's average and best fitness. """
     if plt is None:
         warnings.warn("This display is not available due to a missing optional dependency (matplotlib)")
         return
 
-    generation = range(len(best_genomes))
+    generation = range(len(population.most_fit_genomes))
+    best_fitness = [c.fitness for c in population.most_fit_genomes]
+    avg_fitness = get_average_fitness(population)
 
-    fitness = [c.fitness for c in best_genomes]
-
-    avg_scores = [mean(f) for f in fitness_scores]
-
-    plt.plot(generation, avg_scores, 'b-', label="average")
-    plt.plot(generation, fitness, 'r-', label="best")
+    plt.plot(generation, avg_fitness, 'b-', label="average")
+    plt.plot(generation, best_fitness, 'r-', label="best")
 
     plt.title("Population's average and best fitness")
     plt.xlabel("Generations")
@@ -95,24 +94,15 @@ def plot_spikes(spikes, view=False, filename=None, title=None):
     plt.close()
 
 
-def plot_species(species_log, view=False, filename='speciation.svg'):
+def plot_species(population, view=False, filename='speciation.svg'):
     """ Visualizes speciation throughout evolution. """
     if plt is None:
         warnings.warn("This display is not available due to a missing optional dependency (matplotlib)")
         return
 
-    num_generations = len(species_log)
-    all_species = set()
-    for gen_data in species_log:
-        for sid, scount in gen_data.items():
-            all_species.add(sid)
-
-    max_species = max(all_species)
-    curves = []
-    for gen_data in species_log:
-        species = [gen_data.get(sid, 0) for sid in range(max_species + 1)]
-        curves.append(np.array(species))
-    curves = np.array(curves).T
+    species_sizes = get_species_sizes(population)
+    num_generations = len(species_sizes)
+    curves = np.array(species_sizes).T
 
     fig, ax = plt.subplots()
     ax.stackplot(range(num_generations), *curves)
