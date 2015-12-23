@@ -180,9 +180,8 @@ class Population(object):
 
             # Saves the best genome from the current generation if requested.
             if save_best:
-                f = open('best_genome_' + str(self.generation), 'w')
-                pickle.dump(best, f)
-                f.close()
+                with open('best_genome_' + str(self.generation), 'w') as f:
+                    pickle.dump(best, f)
 
             # End when the fitness threshold is reached.
             if best.fitness >= self.config.max_fitness_threshold:

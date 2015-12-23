@@ -97,7 +97,7 @@ class Genome(object):
 
         # Crossover node genes
         for ng1_id, ng1 in parent1.node_genes.items():
-            ng2 = parent2.node_genes.get(ng1_id, None)
+            ng2 = parent2.node_genes.get(ng1_id)
             if ng2 is None:
                 # copies extra genes from the fittest parent
                 new_gene = ng1.copy()
