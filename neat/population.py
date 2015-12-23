@@ -49,8 +49,7 @@ class Population(object):
         # Partition the population into species based on current configuration.
         self._speciate()
 
-    @staticmethod
-    def clear_indexer(cls):
+    def __del__(self):
         Species.clear_indexer()
 
     def _load_checkpoint(self, checkpoint):
