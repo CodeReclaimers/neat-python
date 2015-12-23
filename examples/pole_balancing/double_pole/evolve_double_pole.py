@@ -38,9 +38,9 @@ def run():
         cPickle.dump(winner, f)
 
     # Plots the evolution of the best/average fitness
-    visualize.plot_stats(pop.most_fit_genomes, pop.avg_fitness_scores, ylog=True)
+    visualize.plot_stats(pop, ylog=True)
     # Visualizes speciation
-    visualize.plot_species(pop.species_log)
+    visualize.plot_species(pop)
     # visualize the best topology
     visualize.draw_net(winner, view=True)
 

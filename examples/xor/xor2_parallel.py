@@ -74,8 +74,8 @@ def run():
         print("{0:1.5f} \t {1:1.5f}".format(xor_outputs[i], output[0]))
 
     # Visualize the winner network and plot statistics.
-    visualize.plot_stats(pop.most_fit_genomes, pop.fitness_scores)
-    visualize.plot_species(pop.species_log)
+    visualize.plot_stats(pop)
+    visualize.plot_species(pop)
     visualize.draw_net(winner, view=True)
 
 
