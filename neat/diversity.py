@@ -45,3 +45,4 @@ class ExplicitFitnessSharing(object):
         for s, af in zip(species, adjusted_fitnesses):
             min_spawn = len(s.members) * self.config.survival_threshold
             s.spawn_amount = int(ceil((min_spawn + af * r)))
+            assert s.spawn_amount > 0

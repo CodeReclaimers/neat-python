@@ -1,4 +1,5 @@
 # -*- coding: UTF-8 -*-
+import math
 import random
 import sys
 from neat.indexer import Indexer
@@ -55,7 +56,7 @@ class Species(object):
             self.spawn_amount -= config.elitism
 
         # Keep a fraction of the current population for reproduction.
-        survivors = int(round(len(self.members) * config.survival_threshold))
+        survivors = int(math.ceil(len(self.members) * config.survival_threshold))
         # We always need at least one member for reproduction.
         survivors = max(1, survivors)
         self.members = self.members[:survivors]
@@ -75,7 +76,10 @@ class Species(object):
         # Reset species members--the speciation process in Population will repopulate this list.
         self.members = []
 
-        # Select a new random representative member from the new offspring.
+        # Select a new random representative member from the new offspring, and remove
+        # the representative from the list (so that each species always gets at least one member).
         self.representative = random.choice(offspring)
+        self.add(self.representative)
+        offspring.remove(self.representative)
 
         return offspring

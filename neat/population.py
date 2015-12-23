@@ -31,7 +31,6 @@ class Population(object):
         # TODO: Move diversity_type to the configuration object.
         self.diversity = diversity_type(self.config)
 
-        self.population = None
         self.species = []
         self.generation_statistics = []
         self.most_fit_genomes = []
@@ -41,13 +40,12 @@ class Population(object):
         if checkpoint_file:
             assert initial_population is None
             self._load_checkpoint(checkpoint_file)
-        elif initial_population is None:
-            self._create_population()
         else:
-            self.population = initial_population
+            if initial_population is None:
+                initial_population = self._create_population()
 
-        # Partition the population into species based on current configuration.
-        self._speciate()
+            # Partition the population into species based on current configuration.
+            self._speciate(initial_population)
 
     def __del__(self):
         Species.clear_indexer()
@@ -57,8 +55,7 @@ class Population(object):
         with gzip.open(checkpoint) as f:
             print('Resuming from a previous point: {0}'.format(checkpoint))
 
-            (self.population,
-             self.species,
+            (self.species,
              self.species_log,
              self.fitness_scores,
              self.most_fit_genomes,
@@ -71,8 +68,7 @@ class Population(object):
         """ Save the current simulation state. """
         fn = 'neat-checkpoint-{0}'.format(self.generation)
         with gzip.open(fn, 'w', compresslevel=5) as f:
-            data = (self.population,
-                    self.species,
+            data = (self.species,
                     self.species_log,
                     self.fitness_scores,
                     self.most_fit_genomes,
@@ -81,12 +77,13 @@ class Population(object):
             pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     def _create_population(self):
+        # TODO: Shouldn't these classes be specified by the configuration item?
         if self.config.feedforward:
             genotype = FFGenome
         else:
             genotype = Genome
 
-        self.population = []
+        new_population = []
         # TODO: Add FS-NEAT support, which creates an empty connection set, and then performs a
         # single add connection mutation.
         # This would give three initialization methods:
@@ -96,19 +93,21 @@ class Population(object):
         if self.config.fully_connected:
             for i in range(self.config.pop_size):
                 g = genotype.create_fully_connected(self.config)
-                self.population.append(g)
+                new_population.append(g)
         else:
             for i in range(self.config.pop_size):
                 g = genotype.create_minimally_connected(self.config)
-                self.population.append(g)
+                new_population.append(g)
 
         if self.config.hidden_nodes > 0:
-            for g in self.population:
+            for g in new_population:
                 g.add_hidden_nodes(self.config.hidden_nodes)
 
-    def _speciate(self):
-        """Group genomes into species by genetic similarity."""
-        for individual in self.population:
+        return new_population
+
+    def _speciate(self, population):
+        """Place genomes into species by genetic similarity."""
+        for individual in population:
             # Find the species with the most similar representative.
             min_distance = None
             closest_species = None
@@ -127,14 +126,13 @@ class Population(object):
 
         # Verify that no species are empty.
         for s in self.species:
-            if not s.members:
-                raise Exception('TODO: fix empty species bug')
+            assert s.members
 
-    def _log_stats(self):
+    def _log_stats(self, population):
         """ Gather data for visualization/reporting purposes. """
         # Keep a deep copy of the best genome, so that future modifications to the genome
         # do not produce an unexpected change in statistics.
-        self.most_fit_genomes.append(copy.deepcopy(max(self.population)))
+        self.most_fit_genomes.append(copy.deepcopy(max(population)))
 
         # Store the fitnesses of the members of each currently active species.
         species_stats = {}
@@ -161,18 +159,23 @@ class Population(object):
             if report:
                 print('\n ****** Running generation {0} ****** \n'.format(self.generation))
 
+            # Collect a list of all members from all species.
+            population = []
+            for s in self.species:
+                population.extend(s.members)
+
             # Evaluate individuals
-            fitness_function(self.population)
-            self.total_evaluations += len(self.population)
+            fitness_function(population)
+            self.total_evaluations += len(population)
 
             # Gather statistics.
-            self._log_stats()
+            self._log_stats(population)
 
             # Print some statistics
             best = self.most_fit_genomes[-1]
             if report:
-                fit_mean = mean([c.fitness for c in self.population])
-                fit_std = stdev([c.fitness for c in self.population])
+                fit_mean = mean([c.fitness for c in population])
+                fit_std = stdev([c.fitness for c in population])
                 print('Population\'s average fitness: {0:3.5f} stdev: {1:3.5f}'.format(fit_mean, fit_std))
                 print('Best fitness: {0:3.5f} - size: {1!r} - species {2} - id {3}'.format(best.fitness, best.size(),
                                                                                            best.species_id, best.ID))
@@ -217,15 +220,17 @@ class Population(object):
 
             # Compute spawn levels for all current species and then reproduce.
             self.diversity.compute_spawn_amount(self.species)
-            self.population = []
+            new_population = []
             for s in self.species:
                 # Verify that all species received non-zero spawn counts, as the speciation mechanism
                 # is intended to allow initially less fit species time to improve before making them
                 # extinct via the stagnation mechanism.
                 assert s.spawn_amount > 0
-                self.population.extend(s.reproduce(self.config))
+                # The Species.reproduce keeps one random child as its new representative, and
+                # returns the rest as a list, which must be sorted into species.
+                new_population.extend(s.reproduce(self.config))
 
-            self._speciate()
+            self._speciate(new_population)
 
             if checkpoint_interval is not None and time.time() > t0 + 60 * checkpoint_interval:
                 if report:
