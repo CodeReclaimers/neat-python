@@ -1,4 +1,9 @@
 """ Double pole balancing experiment """
+from __future__ import print_function
+
+raise Exception('''This example is currently broken, it will be fixed soon.  In the meantime,
+try the single_pole or xor examples.''')
+
 import cPickle
 import os
 
@@ -30,8 +35,8 @@ def run():
 
     winner = pop.most_fit_genomes[-1]
 
-    print 'Number of evaluations: {0:d}'.format(winner.ID)
-    print 'Winner fitness: {0:f}'.format(winner.fitness)
+    print('Number of evaluations: {0:d}'.format(winner.ID))
+    print('Winner fitness: {0:f}'.format(winner.fitness))
 
     # save the winner
     with open('winner_chromosome', 'w') as f:
