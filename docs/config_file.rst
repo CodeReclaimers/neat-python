@@ -65,6 +65,9 @@ NEAT settings.
     The probability that the enabled status of a connection will be toggled.
 * *elitism*
     The number of most fit individuals in each species that will be preserved as-is from one generation to the next.
+* *reset_on_extinction*
+    If this evalutes to **True**, when all species simultaneously become extinct due to stagnation, a new random
+    population will be created. If **false**, a *MassExtinctionException* will be thrown.
 
 [genotype compatibility] section
 --------------------------------
