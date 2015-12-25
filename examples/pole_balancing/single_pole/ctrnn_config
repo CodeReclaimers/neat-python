@@ -27,6 +27,7 @@ prob_replace_weight   = 0.1
 weight_mutation_power = 1.0
 prob_toggle_link      = 0.01
 elitism               = 2
+reset_on_extinction   = 1
 
 [genotype compatibility]
 compatibility_threshold = 3.0

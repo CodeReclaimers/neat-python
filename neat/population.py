@@ -213,22 +213,28 @@ class Population(object):
             self.species = new_species
 
             # Check for complete extinction.
+            new_population = []
             if not self.species:
                 if report:
                     print('All species extinct.')
-                raise MassExtinctionException()
 
-            # Compute spawn levels for all current species and then reproduce.
-            self.diversity.compute_spawn_amount(self.species)
-            new_population = []
-            for s in self.species:
-                # Verify that all species received non-zero spawn counts, as the speciation mechanism
-                # is intended to allow initially less fit species time to improve before making them
-                # extinct via the stagnation mechanism.
-                assert s.spawn_amount > 0
-                # The Species.reproduce keeps one random child as its new representative, and
-                # returns the rest as a list, which must be sorted into species.
-                new_population.extend(s.reproduce(self.config))
+                # If requested by the user, create a completely new population,
+                # otherwise raise an exception.
+                if self.config.reset_on_extinction:
+                    new_population = self._create_population()
+                else:
+                    raise MassExtinctionException()
+            else:
+                # Compute spawn levels for all current species and then reproduce.
+                self.diversity.compute_spawn_amount(self.species)
+                for s in self.species:
+                    # Verify that all species received non-zero spawn counts, as the speciation mechanism
+                    # is intended to allow initially less fit species time to improve before making them
+                    # extinct via the stagnation mechanism.
+                    assert s.spawn_amount > 0
+                    # The Species.reproduce keeps one random child as its new representative, and
+                    # returns the rest as a list, which must be sorted into species.
+                    new_population.extend(s.reproduce(self.config))
 
             self._speciate(new_population)
 

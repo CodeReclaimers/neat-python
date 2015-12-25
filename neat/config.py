@@ -58,6 +58,7 @@ class Config(object):
         self.weight_mutation_power = float(parameters.get('genetic', 'weight_mutation_power'))
         self.prob_toggle_link = float(parameters.get('genetic', 'prob_toggle_link'))
         self.elitism = int(parameters.get('genetic', 'elitism'))
+        self.reset_on_extinction = bool(int(parameters.get('genetic', 'reset_on_extinction')))
 
         # genotype compatibility
         self.compatibility_threshold = float(parameters.get('genotype compatibility', 'compatibility_threshold'))

@@ -26,6 +26,7 @@ class NodeGene(object):
         """ Creates a new NodeGene randomly inheriting attributes from its parents."""
         assert (self.ID == other.ID)
 
+        # TODO: Shouldn't we also randomly inherit activation type?
         ng = NodeGene(self.ID, self.type,
                       random.choice((self.bias, other.bias)),
                       random.choice((self.response, other.response)),

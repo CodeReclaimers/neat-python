@@ -1,36 +1,42 @@
 """
-A parallel version of XOR using multiprocessing.Pool.
+A parallel version of XOR using neat.parallel.
 
-Since XOR is a simple experiment, a parallel version won't actually
-take any advantages of it due to overhead and inter-process communication.
-The example below is only a general idea of how to implement a
-parallel experiment in neat-python.
+Since XOR is a simple experiment, a parallel version probably won't run
+much faster than the single-process version, due to the overhead of
+inter-process communication.
+
+If your evaluation function is what's taking up most of your processing time
+(and you should probably check by using a profiler), you should see a
+significant performance improvement by evaluating in parallel.
+
+This example is only intended to show how to do a parallel experiment
+in neat-python.  You can of course roll your own parallelism mechanism
+or inherit from ParallelEvaluator if you need to do something more complicated.
 """
 
 from __future__ import print_function
+
 import math
 import os
 import time
-from multiprocessing import Pool
-from neat import nn, population, visualize
-from neat.config import Config
+
+from neat import nn, parallel, population, visualize
 
 xor_inputs = ((0, 0), (0, 1), (1, 0), (1, 1))
 xor_outputs = (0, 1, 1, 0)
 
 
-def eval_fitness(genomes, pool):
-    jobs = []
-    for genome in genomes:
-        jobs.append(pool.apply_async(parallel_evaluation, (genome,)))
+def fitness(genome):
+    """
+    This function will be run in parallel by ParallelEvaluator.  It takes one
+    argument (a single genome) and should return one float (that genome's fitness).
 
-    # assign the fitness back to each genome
-    for job, genome in zip(jobs, genomes):
-        genome.fitness = job.get(timeout=1)
-
-
-def parallel_evaluation(genome):
-    """ This function will run in parallel """
+    Note that this function needs to be in module scope for multiprocessing.Pool
+    (which is what ParallelEvaluator uses) to find it.  Because of this, make
+    sure you check for __main__ before executing any code (as we do here in the
+    last two lines in the file), otherwise you'll have made a fork bomb
+    instead of a neuroevolution demo. :)
+    """
     net = nn.create_feed_forward_phenotype(genome)
 
     error = 0.0
@@ -45,20 +51,16 @@ def parallel_evaluation(genome):
 def run():
     t0 = time.time()
 
-    # Load the config file, which is assumed to live in
+    # Get the path to the config file, which is assumed to live in
     # the same directory as this script.
     local_dir = os.path.dirname(__file__)
-    config = Config(os.path.join(local_dir, 'xor2_config'))
+    config_path = os.path.join(local_dir, 'xor2_config')
 
-    num_workers = 6
-    pool = Pool(num_workers)
-    print("Starting with {0:d} workers".format(num_workers))
+    # Use a pool of four workers to evaluate fitness in parallel.
+    pe = parallel.ParallelEvaluator(4, fitness)
 
-    def fitness(genomes):
-        return eval_fitness(genomes, pool)
-
-    pop = population.Population(config)
-    pop.epoch(fitness, 400)
+    pop = population.Population(config_path)
+    pop.epoch(pe.evaluate, 400)
 
     print("total evolution time {0:.3f} sec".format((time.time() - t0)))
     print("time per generation {0:.3f} sec".format(((time.time() - t0) / pop.generation)))
