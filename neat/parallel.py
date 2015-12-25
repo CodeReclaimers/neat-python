@@ -1,7 +1,7 @@
 from multiprocessing import Pool
 
 
-class ParallelEvaluator:
+class ParallelEvaluator(object):
     def __init__(self, num_workers, eval_function, timeout=1):
         '''
         eval_function should take one argument (a genome object) and return

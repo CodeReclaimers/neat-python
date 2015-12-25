@@ -1,4 +1,4 @@
-class Synapse(object):
+class IFSynapse(object):
     """ A synapse indicates the connection strength between two neurons (or itself) """
 
     def __init__(self, source, dest, weight):
@@ -12,7 +12,7 @@ class Synapse(object):
             self.__dest.current += self.__weight * self.__source.output
 
 
-class Network(object):
+class IFNetwork(object):
     """ A neural network has a list of neurons linked by synapses """
 
     def __init__(self, neurons, input_neurons, output_neurons, synapses):
@@ -40,7 +40,7 @@ class Network(object):
             n.reset()
 
 
-class Neuron(object):
+class IFNeuron(object):
     """Neuron based on the integrate and fire model"""
 
     def __init__(self, bias=0, tau=10, vrest=-70, vreset=-70, vt=-55):
@@ -89,13 +89,13 @@ def create_phenotype(genome):
     input_neurons = []
     output_neurons = []
     for ng in genome.node_genes.values():
-        neurons[ng.ID] = Neuron(ng.bias)
+        neurons[ng.ID] = IFNeuron(ng.bias)
         if ng.type == 'INPUT':
             input_neurons.append(neurons[ng.ID])
         elif ng.type == 'OUTPUT':
             output_neurons.append(neurons[ng.ID])
 
-    synapses = [Synapse(neurons[cg.in_node_id], neurons[cg.out_node_id], cg.weight)
+    synapses = [IFSynapse(neurons[cg.in_node_id], neurons[cg.out_node_id], cg.weight)
                 for cg in genome.conn_genes if cg.enabled]
 
-    return Network(neurons, input_neurons, output_neurons, synapses)
+    return IFNetwork(neurons, input_neurons, output_neurons, synapses)
