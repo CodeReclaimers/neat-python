@@ -1,6 +1,7 @@
 import os
 from neat.population import Population
 from neat.config import Config
+from neat.statistics import get_average_fitness
 
 
 def test_minimal():
@@ -14,8 +15,25 @@ def test_minimal():
     config = Config(os.path.join(local_dir, 'test_configuration'))
 
     pop = Population(config)
-    # runs the simulation for 250 epochs
-    pop.epoch(eval_fitness, 250)
+    # runs the simulation for up to 20 epochs
+    pop.epoch(eval_fitness, 20)
+
+    # get statistics
+    avg_fitness = get_average_fitness(pop)
+    assert len(avg_fitness) == 1
+    assert all(f == 1 for f in avg_fitness)
+
+    # Change fitness threshold and do another run.
+    config.max_fitness_threshold = 1.1
+    pop = Population(config)
+    # runs the simulation for 20 epochs
+    pop.epoch(eval_fitness, 20)
+
+    # get statistics
+    avg_fitness = get_average_fitness(pop)
+    assert len(avg_fitness) == 20
+    assert all(f == 1 for f in avg_fitness)
+
 
 
 def test_config_options():
