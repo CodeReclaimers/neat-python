@@ -1,14 +1,12 @@
 # Test the performance of the best genome produced by ctrnn_evolve.py.
 from __future__ import print_function
 
-import os
 import pickle
 
 from cart_pole import CartPole, run_simulation, num_steps, discrete_actuator_force
 from movie import make_movie
 
 from neat import ctrnn
-from neat.config import Config
 
 # load the winner
 with open('ctrnn_winner_genome', 'rb') as f:
@@ -17,10 +15,7 @@ with open('ctrnn_winner_genome', 'rb') as f:
 print('Loaded genome:')
 print(c)
 
-local_dir = os.path.dirname(__file__)
-config = Config(os.path.join(local_dir, 'ctrnn_config'))
 net = ctrnn.create_phenotype(c)
-
 sim = CartPole()
 
 print()

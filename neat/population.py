@@ -39,7 +39,7 @@ class Population(object):
 
         if checkpoint_file:
             assert initial_population is None
-            self._load_checkpoint(checkpoint_file)
+            self.load_checkpoint(checkpoint_file)
         else:
             if initial_population is None:
                 initial_population = self._create_population()
@@ -50,27 +50,26 @@ class Population(object):
     def __del__(self):
         Species.clear_indexer()
 
-    def _load_checkpoint(self, checkpoint):
+    def load_checkpoint(self, filename):
         '''Resumes the simulation from a previous saved point.'''
-        with gzip.open(checkpoint) as f:
-            print('Resuming from a previous point: {0}'.format(checkpoint))
+        with gzip.open(filename) as f:
+            print('Resuming from a previous point: ' + filename)
 
             (self.species,
-             self.species_log,
-             self.fitness_scores,
+             self.generation_statistics,
              self.most_fit_genomes,
              self.generation,
              random_state) = pickle.load(f)
 
             random.setstate(random_state)
 
-    def _create_checkpoint(self):
+    def save_checkpoint(self, filename=None):
         """ Save the current simulation state. """
-        fn = 'neat-checkpoint-{0}'.format(self.generation)
-        with gzip.open(fn, 'w', compresslevel=5) as f:
+        if filename is None:
+            filename = 'neat-checkpoint-{0}'.format(self.generation)
+        with gzip.open(filename, 'w', compresslevel=5) as f:
             data = (self.species,
-                    self.species_log,
-                    self.fitness_scores,
+                    self.generation_statistics,
                     self.most_fit_genomes,
                     self.generation,
                     random.getstate())
@@ -159,6 +158,8 @@ class Population(object):
             if report:
                 print('\n ****** Running generation {0} ****** \n'.format(self.generation))
 
+            gen_start = time.time()
+
             # Collect a list of all members from all species.
             population = []
             for s in self.species:
@@ -241,11 +242,14 @@ class Population(object):
             if checkpoint_interval is not None and time.time() > t0 + 60 * checkpoint_interval:
                 if report:
                     print('Creating timed checkpoint file at generation: {0}'.format(self.generation))
-                self._create_checkpoint()
+                self.save_checkpoint()
 
                 # Update the checkpoint time.
                 t0 = time.time()
             elif checkpoint_generation is not None and self.generation % checkpoint_generation == 0:
                 if report:
                     print('Creating generation checkpoint file at generation: {0}'.format(self.generation))
-                self._create_checkpoint()
+                self.save_checkpoint()
+
+            if report:
+                print("Generation time: {0:.3f} sec".format(time.time() - gen_start))

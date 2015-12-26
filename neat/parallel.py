@@ -2,7 +2,7 @@ from multiprocessing import Pool
 
 
 class ParallelEvaluator(object):
-    def __init__(self, num_workers, eval_function, timeout=1):
+    def __init__(self, num_workers, eval_function, timeout=None):
         '''
         eval_function should take one argument (a genome object) and return
         a single float (the genome's fitness).
