@@ -1,6 +1,8 @@
 import os
-from neat.population import Population
+import tempfile
+
 from neat.config import Config
+from neat.population import Population
 from neat.statistics import get_average_fitness
 
 
@@ -35,7 +37,6 @@ def test_minimal():
     assert all(f == 1 for f in avg_fitness)
 
 
-
 def test_config_options():
     # sample fitness function
     def eval_fitness(population):
@@ -56,3 +57,27 @@ def test_config_options():
 
                     pop = Population(config)
                     pop.epoch(eval_fitness, 250)
+
+
+def test_checkpoint():
+    # sample fitness function
+    def eval_fitness(population):
+        for individual in population:
+            individual.fitness = 0.99
+
+    # creates the population
+    local_dir = os.path.dirname(__file__)
+    config = Config(os.path.join(local_dir, 'test_configuration'))
+
+    pop = Population(config)
+    pop.epoch(eval_fitness, 20)
+
+    t = tempfile.NamedTemporaryFile(delete=False)
+    t.close()
+    pop.save_checkpoint(t.name)
+
+    pop2 = Population(config)
+    pop2.load_checkpoint(t.name)
+
+    assert pop.generation_statistics == pop2.generation_statistics
+    assert id(pop.generation_statistics) != id(pop2.generation_statistics)
