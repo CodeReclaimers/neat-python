@@ -7,7 +7,7 @@ class ParallelEvaluator(object):
         eval_function should take one argument (a genome object) and return
         a single float (the genome's fitness).
         '''
-        self.num_workers = 6
+        self.num_workers = num_workers
         self.eval_function = eval_function
         self.timeout = timeout
         self.pool = Pool(num_workers)

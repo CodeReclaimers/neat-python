@@ -151,6 +151,7 @@ class Genome(object):
         if len(self.node_genes) <= self.num_inputs + self.num_outputs:
             return -1
 
+        idx = None
         while 1:
             idx = choice(list(self.node_genes.keys()))
             if self.node_genes[idx].type == 'HIDDEN':
@@ -313,6 +314,7 @@ class Genome(object):
                 continue
 
             # Connect it to a random input node
+            idx = None
             while 1:
                 idx = choice(list(c.node_genes.keys()))
                 if c.node_genes[idx].type == 'INPUT':
