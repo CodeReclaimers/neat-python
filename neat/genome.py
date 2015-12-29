@@ -115,6 +115,9 @@ class Genome(object):
         return new_id
 
     def mutate_add_node(self):
+        if not self.conn_genes:
+            return None
+
         # Choose a random connection to split
         conn_to_split = choice(list(self.conn_genes.values()))
         new_node_id = self.get_new_hidden_id()
@@ -266,33 +269,18 @@ class Genome(object):
             self.node_genes[node_gene.ID] = node_gene
             node_id += 1
 
-            # TODO: Add connections based on configuration.
-            # Connect all nodes to it
-            # for pre in self.node_genes.values():
-            #     weight = gauss(0, self.config.weight_stdev)
-            #     cg = self._conn_gene_type(pre.ID, node_gene.ID, weight, True)
-            #     self.conn_genes[cg.key] = cg
-            # # Connect it to all nodes except input nodes
-            # for post in self.node_genes.values():
-            #     if post.type == 'INPUT':
-            #         continue
-            #
-            #     weight = gauss(0, self.config.weight_stdev)
-            #     cg = self._conn_gene_type(node_gene.ID, post.ID, weight, True)
-            #     self.conn_genes[cg.key] = cg
-
     @classmethod
     def create_unconnected(cls, config):
         '''Create a genome for a network with no hidden nodes and no connections.'''
-
-        c = cls(config, 0, 0)
+        c = cls(config, None, None)
         node_id = 0
-        # Create node genes
+        # Create input node genes.
         for i in range(config.input_nodes):
             assert node_id not in c.node_genes
             c.node_genes[node_id] = config.node_gene_type(node_id, 'INPUT')
             node_id += 1
 
+        # Create output node genes.
         for i in range(config.output_nodes):
             act_func = choice(config.activation_functions)
             node_gene = config.node_gene_type(node_id,
@@ -305,50 +293,37 @@ class Genome(object):
         assert node_id == len(c.node_genes)
         return c
 
-    @classmethod
-    def create_minimally_connected(cls, config):
-        """
-        Create a genome for a minimally connected feed-forward network with no hidden nodes.
-        Each output node will have a single connection from a randomly chosen input node.
-        """
-        c = cls.create_unconnected(config)
-        for node_gene in c.node_genes.values():
-            if node_gene.type != 'OUTPUT':
-                continue
+    def connect_fs_neat(self):
+        """ Randomly connect one input to all hidden and output nodes (FS-NEAT). """
+        in_genes = [g for g in self.node_genes.values() if g.type == 'INPUT']
+        hid_genes = [g for g in self.node_genes.values() if g.type == 'HIDDEN']
+        out_genes = [g for g in self.node_genes.values() if g.type == 'OUTPUT']
 
-            # Connect it to a random input node
-            idx = None
-            while 1:
-                idx = choice(list(c.node_genes.keys()))
-                if c.node_genes[idx].type == 'INPUT':
-                    break
+        ig = choice(in_genes)
+        for og in hid_genes + out_genes:
+            weight = gauss(0, self.config.weight_stdev)
+            cg = self.config.conn_gene_type(ig.ID, og.ID, weight, True)
+            self.conn_genes[cg.key] = cg
 
-            input_node = c.node_genes[idx]
-            weight = gauss(0, config.weight_stdev)
+    def connect_full(self):
+        """ Create a fully-connected genome. """
+        in_genes = [g for g in self.node_genes.values() if g.type == 'INPUT']
+        hid_genes = [g for g in self.node_genes.values() if g.type == 'HIDDEN']
+        out_genes = [g for g in self.node_genes.values() if g.type == 'OUTPUT']
 
-            cg = config.conn_gene_type(input_node.ID, node_gene.ID, weight, True)
-            c.conn_genes[cg.key] = cg
+        # Connect each input node to all hidden and output nodes.
+        for ig in in_genes:
+            for og in hid_genes + out_genes:
+                weight = gauss(0, self.config.weight_stdev)
+                cg = self.config.conn_gene_type(ig.ID, og.ID, weight, True)
+                self.conn_genes[cg.key] = cg
 
-        return c
-
-    @classmethod
-    def create_fully_connected(cls, config):
-        """
-        Create a genome for a fully connected feed-forward network with no hidden nodes.
-        """
-        c = cls.create_unconnected(config)
-        for node_gene in c.node_genes.values():
-            if node_gene.type != 'OUTPUT':
-                continue
-
-            # Connect it to all input nodes
-            for input_node in c.node_genes.values():
-                if input_node.type == 'INPUT':
-                    weight = gauss(0, config.weight_stdev)
-                    cg = config.conn_gene_type(input_node.ID, node_gene.ID, weight, True)
-                    c.conn_genes[cg.key] = cg
-
-        return c
+        # Connect each hidden node to all output nodes.
+        for hg in hid_genes:
+            for og in out_genes:
+                weight = gauss(0, self.config.weight_stdev)
+                cg = self.config.conn_gene_type(hg.ID, og.ID, weight, True)
+                self.conn_genes[cg.key] = cg
 
 
 class FFGenome(Genome):
@@ -368,7 +343,11 @@ class FFGenome(Genome):
         assert (len(self.node_order) == len([n for n in self.node_genes.values() if n.type == 'HIDDEN']))
 
     def mutate_add_node(self):
-        ng, split_conn = super(FFGenome, self).mutate_add_node()
+        result = super(FFGenome, self).mutate_add_node()
+        if result is None:
+            return
+
+        ng, split_conn = result
         # Add node to node order list: after the presynaptic node of the split connection
         # and before the postsynaptic node of the split connection
         if self.node_genes[split_conn.in_node_id].type == 'HIDDEN':
@@ -432,26 +411,6 @@ class FFGenome(Genome):
             self.node_genes[node_gene.ID] = node_gene
             self.node_order.append(node_gene.ID)
             node_id += 1
-            # Connect all input nodes to it
-            # for pre in self.node_genes.values():
-            #     if pre.type == 'INPUT':
-            #         weight = gauss(0, self.config.weight_stdev)
-            #         cg = self._conn_gene_type(pre.ID, node_gene.ID, weight, True)
-            #         self.conn_genes[cg.key] = cg
-            #         assert self.__is_connection_feedforward(pre, node_gene)
-            # # Connect all previous hidden nodes to it
-            # for pre_id in self.node_order[:-1]:
-            #     assert pre_id != node_gene.ID
-            #     weight = gauss(0, self.config.weight_stdev)
-            #     cg = self._conn_gene_type(pre_id, node_gene.ID, weight, True)
-            #     self.conn_genes[cg.key] = cg
-            # # Connect it to all output nodes
-            # for post in self.node_genes.values():
-            #     if post.type == 'OUTPUT':
-            #         weight = gauss(0, self.config.weight_stdev)
-            #         cg = self._conn_gene_type(node_gene.ID, post.ID, weight, True)
-            #         self.conn_genes[cg.key] = cg
-            #         assert self.__is_connection_feedforward(node_gene, post)
 
     def __str__(self):
         s = super(FFGenome, self).__str__()

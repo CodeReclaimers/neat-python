@@ -87,31 +87,24 @@ class Population(object):
             pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     def _create_population(self):
-        # TODO: Shouldn't these classes be specified by the configuration item?
-        if self.config.feedforward:
-            genotype = FFGenome
-        else:
-            genotype = Genome
 
+        # Create a collection of unconnected genomes with no hidden nodes.
         new_population = []
-        # TODO: Add FS-NEAT support, which creates an empty connection set, and then performs a
-        # single add connection mutation.
-        # This would give three initialization methods:
-        # 1. Fully connected (each input connected to all outputs)
-        # 2. "minimally" connected, which isn't really minimal (one random input to each output)
-        # 3. FS-NEAT connected (one random connection)
-        if self.config.fully_connected:
-            for i in range(self.config.pop_size):
-                g = genotype.create_fully_connected(self.config)
-                new_population.append(g)
-        else:
-            for i in range(self.config.pop_size):
-                g = genotype.create_minimally_connected(self.config)
-                new_population.append(g)
+        for i in range(self.config.pop_size):
+            new_population.append(self.config.genotype.create_unconnected(self.config))
 
+        # Add hidden nodes if requested.
         if self.config.hidden_nodes > 0:
             for g in new_population:
                 g.add_hidden_nodes(self.config.hidden_nodes)
+
+        # Add connections based on initial connectivity type.
+        if self.config.initial_connection == 'fs_neat':
+            for g in new_population:
+                g.connect_fs_neat()
+        elif self.config.initial_connection == 'fully_connected':
+            for g in new_population:
+                g.connect_full()
 
         return new_population
 

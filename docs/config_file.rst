@@ -13,14 +13,15 @@ NEAT settings.
 
 * *input_nodes*
     The number of nodes through which the network receives input.
+* *hidden_nodes*
+    The number of hidden nodes to add to each genome in the initial population.
 * *output_nodes*
     The number of nodes to which the network delivers output.
-* *fully_connected*
-    If this evaluates to **True**, then all individuals in the initial population will be created with each output will
-    having randomly-configured connections to all inputs. Otherwise, the initial population's members will have only
-    *only one* randomly-configured connection from a random input to each input.
-
-    In both cases, the initial networks contain no hidden nodes.
+* *initial_connection*
+    Specifies the initial connectivity of newly-created genomes.  There are three allowed values:
+    * *unconnected* - No connection genes are initially present.
+    * *fs_neat* - One connection gene from one input to all hidden and output genes.
+    * *fully_connected* - Each input gene is connected to all hidden and output genes, and each hidden gene is connected to all output genes.
 * *max_weight*, *min_weight*
     Connection weights (as well as node bias and response) will be limited to this range.
 * *feedforward*
@@ -29,8 +30,6 @@ NEAT settings.
 * *activation_functions*
     A space-separated list of the activation functions that may be used in constructing networks.  Allowable values
     are: *sigmoid*, *tanh*, *sin*, *gauss*, and *relu*.
-* *hidden_nodes*
-    The number of hidden nodes to add to each genome in the initial population.
 * *weight_stdev*
     The standard deviation of the zero-centered normal distribution used to generate initial and replacement weights.
 

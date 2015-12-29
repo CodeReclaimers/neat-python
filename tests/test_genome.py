@@ -7,7 +7,8 @@ from neat.config import Config
 def check_simple(genome_type):
     local_dir = os.path.dirname(__file__)
     config = Config(os.path.join(local_dir, 'test_configuration'))
-    c1 = genome_type.create_fully_connected(config)
+    c1 = genome_type.create_unconnected(config)
+    c1.connect_full()
 
     # add two hidden nodes
     c1.add_hidden_nodes(2)
@@ -29,7 +30,8 @@ def check_self_crossover(genome_type):
     # Check that self-crossover produces a genetically identical child (with a different ID).
     local_dir = os.path.dirname(__file__)
     config = Config(os.path.join(local_dir, 'test_configuration'))
-    c = genome_type.create_fully_connected(config)
+    c = genome_type.create_unconnected(config)
+    c.connect_full()
     c.fitness = 0.0
 
     cnew = c.crossover(c)

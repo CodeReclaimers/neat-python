@@ -1,12 +1,12 @@
 [phenotype]
 input_nodes          = 2
+hidden_nodes         = 0
 output_nodes         = 1
-fully_connected      = 1
+initial_connection   = fully_connected
 max_weight           = 30
 min_weight           = -30
 feedforward          = 1
 activation_functions = sigmoid
-hidden_nodes         = 0
 weight_stdev         = 0.9
 
 [genetic]

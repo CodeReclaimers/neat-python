@@ -1,6 +1,7 @@
 import os
 
 from neat.genes import NodeGene, ConnectionGene
+from neat.genome import Genome, FFGenome
 
 try:
     from configparser import ConfigParser
@@ -21,6 +22,7 @@ class Config(object):
     # classes you need to give to NEAT are shown in the config file.
 
     allowed_activation = ['sigmoid', 'tanh', 'sin', 'gauss', 'relu']
+    allowed_connectivity = ['unconnected', 'fs_neat', 'fully_connected']
 
     def __init__(self, filename):
         if not os.path.isfile(filename):
@@ -37,15 +39,24 @@ class Config(object):
         self.input_nodes = int(parameters.get('phenotype', 'input_nodes'))
         self.output_nodes = int(parameters.get('phenotype', 'output_nodes'))
         self.hidden_nodes = int(parameters.get('phenotype', 'hidden_nodes'))
-        self.fully_connected = bool(int(parameters.get('phenotype', 'fully_connected')))
+        self.initial_connection = parameters.get('phenotype', 'initial_connection')
         self.max_weight = float(parameters.get('phenotype', 'max_weight'))
         self.min_weight = float(parameters.get('phenotype', 'min_weight'))
         self.feedforward = bool(int(parameters.get('phenotype', 'feedforward')))
         self.weight_stdev = float(parameters.get('phenotype', 'weight_stdev'))
         self.activation_functions = parameters.get('phenotype', 'activation_functions').strip().split()
 
+        # Verify that initial connection type is valid.
+        assert self.initial_connection in self.allowed_connectivity
+
         # Verify that specified activation functions are valid.
         assert all(x in self.allowed_activation for x in self.activation_functions)
+
+        # Select a genotype class.
+        if self.feedforward:
+            self.genotype = FFGenome
+        else:
+            self.genotype = Genome
 
         # Genetic algorithm configuration
         self.pop_size = int(parameters.get('genetic', 'pop_size'))
