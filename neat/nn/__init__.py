@@ -1,17 +1,40 @@
 import math
 
 
-def exp_sigmoid(bias, response, x):
+def sigmoid_activation(bias, response, x):
     z = bias + x * response
     z = max(-60.0, min(60.0, z))
     return 1.0 / (1.0 + math.exp(-z))
 
 
-def tanh_sigmoid(bias, response, x):
+def tanh_activation(bias, response, x):
     z = bias + x * response
     z = max(-60.0, min(60.0, z))
     return math.tanh(z)
 
+
+def sin_activation(bias, response, x):
+    z = bias + x * response
+    z = max(-60.0, min(60.0, z))
+    return math.sin(z)
+
+
+def gauss_activation(bias, response, x):
+    z = bias + x * response
+    z = max(-60.0, min(60.0, z))
+    return math.exp(-0.5 * z**2) / math.sqrt(2 * math.pi)
+
+
+def relu_activation(bias, response, x):
+    z = bias + x * response
+    return z if z > 0.0 else 0
+
+
+activations = {'sigmoid':sigmoid_activation,
+               'tanh': tanh_activation,
+               'sin': sin_activation,
+               'gauss': gauss_activation,
+               'relu': relu_activation}
 
 def find_feed_forward_layers(inputs, connections):
     '''
@@ -87,44 +110,10 @@ def create_feed_forward_phenotype(genome):
             used_nodes.add(node)
             ng = genome.node_genes[node]
             if ng.activation_type == "tanh":
-                activation_function = tanh_sigmoid
+                activation_function = tanh_activation
             else:
-                activation_function = exp_sigmoid
+                activation_function = sigmoid_activation
 
             node_evals.append((node, activation_function, ng.bias, ng.response, inputs))
 
     return FeedForwardNetwork(max(used_nodes), input_nodes, output_nodes, node_evals)
-
-
-def create_feed_forward_function(genome):
-    """ Receives a genome and returns a function implementing its neural network. """
-
-    f = ['def f(values):']
-
-    # Gather inputs and expressed connections.
-    input_nodes = [ng.ID for ng in genome.node_genes.values() if ng.type == 'INPUT']
-    connections = [(cg.in_node_id, cg.out_node_id) for cg in genome.conn_genes.values() if cg.enabled]
-
-    layers = find_feed_forward_layers(input_nodes, connections)
-    for i, layer in enumerate(layers):
-        f.append('    # evaluate layer {0:d}'.format(i))
-        for node in layer:
-            ev = []
-            for cg in genome.conn_genes.values():
-                if cg.out_node_id == node and cg.enabled:
-                    ev.append('({0:f} * values[{1:d}])'.format(cg.weight, cg.in_node_id))
-
-            ev = ' + '.join(ev)
-            f.append('    z = ' + ev)
-
-            ng = genome.node_genes[node]
-            if ng.activation_type == 'tanh':
-                activation_function = 'tanh_sigmoid'
-            else:
-                activation_function = 'exp_sigmoid'
-
-            f.append('    values[{0:d}] = {1!s}({2:f}, {3:f}, z)'.format(node, activation_function,
-                                                                         ng.bias, ng.response))
-            f.append('')
-
-    return '\n'.join(f)

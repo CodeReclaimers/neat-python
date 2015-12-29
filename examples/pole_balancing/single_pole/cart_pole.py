@@ -5,24 +5,24 @@ General settings and implementation of the single-pole cart system dynamics.
 from math import cos, pi, sin
 import random
 
-position_limit = 2.4
-angle_limit_radians = 45 * pi / 180
-num_steps = 10 ** 5
-
 
 class CartPole(object):
     gravity = 9.8  # acceleration due to gravity, positive is downward, m/sec^2
     mcart = 1.0  # cart mass in kg
     mpole = 0.1  # pole mass in kg
     lpole = 0.5  # half the pole length in meters
-    time_step = 0.02  # time step in seconds
+    time_step = 0.01  # time step in seconds
 
-    def __init__(self, x=None, theta=None, dx=None, dtheta=None):
+    def __init__(self, x=None, theta=None, dx=None, dtheta=None,
+                 position_limit=2.4, angle_limit_radians=45 * pi / 180):
+        self.position_limit = position_limit
+        self.angle_limit_radians = angle_limit_radians
+
         if x is None:
-            x = random.uniform(-0.8 * position_limit, 0.8 * position_limit)
+            x = random.uniform(-0.8 * self.position_limit, 0.8 * self.position_limit)
 
         if theta is None:
-            theta = random.uniform(-0.8 * angle_limit_radians, 0.8 * angle_limit_radians)
+            theta = random.uniform(-0.8 * self.angle_limit_radians, 0.8 * self.angle_limit_radians)
 
         if dx is None:
             dx = random.uniform(-1.0, 1.0)
@@ -80,38 +80,25 @@ class CartPole(object):
 
     def get_scaled_state(self):
         '''Get full state, scaled into (approximately) [0, 1].'''
-        return [0.5 * (self.x + position_limit) / position_limit,
+        return [0.5 * (self.x + self.position_limit) / self.position_limit,
                 (self.dx + 0.75) / 1.5,
-                0.5 * (self.theta + angle_limit_radians) / angle_limit_radians,
+                0.5 * (self.theta + self.angle_limit_radians) / self.angle_limit_radians,
                 (self.dtheta + 1.0) / 2.0]
+
+
+def continuous_actuator_force(action):
+    return -10.0 + 2.0 * action[0]
+
+
+def noisy_continuous_actuator_force(action):
+    a = action[0] + random.gauss(0, 0.2)
+    return 10.0 if a > 0.5 else -10.0
 
 
 def discrete_actuator_force(action):
     return 10.0 if action[0] > 0.5 else -10.0
 
 
-def noisy_actuator_force(action):
-    a = action[0] + random.uniform(-0.2, 0.2)
+def noisy_discrete_actuator_force(action):
+    a = action[0] + random.gauss(0, 0.2)
     return 10.0 if a > 0.5 else -10.0
-
-
-def run_simulation(sim, net, force_func):
-    '''
-    Run the given simulation for up to num_steps time steps.
-    Returns the number of time steps during which the position and angle were within limits.
-    '''
-    for trials in range(num_steps):
-        inputs = sim.get_scaled_state()
-        action = net.serial_activate(inputs)
-
-        # Apply action to the simulated cart-pole
-        force = force_func(action)
-        sim.step(force)
-
-        # Stop if the network fails to keep the cart within the position or angle limits.
-        # The per-run fitness is the number of time steps the network can balance the pole
-        # without exceeding these limits.
-        if abs(sim.x) >= position_limit or abs(sim.theta) >= angle_limit_radians:
-            return trials
-
-    return num_steps

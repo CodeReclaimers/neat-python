@@ -20,6 +20,8 @@ class Config(object):
     # It also makes the config file and associated setup code somewhat self-documenting, as the
     # classes you need to give to NEAT are shown in the config file.
 
+    allowed_activation = ['sigmoid', 'tanh', 'sin', 'gauss', 'relu']
+
     def __init__(self, filename):
         if not os.path.isfile(filename):
             raise Exception('No such config file: ' + os.path.abspath(filename))
@@ -39,8 +41,11 @@ class Config(object):
         self.max_weight = float(parameters.get('phenotype', 'max_weight'))
         self.min_weight = float(parameters.get('phenotype', 'min_weight'))
         self.feedforward = bool(int(parameters.get('phenotype', 'feedforward')))
-        self.nn_activation = parameters.get('phenotype', 'nn_activation')  # exp or tanh
         self.weight_stdev = float(parameters.get('phenotype', 'weight_stdev'))
+        self.activation_functions = parameters.get('phenotype', 'activation_functions').strip().split()
+
+        # Verify that specified activation functions are valid.
+        assert all(x in self.allowed_activation for x in self.activation_functions)
 
         # Genetic algorithm configuration
         self.pop_size = int(parameters.get('genetic', 'pop_size'))

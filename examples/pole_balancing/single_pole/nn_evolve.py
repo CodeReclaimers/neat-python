@@ -7,16 +7,44 @@ from __future__ import print_function
 import os
 import pickle
 
-from cart_pole import discrete_actuator_force
-from fitness import evaluate_population
+import cart_pole
 
-from neat import nn, population, visualize
+from neat import nn, parallel, population, visualize
 from neat.config import Config
 
+runs_per_net = 3
+num_steps = 60000 # equivalent to 1 minute of simulation time
 
-# Use the nn network phenotype and the discrete actuator force function.
-def fitness_function(genomes):
-    evaluate_population(genomes, nn.create_feed_forward_phenotype, discrete_actuator_force)
+
+# Use the NN network phenotype and the discrete actuator force function.
+def evaluate_genome(g):
+    net = nn.create_feed_forward_phenotype(g)
+
+    fitness = 0.0
+
+    for runs in range(runs_per_net):
+        sim = cart_pole.CartPole()
+
+        # Run the given simulation for up to num_steps time steps.
+        for s in range(num_steps):
+            inputs = sim.get_scaled_state()
+            action = net.serial_activate(inputs)
+
+            # Apply action to the simulated cart-pole
+            force = cart_pole.discrete_actuator_force(action)
+            sim.step(force)
+
+            # Stop if the network fails to keep the cart within the position or angle limits.
+            # The per-run fitness is the number of time steps the network can balance the pole
+            # without exceeding these limits.
+            if abs(sim.x) >= sim.position_limit or abs(sim.theta) >= sim.angle_limit_radians:
+                break
+
+            fitness += 1.0
+
+    # The genome's fitness is its average performance across all runs.
+    return fitness / float(runs_per_net)
+
 
 # Load the config file, which is assumed to live in
 # the same directory as this script.
@@ -24,13 +52,16 @@ local_dir = os.path.dirname(__file__)
 config = Config(os.path.join(local_dir, 'nn_config'))
 
 pop = population.Population(config)
-pop.epoch(fitness_function, 1000)
+pe = parallel.ParallelEvaluator(4, evaluate_genome)
+pop.epoch(pe.evaluate, 2000)
 
 # Save the winner.
 print('Number of evaluations: {0:d}'.format(pop.total_evaluations))
 winner = pop.most_fit_genomes[-1]
 with open('nn_winner_genome', 'wb') as f:
     pickle.dump(winner, f)
+
+print(winner)
 
 # Plot the evolution of the best/average fitness.
 visualize.plot_stats(pop, ylog=True, filename="nn_fitness.svg")

@@ -5,8 +5,8 @@ from neat.ctrnn import CTNeuron, Network
 
 def test_basic():
     # create two output neurons (they won't receive any external inputs)
-    n1 = CTNeuron('OUTPUT', 1, -2.75, 1.0, 'exp', 0.5)
-    n2 = CTNeuron('OUTPUT', 2, -1.75, 1.0, 'exp', 0.5)
+    n1 = CTNeuron('OUTPUT', 1, -2.75, 1.0, 'sigmoid', 0.5)
+    n2 = CTNeuron('OUTPUT', 2, -1.75, 1.0, 'sigmoid', 0.5)
     n1.set_init_state(-0.084000643)
     n2.set_init_state(-0.408035109)
 

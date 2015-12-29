@@ -118,7 +118,8 @@ class Genome(object):
         # Choose a random connection to split
         conn_to_split = choice(list(self.conn_genes.values()))
         new_node_id = self.get_new_hidden_id()
-        ng = self.config.node_gene_type(new_node_id, 'HIDDEN', activation_type=self.config.nn_activation)
+        act_func = choice(self.config.activation_functions)
+        ng = self.config.node_gene_type(new_node_id, 'HIDDEN', activation_type=act_func)
         assert ng.ID not in self.node_genes
         self.node_genes[ng.ID] = ng
         new_conn1, new_conn2 = conn_to_split.split(ng.ID)
@@ -257,9 +258,10 @@ class Genome(object):
     def add_hidden_nodes(self, num_hidden):
         node_id = self.get_new_hidden_id()
         for i in range(num_hidden):
+            act_func = choice(self.config.activation_functions)
             node_gene = self.config.node_gene_type(node_id,
                                                    node_type='HIDDEN',
-                                                   activation_type=self.config.nn_activation)
+                                                   activation_type=act_func)
             assert node_gene.ID not in self.node_genes
             self.node_genes[node_gene.ID] = node_gene
             node_id += 1
@@ -292,9 +294,10 @@ class Genome(object):
             node_id += 1
 
         for i in range(config.output_nodes):
+            act_func = choice(config.activation_functions)
             node_gene = config.node_gene_type(node_id,
                                               node_type='OUTPUT',
-                                              activation_type=config.nn_activation)
+                                              activation_type=act_func)
             assert node_gene.ID not in c.node_genes
             c.node_genes[node_gene.ID] = node_gene
             node_id += 1
@@ -421,9 +424,10 @@ class FFGenome(Genome):
     def add_hidden_nodes(self, num_hidden):
         node_id = self.get_new_hidden_id()
         for i in range(num_hidden):
+            act_func = choice(self.config.activation_functions)
             node_gene = self.config.node_gene_type(node_id,
                                                    node_type='HIDDEN',
-                                                   activation_type=self.config.nn_activation)
+                                                   activation_type=act_func)
             assert node_gene.ID not in self.node_genes
             self.node_genes[node_gene.ID] = node_gene
             self.node_order.append(node_gene.ID)

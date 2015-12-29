@@ -4,8 +4,12 @@ The scripts in this directory show how to evolve a network that balances a pole 
 inputs are the cart position, pole angle, and the derivatives of cart position and pole angle.  The network output is 
 used to apply a constant-magnitude force to the cart in either the left or right direction.
 
-Each set of scripts is named with a prefix to indicate the network type used: *nn_* for a discrete-time recurrent network, and
-*ctrnn_* for a continuous-time recurrent network.  
+Each set of scripts is named with a prefix to indicate the network type used: *nn_* for a discrete-time recurrent 
+network, and *ctrnn_* for a continuous-time recurrent network. 
+ 
+Note that there is a significant amount of duplication between these scripts, and this is intentional.  The goal is to 
+make it easier to see what the example is doing, without making the user dig through a bunch of code that is not 
+directly related to the NEAT library usage.
 
 ## Running the examples ##
 

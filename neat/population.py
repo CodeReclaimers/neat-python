@@ -20,8 +20,18 @@ class MassExtinctionException(Exception):
 class Population(object):
     """ Manages all the species  """
 
-    def __init__(self, config, checkpoint_file=None, initial_population=None,
-                 diversity_type=ExplicitFitnessSharing):
+    def __init__(self, config, initial_population=None,
+                 diversity_type=ExplicitFitnessSharing, report=True, save_best=False,
+                 checkpoint_interval=10, checkpoint_generation=None):
+        """
+        :param config: Either a config.Config object or path to a configuration file.
+        :param initial_population:
+        :param diversity_type:
+        :param report: Show stats after each generation.
+        :param save_best: Save the best genome from each generation.
+        :param checkpoint_interval: Time in minutes between saving checkpoints.
+        :param checkpoint_generation: Time in generations between saving checkpoints.
+        """
 
         # If config is not a Config object, assume it is a path to the config file.
         if not isinstance(config, Config):
@@ -37,15 +47,16 @@ class Population(object):
         self.generation = -1
         self.total_evaluations = 0
 
-        if checkpoint_file:
-            assert initial_population is None
-            self.load_checkpoint(checkpoint_file)
-        else:
-            if initial_population is None:
-                initial_population = self._create_population()
+        if initial_population is None:
+            initial_population = self._create_population()
 
-            # Partition the population into species based on current configuration.
-            self._speciate(initial_population)
+        # Partition the population into species based on current configuration.
+        self._speciate(initial_population)
+
+        self.report = report
+        self.save_best = save_best
+        self.checkpoint_interval = checkpoint_interval
+        self.checkpoint_generation = checkpoint_generation
 
     def __del__(self):
         Species.clear_indexer()
@@ -139,23 +150,14 @@ class Population(object):
             species_stats[s.ID] = [c.fitness for c in s.members]
         self.generation_statistics.append(species_stats)
 
-    def epoch(self, fitness_function, n, report=True, save_best=False, checkpoint_interval=10,
-              checkpoint_generation=None):
-        """ Runs NEAT's genetic algorithm for n epochs.
-
-            Keyword arguments:
-            report -- show stats at each epoch (default True)
-            save_best -- save the best genome from each epoch (default False)
-            checkpoint_interval -- time in minutes between saving checkpoints (default 10 minutes)
-            checkpoint_generation -- time in generations between saving checkpoints
-                (default None -- option disabled)
-        """
+    def epoch(self, fitness_function, n):
+        """ Runs NEAT's genetic algorithm for n epochs. """
         t0 = time.time()  # for saving checkpoints
 
         for g in range(n):
             self.generation += 1
 
-            if report:
+            if self.report:
                 print('\n ****** Running generation {0} ****** \n'.format(self.generation))
 
             gen_start = time.time()
@@ -174,7 +176,7 @@ class Population(object):
 
             # Print some statistics
             best = self.most_fit_genomes[-1]
-            if report:
+            if self.report:
                 fit_mean = mean([c.fitness for c in population])
                 fit_std = stdev([c.fitness for c in population])
                 print('Population\'s average fitness: {0:3.5f} stdev: {1:3.5f}'.format(fit_mean, fit_std))
@@ -190,13 +192,13 @@ class Population(object):
                 print('Species no improv: {0!r}'.format([s.no_improvement_age for s in self.species]))
 
             # Saves the best genome from the current generation if requested.
-            if save_best:
+            if self.save_best:
                 with open('best_genome_' + str(self.generation), 'w') as f:
                     pickle.dump(best, f)
 
             # End when the fitness threshold is reached.
             if best.fitness >= self.config.max_fitness_threshold:
-                if report:
+                if self.report:
                     print('\nBest individual in epoch {0} meets fitness threshold - complexity: {1!r}'.format(
                         self.generation, best.size()))
                 break
@@ -209,14 +211,14 @@ class Population(object):
                 if s.no_improvement_age <= self.config.max_stagnation:
                     new_species.append(s)
                 else:
-                    if report:
+                    if self.report:
                         print("\n   Species {0} with {1} members is stagnated: removing it".format(s.ID, len(s.members)))
             self.species = new_species
 
             # Check for complete extinction.
             new_population = []
             if not self.species:
-                if report:
+                if self.report:
                     print('All species extinct.')
 
                 # If requested by the user, create a completely new population,
@@ -239,17 +241,17 @@ class Population(object):
 
             self._speciate(new_population)
 
-            if checkpoint_interval is not None and time.time() > t0 + 60 * checkpoint_interval:
-                if report:
+            if self.checkpoint_interval is not None and time.time() > t0 + 60 * self.checkpoint_interval:
+                if self.report:
                     print('Creating timed checkpoint file at generation: {0}'.format(self.generation))
                 self.save_checkpoint()
 
                 # Update the checkpoint time.
                 t0 = time.time()
-            elif checkpoint_generation is not None and self.generation % checkpoint_generation == 0:
-                if report:
+            elif self.checkpoint_generation is not None and self.generation % self.checkpoint_generation == 0:
+                if self.report:
                     print('Creating generation checkpoint file at generation: {0}'.format(self.generation))
                 self.save_checkpoint()
 
-            if report:
+            if self.report:
                 print("Generation time: {0:.3f} sec".format(time.time() - gen_start))

@@ -27,9 +27,13 @@ pop.epoch(eval_fitness, 300)
 
 print('Number of evaluations: {0}'.format(pop.total_evaluations))
 
-# Verify network output against training data.
-print('\nBest network output:')
+# Display the most fit genome.
+print('\nBest genome:')
 winner = pop.most_fit_genomes[-1]
+print(winner)
+
+# Verify network output against training data.
+print('\nOutput:')
 winner_net = nn.create_feed_forward_phenotype(winner)
 for inputs, expected in zip(xor_inputs, xor_outputs):
     output = winner_net.serial_activate(inputs)

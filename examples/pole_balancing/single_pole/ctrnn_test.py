@@ -3,7 +3,7 @@ from __future__ import print_function
 
 import pickle
 
-from cart_pole import CartPole, run_simulation, num_steps, discrete_actuator_force
+from cart_pole import CartPole, discrete_actuator_force
 from movie import make_movie
 
 from neat import ctrnn
@@ -25,8 +25,27 @@ print("    x_dot = {0:.4f}".format(sim.dx))
 print("    theta = {0:.4f}".format(sim.theta))
 print("theta_dot = {0:.4f}".format(sim.dtheta))
 print()
-n = run_simulation(sim, net, discrete_actuator_force)
-print('Pole balanced for {0:d} of {1:d} time steps'.format(n, num_steps))
+
+# Run the given simulation for up to 100k time steps.
+num_balanced = 0
+for s in range(10 ** 5):
+    inputs = sim.get_scaled_state()
+    action = net.parallel_activate(inputs)
+
+    # Apply action to the simulated cart-pole
+    force = discrete_actuator_force(action)
+    sim.step(force)
+
+    # Stop if the network fails to keep the cart within the position or angle limits.
+    # The per-run fitness is the number of time steps the network can balance the pole
+    # without exceeding these limits.
+    if abs(sim.x) >= sim.position_limit or abs(sim.theta) >= sim.angle_limit_radians:
+        break
+
+    num_balanced += 1
+
+
+print('Pole balanced for {0:d} of 100k time steps'.format(num_balanced))
 
 print()
 print("Final conditions:")

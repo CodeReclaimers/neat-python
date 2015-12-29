@@ -1,30 +1,30 @@
 #--- parameters for the single pole experiment ---#
 
 [phenotype]
-input_nodes         = 4
-output_nodes        = 1
-fully_connected     = 0
-max_weight          = +30
-min_weight          = -30
-feedforward         = 1
-nn_activation       = exp
-hidden_nodes        = 0
-weight_stdev        = 0.9
+input_nodes          = 4
+output_nodes         = 1
+fully_connected      = 0
+max_weight           = +30
+min_weight           = -30
+feedforward          = 1
+activation_functions = sigmoid
+hidden_nodes         = 0
+weight_stdev         = 0.9
 
 [genetic]
 pop_size              = 250
-max_fitness_threshold = 99999
-prob_add_conn         = 0.05
-prob_add_node         = 0.03
-prob_delete_conn      = 0.01
-prob_delete_node      = 0.01
-prob_mutate_bias      = 0.5
-bias_mutation_power   = 0.5
-prob_mutate_response  = 0.5
-response_mutation_power = 0.5
-prob_mutate_weight    = 0.9
+max_fitness_threshold = 59999
+prob_add_conn         = 0.1
+prob_add_node         = 0.1
+prob_delete_conn      = 0.05
+prob_delete_node      = 0.05
+prob_mutate_bias      = 0.1
+bias_mutation_power   = 1.0
+prob_mutate_response  = 0.2
+response_mutation_power = 0.1
+prob_mutate_weight    = 0.8
 prob_replace_weight   = 0.1
-weight_mutation_power = 1.5
+weight_mutation_power = 1.0
 prob_toggle_link      = 0.01
 elitism               = 2
 reset_on_extinction   = 1
@@ -33,7 +33,7 @@ reset_on_extinction   = 1
 compatibility_threshold = 3.0
 excess_coefficient      = 1.0
 disjoint_coefficient    = 1.0
-weight_coefficient      = 0.4
+weight_coefficient      = 0.5
 
 [species]
 survival_threshold  = 0.2

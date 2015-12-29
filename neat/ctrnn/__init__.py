@@ -5,8 +5,9 @@
 """
 import random
 from neat.indexer import Indexer
-from neat.nn import exp_sigmoid, tanh_sigmoid
+from neat.nn import activations
 from neat.genes import NodeGene
+from neat.config import Config
 
 
 class CTNodeGene(NodeGene):
@@ -14,7 +15,7 @@ class CTNodeGene(NodeGene):
         The main difference here is the addition of
         a decay rate given by the time constant.
     """
-    def __init__(self, ID, node_type, bias=0.0, response=4.924273, activation_type='exp', time_constant=1.0):
+    def __init__(self, ID, node_type, bias=0.0, response=4.924273, activation_type='sigmoid', time_constant=1.0):
         super(CTNodeGene, self).__init__(ID, node_type, bias, response, activation_type)
         self.time_constant = time_constant
 
@@ -41,7 +42,7 @@ class CTNodeGene(NodeGene):
         ng = CTNodeGene(self.ID, self.type,
                         random.choice((self.bias, other.bias)),
                         random.choice((self.response, other.response)),
-                        self.activation_type,
+                        random.choice((self.activation_type, other.activation_type)),
                         random.choice((self.time_constant, other.time_constant)))
         return ng
 
@@ -61,16 +62,12 @@ class Neuron(object):
 
     def __init__(self, neuron_type, ID, bias, response, activation_type):
         assert neuron_type in ('INPUT', 'OUTPUT', 'HIDDEN')
-        assert activation_type in ('exp', 'tanh')
 
         self.type = neuron_type
         self.ID = self.indexer.next(ID)
         self.bias = bias
         self.response = response
-        if activation_type == 'exp':
-            self.activation = exp_sigmoid
-        elif activation_type == 'tanh':
-            self.activation = tanh_sigmoid
+        self.activation = activations[activation_type]
 
         self._synapses = []
         self.output = 0.0  # for recurrent networks all neurons must have an "initial state"

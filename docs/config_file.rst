@@ -26,8 +26,9 @@ NEAT settings.
 * *feedforward*
     If this evaluates to **True**, generated networks will not be allowed to have recurrent connections.  Otherwise
     they may be (but are not forced to be) recurrent.
-* *nn_activation*
-    Type of activation function to be used to build networks.
+* *activation_functions*
+    A space-separated list of the activation functions that may be used in constructing networks.  Allowable values
+    are: *sigmoid*, *tanh*, *sin*, *gauss*, and *relu*.
 * *hidden_nodes*
     The number of hidden nodes to add to each genome in the initial population.
 * *weight_stdev*

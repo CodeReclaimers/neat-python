@@ -5,9 +5,9 @@ from neat import ctrnn
 
 
 def create_simple():
-    neurons = [ctrnn.Neuron('INPUT', 1, 0.0, 5.0, 'exp'),
-               ctrnn.Neuron('HIDDEN', 2, 0.0, 5.0, 'exp'),
-               ctrnn.Neuron('OUTPUT', 3, 0.0, 5.0, 'exp')]
+    neurons = [ctrnn.Neuron('INPUT', 1, 0.0, 5.0, 'sigmoid'),
+               ctrnn.Neuron('HIDDEN', 2, 0.0, 5.0, 'sigmoid'),
+               ctrnn.Neuron('OUTPUT', 3, 0.0, 5.0, 'sigmoid')]
     connections = [(1, 2, 0.5), (1, 3, 0.5), (2, 3, 0.5)]
 
     return ctrnn.Network(neurons, connections, 1)

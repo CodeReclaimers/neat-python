@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 from neat.ctrnn import CTNeuron, Network
 
 # create two output neurons (they won't receive any external inputs)
-N1 = CTNeuron('OUTPUT', 1, -2.75, 1.0, 'exp', 0.5)
-N2 = CTNeuron('OUTPUT', 2, -1.75, 1.0, 'exp', 0.5)
+N1 = CTNeuron('OUTPUT', 1, -2.75, 1.0, 'sigmoid', 0.5)
+N2 = CTNeuron('OUTPUT', 2, -1.75, 1.0, 'sigmoid', 0.5)
 N1.set_init_state(-0.084000643)
 N2.set_init_state(-0.408035109)
 

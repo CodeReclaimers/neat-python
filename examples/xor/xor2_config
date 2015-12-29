@@ -8,15 +8,15 @@
 #      enabled:  7.7   1.8
 
 [phenotype]
-input_nodes         = 2
-output_nodes        = 1
-fully_connected     = 1
-max_weight          = 30
-min_weight          = -30
-feedforward         = 1
-nn_activation       = exp
-hidden_nodes        = 0
-weight_stdev        = 0.9
+input_nodes          = 2
+hidden_nodes         = 0
+output_nodes         = 1
+fully_connected      = 1
+max_weight           = 30
+min_weight           = -30
+feedforward          = 1
+activation_functions = sigmoid
+weight_stdev         = 1.0
 
 [genetic]
 pop_size                = 150
@@ -27,8 +27,8 @@ prob_delete_conn        = 0.146
 prob_delete_node        = 0.0352
 prob_mutate_bias        = 0.0509
 bias_mutation_power     = 2.093
-prob_mutate_response    = 0.243
-response_mutation_power = 4.248
+prob_mutate_response    = 0.1
+response_mutation_power = 0.1
 prob_mutate_weight      = 0.460
 prob_replace_weight     = 0.0245
 weight_mutation_power   = 0.825

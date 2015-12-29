@@ -50,8 +50,8 @@ def test_config_options():
         config.hidden_nodes = hn
         for fc in (0, 1):
             config.fully_connected = fc
-            for act in ('exp', 'tanh'):
-                config.nn_activation = act
+            for act in Config.allowed_activation:
+                config.allowed_activation = [act]
                 for ff in (0, 1):
                     config.feedforward = ff
 

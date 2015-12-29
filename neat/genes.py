@@ -4,7 +4,7 @@ from neat.indexer import Indexer
 
 
 class NodeGene(object):
-    def __init__(self, ID, node_type, bias=0.0, response=4.924273, activation_type='exp'):
+    def __init__(self, ID, node_type, bias=0.0, response=4.924273, activation_type='sigmoid'):
         """ A node gene encodes the basic artificial neuron model.
             node_type must be 'INPUT', 'HIDDEN', or 'OUTPUT'
         """
@@ -26,11 +26,10 @@ class NodeGene(object):
         """ Creates a new NodeGene randomly inheriting attributes from its parents."""
         assert (self.ID == other.ID)
 
-        # TODO: Shouldn't we also randomly inherit activation type?
         ng = NodeGene(self.ID, self.type,
                       random.choice((self.bias, other.bias)),
                       random.choice((self.response, other.response)),
-                      self.activation_type)
+                      random.choice((self.activation_type, other.activation_type)))
         return ng
 
     def mutate_bias(self, config):
