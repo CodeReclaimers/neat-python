@@ -59,6 +59,8 @@ NEAT settings.
     The standard deviation of the zero-centered normal distribution from which a response change is drawn.
 * *prob_mutate_weight*
     The probability that mutation will change the weight of a connection by adding a random value.
+* *prob_mutate_activation*
+    The probability that mutation will change the activation function of a hidden or output node.
 * *prob_replace_weight*
     The probability that mutation will replace the weight of a connection with a new random value.
 * *weight_mutation_power*

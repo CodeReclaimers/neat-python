@@ -69,3 +69,5 @@ visualize.plot_stats(pop, ylog=True, filename="nn_fitness.svg")
 visualize.plot_species(pop, filename="nn_speciation.svg")
 # Visualize the best network.
 visualize.draw_net(winner, view=True, filename="nn_winner.gv")
+visualize.draw_net(winner, view=True, filename="nn_winner-enabled.gv", show_disabled=False)
+visualize.draw_net(winner, view=True, filename="nn_winner-enabled-pruned.gv", show_disabled=False, prune_unused=True)

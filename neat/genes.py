@@ -41,6 +41,9 @@ class NodeGene(object):
         new_response = self.response + random.gauss(0, 1) * config.response_mutation_power
         self.response = max(config.min_weight, min(config.max_weight, new_response))
 
+    def mutate_activation(self, config):
+        self.activation_type = random.choice(config.activation_functions)
+
     def copy(self):
         return NodeGene(self.ID, self.type, self.bias,
                         self.response, self.activation_type)
@@ -50,6 +53,8 @@ class NodeGene(object):
             self.mutate_bias(config)
         if random.random() < config.prob_mutate_response:
             self.mutate_response(config)
+        if random.random() < config.prob_mutate_activation:
+            self.mutate_activation(config)
 
 
 class ConnectionGene(object):

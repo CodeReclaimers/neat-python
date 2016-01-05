@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 from __future__ import print_function
 
+import copy
 import warnings
 
 from neat.statistics import get_average_fitness, get_species_sizes
@@ -119,7 +120,7 @@ def plot_species(population, view=False, filename='speciation.svg'):
     plt.close()
 
 
-def draw_net(genome, view=False, filename=None, node_names=None):
+def draw_net(genome, view=False, filename=None, node_names=None, show_disabled=True, prune_unused=False):
     """ Receives a genome and draws a neural network with arbitrary topology. """
     # Attributes for network nodes.
     if graphviz is None:
@@ -149,22 +150,49 @@ def draw_net(genome, view=False, filename=None, node_names=None):
 
     dot = graphviz.Digraph(format='svg', node_attr=node_attrs)
 
+    inputs = set()
     for ng_id, ng in genome.node_genes.items():
         if ng.type == 'INPUT':
+            inputs.add(ng_id)
             name = node_names.get(ng_id, str(ng_id))
             dot.node(name, _attributes=input_attrs)
 
+    outputs = set()
     for ng_id, ng in genome.node_genes.items():
         if ng.type == 'OUTPUT':
+            outputs.add(ng_id)
             name = node_names.get(ng_id, str(ng_id))
             dot.node(name, _attributes=output_attrs)
 
+    if prune_unused:
+        connections = set()
+        for cg in genome.conn_genes.values():
+            if cg.enabled or show_disabled:
+                connections.add((cg.in_node_id, cg.out_node_id))
+
+        used_nodes = copy.copy(outputs)
+        pending = copy.copy(outputs)
+        while pending:
+            print(pending, used_nodes)
+            new_pending = set()
+            for a, b in connections:
+                if b in pending and a not in used_nodes:
+                    new_pending.add(a)
+                    used_nodes.add(a)
+            pending = new_pending
+    else:
+        used_nodes = set(genome.node_genes.keys())
+
     for cg in genome.conn_genes.values():
-        a = node_names.get(cg.in_node_id, str(cg.in_node_id))
-        b = node_names.get(cg.out_node_id, str(cg.out_node_id))
-        style = 'solid' if cg.enabled else 'dotted'
-        color = 'green' if cg.weight > 0 else 'red'
-        width = str(0.1 + abs(cg.weight / 5.0))
-        dot.edge(a, b, _attributes={'style': style, 'color': color, 'penwidth': width})
+        if cg.enabled or show_disabled:
+            if cg.in_node_id not in used_nodes or cg.out_node_id not in used_nodes:
+                continue
+
+            a = node_names.get(cg.in_node_id, str(cg.in_node_id))
+            b = node_names.get(cg.out_node_id, str(cg.out_node_id))
+            style = 'solid' if cg.enabled else 'dotted'
+            color = 'green' if cg.weight > 0 else 'red'
+            width = str(0.1 + abs(cg.weight / 5.0))
+            dot.edge(a, b, _attributes={'style': style, 'color': color, 'penwidth': width})
 
     return dot.render(filename, view=view)

@@ -2,6 +2,7 @@ import os
 
 from neat.genes import NodeGene, ConnectionGene
 from neat.genome import Genome, FFGenome
+from neat.nn import activations
 
 try:
     from configparser import ConfigParser
@@ -14,6 +15,8 @@ class Config(object):
     A simple container for all of the user-configurable parameters of NEAT.
     '''
 
+    # TODO: Add the ability to write a Config to text file.
+
     # TODO: Split out the configuration into implementation-specific sections. For example,
     # a node gene class FooNode would expect to find a [FooNode] section within the configuration
     # file, and the NEAT framework doesn't need to know about this section in any way. This
@@ -21,8 +24,8 @@ class Config(object):
     # It also makes the config file and associated setup code somewhat self-documenting, as the
     # classes you need to give to NEAT are shown in the config file.
 
-    allowed_activation = ['sigmoid', 'tanh', 'sin', 'gauss', 'relu']
-    allowed_connectivity = ['unconnected', 'fs_neat', 'fully_connected']
+    allowed_activation = list(activations.keys())
+    allowed_connectivity = ['unconnected', 'fs_neat', 'fully_connected', 'partial']
 
     def __init__(self, filename):
         if not os.path.isfile(filename):
@@ -40,6 +43,7 @@ class Config(object):
         self.output_nodes = int(parameters.get('phenotype', 'output_nodes'))
         self.hidden_nodes = int(parameters.get('phenotype', 'hidden_nodes'))
         self.initial_connection = parameters.get('phenotype', 'initial_connection')
+        self.connection_fraction = None
         self.max_weight = float(parameters.get('phenotype', 'max_weight'))
         self.min_weight = float(parameters.get('phenotype', 'min_weight'))
         self.feedforward = bool(int(parameters.get('phenotype', 'feedforward')))
@@ -47,6 +51,13 @@ class Config(object):
         self.activation_functions = parameters.get('phenotype', 'activation_functions').strip().split()
 
         # Verify that initial connection type is valid.
+        if 'partial' in self.initial_connection:
+            c, p = self.initial_connection.split()
+            self.initial_connection = c
+            self.connection_fraction = float(p)
+            if not (0 <= self.connection_fraction <= 1):
+                raise Exception("'partial' connection value must be between 0.0 and 1.0, inclusive.")
+
         assert self.initial_connection in self.allowed_connectivity
 
         # Verify that specified activation functions are valid.
@@ -72,6 +83,7 @@ class Config(object):
         self.prob_mutate_weight = float(parameters.get('genetic', 'prob_mutate_weight'))
         self.prob_replace_weight = float(parameters.get('genetic', 'prob_replace_weight'))
         self.weight_mutation_power = float(parameters.get('genetic', 'weight_mutation_power'))
+        self.prob_mutate_activation = float(parameters.get('genetic', 'prob_mutate_activation'))
         self.prob_toggle_link = float(parameters.get('genetic', 'prob_toggle_link'))
         self.elitism = int(parameters.get('genetic', 'elitism'))
         self.reset_on_extinction = bool(int(parameters.get('genetic', 'reset_on_extinction')))

@@ -1,4 +1,4 @@
-from random import choice, gauss, randint, random
+from random import choice, gauss, randint, random, shuffle
 import math
 from neat.indexer import Indexer
 
@@ -201,39 +201,60 @@ class Genome(object):
             genome1 = other
             genome2 = self
 
-        # If the longest genome is empty, there is nothing to do.
-        if not genome1.conn_genes:
-            return 0.0
+        # Compute node gene differences.
+        excess1 = sum(1 for k1 in genome1.node_genes if k1 not in genome2.node_genes)
+        excess2 = sum(1 for k2 in genome2.node_genes if k2 not in genome1.node_genes)
+        common_nodes = [k1 for k1 in genome1.node_genes if k1 in genome2.node_genes]
+        bias_diff = 0.0
+        response_diff = 0.0
+        activation_diff = 0
+        for n in common_nodes:
+            g1 = genome1.node_genes[n]
+            g2 = genome2.node_genes[n]
+            bias_diff += math.fabs(g1.bias - g2.bias)
+            response_diff += math.fabs(g1.response - g2.response)
+            if g1.activation_type != g2.activation_type:
+                activation_diff += 1
 
-        N = len(genome1.conn_genes)
-        weight_diff = 0
-        matching = 0
-        disjoint = 0
-        excess = 0
+        most_nodes = max(len(genome1.node_genes), len(genome2.node_genes))
+        distance = (self.config.excess_coefficient * float(excess1 + excess2) / most_nodes
+                    + self.config.excess_coefficient * float(activation_diff) / most_nodes
+                    + self.config.weight_coefficient * (bias_diff + response_diff) / len(common_nodes))
 
-        max_cg_genome2 = None
-        if genome2.conn_genes:
-            max_cg_genome2 = max(genome2.conn_genes.values())
+        # Compute connection gene differences.
+        if genome1.conn_genes:
+            N = len(genome1.conn_genes)
+            weight_diff = 0
+            matching = 0
+            disjoint = 0
+            excess = 0
 
-        for cg1 in genome1.conn_genes.values():
-            try:
-                cg2 = genome2.conn_genes[cg1.key]
-            except KeyError:
-                if max_cg_genome2 is not None and cg1 > max_cg_genome2:
-                    excess += 1
+            max_cg_genome2 = None
+            if genome2.conn_genes:
+                max_cg_genome2 = max(genome2.conn_genes.values())
+
+            for cg1 in genome1.conn_genes.values():
+                try:
+                    cg2 = genome2.conn_genes[cg1.key]
+                except KeyError:
+                    if max_cg_genome2 is not None and cg1 > max_cg_genome2:
+                        excess += 1
+                    else:
+                        disjoint += 1
                 else:
-                    disjoint += 1
-            else:
-                # Homologous genes
-                weight_diff += math.fabs(cg1.weight - cg2.weight)
-                matching += 1
+                    # Homologous genes
+                    weight_diff += math.fabs(cg1.weight - cg2.weight)
+                    matching += 1
 
-        disjoint += len(genome2.conn_genes) - matching
+                    if cg1.enabled != cg2.enabled:
+                        weight_diff += 1.0
 
-        distance = self.config.excess_coefficient * float(excess) / N + self.config.disjoint_coefficient * float(
-            disjoint) / N
-        if matching > 0:
-            distance += self.config.weight_coefficient * (weight_diff / matching)
+            disjoint += len(genome2.conn_genes) - matching
+
+            distance += self.config.excess_coefficient * float(excess) / N
+            distance += self.config.disjoint_coefficient * float(disjoint) / N
+            if matching > 0:
+                distance += self.config.weight_coefficient * (weight_diff / matching)
 
         return distance
 
@@ -305,25 +326,42 @@ class Genome(object):
             cg = self.config.conn_gene_type(ig.ID, og.ID, weight, True)
             self.conn_genes[cg.key] = cg
 
-    def connect_full(self):
+
+    def compute_full_connections(self):
         """ Create a fully-connected genome. """
         in_genes = [g for g in self.node_genes.values() if g.type == 'INPUT']
         hid_genes = [g for g in self.node_genes.values() if g.type == 'HIDDEN']
         out_genes = [g for g in self.node_genes.values() if g.type == 'OUTPUT']
 
         # Connect each input node to all hidden and output nodes.
+        connections = []
         for ig in in_genes:
             for og in hid_genes + out_genes:
-                weight = gauss(0, self.config.weight_stdev)
-                cg = self.config.conn_gene_type(ig.ID, og.ID, weight, True)
-                self.conn_genes[cg.key] = cg
+                connections.append((ig.ID, og.ID))
 
         # Connect each hidden node to all output nodes.
         for hg in hid_genes:
             for og in out_genes:
-                weight = gauss(0, self.config.weight_stdev)
-                cg = self.config.conn_gene_type(hg.ID, og.ID, weight, True)
-                self.conn_genes[cg.key] = cg
+                connections.append((hg.ID, og.ID))
+
+        return connections
+
+    def connect_full(self):
+        """ Create a fully-connected genome. """
+        for input_id, output_id in self.compute_full_connections():
+            weight = gauss(0, self.config.weight_stdev)
+            cg = self.config.conn_gene_type(input_id, output_id, weight, True)
+            self.conn_genes[cg.key] = cg
+
+    def connect_partial(self, fraction):
+        assert 0 <= fraction <= 1
+        all_connections = self.compute_full_connections()
+        shuffle(all_connections)
+        num_to_add = int(round(len(all_connections) * fraction))
+        for input_id, output_id in all_connections[:num_to_add]:
+            weight = gauss(0, self.config.weight_stdev)
+            cg = self.config.conn_gene_type(input_id, output_id, weight, True)
+            self.conn_genes[cg.key] = cg
 
 
 class FFGenome(Genome):
@@ -389,7 +427,6 @@ class FFGenome(Genome):
         if deleted_id != -1:
             self.node_order.remove(deleted_id)
 
-        assert len(self.conn_genes) > 0
         assert len(self.node_genes) >= self.num_inputs + self.num_outputs
 
     def __is_connection_feedforward(self, in_node, out_node):

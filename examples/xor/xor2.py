@@ -42,7 +42,9 @@ for inputs, expected in zip(xor_inputs, xor_outputs):
 # Visualize the winner network and plot/log statistics.
 visualize.plot_stats(pop)
 visualize.plot_species(pop)
-visualize.draw_net(winner, view=True)
+visualize.draw_net(winner, view=True, filename="xor2-all.gv")
+visualize.draw_net(winner, view=True, filename="xor2-enabled.gv", show_disabled=False)
+visualize.draw_net(winner, view=True, filename="xor2-enabled-pruned.gv", show_disabled=False, prune_unused=True)
 statistics.save_stats(pop)
 statistics.save_species_count(pop)
 statistics.save_species_fitness(pop)

@@ -94,7 +94,8 @@ def run():
 
     # Visualize the winner network and plot statistics.
     winner = pop.most_fit_genomes[-1]
-    visualize.draw_net(winner, view=True, node_names={0: 'A', 1: 'B', 2: 'Out1', 3: 'Out2'})
+    node_names = {0: 'A', 1: 'B', 2: 'Out1', 3: 'Out2'}
+    visualize.draw_net(winner, view=True, node_names=node_names)
     visualize.plot_stats(pop)
     visualize.plot_species(pop)
 

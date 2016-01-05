@@ -105,6 +105,9 @@ class Population(object):
         elif self.config.initial_connection == 'fully_connected':
             for g in new_population:
                 g.connect_full()
+        elif self.config.initial_connection == 'partial':
+            for g in new_population:
+                g.connect_partial(self.config.connection_fraction)
 
         return new_population
 
@@ -186,7 +189,7 @@ class Population(object):
 
             # Saves the best genome from the current generation if requested.
             if self.save_best:
-                with open('best_genome_' + str(self.generation), 'w') as f:
+                with open('best_genome_' + str(self.generation), 'wb') as f:
                     pickle.dump(best, f)
 
             # End when the fitness threshold is reached.
@@ -198,6 +201,10 @@ class Population(object):
 
             # Remove stagnated species.
             # TODO: Log species removal for visualization purposes.
+            # TODO: Provide some sort of optional cross-species performance criteria, which
+            # are then used to control stagnation and possibly the mutation rate configuration.
+            # This scheme should be adaptive so that species do not evolve to become "cautious"
+            # and only make very slow progress.
             new_species = []
             for s in self.species:
                 s.update_stagnation()

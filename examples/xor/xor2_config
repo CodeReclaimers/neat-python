@@ -32,6 +32,7 @@ response_mutation_power = 0.1
 prob_mutate_weight      = 0.460
 prob_replace_weight     = 0.0245
 weight_mutation_power   = 0.825
+prob_mutate_activation  = 0.0
 prob_toggle_link        = 0.0138
 elitism                 = 1
 reset_on_extinction     = 1

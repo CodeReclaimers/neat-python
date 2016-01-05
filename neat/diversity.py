@@ -23,6 +23,8 @@ class ExplicitFitnessSharing(object):
             return
 
         # Get average fitnesses and their range.
+        # TODO: Separate the species fitness computation and the spawn allotments into
+        # different mechanisms, to allow more easily changing/testing schemes.
         fitnesses = [s.get_average_fitness() for s in species]
         min_fitness = min(fitnesses)
         max_fitness = max(fitnesses)
