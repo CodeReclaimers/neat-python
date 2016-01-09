@@ -29,3 +29,14 @@ def test_run():
     pop = population.Population(config)
     pop.epoch(eval_fitness, 10)
 
+    visualize.plot_stats(pop)
+    visualize.plot_species(pop)
+
+    winner = pop.most_fit_genomes[-1]
+    visualize.draw_net(winner, view=False, filename="xor2-all.gv")
+    visualize.draw_net(winner, view=False, filename="xor2-enabled.gv", show_disabled=False)
+    visualize.draw_net(winner, view=False, filename="xor2-enabled-pruned.gv", show_disabled=False, prune_unused=True)
+    statistics.save_stats(pop)
+    statistics.save_species_count(pop)
+    statistics.save_species_fitness(pop)
+
