@@ -7,7 +7,6 @@ import random
 from neat.indexer import Indexer
 from neat.nn import activations
 from neat.genes import NodeGene
-from neat.config import Config
 
 
 class CTNodeGene(NodeGene):

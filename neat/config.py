@@ -3,6 +3,7 @@ import os
 from neat.genes import NodeGene, ConnectionGene
 from neat.genome import Genome, FFGenome
 from neat.nn import activations
+from neat.diversity import ExplicitFitnessSharing
 
 try:
     from configparser import ConfigParser
@@ -101,3 +102,14 @@ class Config(object):
         # Gene types
         self.node_gene_type = NodeGene
         self.conn_gene_type = ConnectionGene
+
+        self.diversity_type=ExplicitFitnessSharing
+
+        # Show stats after each generation.
+        self.report = True
+        # Save the best genome from each generation.
+        self.save_best = False
+        # Time in minutes between saving checkpoints, None for no timed checkpoints.
+        self.checkpoint_interval = None
+        # Time in generations between saving checkpoints, None for no generational checkpoints.
+        self.checkpoint_generation = None

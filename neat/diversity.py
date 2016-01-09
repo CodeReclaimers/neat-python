@@ -18,14 +18,15 @@ class ExplicitFitnessSharing(object):
     def __init__(self, config):
         self.config = config
 
+    def compute_species_fitness(self, s):
+        return s.get_average_fitness()
+
     def compute_spawn_amount(self, species):
         if not species:
             return
 
-        # Get average fitnesses and their range.
-        # TODO: Separate the species fitness computation and the spawn allotments into
-        # different mechanisms, to allow more easily changing/testing schemes.
-        fitnesses = [s.get_average_fitness() for s in species]
+        # Get species' fitnesses and their range.
+        fitnesses = [self.compute_species_fitness(s) for s in species]
         min_fitness = min(fitnesses)
         max_fitness = max(fitnesses)
         # This shift is used to compute an adjusted fitness that is

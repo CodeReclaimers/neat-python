@@ -7,8 +7,6 @@ import random
 import time
 
 from neat.config import Config
-from neat.diversity import ExplicitFitnessSharing
-from neat.genome import Genome, FFGenome
 from neat.math_util import mean, stdev
 from neat.species import Species
 
@@ -20,17 +18,10 @@ class MassExtinctionException(Exception):
 class Population(object):
     """ Manages all the species  """
 
-    def __init__(self, config, initial_population=None,
-                 diversity_type=ExplicitFitnessSharing, report=True, save_best=False,
-                 checkpoint_interval=10, checkpoint_generation=None):
+    def __init__(self, config, initial_population=None):
         """
         :param config: Either a config.Config object or path to a configuration file.
         :param initial_population:
-        :param diversity_type:
-        :param report: Show stats after each generation.
-        :param save_best: Save the best genome from each generation.
-        :param checkpoint_interval: Time in minutes between saving checkpoints.
-        :param checkpoint_generation: Time in generations between saving checkpoints.
         """
 
         # If config is not a Config object, assume it is a path to the config file.
@@ -38,8 +29,7 @@ class Population(object):
             config = Config(config)
 
         self.config = config
-        # TODO: Move diversity_type to the configuration object.
-        self.diversity = diversity_type(self.config)
+        self.diversity = config.diversity_type(self.config)
 
         self.species = []
         self.generation_statistics = []
@@ -52,11 +42,6 @@ class Population(object):
 
         # Partition the population into species based on current configuration.
         self._speciate(initial_population)
-
-        self.report = report
-        self.save_best = save_best
-        self.checkpoint_interval = checkpoint_interval
-        self.checkpoint_generation = checkpoint_generation
 
     def __del__(self):
         Species.clear_indexer()
@@ -153,7 +138,7 @@ class Population(object):
         for g in range(n):
             self.generation += 1
 
-            if self.report:
+            if self.config.report:
                 print('\n ****** Running generation {0} ****** \n'.format(self.generation))
 
             gen_start = time.time()
@@ -172,7 +157,7 @@ class Population(object):
 
             # Print some statistics
             best = self.most_fit_genomes[-1]
-            if self.report:
+            if self.config.report:
                 fit_mean = mean([c.fitness for c in population])
                 fit_std = stdev([c.fitness for c in population])
                 print('Population\'s average fitness: {0:3.5f} stdev: {1:3.5f}'.format(fit_mean, fit_std))
@@ -188,13 +173,13 @@ class Population(object):
                 print('Species no improv: {0!r}'.format([s.no_improvement_age for s in self.species]))
 
             # Saves the best genome from the current generation if requested.
-            if self.save_best:
+            if self.config.save_best:
                 with open('best_genome_' + str(self.generation), 'wb') as f:
                     pickle.dump(best, f)
 
             # End when the fitness threshold is reached.
             if best.fitness >= self.config.max_fitness_threshold:
-                if self.report:
+                if self.config.report:
                     print('\nBest individual in epoch {0} meets fitness threshold - complexity: {1!r}'.format(
                         self.generation, best.size()))
                 break
@@ -211,14 +196,14 @@ class Population(object):
                 if s.no_improvement_age <= self.config.max_stagnation:
                     new_species.append(s)
                 else:
-                    if self.report:
+                    if self.config.report:
                         print("\n   Species {0} with {1} members is stagnated: removing it".format(s.ID, len(s.members)))
             self.species = new_species
 
             # Check for complete extinction.
             new_population = []
             if not self.species:
-                if self.report:
+                if self.config.report:
                     print('All species extinct.')
 
                 # If requested by the user, create a completely new population,
@@ -241,17 +226,17 @@ class Population(object):
 
             self._speciate(new_population)
 
-            if self.checkpoint_interval is not None and time.time() > t0 + 60 * self.checkpoint_interval:
-                if self.report:
+            if self.config.checkpoint_interval is not None and time.time() > t0 + 60 * self.config.checkpoint_interval:
+                if self.config.report:
                     print('Creating timed checkpoint file at generation: {0}'.format(self.generation))
                 self.save_checkpoint()
 
                 # Update the checkpoint time.
                 t0 = time.time()
-            elif self.checkpoint_generation is not None and self.generation % self.checkpoint_generation == 0:
-                if self.report:
+            elif self.config.checkpoint_generation is not None and self.generation % self.config.checkpoint_generation == 0:
+                if self.config.report:
                     print('Creating generation checkpoint file at generation: {0}'.format(self.generation))
                 self.save_checkpoint()
 
-            if self.report:
+            if self.config.report:
                 print("Generation time: {0:.3f} sec".format(time.time() - gen_start))

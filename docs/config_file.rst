@@ -31,7 +31,9 @@ NEAT settings.
     they may be (but are not forced to be) recurrent.
 * *activation_functions*
     A space-separated list of the activation functions that may be used in constructing networks.  Allowable values
-    are: *sigmoid*, *tanh*, *sin*, *gauss*, and *relu*.
+    are: *abs*, *clamped*, *exp*, *gauss*, *hat*, *identity*, *inv*, *log*, *relu*, *sigmoid*, *sin*, and *tanh*. The
+    implementation of these functions can be found in the `nn module
+    <https://github.com/CodeReclaimers/neat-python/blob/master/neat/nn/__init__.py>`_.
 * *weight_stdev*
     The standard deviation of the zero-centered normal distribution used to generate initial and replacement weights.
 
