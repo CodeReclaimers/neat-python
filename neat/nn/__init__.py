@@ -36,7 +36,7 @@ def identity_activation(bias, response, x):
 
 def clamped_activation(bias, response, x):
     z = bias + x * response
-    return max(0.0, min(1.0, z))
+    return max(-1.0, min(1.0, z))
 
 
 def inv_activation(bias, response, x):

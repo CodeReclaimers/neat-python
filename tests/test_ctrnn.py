@@ -1,7 +1,9 @@
 from __future__ import print_function
 
-from neat.ctrnn import CTNeuron, Network
+from neat.ctrnn import CTNeuron, Neuron, Network
 
+# TODO: These tests are just smoke tests to make sure nothing has become badly broken.  Expand
+# to include more detailed tests of actual functionality.
 
 def test_basic():
     # create two output neurons (they won't receive any external inputs)
@@ -22,3 +24,19 @@ def test_basic():
         output = net.parallel_activate()
         outputs.append(output)
         print("{0:.7f} {1:.7f}".format(output[0], output[1]))
+
+
+def create_simple():
+    neurons = [Neuron('INPUT', 1, 0.0, 5.0, 'sigmoid'),
+               Neuron('HIDDEN', 2, 0.0, 5.0, 'sigmoid'),
+               Neuron('OUTPUT', 3, 0.0, 5.0, 'sigmoid')]
+    connections = [(1, 2, 0.5), (1, 3, 0.5), (2, 3, 0.5)]
+
+    return Network(neurons, connections, 1)
+
+
+def test_manual_network():
+    net = create_simple()
+    net.serial_activate([0.04])
+    net.parallel_activate([0.04])
+    repr(net)
