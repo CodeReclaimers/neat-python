@@ -69,6 +69,16 @@ def hat_activation(bias, response, x):
     return max(0.0, 1 - abs(z))
 
 
+def square_activation(bias, response, x):
+    z = bias + x * response
+    return z ** 2
+
+
+def cube_activation(bias, response, x):
+    z = bias + x * response
+    return z ** 3
+
+
 activations = {'sigmoid':sigmoid_activation,
                'tanh': tanh_activation,
                'sin': sin_activation,
@@ -80,7 +90,9 @@ activations = {'sigmoid':sigmoid_activation,
                'log': log_activation,
                'exp': exp_activation,
                'abs': abs_activation,
-               'hat': hat_activation}
+               'hat': hat_activation,
+               'square': square_activation,
+               'cube': cube_activation}
 
 
 def find_feed_forward_layers(inputs, connections):
