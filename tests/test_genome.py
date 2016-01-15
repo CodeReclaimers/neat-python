@@ -7,7 +7,7 @@ from neat.config import Config
 def check_simple(genome_type):
     local_dir = os.path.dirname(__file__)
     config = Config(os.path.join(local_dir, 'test_configuration'))
-    c1 = genome_type.create_unconnected(config)
+    c1 = genome_type.create_unconnected(1, config)
     c1.connect_full()
 
     # add two hidden nodes
@@ -30,11 +30,11 @@ def check_self_crossover(genome_type):
     # Check that self-crossover produces a genetically identical child (with a different ID).
     local_dir = os.path.dirname(__file__)
     config = Config(os.path.join(local_dir, 'test_configuration'))
-    c = genome_type.create_unconnected(config)
+    c = genome_type.create_unconnected(1, config)
     c.connect_full()
     c.fitness = 0.0
 
-    cnew = c.crossover(c)
+    cnew = c.crossover(c, 2)
     assert cnew.ID != c.ID
     assert len(cnew.conn_genes) == len(c.conn_genes)
     for kold, vold in cnew.conn_genes.items():
@@ -78,7 +78,7 @@ def check_add_connection(genome_type, feed_forward):
 
     connections = {}
     for a in range(100):
-        g = genome_type.create_unconnected(config)
+        g = genome_type.create_unconnected(a, config)
         g.add_hidden_nodes(config.hidden_nodes)
         for b in range(1000):
             g.mutate_add_connection()

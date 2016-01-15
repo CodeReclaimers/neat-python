@@ -1,15 +1,13 @@
 from random import choice, gauss, randint, random, shuffle
 import math
-from neat.indexer import Indexer
 
 
 class Genome(object):
     """ A genome for general recurrent neural networks. """
-    indexer = Indexer(1)
 
-    def __init__(self, config, parent1_id, parent2_id):
+    def __init__(self, ID, config, parent1_id, parent2_id):
+        self.ID = ID
         self.config = config
-        self.ID = Genome.indexer.next()
         self.num_inputs = config.input_nodes
         self.num_outputs = config.output_nodes
 
@@ -52,7 +50,7 @@ class Genome(object):
 
         return self
 
-    def crossover(self, other):
+    def crossover(self, other, child_id):
         """ Crosses over parents' genomes and returns a child. """
 
         # Parents must belong to the same species.
@@ -68,7 +66,7 @@ class Genome(object):
             parent2 = self
 
         # creates a new child
-        child = self.__class__(self.config, self.ID, other.ID)
+        child = self.__class__(child_id, self.config, self.ID, other.ID)
 
         child.inherit_genes(parent1, parent2)
 
@@ -291,9 +289,9 @@ class Genome(object):
             node_id += 1
 
     @classmethod
-    def create_unconnected(cls, config):
+    def create_unconnected(cls, ID, config):
         '''Create a genome for a network with no hidden nodes and no connections.'''
-        c = cls(config, None, None)
+        c = cls(ID, config, None, None)
         node_id = 0
         # Create input node genes.
         for i in range(config.input_nodes):
@@ -369,8 +367,8 @@ class FFGenome(Genome):
         topologies are a particular case of Recurrent NNs.
     """
 
-    def __init__(self, config, parent1_id, parent2_id):
-        super(FFGenome, self).__init__(config, parent1_id, parent2_id)
+    def __init__(self, ID, config, parent1_id, parent2_id):
+        super(FFGenome, self).__init__(ID, config, parent1_id, parent2_id)
         self.node_order = []  # hidden node order
 
     def inherit_genes(self, parent1, parent2):

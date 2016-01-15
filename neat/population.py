@@ -32,6 +32,7 @@ class Population(object):
         self.config = config
         self.diversity = config.diversity_type(self.config)
         self.species_indexer = Indexer(1)
+        self.genome_indexer = Indexer(1)
 
         self.species = []
         self.generation_statistics = []
@@ -74,7 +75,9 @@ class Population(object):
         # Create a collection of unconnected genomes with no hidden nodes.
         new_population = []
         for i in range(self.config.pop_size):
-            new_population.append(self.config.genotype.create_unconnected(self.config))
+            g_id = self.genome_indexer.next()
+            g = self.config.genotype.create_unconnected(g_id, self.config)
+            new_population.append(g)
 
         # Add hidden nodes if requested.
         if self.config.hidden_nodes > 0:
@@ -224,7 +227,7 @@ class Population(object):
                     assert s.spawn_amount > 0
                     # The Species.reproduce keeps one random child as its new representative, and
                     # returns the rest as a list, which must be sorted into species.
-                    new_population.extend(s.reproduce(self.config))
+                    new_population.extend(s.reproduce(self.config, self.genome_indexer))
 
             self._speciate(new_population)
 

@@ -36,7 +36,7 @@ class Species(object):
         else:
             self.no_improvement_age += 1
 
-    def reproduce(self, config):
+    def reproduce(self, config, genome_indexer):
         """
         Update species age, clear the current membership list, and return a list of 'self.spawn_amount' new individuals.
         """
@@ -65,7 +65,7 @@ class Species(object):
 
             # Note that if the parents are not distinct, crossover should produce a
             # genetically identical clone of the parent (but with a different ID).
-            child = parent1.crossover(parent2)
+            child = parent1.crossover(parent2, genome_indexer.next())
             offspring.append(child.mutate())
 
         # Reset species members--the speciation process in Population will repopulate this list.
