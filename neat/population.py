@@ -9,6 +9,7 @@ import time
 from neat.config import Config
 from neat.math_util import mean, stdev
 from neat.species import Species
+from neat.indexer import Indexer
 
 
 class MassExtinctionException(Exception):
@@ -30,6 +31,7 @@ class Population(object):
 
         self.config = config
         self.diversity = config.diversity_type(self.config)
+        self.species_indexer = Indexer(1)
 
         self.species = []
         self.generation_statistics = []
@@ -42,9 +44,6 @@ class Population(object):
 
         # Partition the population into species based on current configuration.
         self._speciate(initial_population)
-
-    def __del__(self):
-        Species.clear_indexer()
 
     def load_checkpoint(self, filename):
         '''Resumes the simulation from a previous saved point.'''
@@ -72,7 +71,6 @@ class Population(object):
             pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     def _create_population(self):
-
         # Create a collection of unconnected genomes with no hidden nodes.
         new_population = []
         for i in range(self.config.pop_size):
@@ -113,7 +111,7 @@ class Population(object):
                 closest_species.add(individual)
             else:
                 # No species is similar enough, create a new species for this individual.
-                self.species.append(Species(individual))
+                self.species.append(Species(individual, self.species_indexer.next()))
 
         # Verify that no species are empty.
         for s in self.species:
@@ -166,10 +164,10 @@ class Population(object):
                 print('Species length: {0:d} totaling {1:d} individuals'.format(len(self.species), sum(
                     [len(s.members) for s in self.species])))
                 print('Species ID       : {0!s}'.format([s.ID for s in self.species]))
-                print('Each species size: {0!s}'.format([len(s.members) for s in self.species]))
+                print('Species size     : {0!s}'.format([len(s.members) for s in self.species]))
                 print('Amount to spawn  : {0!s}'.format([s.spawn_amount for s in self.species]))
                 print('Species age      : {0}'.format([s.age for s in self.species]))
-                print('Species avg fit  : {0!r}'.format([s.get_average_fitness() for s in self.species]))
+                print('Species fitness  : {0!r}'.format([s.get_average_fitness() for s in self.species]))
                 print('Species no improv: {0!r}'.format([s.no_improvement_age for s in self.species]))
 
             # Saves the best genome from the current generation if requested.
@@ -199,6 +197,10 @@ class Population(object):
                     if self.config.report:
                         print("\n   Species {0} with {1} members is stagnated: removing it".format(s.ID, len(s.members)))
             self.species = new_species
+
+            # TODO: Break these out into user-configurable classes
+            #  1. Species survival determination (currently hard-coded to be stagnation with a fixed number of generations).
+            #  2. Species spawn allotment (currently provided in the diversity object).
 
             # Check for complete extinction.
             new_population = []

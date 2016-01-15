@@ -2,24 +2,18 @@
 import math
 import random
 import sys
-from neat.indexer import Indexer
 from neat.math_util import mean
 
 
 class Species(object):
     """ A collection of genetically similar individuals."""
-    indexer = Indexer(1)
 
-    @classmethod
-    def clear_indexer(cls):
-        cls.indexer.clear()
-
-    def __init__(self, first_individual, previous_id=None):
-        self.representative = first_individual
-        self.ID = Species.indexer.next(previous_id)
+    def __init__(self, representative, ID):
+        self.representative = representative
+        self.ID = ID
         self.age = 0
         self.members = []
-        self.add(first_individual)
+        self.add(representative)
         self.spawn_amount = 0
         self.last_avg_fitness = -sys.float_info.max
         self.no_improvement_age = 0
@@ -34,6 +28,7 @@ class Species(object):
 
     def update_stagnation(self):
         """ Updates no_improvement_age based on average fitness progress."""
+        # TODO: Make the stagnation scheme user-configurable.
         fitness = self.get_average_fitness()
         if fitness > self.last_avg_fitness:
             self.last_avg_fitness = fitness
