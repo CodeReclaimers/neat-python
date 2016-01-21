@@ -1,4 +1,5 @@
 from __future__ import print_function
+import matplotlib.pyplot as plt
 from neat import visualize
 from neat.iznn import Neuron
 
@@ -12,7 +13,7 @@ def show(title, a, b, c, d):
         print('{0:d}\t{1:f}\t{2:f}\t{3:f}'.format(i, n.current, n.v, n.u))
         n.advance()
 
-    visualize.plot_spikes(spike_train, view=True, title=title)
+    visualize.plot_spikes(spike_train, view=False, title=title)
 
 show('regular spiking', 0.02, 0.2, -65.0, 8.0)
 
@@ -28,4 +29,4 @@ show('thalamo-cortical', 0.02, 0.25, -65.0, 0.05)
 
 show('resonator', 0.1, 0.26, -65.0, 2.0)
 
-
+plt.show()
