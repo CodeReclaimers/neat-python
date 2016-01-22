@@ -14,3 +14,17 @@ class Indexer(object):
 
     def clear(self):
         self.next_id = 1
+
+
+class InnovationIndexer(object):
+    def __init__(self, first):
+        self.indexer = Indexer(first)
+        self.innovations = {}
+
+    def get_innovation_id(self, in_node_id, out_node_id):
+        innovation_id = self.innovations.get((in_node_id, out_node_id))
+        if innovation_id is None:
+            innovation_id = self.indexer.next()
+            self.innovations[in_node_id, out_node_id] = innovation_id
+
+        return innovation_id

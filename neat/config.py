@@ -2,13 +2,33 @@ import os
 
 from neat.genes import NodeGene, ConnectionGene
 from neat.genome import Genome, FFGenome
-from neat.nn import activations
-from neat.diversity import ExplicitFitnessSharing
+from neat.activations import activations
+from neat.reproduction import DefaultReproduction
+from neat.stagnation import FixedStagnation
+from neat.math_util import mean
 
 try:
     from configparser import ConfigParser
 except ImportError:
     from ConfigParser import SafeConfigParser as ConfigParser
+
+
+def species_max_fitness(species):
+    return max([m.fitness for m in species.members])
+
+
+def species_min_fitness(species):
+    return min([m.fitness for m in species.members])
+
+
+def species_mean_fitness(species):
+    return mean([m.fitness for m in species.members])
+
+
+def species_median_fitness(species):
+    fitnesses = [m.fitness for m in species.members]
+    fitnesses.sort()
+    return fitnesses[len(fitnesses) / 2]
 
 
 class Config(object):
@@ -98,12 +118,25 @@ class Config(object):
         # species
         self.survival_threshold = float(parameters.get('species', 'survival_threshold'))
         self.max_stagnation = int(parameters.get('species', 'max_stagnation'))
+        self.species_fitness = parameters.get('species', 'fitness')
+
+        if self.species_fitness == 'max':
+            self.species_fitness_func = species_max_fitness
+        elif self.species_fitness == 'min':
+            self.species_fitness_func = species_min_fitness
+        elif self.species_fitness == 'mean':
+            self.species_fitness_func = species_mean_fitness
+        elif self.species_fitness == 'median':
+            self.species_fitness_func = species_median_fitness
+        else:
+            raise Exception("Unexpected species fitness: {0!r}".format(self.species_fitness))
 
         # Gene types
         self.node_gene_type = NodeGene
         self.conn_gene_type = ConnectionGene
 
-        self.diversity_type=ExplicitFitnessSharing
+        self.stagnation_type = FixedStagnation
+        self.reproduction_type = DefaultReproduction
 
         # Show stats after each generation.
         self.report = True
@@ -113,3 +146,4 @@ class Config(object):
         self.checkpoint_interval = None
         # Time in generations between saving checkpoints, None for no generational checkpoints.
         self.checkpoint_generation = None
+

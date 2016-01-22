@@ -88,7 +88,7 @@ def run():
     config.output_nodes = 2
 
     pop = population.Population(config)
-    pop.epoch(eval_fitness, 200)
+    pop.run(eval_fitness, 200)
 
     print('Number of evaluations: {0}'.format(pop.total_evaluations))
 

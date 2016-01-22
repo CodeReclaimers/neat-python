@@ -18,13 +18,13 @@ prob_add_conn           = 0.1
 prob_add_node           = 0.1
 prob_delete_conn        = 0.05
 prob_delete_node        = 0.05
-prob_mutate_bias        = 0.1
-bias_mutation_power     = 1.0
-prob_mutate_response    = 0.2
-response_mutation_power = 0.1
+prob_mutate_bias        = 0.8
+bias_mutation_power     = 0.5
+prob_mutate_response    = 0.8
+response_mutation_power = 0.5
 prob_mutate_weight      = 0.8
 prob_replace_weight     = 0.1
-weight_mutation_power   = 1.0
+weight_mutation_power   = 0.5
 prob_mutate_activation  = 0.0
 prob_toggle_link        = 0.01
 elitism                 = 2
@@ -37,7 +37,6 @@ disjoint_coefficient    = 1.0
 weight_coefficient      = 0.5
 
 [species]
-survival_threshold  = 0.2
-max_stagnation      = 20
-
-
+survival_threshold  = 0.1
+max_stagnation      = 10
+fitness             = mean

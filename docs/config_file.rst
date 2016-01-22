@@ -21,7 +21,7 @@ NEAT settings.
     Specifies the initial connectivity of newly-created genomes.  There are three allowed values:
 
     * *unconnected* - No connection genes are initially present.
-    * *fs_neat* - One connection gene from one input to all hidden and output genes.
+    * *fs_neat* - One connection gene from one input to all hidden and output genes. (This is the FS-NEAT scheme.)
     * *fully_connected* - Each input gene is connected to all hidden and output genes, and each hidden gene is connected to all output genes.
 
 * *max_weight*, *min_weight*
@@ -73,7 +73,7 @@ NEAT settings.
     The number of most fit individuals in each species that will be preserved as-is from one generation to the next.
 * *reset_on_extinction*
     If this evalutes to **True**, when all species simultaneously become extinct due to stagnation, a new random
-    population will be created. If **False**, a *MassExtinctionException* will be thrown.
+    population will be created. If **False**, a *CompleteExtinctionException* will be thrown.
 
 [genotype compatibility] section
 --------------------------------

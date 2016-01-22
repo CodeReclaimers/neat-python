@@ -2,20 +2,22 @@ import os
 
 from neat import genome
 from neat.config import Config
+from neat.indexer import InnovationIndexer
 
 
 def check_simple(genome_type):
+    indexer = InnovationIndexer(0)
     local_dir = os.path.dirname(__file__)
     config = Config(os.path.join(local_dir, 'test_configuration'))
     c1 = genome_type.create_unconnected(1, config)
-    c1.connect_full()
+    c1.connect_full(indexer)
 
     # add two hidden nodes
     c1.add_hidden_nodes(2)
 
     # apply some mutations
-    c1.mutate_add_node()
-    c1.mutate_add_connection()
+    c1.mutate_add_node(indexer)
+    c1.mutate_add_connection(indexer)
 
 
 def test_recurrent():
@@ -28,16 +30,19 @@ def test_feed_forward():
 
 def check_self_crossover(genome_type):
     # Check that self-crossover produces a genetically identical child (with a different ID).
+    indexer = InnovationIndexer(0)
     local_dir = os.path.dirname(__file__)
     config = Config(os.path.join(local_dir, 'test_configuration'))
     c = genome_type.create_unconnected(1, config)
-    c.connect_full()
+    c.connect_full(indexer)
     c.fitness = 0.0
 
     cnew = c.crossover(c, 2)
     assert cnew.ID != c.ID
     assert len(cnew.conn_genes) == len(c.conn_genes)
     for kold, vold in cnew.conn_genes.items():
+        print kold, vold
+        print c.conn_genes
         assert kold in c.conn_genes
         vnew = c.conn_genes[kold]
         assert vold.is_same_innov(vnew)
@@ -68,6 +73,7 @@ def test_feed_forward_self_crossover():
 
 
 def check_add_connection(genome_type, feed_forward):
+    indexer = InnovationIndexer(0)
     local_dir = os.path.dirname(__file__)
     config = Config(os.path.join(local_dir, 'test_configuration'))
     config.input_nodes = 3
@@ -81,7 +87,7 @@ def check_add_connection(genome_type, feed_forward):
         g = genome_type.create_unconnected(a, config)
         g.add_hidden_nodes(config.hidden_nodes)
         for b in range(1000):
-            g.mutate_add_connection()
+            g.mutate_add_connection(indexer)
         for c in g.conn_genes.values():
             connections[c.key] = connections.get(c.key, 0) + 1
 

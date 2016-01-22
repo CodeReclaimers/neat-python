@@ -64,6 +64,7 @@ def plot_spikes(spikes, view=False, filename=None, title=None):
     u_values = [u for t, I, v, u in spikes]
     I_values = [I for t, I, v, u in spikes]
 
+    fig = plt.figure()
     plt.subplot(3, 1, 1)
     plt.ylabel("Potential (mv)")
     plt.xlabel("Time (in ms)")
@@ -92,7 +93,10 @@ def plot_spikes(spikes, view=False, filename=None, title=None):
 
     if view:
         plt.show()
-    plt.close()
+        plt.close()
+        fig = None
+
+    return fig
 
 
 def plot_species(population, view=False, filename='speciation.svg'):

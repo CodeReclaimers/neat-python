@@ -14,4 +14,4 @@ def test_minimal():
 
     pop = Population(config_path)
     pe = parallel.ParallelEvaluator(4, eval_fitness)
-    pop.epoch(pe.evaluate, 400)
+    pop.run(pe.evaluate, 400)

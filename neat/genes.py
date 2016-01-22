@@ -58,22 +58,18 @@ class NodeGene(object):
 
 
 class ConnectionGene(object):
-    indexer = Indexer(0)
-    __innovations = {}
+    def __init__(self, innovation_id, in_node_id, out_node_id, weight, enabled):
+        assert type(innovation_id) is int
+        assert type(in_node_id) is int
+        assert type(out_node_id) is int
+        assert type(weight) is float
+        assert type(enabled) is bool
 
-    def __init__(self, innodeid, outnodeid, weight, enabled, innov=None):
-        self.in_node_id = innodeid
-        self.out_node_id = outnodeid
+        self.innovation_id = innovation_id
+        self.in_node_id = in_node_id
+        self.out_node_id = out_node_id
         self.weight = weight
         self.enabled = enabled
-        if innov is None:
-            try:
-                self.__innov_number = self.__innovations[self.key]
-            except KeyError:
-                self.__innov_number = ConnectionGene.indexer.next()
-                self.__innovations[self.key] = self.__innov_number
-        else:
-            self.__innov_number = innov
 
     # Key for dictionaries, avoids two connections between the same nodes.
     key = property(lambda self: (self.in_node_id, self.out_node_id))
@@ -98,24 +94,28 @@ class ConnectionGene(object):
 
     def __str__(self):
         return 'ConnectionGene(in={0}, out={1}, weight={2}, enabled={3}, innov={4})'.format(
-            self.in_node_id, self.out_node_id, self.weight, self.enabled, self.__innov_number)
+            self.in_node_id, self.out_node_id, self.weight, self.enabled, self.innovation_id)
 
     def __lt__(self, other):
-        return self.__innov_number < other.__innov_number
+        return self.innovation_id < other.innovation_id
 
-    def split(self, node_id):
+    def split(self, innovation_indexer, node_id):
         """ Splits a connection, creating two new connections and disabling this one """
         self.enabled = False
-        new_conn1 = ConnectionGene(self.in_node_id, node_id, 1.0, True)
-        new_conn2 = ConnectionGene(node_id, self.out_node_id, self.weight, True)
+
+        innovation1 = innovation_indexer.get_innovation_id(self.in_node_id, node_id)
+        new_conn1 = ConnectionGene(innovation1, self.in_node_id, node_id, 1.0, True)
+
+        innovation2 = innovation_indexer.get_innovation_id(node_id, self.out_node_id)
+        new_conn2 = ConnectionGene(innovation2, node_id, self.out_node_id, self.weight, True)
+
         return new_conn1, new_conn2
 
     def copy(self):
-        return ConnectionGene(self.in_node_id, self.out_node_id, self.weight,
-                              self.enabled, self.__innov_number)
+        return ConnectionGene(self.innovation_id, self.in_node_id, self.out_node_id, self.weight, self.enabled)
 
     def is_same_innov(self, cg):
-        return self.__innov_number == cg.__innov_number
+        return self.innovation_id == cg.innovation_id
 
     def get_child(self, cg):
         # TODO: average both weights (Stanley, p. 38)

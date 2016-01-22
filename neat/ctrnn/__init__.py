@@ -5,7 +5,7 @@
 """
 import random
 from neat.indexer import Indexer
-from neat.nn import activations
+from neat.activations import activations
 from neat.genes import NodeGene
 
 

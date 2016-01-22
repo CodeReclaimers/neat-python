@@ -17,8 +17,8 @@ def test_minimal():
     config = Config(os.path.join(local_dir, 'test_configuration'))
 
     pop = Population(config)
-    # runs the simulation for up to 20 epochs
-    pop.epoch(eval_fitness, 20)
+    # run the simulation for up to 20 generations
+    pop.run(eval_fitness, 20)
 
     # get statistics
     avg_fitness = get_average_fitness(pop)
@@ -28,8 +28,8 @@ def test_minimal():
     # Change fitness threshold and do another run.
     config.max_fitness_threshold = 1.1
     pop = Population(config)
-    # runs the simulation for 20 epochs
-    pop.epoch(eval_fitness, 20)
+    # runs the simulation for 20 generations
+    pop.run(eval_fitness, 20)
 
     # get statistics
     avg_fitness = get_average_fitness(pop)
@@ -56,7 +56,7 @@ def test_config_options():
                     config.feedforward = ff
 
                     pop = Population(config)
-                    pop.epoch(eval_fitness, 250)
+                    pop.run(eval_fitness, 250)
 
 
 def test_checkpoint():
@@ -70,7 +70,7 @@ def test_checkpoint():
     config = Config(os.path.join(local_dir, 'test_configuration'))
 
     pop = Population(config)
-    pop.epoch(eval_fitness, 20)
+    pop.run(eval_fitness, 20)
 
     t = tempfile.NamedTemporaryFile(delete=False)
     t.close()

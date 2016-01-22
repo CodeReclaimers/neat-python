@@ -60,7 +60,7 @@ def run():
     pe = parallel.ParallelEvaluator(4, fitness)
 
     pop = population.Population(config_path)
-    pop.epoch(pe.evaluate, 400)
+    pop.run(pe.evaluate, 400)
 
     print("total evolution time {0:.3f} sec".format((time.time() - t0)))
     print("time per generation {0:.3f} sec".format(((time.time() - t0) / pop.generation)))

@@ -27,7 +27,7 @@ def test_run():
     config = Config(os.path.join(local_dir, 'test_configuration'))
 
     pop = population.Population(config)
-    pop.epoch(eval_fitness, 10)
+    pop.run(eval_fitness, 10)
 
     visualize.plot_stats(pop)
     visualize.plot_species(pop)

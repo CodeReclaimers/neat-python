@@ -23,7 +23,7 @@ def eval_fitness(genomes):
 
 
 pop = population.Population('xor2_config')
-pop.epoch(eval_fitness, 300)
+pop.run(eval_fitness, 300)
 
 print('Number of evaluations: {0}'.format(pop.total_evaluations))
 

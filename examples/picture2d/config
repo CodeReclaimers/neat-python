@@ -37,3 +37,4 @@ weight_coefficient      = 1.0
 [species]
 survival_threshold  = 0.2
 max_stagnation      = 10
+fitness             = max

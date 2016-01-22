@@ -19,10 +19,10 @@ class CartPole(object):
         self.angle_limit_radians = angle_limit_radians
 
         if x is None:
-            x = random.uniform(-0.8 * self.position_limit, 0.8 * self.position_limit)
+            x = random.uniform(-0.5 * self.position_limit, 0.5 * self.position_limit)
 
         if theta is None:
-            theta = random.uniform(-0.8 * self.angle_limit_radians, 0.8 * self.angle_limit_radians)
+            theta = random.uniform(-0.5 * self.angle_limit_radians, 0.5 * self.angle_limit_radians)
 
         if dx is None:
             dx = random.uniform(-1.0, 1.0)

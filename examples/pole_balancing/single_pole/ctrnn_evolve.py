@@ -11,8 +11,9 @@ import cart_pole
 
 from neat import ctrnn, parallel, population, visualize
 from neat.config import Config
+from neat.math_util import mean
 
-runs_per_net = 10
+runs_per_net = 5
 num_steps = 60000 # equivalent to 1 minute of simulation time
 
 
@@ -20,12 +21,13 @@ num_steps = 60000 # equivalent to 1 minute of simulation time
 def evaluate_genome(g):
     net = ctrnn.create_phenotype(g)
 
-    fitness = 0.0
+    fitnesses = []
 
     for runs in range(runs_per_net):
         sim = cart_pole.CartPole()
 
         # Run the given simulation for up to num_steps time steps.
+        fitness = 0.0
         for s in range(num_steps):
             inputs = sim.get_scaled_state()
             action = net.parallel_activate(inputs)
@@ -42,8 +44,10 @@ def evaluate_genome(g):
 
             fitness += 1.0
 
-    # The genome's fitness is its average performance across all runs.
-    return fitness / float(runs_per_net)
+        fitnesses.append(fitness)
+
+    # The genome's fitness is its worst performance across all runs.
+    return min(fitnesses)
 
 
 # Load the config file, which is assumed to live in
@@ -54,7 +58,7 @@ config.node_gene_type = ctrnn.CTNodeGene
 
 pop = population.Population(config)
 pe = parallel.ParallelEvaluator(4, evaluate_genome)
-pop.epoch(pe.evaluate, 2000)
+pop.run(pe.evaluate, 2000)
 
 # Save the winner.
 print('Number of evaluations: {0:d}'.format(pop.total_evaluations))

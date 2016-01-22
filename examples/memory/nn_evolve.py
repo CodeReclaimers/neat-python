@@ -43,7 +43,7 @@ def eval_fitness(g):
 local_dir = os.path.dirname(__file__)
 pop = population.Population(os.path.join(local_dir, 'nn_config'))
 pe = parallel.ParallelEvaluator(4, eval_fitness)
-pop.epoch(pe.evaluate, 1000)
+pop.run(pe.evaluate, 1000)
 
 print('Number of evaluations: {0}'.format(pop.total_evaluations))
 
