@@ -6,6 +6,17 @@ NEAT-Python allows the user to provide drop-in replacements for some parts of th
 to allow easily implementing common variations of the algorithm mentioned in the literature.  If
 you find that you'd like to be able to customize something not shown here, please submit an issue on GitHub.
 
+Adding new activation functions
+-------------------------------
+To register a new activation function, you simply need to call `neat.activation_functions.add` with your new
+function and the name by which you want to refer to it in the configuration file::
+
+    def sinc(x):
+        return 1.0 if x == 0 else sin(x) / x
+
+    neat.activation_functions.add('my_sinc_function', sinc)
+
+This is demonstrated in the `memory` example.
 
 Reproduction scheme
 -------------------

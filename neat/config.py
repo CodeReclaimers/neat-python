@@ -2,7 +2,7 @@ import os
 
 from neat.genes import NodeGene, ConnectionGene
 from neat.genome import Genome, FFGenome
-from neat.activations import activations
+from neat import activation_functions
 from neat.reproduction import DefaultReproduction
 from neat.stagnation import FixedStagnation
 from neat.math_util import mean
@@ -28,7 +28,7 @@ def species_mean_fitness(species):
 def species_median_fitness(species):
     fitnesses = [m.fitness for m in species.members]
     fitnesses.sort()
-    return fitnesses[len(fitnesses) / 2]
+    return fitnesses[len(fitnesses) // 2]
 
 
 class Config(object):
@@ -45,7 +45,6 @@ class Config(object):
     # It also makes the config file and associated setup code somewhat self-documenting, as the
     # classes you need to give to NEAT are shown in the config file.
 
-    allowed_activation = list(activations.keys())
     allowed_connectivity = ['unconnected', 'fs_neat', 'fully_connected', 'partial']
 
     def __init__(self, filename):
@@ -82,7 +81,9 @@ class Config(object):
         assert self.initial_connection in self.allowed_connectivity
 
         # Verify that specified activation functions are valid.
-        assert all(x in self.allowed_activation for x in self.activation_functions)
+        for fn in self.activation_functions:
+            if not activation_functions.is_valid(fn):
+                raise Exception("Invalid activation function name: {0!r}".format(fn))
 
         # Select a genotype class.
         if self.feedforward:

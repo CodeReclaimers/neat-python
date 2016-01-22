@@ -6,10 +6,11 @@ if you come up with a more interesting or impressive example, please submit a pu
 
 from __future__ import print_function
 
+import math
 import os
 import random
 
-from neat import nn, population, statistics, visualize, parallel
+from neat import nn, population, statistics, visualize, parallel, activation_functions
 
 # num_tests is the number of random examples each network is tested against.
 num_tests = 16
@@ -38,6 +39,17 @@ def eval_fitness(g):
             error += (output[0] - s) ** 2
 
     return -(error / (N * num_tests)) ** 0.5
+
+
+# Demonstration of how to add your own custom activation function.
+def sinc(x):
+    return 1.0 if x == 0 else math.sin(x) / x
+
+# This sinc function will be available if my_sinc_function is included in the
+# config file activation_functions option under the pheotype section.
+# Note that sinc is not necessarily useful for this example, it was chosen
+# arbitrarily just to demonstrate adding a custom activation function.
+activation_functions.add('my_sinc_function', sinc)
 
 
 local_dir = os.path.dirname(__file__)

@@ -5,7 +5,7 @@
 """
 import random
 from neat.indexer import Indexer
-from neat.activations import activations
+from neat import activation_functions
 from neat.genes import NodeGene
 
 
@@ -66,7 +66,7 @@ class Neuron(object):
         self.ID = self.indexer.next(ID)
         self.bias = bias
         self.response = response
-        self.activation = activations[activation_type]
+        self.activation = activation_functions.get(activation_type)
 
         self._synapses = []
         self.output = 0.0  # for recurrent networks all neurons must have an "initial state"
@@ -74,7 +74,8 @@ class Neuron(object):
     def activate(self):
         """Activates the neuron"""
         assert self.type is not 'INPUT'
-        return self.activation(self.bias, self.response, self._update_activation())
+        z = self.bias + self.response * self._update_activation()
+        return self.activation(z)
 
     def _update_activation(self):
         soma = 0.0
@@ -104,8 +105,9 @@ class CTNeuron(Neuron):
         self.__tau = tau
         # needs to set the initial state (initial condition for the ODE)
         self.__state = 0.1
-        # fist output
-        self._output = self.activation(self.bias, self.response, self.__state)
+        # first output
+        z = self.bias + self.response * self.__state
+        self._output = self.activation(z)
         # integration step
         self.__dt = 0.05  # depending on the tau constant, the integration step must
         # be adjusted accordingly to avoid numerical instability
@@ -115,13 +117,14 @@ class CTNeuron(Neuron):
 
     def set_init_state(self, state):
         self.__state = state
-        self._output = self.activation(self.bias, self.response, self.__state)
+
+        self._output = self.activation(self.bias + self.response * self.__state)
 
     def activate(self):
         """ Updates neuron's state for a single time-step. . """
         assert self.type is not 'INPUT'
         self.__update_state()
-        return self.activation(self.bias, self.response, self.__state)
+        return self.activation(self.bias + self.response * self.__state)
 
     def __update_state(self):
         """ Returns neuron's next state using Forward-Euler method. """

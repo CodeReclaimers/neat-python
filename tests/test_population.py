@@ -1,6 +1,7 @@
 import os
 import tempfile
 
+from neat import activation_functions
 from neat.config import Config
 from neat.population import Population
 from neat.statistics import get_average_fitness
@@ -50,7 +51,7 @@ def test_config_options():
         config.hidden_nodes = hn
         for fc in (0, 1):
             config.fully_connected = fc
-            for act in Config.allowed_activation:
+            for act in activation_functions.functions.keys():
                 config.allowed_activation = [act]
                 for ff in (0, 1):
                     config.feedforward = ff

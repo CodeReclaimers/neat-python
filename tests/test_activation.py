@@ -16,62 +16,64 @@ def assert_almost_equal(a, b):
 
 
 def test_sigmoid():
-    assert sigmoid_activation(0.0, 1.0, 0.0) == 0.5
+    assert sigmoid_activation(0.0) == 0.5
 
 
 def test_tanh():
-    assert tanh_activation(0.0, 1.0, 0.0) == 0.0
+    assert tanh_activation(0.0) == 0.0
 
 
 def test_sin():
-    assert sin_activation(0.0, 1.0, 0.0) == 0.0
+    assert sin_activation(0.0) == 0.0
 
 
 def test_gauss():
-    assert_almost_equal(gauss_activation(0.0, 1.0, 0.0), 0.398942280401)
-    assert_almost_equal(gauss_activation(0.0, 1.0, -1.0),
-                        gauss_activation(0.0, 1.0, 1.0))
+    assert_almost_equal(gauss_activation(0.0), 0.398942280401)
+    assert_almost_equal(gauss_activation(-1.0),
+                        gauss_activation( 1.0))
 
 
 def test_relu():
-    assert relu_activation(0.0, 1.0, -1.0) == 0.0
-    assert relu_activation(0.0, 1.0, 0.0) == 0.0
-    assert relu_activation(0.0, 1.0, 1.0) == 1.0
+    assert relu_activation(-1.0) == 0.0
+    assert relu_activation(0.0) == 0.0
+    assert relu_activation(1.0) == 1.0
 
 
 def test_identity():
-    assert identity_activation(0.0, 1.0, -1.0) == -1.0
-    assert identity_activation(0.0, 1.0, 0.0) == 0.0
-    assert identity_activation(0.0, 1.0, 1.0) == 1.0
+    assert identity_activation(-1.0) == -1.0
+    assert identity_activation(0.0) == 0.0
+    assert identity_activation(1.0) == 1.0
 
 
 def test_clamped():
-    assert clamped_activation(0.0, 1.0, -2.0) == -1.0
-    assert clamped_activation(0.0, 1.0, -1.0) == -1.0
-    assert clamped_activation(0.0, 1.0, 0.0) == 0.0
-    assert clamped_activation(0.0, 1.0, 1.0) == 1.0
-    assert clamped_activation(0.0, 1.0, 2.0) == 1.0
+    assert clamped_activation(-2.0) == -1.0
+    assert clamped_activation(-1.0) == -1.0
+    assert clamped_activation(0.0) == 0.0
+    assert clamped_activation(1.0) == 1.0
+    assert clamped_activation(2.0) == 1.0
 
 
 def test_inv():
-    assert inv_activation(0.0, 1.0, 1.0) == 1.0
+    assert inv_activation(1.0) == 1.0
+    assert inv_activation(0.5) == 2.0
+    assert inv_activation(2.0) == 0.5
 
 
 def test_log():
-    assert log_activation(0.0, 1.0, 1.0) == 0.0
+    assert log_activation(1.0) == 0.0
 
 
 def test_exp():
-    assert exp_activation(0.0, 1.0, 0.0) == 1.0
+    assert exp_activation(0.0) == 1.0
 
 
 def test_abs():
-    assert abs_activation(0.0, 1.0, -1.0) == 1.0
-    assert abs_activation(0.0, 1.0, 0.0) == 0.0
-    assert abs_activation(0.0, 1.0, -1.0) == 1.0
+    assert abs_activation(-1.0) == 1.0
+    assert abs_activation(0.0) == 0.0
+    assert abs_activation(-1.0) == 1.0
 
 
 def test_hat():
-    assert hat_activation(0.0, 1.0, -1.0) == 0.0
-    assert hat_activation(0.0, 1.0, 0.0) == 1.0
-    assert hat_activation(0.0, 1.0, 1.0) == 0.0
+    assert hat_activation(-1.0) == 0.0
+    assert hat_activation(0.0) == 1.0
+    assert hat_activation(1.0) == 0.0

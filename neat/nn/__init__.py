@@ -1,4 +1,4 @@
-from neat.activations import activations
+from neat import activation_functions
 
 
 def find_feed_forward_layers(inputs, connections):
@@ -48,7 +48,7 @@ class FeedForwardNetwork(object):
             s = 0.0
             for i, w in links:
                 s += self.values[i] * w
-            self.values[node] = func(bias, response, s)
+            self.values[node] = func(bias + response * s)
 
         return [self.values[i] for i in self.output_nodes]
 
@@ -75,7 +75,7 @@ def create_feed_forward_phenotype(genome):
 
             used_nodes.add(node)
             ng = genome.node_genes[node]
-            activation_function = activations[ng.activation_type]
+            activation_function = activation_functions.get(ng.activation_type)
             node_evals.append((node, activation_function, ng.bias, ng.response, inputs))
 
     return FeedForwardNetwork(max(used_nodes), input_nodes, output_nodes, node_evals)
@@ -107,7 +107,7 @@ class RecurrentNetwork(object):
             s = 0.0
             for i, w in links:
                 s += ivalues[i] * w
-            ovalues[node] = func(bias, response, s)
+            ovalues[node] = func(bias + response * s)
 
         return [ovalues[i] for i in self.output_nodes]
 
@@ -136,7 +136,7 @@ def create_recurrent_phenotype(genome):
     node_evals = []
     for onode, inputs in node_inputs.items():
         ng = genome.node_genes[onode]
-        activation_function = activations[ng.activation_type]
+        activation_function = activation_functions.get(ng.activation_type)
         node_evals.append((onode, activation_function, ng.bias, ng.response, inputs))
 
     return RecurrentNetwork(max(used_nodes), input_nodes, output_nodes, node_evals)

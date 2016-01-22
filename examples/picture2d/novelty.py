@@ -72,7 +72,7 @@ class NoveltyEvaluator(object):
                 self.out_index += 1
 
         self.archive.extend(new_archive_entries)
-        print '{0} archive entries'.format(len(self.archive))
+        print('{0} archive entries'.format(len(self.archive)))
 
 
 def run():
