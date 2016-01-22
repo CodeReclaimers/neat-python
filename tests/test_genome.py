@@ -41,8 +41,8 @@ def check_self_crossover(genome_type):
     assert cnew.ID != c.ID
     assert len(cnew.conn_genes) == len(c.conn_genes)
     for kold, vold in cnew.conn_genes.items():
-        print kold, vold
-        print c.conn_genes
+        print(kold, vold)
+        print(c.conn_genes)
         assert kold in c.conn_genes
         vnew = c.conn_genes[kold]
         assert vold.is_same_innov(vnew)
