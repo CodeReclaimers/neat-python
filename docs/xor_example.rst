@@ -62,6 +62,18 @@ Visualizations
 Functions are available in the ``neat.visualize`` module to plot the best and average fitness vs. generation, plot the
 change in species vs. generation, and to show the structure of a network described by a genome.
 
+Example Source
+--------------
+
+NOTE: This page shows the source and configuration file for the current version of neat-python available on
+GitHub.  If you are using the version 0.6 installed from PyPI, make sure you get the script and config file from
+the `archived source for that release
+<https://github.com/CodeReclaimers/neat-python/releases/tag/v0.6>`_.
+
 Here's the entire example:
 
 .. literalinclude:: ../examples/xor/xor2.py
+
+and here is the associated config file:
+
+.. literalinclude:: ../examples/xor/xor2_config
