@@ -37,6 +37,7 @@ Contents:
    :maxdepth: 2
 
    neat_overview
+   installation
    config_file
    xor_example
    customization
