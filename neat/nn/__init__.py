@@ -41,6 +41,9 @@ class FeedForwardNetwork(object):
         self.values = [0.0] * (1 + max_node)
 
     def serial_activate(self, inputs):
+        if len(self.input_nodes) != len(inputs):
+            raise Exception("Expected {} inputs, got {}".format(len(self.input_nodes), len(inputs)))
+
         for i, v in zip(self.input_nodes, inputs):
             self.values[i] = v
 

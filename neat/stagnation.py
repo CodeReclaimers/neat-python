@@ -4,11 +4,19 @@ import sys
 # TODO: Add a method for the user to change the "is stagnant" computation.
 
 class FixedStagnation(object):
-    def __init__(self, config):
+    def __init__(self, config, reporters):
         self.config = config
+        self.reporters = reporters
 
         self.previous_fitnesses = {}
         self.stagnant_counts = {}
+
+    def remove(self, species):
+        if species.ID in self.previous_fitnesses:
+            del self.previous_fitnesses[species.ID]
+
+        if species.ID in self.stagnant_counts:
+            del self.stagnant_counts[species.ID]
 
     def update(self, species):
         result = []
@@ -24,6 +32,12 @@ class FixedStagnation(object):
             self.previous_fitnesses[s.ID] = fitness
             self.stagnant_counts[s.ID] = scount
 
-            result.append((s, scount >= self.config.max_stagnation))
+            is_stagnant = scount >= self.config.max_stagnation
+            result.append((s, is_stagnant))
+
+            if is_stagnant:
+                self.remove(s)
+
+        self.reporters.info('Species no improv: {0!r}'.format(self.stagnant_counts))
 
         return result

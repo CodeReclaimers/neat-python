@@ -10,21 +10,21 @@ import random
 
 class DefaultReproduction(object):
     """
-    Implements the default NEAT-python reproduction scheme: explicit fitness sharing with fixed-time
-    species stagnation.
+    Implements the default NEAT-python reproduction scheme: explicit fitness sharing
+    with fixed-time species stagnation.
     """
     def __init__(self, config, reporters, genome_indexer, innovation_indexer):
         self.config = config
         self.reporters = reporters
         self.genome_indexer = genome_indexer
         self.innovation_indexer = innovation_indexer
-        self.stagnation = config.stagnation_type(self.config)
-        #self.diversity = config.diversity_type(self.config)
+        self.stagnation = config.stagnation_type(self.config, reporters)
 
     def reproduce(self, species):
         # Filter out stagnated species and collect the set of non-stagnated species members.
         remaining_species = {}
-        remaining_population = []
+        species_fitness = []
+        avg_adjusted_fitness = 0.0
         for s, stagnant in self.stagnation.update(species):
             if stagnant:
                 self.reporters.species_stagnant(s)
@@ -32,52 +32,84 @@ class DefaultReproduction(object):
                 remaining_species[s.ID] = s
 
                 # Compute adjusted fitness.
+                species_sum = 0.0
                 for m in s.members:
-                    remaining_population.append((m.fitness / len(s.members), m))
+                    af = m.fitness / len(s.members)
+                    species_sum += af
+
+                sfitness = species_sum / len(s.members)
+                species_fitness.append((s, sfitness))
+                avg_adjusted_fitness += sfitness
+
+        # No species left.
+        if not remaining_species:
+            return [], []
+
+        avg_adjusted_fitness /= len(species_fitness)
+        self.reporters.info("Average adjusted fitness: {:.3f}".format(avg_adjusted_fitness))
+
+        # Compute the number of new individuals to create for the new generation.
+        spawn_amounts = []
+        for s, sfitness in species_fitness:
+            spawn = len(s.members)
+            if sfitness > avg_adjusted_fitness:
+                spawn *= 1.1
+            else:
+                spawn *= 0.9
+            spawn_amounts.append(spawn)
+
+        # Normalize the spawn amounts so that the next generation is roughly
+        # the population size requested by the user.
+        total_spawn = sum(spawn_amounts)
+        norm = self.config.pop_size / total_spawn
+        spawn_amounts = [int(round(n * norm)) for n in spawn_amounts]
+        self.reporters.info("Spawn amounts: {0}".format(spawn_amounts))
+        self.reporters.info('Species fitness  : {0!r}'.format([sfitness for s, sfitness in species_fitness]))
 
         new_population = []
         new_species = []
-        if remaining_population:
-            # Sort in order of descending adjusted fitness.
-            remaining_population.sort(reverse=True)
-            #print remaining_population
-            #print [(af, m.fitness) for af, m in remaining_population]
+        for spawn, (s, sfitness) in zip(spawn_amounts, species_fitness):
+            # If elitism is enabled, each species always at least gets to retain its elites.
+            spawn = max(spawn, self.config.elitism)
 
-            # Determine the cutoff adjusted fitness for reproduction.
-            repro_cutoff = int(math.ceil(self.config.survival_threshold * self.config.pop_size))
-            remaining_population = remaining_population[:repro_cutoff]
-            cutoff_fitness = remaining_population[-1][0]
-            #print remaining_population
-            #print [(af, m.fitness) for af, m in remaining_population]
-            #print cutoff_fitness
+            if spawn <= 0:
+                continue
 
-            # Update species membership to remove any unfit members, and transfer elites (if any)
-            # to the new population.
-            for s in remaining_species.values():
-                n = len(s.members)
-                s.members = [m for m in s.members if (m.fitness / n) >= cutoff_fitness]
-                if s.members:
-                    s.representative = random.choice(s.members)
+            # The species has at least one member for the next generation, so retain it.
+            old_members = s.members
+            s.members = []
+            new_species.append(s)
 
-                    if self.config.elitism > 0:
-                        s.members.sort(key=lambda m: m.fitness, reverse=True)
-                        new_population.extend(s.members[:self.config.elitism])
+            # Sort members in order of descending fitness.
+            old_members.sort(reverse=True)
 
-                    new_species.append(s)
+            # Transfer elites to new generation.
+            if self.config.elitism > 0:
+                new_population.extend(old_members[:self.config.elitism])
+                spawn -= self.config.elitism
 
-            # Randomly choose parents and produce offspring until the population is restored.
-            while len(new_population) < self.config.pop_size:
-                parent1_af, parent1 = random.choice(remaining_population)
-                parent_species = remaining_species[parent1.species_id]
-                parent2 = random.choice(parent_species.members)
+            if spawn <= 0:
+                continue
 
-                # Note that if the parents are not distinct, crossover should produce a
+            # Only use the survival threshold fraction to use as parents for the next generation.
+            repro_cutoff = int(math.ceil(self.config.survival_threshold * len(old_members)))
+            # Use at least two parents no matter what the threshold fraction result is.
+            repro_cutoff = max(repro_cutoff, 2)
+            old_members = old_members[:repro_cutoff]
+
+            # Randomly choose parents and produce the number of offspring allotted to the species.
+            while spawn > 0:
+                spawn -= 1
+
+                parent1 = random.choice(old_members)
+                parent2 = random.choice(old_members)
+
+                # Note that if the parents are not distinct, crossover will produce a
                 # genetically identical clone of the parent (but with a different ID).
                 child = parent1.crossover(parent2, self.genome_indexer.next())
                 new_population.append(child.mutate(self.innovation_indexer))
 
+        # Sort species by ID (purely for ease of reading the reported list).
         new_species.sort(key=lambda s: s.ID)
-        for s in new_species:
-            s.members = []
 
         return new_species, new_population

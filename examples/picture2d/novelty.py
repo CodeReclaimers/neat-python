@@ -7,8 +7,8 @@ import numpy as np
 from evolve import eval_mono_image, eval_gray_image, eval_color_image
 from neat import population, config
 
-width, height = 32, 32
-full_scale = 32
+width, height = 16, 16
+full_scale = 16
 
 
 def evaluate(genome, scheme):
@@ -91,7 +91,7 @@ def run():
     while 1:
         pop.run(ne.evaluate, 1)
 
-        winner = pop.most_fit_genomes[-1]
+        winner = pop.statistics.best_genome()
         if ne.scheme == 'gray':
             image = eval_gray_image(winner, full_scale * width, full_scale * height)
         elif ne.scheme == 'color':

@@ -3,6 +3,7 @@ from __future__ import print_function
 
 from neat import nn, population, statistics, visualize
 
+# Network inputs and expected outputs.
 xor_inputs = [[0, 0], [0, 1], [1, 0], [1, 1]]
 xor_outputs = [0, 1, 1, 0]
 
@@ -11,15 +12,15 @@ def eval_fitness(genomes):
     for g in genomes:
         net = nn.create_feed_forward_phenotype(g)
 
-        error = 0.0
+        sum_square_error = 0.0
         for inputs, expected in zip(xor_inputs, xor_outputs):
             # Serial activation propagates the inputs through the entire network.
             output = net.serial_activate(inputs)
-            error += (output[0] - expected) ** 2
+            sum_square_error += (output[0] - expected) ** 2
 
         # When the output matches expected for all inputs, fitness will reach
         # its maximum value of 1.0.
-        g.fitness = 1 - error
+        g.fitness = 1 - sum_square_error
 
 
 pop = population.Population('xor2_config')
@@ -28,9 +29,8 @@ pop.run(eval_fitness, 300)
 print('Number of evaluations: {0}'.format(pop.total_evaluations))
 
 # Display the most fit genome.
-print('\nBest genome:')
-winner = pop.most_fit_genomes[-1]
-print(winner)
+winner = pop.statistics.best_genome()
+print('\nBest genome:\n{!s}'.format(winner))
 
 # Verify network output against training data.
 print('\nOutput:')
@@ -40,11 +40,11 @@ for inputs, expected in zip(xor_inputs, xor_outputs):
     print("expected {0:1.5f} got {1:1.5f}".format(expected, output[0]))
 
 # Visualize the winner network and plot/log statistics.
-visualize.plot_stats(pop)
-visualize.plot_species(pop)
+visualize.plot_stats(pop.statistics)
+visualize.plot_species(pop.statistics)
 visualize.draw_net(winner, view=True, filename="xor2-all.gv")
 visualize.draw_net(winner, view=True, filename="xor2-enabled.gv", show_disabled=False)
 visualize.draw_net(winner, view=True, filename="xor2-enabled-pruned.gv", show_disabled=False, prune_unused=True)
-statistics.save_stats(pop)
-statistics.save_species_count(pop)
-statistics.save_species_fitness(pop)
+statistics.save_stats(pop.statistics)
+statistics.save_species_count(pop.statistics)
+statistics.save_species_fitness(pop.statistics)

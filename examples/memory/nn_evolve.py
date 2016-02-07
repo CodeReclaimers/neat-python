@@ -52,37 +52,41 @@ def sinc(x):
 activation_functions.add('my_sinc_function', sinc)
 
 
-local_dir = os.path.dirname(__file__)
-pop = population.Population(os.path.join(local_dir, 'nn_config'))
-pe = parallel.ParallelEvaluator(4, eval_fitness)
-pop.run(pe.evaluate, 1000)
+def run():
+    local_dir = os.path.dirname(__file__)
+    pop = population.Population(os.path.join(local_dir, 'nn_config'))
+    pe = parallel.ParallelEvaluator(4, eval_fitness)
+    pop.run(pe.evaluate, 1000)
 
-print('Number of evaluations: {0}'.format(pop.total_evaluations))
+    print('Number of evaluations: {0}'.format(pop.total_evaluations))
 
-# Display the most fit genome.
-print('\nBest genome:')
-winner = pop.most_fit_genomes[-1]
-print(winner)
+    # Display the most fit genome.
+    print('\nBest genome:')
+    winner = pop.statistics.best_genome()
+    print(winner)
 
-# Verify network output against a few randomly-generated sequences.
-winner_net = nn.create_recurrent_phenotype(winner)
-for n in range(4):
-    print('\nRun {0} output:'.format(n))
-    seq = [random.choice((0, 1)) for _ in range(N)]
-    winner_net.reset()
-    for s in seq:
-        winner_net.activate([s, 0])
+    # Verify network output against a few randomly-generated sequences.
+    winner_net = nn.create_recurrent_phenotype(winner)
+    for n in range(4):
+        print('\nRun {0} output:'.format(n))
+        seq = [random.choice((0, 1)) for _ in range(N)]
+        winner_net.reset()
+        for s in seq:
+            winner_net.activate([s, 0])
 
-    for s in seq:
-        output = winner_net.activate([0, 1])
-        print("expected {0:1.5f} got {1:1.5f}".format(s, output[0]))
+        for s in seq:
+            output = winner_net.activate([0, 1])
+            print("expected {0:1.5f} got {1:1.5f}".format(s, output[0]))
 
-# Visualize the winner network and plot/log statistics.
-visualize.draw_net(winner, view=True, filename="nn_winner.gv")
-visualize.draw_net(winner, view=True, filename="nn_winner-enabled.gv", show_disabled=False)
-visualize.draw_net(winner, view=True, filename="nn_winner-enabled-pruned.gv", show_disabled=False, prune_unused=True)
-visualize.plot_stats(pop)
-visualize.plot_species(pop)
-statistics.save_stats(pop)
-statistics.save_species_count(pop)
-statistics.save_species_fitness(pop)
+    # Visualize the winner network and plot/log statistics.
+    visualize.draw_net(winner, view=True, filename="nn_winner.gv")
+    visualize.draw_net(winner, view=True, filename="nn_winner-enabled.gv", show_disabled=False)
+    visualize.draw_net(winner, view=True, filename="nn_winner-enabled-pruned.gv", show_disabled=False, prune_unused=True)
+    visualize.plot_stats(pop.statistics)
+    visualize.plot_species(pop.statistics)
+    statistics.save_stats(pop.statistics)
+    statistics.save_species_count(pop.statistics)
+    statistics.save_species_fitness(pop.statistics)
+
+if __name__ == '__main__':
+    run()

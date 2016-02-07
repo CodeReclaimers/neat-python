@@ -1,6 +1,5 @@
 from __future__ import print_function
 
-import copy
 import gzip
 import pickle
 import random
@@ -8,7 +7,7 @@ import time
 
 from neat.config import Config
 from neat.indexer import Indexer, InnovationIndexer
-from neat.reporting import ReporterSet, StdOutReporter
+from neat.reporting import ReporterSet, StatisticsReporter, StdOutReporter
 from neat.species import Species
 
 
@@ -18,21 +17,30 @@ class CompleteExtinctionException(Exception):
 
 class Population(object):
     """
-    The top-level class used to interact with the NEAT implementation.  It maintains a list
-    of Species instances, each of which contains a collection of Genome instances.
+    This class implements the core NEAT algorithm.  It maintains a list of Species instances,
+    each of which contains a collection of Genome instances.
     """
 
     def __init__(self, config, initial_population=None):
         """
         :param config: Either a config.Config object or path to a configuration file.
-        :param initial_population:
+        :param initial_population: Either an initial set of Genome instances to be used
+               as the initial population, or None, in which case a randomized set of Genomes
+               will be created automatically based on the configuration parameters.
         """
 
         # If config is not a Config object, assume it is a path to the config file.
         if not isinstance(config, Config):
             config = Config(config)
 
+        # Configure statistics and reporting as requested by the user.
         self.reporters = ReporterSet()
+        if config.collect_statistics:
+            self.statistics = StatisticsReporter()
+            self.add_reporter(self.statistics)
+        else:
+            self.statistics = None
+
         if config.report:
             self.add_reporter(StdOutReporter())
 
@@ -44,15 +52,12 @@ class Population(object):
                                                      self.genome_indexer, self.innovation_indexer)
 
         self.species = []
-        self.generation_statistics = []
-        self.most_fit_genomes = []
         self.generation = -1
         self.total_evaluations = 0
 
+        # Create a population if one is not given, then partition into species.
         if initial_population is None:
             initial_population = self._create_population()
-
-        # Partition the population into species based on current configuration.
         self._speciate(initial_population)
 
     def add_reporter(self, reporter):
@@ -66,8 +71,6 @@ class Population(object):
         self.reporters.loading_checkpoint(filename)
         with gzip.open(filename) as f:
             (self.species,
-             self.generation_statistics,
-             self.most_fit_genomes,
              self.generation,
              random_state) = pickle.load(f)
 
@@ -82,8 +85,6 @@ class Population(object):
 
         with gzip.open(filename, 'w', compresslevel=5) as f:
             data = (self.species,
-                    self.generation_statistics,
-                    self.most_fit_genomes,
                     self.generation,
                     random.getstate())
             pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
@@ -120,7 +121,7 @@ class Population(object):
 
         Note that this method assumes the current representatives of the species are from the old
         generation, and that after speciation has been performed, the old representatives should be
-        dropped and replaced with new representatives from the new generation.  If you violate this
+        dropped and replaced with representatives from the new generation.  If you violate this
         assumption, you should make sure other necessary parts of the code are updated to reflect
         the new behavior.
         """
@@ -144,21 +145,9 @@ class Population(object):
         # Only keep non-empty species.
         self.species = [s for s in self.species if s.members]
 
-    def _log_stats(self, population):
-        """ Gather data for visualization/reporting purposes. """
-        # TODO: This is probably best done by a separate class, so that the logged results can
-        # more easily be stored for later use without the user having to know which members of
-        # Population track the statistics.
-
-        # Keep a deep copy of the best genome, so that any future modifications to the genome
-        # do not produce an unexpected change in statistics.
-        self.most_fit_genomes.append(copy.deepcopy(max(population)))
-
-        # Store the fitnesses of the members of each currently active species.
-        species_stats = {}
+        # Select a random current member as the new representative.
         for s in self.species:
-            species_stats[s.ID] = [m.fitness for m in s.members]
-        self.generation_statistics.append(species_stats)
+            s.representative = random.choice(s.members)
 
     def run(self, fitness_function, n):
         """
@@ -187,12 +176,15 @@ class Population(object):
                 population.extend(s.members)
 
             # Evaluate all individuals in the population using the user-provided function.
+            # TODO: Add an option to only evaluate each genome once, to reduce number of
+            # fitness evaluations in cases where the fitness is known to be the same if the
+            # genome doesn't change--in these cases, evaluating unmodified elites in each
+            # generation is a waste of time.
             fitness_function(population)
             self.total_evaluations += len(population)
 
             # Gather and report statistics.
-            self._log_stats(population)
-            best = self.most_fit_genomes[-1]
+            best = max(population)
             self.reporters.post_evaluate(population, self.species, best)
 
             # Save the best genome from the current generation if requested.
@@ -208,9 +200,6 @@ class Population(object):
             # Create the next generation from the current generation.
             self.species, new_population = self.reproduction.reproduce(self.species)
 
-            # Divide the new population into species.
-            self._speciate(new_population)
-
             # Check for complete extinction
             if not self.species:
                 self.reporters.complete_extinction()
@@ -221,6 +210,13 @@ class Population(object):
                     new_population = self._create_population()
                 else:
                     raise CompleteExtinctionException()
+
+            # Update species age.
+            for s in self.species:
+                s.age += 1
+
+            # Divide the new population into species.
+            self._speciate(new_population)
 
             # Save checkpoints if necessary.
             if self.config.checkpoint_interval is not None:

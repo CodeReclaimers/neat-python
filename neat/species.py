@@ -12,7 +12,6 @@ class Species(object):
         self.ID = ID
         self.age = 0
         self.members = []
-        self.spawn_amount = 0
 
         self.add(representative)
 

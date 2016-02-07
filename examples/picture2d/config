@@ -26,13 +26,13 @@ weight_mutation_power   = 0.5
 prob_mutate_activation  = 0.02
 prob_toggle_link        = 0.02
 elitism                 = 0
-reset_on_extinction     = 1
+reset_on_extinction     = 0
 
 [genotype compatibility]
 compatibility_threshold = 3.0
 excess_coefficient      = 1.0
 disjoint_coefficient    = 1.0
-weight_coefficient      = 1.0
+weight_coefficient      = 0.5
 
 [species]
 survival_threshold  = 0.2

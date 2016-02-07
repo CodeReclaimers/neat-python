@@ -166,7 +166,11 @@ class Network(object):
             for c in links:
                 self.synapses.append(Synapse(nodes[c[0]], nodes[c[1]], c[2]))
 
-    def flush(self):
+    def set_integration_step(self, step):
+        for neuron in self.neurons:
+            neuron.set_integration_step(step)
+
+    def reset(self):
         for neuron in self.neurons:
             neuron.output = 0.0
 

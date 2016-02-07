@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import copy
 import time
 
 from neat.math_util import mean, stdev
@@ -52,7 +53,37 @@ class ReporterSet(object):
             r.info(msg)
 
 
-class StdOutReporter(object):
+class BaseReporter(object):
+    """Definition of the reporter interface expected by ReporterSet."""
+    def start_generation(self, generation):
+        pass
+
+    def end_generation(self):
+        pass
+
+    def loading_checkpoint(self, filename):
+        pass
+
+    def saving_checkpoint(self, checkpoint_type, filename):
+        pass
+
+    def post_evaluate(self, population, species, best):
+        pass
+
+    def complete_extinction(self):
+        pass
+
+    def found_solution(self, generation, best):
+        pass
+
+    def species_stagnant(self, species):
+        pass
+
+    def info(self, msg):
+        pass
+
+
+class StdOutReporter(BaseReporter):
     def __init__(self):
         self.generation = None
         self.generation_start_time = None
@@ -82,13 +113,7 @@ class StdOutReporter(object):
             [len(s.members) for s in species])))
         print('Species ID       : {0!s}'.format([s.ID for s in species]))
         print('Species size     : {0!s}'.format([len(s.members) for s in species]))
-        print('Amount to spawn  : {0!s}'.format([s.spawn_amount for s in species]))
         print('Species age      : {0}'.format([s.age for s in species]))
-
-        # TODO: This old species data display is specific to the reproduction implementation;
-        # allow user-provided components to generate their own reporting output.
-        #print('Species fitness  : {0!r}'.format([s.fitness for s in self.species]))
-        #print('Species no improv: {0!r}'.format([s.no_improvement_age for s in self.species]))
 
     def complete_extinction(self):
         print('All species extinct.')
@@ -102,3 +127,42 @@ class StdOutReporter(object):
 
     def info(self, msg):
         print(msg)
+
+
+class StatisticsReporter(BaseReporter):
+    def __init__(self):
+        BaseReporter.__init__(self)
+        self.most_fit_genomes = []
+        self.generation_statistics = []
+
+    def post_evaluate(self, population, species, best):
+        self.most_fit_genomes.append(copy.deepcopy(best))
+
+        # Store the fitnesses of the members of each currently active species.
+        species_stats = {}
+        for s in species:
+            species_stats[s.ID] = [m.fitness for m in s.members]
+        self.generation_statistics.append(species_stats)
+
+    def get_average_fitness(self):
+        """Get the per-generation average fitness."""
+        avg_fitness = []
+        for stats in self.generation_statistics:
+            scores = []
+            for fitness in stats.values():
+                scores.extend(fitness)
+            avg_fitness.append(mean(scores))
+
+        return avg_fitness
+
+    def best_genomes(self, n):
+        """Returns the n most fit genomes ever seen."""
+        def key(g):
+            return g.fitness
+
+        return sorted(self.most_fit_genomes, key=key, reverse=True)[:n]
+
+    def best_genome(self):
+        """Returns the most fit genome ever seen."""
+        return self.best_genomes(1)[0]
+

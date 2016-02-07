@@ -6,17 +6,6 @@ import csv
 from neat.math_util import mean
 
 
-def get_average_fitness(population):
-    avg_fitness = []
-    for stats in population.generation_statistics:
-        scores = []
-        for fitness in stats.values():
-            scores.extend(fitness)
-        avg_fitness.append(mean(scores))
-
-    return avg_fitness
-
-
 def get_species_sizes(population):
     all_species = set()
     for gen_data in population.generation_statistics:
@@ -51,28 +40,28 @@ def get_species_fitness(population, null_value=''):
     return species_fitness
 
 
-def save_stats(population, delimiter=' ', filename='fitness_history.csv'):
+def save_stats(statistics, delimiter=' ', filename='fitness_history.csv'):
     """ Saves the population's best and average fitness. """
     with open(filename, 'w') as f:
         w = csv.writer(f, delimiter=delimiter)
 
-        best_fitness = [c.fitness for c in population.most_fit_genomes]
-        avg_fitness = get_average_fitness(population)
+        best_fitness = [c.fitness for c in statistics.most_fit_genomes]
+        avg_fitness = statistics.get_average_fitness()
         for best, avg in zip(best_fitness, avg_fitness):
             w.writerow([best, avg])
 
 
-def save_species_count(population, delimiter=' ', filename='speciation.csv'):
+def save_species_count(statistics, delimiter=' ', filename='speciation.csv'):
     """ Log speciation throughout evolution. """
     with open(filename, 'w') as f:
         w = csv.writer(f, delimiter=delimiter)
-        for s in get_species_sizes(population):
+        for s in get_species_sizes(statistics):
             w.writerow(s)
 
 
-def save_species_fitness(population, delimiter=' ', null_value='NA', filename='species_fitness.csv'):
+def save_species_fitness(statistics, delimiter=' ', null_value='NA', filename='species_fitness.csv'):
     """ Log species' average fitness throughout evolution. """
     with open(filename, 'w') as f:
         w = csv.writer(f, delimiter=delimiter)
-        for s in get_species_fitness(population, null_value):
+        for s in get_species_fitness(statistics, null_value):
             w.writerow(s)

@@ -139,6 +139,8 @@ class Config(object):
         self.stagnation_type = FixedStagnation
         self.reproduction_type = DefaultReproduction
 
+        # Gather statistics for each generation.
+        self.collect_statistics = True
         # Show stats after each generation.
         self.report = True
         # Save the best genome from each generation.

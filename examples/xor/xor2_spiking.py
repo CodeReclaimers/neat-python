@@ -2,10 +2,11 @@
 from __future__ import print_function
 import os
 import matplotlib.pyplot as plt
+from matplotlib import patches
 from neat import population, iznn, visualize
 from neat.config import Config
 
-# XOR-2
+# Network inputs and expected outputs.
 xor_inputs = ((0, 0), (0, 1), (1, 0), (1, 1))
 xor_outputs = (0, 1, 1, 0)
 
@@ -33,7 +34,7 @@ def simulate(genome):
     # Create a network of Izhikevitch neurons based on the given genome.
     net = iznn.create_phenotype(genome, *iz_params)
     dt = iz_params[-1]
-    error = 0.0
+    sum_square_error = 0.0
     simulated = []
     for inputData, outputData in zip(xor_inputs, xor_outputs):
         neuron_data = {}
@@ -45,6 +46,8 @@ def simulate(genome):
         net.set_inputs(inputData)
         t0 = None
         t1 = None
+        v0 = None
+        v1 = None
         num_steps = int(max_time / dt)
         for j in range(num_steps):
             t = dt * j
@@ -54,25 +57,25 @@ def simulate(genome):
             for i, n in net.neurons.items():
                 neuron_data[i].append((t, n.v))
 
-            # Remember time of the first output spikes from each neuron.
+            # Remember time and value of the first output spikes from each neuron.
             if t0 is None and output[0] > 0:
-                t0 = t
+                t0, v0 = neuron_data[net.outputs[0]][-2]
 
             if t1 is None and output[1] > 0:
-                t1 = t
+                t1, v1 = neuron_data[net.outputs[1]][-2]
 
         response = compute_output(t0, t1)
-        error += (response - outputData) ** 2
+        sum_square_error += (response - outputData) ** 2
 
-        simulated.append((inputData, outputData, t0, t1, neuron_data))
+        simulated.append((inputData, outputData, t0, t1, v0, v1, neuron_data))
 
-    return error, simulated
+    return sum_square_error, simulated
 
 
 def eval_fitness(genomes):
     for genome in genomes:
-        error, simulated = simulate(genome)
-        genome.fitness = 1 - error
+        sum_square_error, simulated = simulate(genome)
+        genome.fitness = 1 - sum_square_error
 
 
 def run():
@@ -93,29 +96,35 @@ def run():
     print('Number of evaluations: {0}'.format(pop.total_evaluations))
 
     # Visualize the winner network and plot statistics.
-    winner = pop.most_fit_genomes[-1]
+    winner = pop.statistics.best_genome()
     node_names = {0: 'A', 1: 'B', 2: 'Out1', 3: 'Out2'}
     visualize.draw_net(winner, view=True, node_names=node_names)
-    visualize.plot_stats(pop)
-    visualize.plot_species(pop)
+    visualize.plot_stats(pop.statistics)
+    visualize.plot_species(pop.statistics)
 
     # Verify network output against training data.
     print('\nBest network output:')
     net = iznn.create_phenotype(winner, *iz_params)
-    error, simulated = simulate(winner)
+    sum_square_error, simulated = simulate(winner)
 
     # Create a plot of the traces out to the max time for each set of inputs.
     plt.figure(figsize=(12, 12))
-    for r, (inputData, outputData, t0, t1, neuron_data) in enumerate(simulated):
+    for r, (inputData, outputData, t0, t1, v0, v1, neuron_data) in enumerate(simulated):
         response = compute_output(t0, t1)
         print("{0!r} expected {1:.3f} got {2:.3f}".format(inputData, outputData, response))
 
-        plt.subplot(4, 1, r + 1)
+        axes = plt.subplot(4, 1, r + 1)
         plt.title("Traces for XOR input {{{0:.1f}, {1:.1f}}}".format(*inputData), fontsize=12)
         for i, s in neuron_data.items():
-            if i not in net.inputs:
+            if i in net.outputs:
                 t, v = zip(*s)
                 plt.plot(t, v, "-", label="neuron {0:d}".format(i))
+
+        # Circle the first peak of each output.
+        circle0 = patches.Ellipse((t0, v0), 1.0, 10.0, color='r', fill=False)
+        circle1 = patches.Ellipse((t1, v1), 1.0, 10.0, color='r', fill=False)
+        axes.add_artist(circle0)
+        axes.add_artist(circle1)
 
         plt.ylabel("Potential (mv)", fontsize=10)
         plt.ylim(-100, 50)

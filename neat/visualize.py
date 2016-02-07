@@ -4,7 +4,7 @@ from __future__ import print_function
 import copy
 import warnings
 
-from neat.statistics import get_average_fitness, get_species_sizes
+from neat.statistics import get_species_sizes
 
 try:
     import graphviz
@@ -25,15 +25,15 @@ except ImportError:
     warnings.warn('Could not import optional dependency NumPy.')
 
 
-def plot_stats(population, ylog=False, view=False, filename='avg_fitness.svg'):
+def plot_stats(statistics, ylog=False, view=False, filename='avg_fitness.svg'):
     """ Plots the population's average and best fitness. """
     if plt is None:
         warnings.warn("This display is not available due to a missing optional dependency (matplotlib)")
         return
 
-    generation = range(len(population.most_fit_genomes))
-    best_fitness = [c.fitness for c in population.most_fit_genomes]
-    avg_fitness = get_average_fitness(population)
+    generation = range(len(statistics.most_fit_genomes))
+    best_fitness = [c.fitness for c in statistics.most_fit_genomes]
+    avg_fitness = statistics.get_average_fitness()
 
     plt.plot(generation, avg_fitness, 'b-', label="average")
     plt.plot(generation, best_fitness, 'r-', label="best")
@@ -99,13 +99,13 @@ def plot_spikes(spikes, view=False, filename=None, title=None):
     return fig
 
 
-def plot_species(population, view=False, filename='speciation.svg'):
+def plot_species(statistics, view=False, filename='speciation.svg'):
     """ Visualizes speciation throughout evolution. """
     if plt is None:
         warnings.warn("This display is not available due to a missing optional dependency (matplotlib)")
         return
 
-    species_sizes = get_species_sizes(population)
+    species_sizes = get_species_sizes(statistics)
     num_generations = len(species_sizes)
     curves = np.array(species_sizes).T
 
