@@ -9,7 +9,7 @@ outlined below.
 From PyPI using pip
 -------------------
 To install the most recent release (version 0.6) from PyPI, you should run the command (as root or using `sudo`
-as necessary):
+as necessary)::
 
     pip install neat-python
 
@@ -22,7 +22,7 @@ instead of `pip`.
 
 From source using setup.py
 --------------------------
-Obtain the source code by either cloning the source repository:
+Obtain the source code by either cloning the source repository::
 
     git clone https://github.com/CodeReclaimers/neat-python.git
 
@@ -34,7 +34,7 @@ Note that the most current code in the repository may not always be in the most 
 tests pass and that most of the examples run.  If you encounter any problems, please open an `issue on GitHub
 <https://github.com/CodeReclaimers/neat-python/issues>`_.
 
-To install from source, simply run
+To install from source, simply run::
 
     python setup.py install
 

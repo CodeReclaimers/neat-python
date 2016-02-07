@@ -70,7 +70,7 @@ class InvalidActivationFunction(Exception):
     pass
 
 
-class ActivationFunctionSet:
+class ActivationFunctionSet(object):
     def __init__(self):
         self.functions = {}
 
