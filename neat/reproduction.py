@@ -14,13 +14,16 @@ class DefaultReproduction(object):
     with fixed-time species stagnation.
     """
     def __init__(self, config, reporters, genome_indexer, innovation_indexer):
-        self.config = config
+        params = config.get_type_config(self)
+        self.elitism = int(params.get('elitism'))
+        self.survival_threshold = float(params.get('survival_threshold'))
+
         self.reporters = reporters
         self.genome_indexer = genome_indexer
         self.innovation_indexer = innovation_indexer
-        self.stagnation = config.stagnation_type(self.config, reporters)
+        self.stagnation = config.stagnation_type(config, reporters)
 
-    def reproduce(self, species):
+    def reproduce(self, species, pop_size):
         # Filter out stagnated species and collect the set of non-stagnated species members.
         remaining_species = {}
         species_fitness = []
@@ -61,7 +64,7 @@ class DefaultReproduction(object):
         # Normalize the spawn amounts so that the next generation is roughly
         # the population size requested by the user.
         total_spawn = sum(spawn_amounts)
-        norm = self.config.pop_size / total_spawn
+        norm = pop_size / total_spawn
         spawn_amounts = [int(round(n * norm)) for n in spawn_amounts]
         self.reporters.info("Spawn amounts: {0}".format(spawn_amounts))
         self.reporters.info('Species fitness  : {0!r}'.format([sfitness for s, sfitness in species_fitness]))
@@ -70,7 +73,7 @@ class DefaultReproduction(object):
         new_species = []
         for spawn, (s, sfitness) in zip(spawn_amounts, species_fitness):
             # If elitism is enabled, each species always at least gets to retain its elites.
-            spawn = max(spawn, self.config.elitism)
+            spawn = max(spawn, self.elitism)
 
             if spawn <= 0:
                 continue
@@ -84,15 +87,15 @@ class DefaultReproduction(object):
             old_members.sort(reverse=True)
 
             # Transfer elites to new generation.
-            if self.config.elitism > 0:
-                new_population.extend(old_members[:self.config.elitism])
-                spawn -= self.config.elitism
+            if self.elitism > 0:
+                new_population.extend(old_members[:self.elitism])
+                spawn -= self.elitism
 
             if spawn <= 0:
                 continue
 
             # Only use the survival threshold fraction to use as parents for the next generation.
-            repro_cutoff = int(math.ceil(self.config.survival_threshold * len(old_members)))
+            repro_cutoff = int(math.ceil(self.survival_threshold * len(old_members)))
             # Use at least two parents no matter what the threshold fraction result is.
             repro_cutoff = max(repro_cutoff, 2)
             old_members = old_members[:repro_cutoff]

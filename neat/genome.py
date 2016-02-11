@@ -289,6 +289,7 @@ class Genome(object):
             self.node_genes[node_gene.ID] = node_gene
             node_id += 1
 
+    # TODO: Can this be changed to not need a configuration object?
     @classmethod
     def create_unconnected(cls, ID, config):
         '''Create a genome for a network with no hidden nodes and no connections.'''

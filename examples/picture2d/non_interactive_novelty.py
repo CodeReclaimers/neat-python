@@ -4,7 +4,7 @@ from multiprocessing import Pool
 
 import numpy as np
 
-from evolve import eval_mono_image, eval_gray_image, eval_color_image
+from common import eval_mono_image, eval_gray_image, eval_color_image
 from neat import population, config
 
 width, height = 16, 16

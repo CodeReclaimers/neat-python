@@ -4,31 +4,12 @@ from neat.genes import NodeGene, ConnectionGene
 from neat.genome import Genome, FFGenome
 from neat import activation_functions
 from neat.reproduction import DefaultReproduction
-from neat.stagnation import FixedStagnation
-from neat.math_util import mean
+from neat.stagnation import DefaultStagnation
 
 try:
     from configparser import ConfigParser
 except ImportError:
     from ConfigParser import SafeConfigParser as ConfigParser
-
-
-def species_max_fitness(species):
-    return max([m.fitness for m in species.members])
-
-
-def species_min_fitness(species):
-    return min([m.fitness for m in species.members])
-
-
-def species_mean_fitness(species):
-    return mean([m.fitness for m in species.members])
-
-
-def species_median_fitness(species):
-    fitnesses = [m.fitness for m in species.members]
-    fitnesses.sort()
-    return fitnesses[len(fitnesses) // 2]
 
 
 class Config(object):
@@ -48,6 +29,12 @@ class Config(object):
     allowed_connectivity = ['unconnected', 'fs_neat', 'fully_connected', 'partial']
 
     def __init__(self, filename):
+        self.registry = {'DefaultStagnation':DefaultStagnation,
+                         'DefaultReproduction':DefaultReproduction}
+        self.type_config = {}
+        self.load(filename)
+
+    def load(self, filename):
         if not os.path.isfile(filename):
             raise Exception('No such config file: ' + os.path.abspath(filename))
 
@@ -57,6 +44,9 @@ class Config(object):
                 parameters.read_file(f)
             else:
                 parameters.readfp(f)
+
+        if not parameters.has_section('Types'):
+            raise RuntimeError("'Types' section not found in NEAT configuration file.")
 
         # Phenotype configuration
         self.input_nodes = int(parameters.get('phenotype', 'input_nodes'))
@@ -107,7 +97,6 @@ class Config(object):
         self.weight_mutation_power = float(parameters.get('genetic', 'weight_mutation_power'))
         self.prob_mutate_activation = float(parameters.get('genetic', 'prob_mutate_activation'))
         self.prob_toggle_link = float(parameters.get('genetic', 'prob_toggle_link'))
-        self.elitism = int(parameters.get('genetic', 'elitism'))
         self.reset_on_extinction = bool(int(parameters.get('genetic', 'reset_on_extinction')))
 
         # genotype compatibility
@@ -116,28 +105,23 @@ class Config(object):
         self.disjoint_coefficient = float(parameters.get('genotype compatibility', 'disjoint_coefficient'))
         self.weight_coefficient = float(parameters.get('genotype compatibility', 'weight_coefficient'))
 
-        # species
-        self.survival_threshold = float(parameters.get('species', 'survival_threshold'))
-        self.max_stagnation = int(parameters.get('species', 'max_stagnation'))
-        self.species_fitness = parameters.get('species', 'fitness')
-
-        if self.species_fitness == 'max':
-            self.species_fitness_func = species_max_fitness
-        elif self.species_fitness == 'min':
-            self.species_fitness_func = species_min_fitness
-        elif self.species_fitness == 'mean':
-            self.species_fitness_func = species_mean_fitness
-        elif self.species_fitness == 'median':
-            self.species_fitness_func = species_median_fitness
-        else:
-            raise Exception("Unexpected species fitness: {0!r}".format(self.species_fitness))
-
         # Gene types
         self.node_gene_type = NodeGene
         self.conn_gene_type = ConnectionGene
 
-        self.stagnation_type = FixedStagnation
-        self.reproduction_type = DefaultReproduction
+        stagnation_type_name = parameters.get('Types', 'stagnation_type')
+        reproduction_type_name = parameters.get('Types', 'reproduction_type')
+
+        if stagnation_type_name not in self.registry:
+            raise Exception('Unknown stagnation type: {!r}'.format(stagnation_type_name))
+        self.stagnation_type = self.registry[stagnation_type_name]
+        self.type_config[stagnation_type_name] = parameters.items(stagnation_type_name)
+
+        if reproduction_type_name not in self.registry:
+            raise Exception('Unknown reproduction type: {!r}'.format(reproduction_type_name))
+        self.reproduction_type = self.registry[reproduction_type_name]
+        self.type_config[reproduction_type_name] = parameters.items(reproduction_type_name)
+
 
         # Gather statistics for each generation.
         self.collect_statistics = True
@@ -146,7 +130,17 @@ class Config(object):
         # Save the best genome from each generation.
         self.save_best = False
         # Time in minutes between saving checkpoints, None for no timed checkpoints.
-        self.checkpoint_interval = None
+        self.checkpoint_time_interval = None
         # Time in generations between saving checkpoints, None for no generational checkpoints.
-        self.checkpoint_generation = None
+        self.checkpoint_gen_interval = None
 
+    def register(self, typeName, typeDef):
+        """
+        User-defined classes mentioned in the config file must be provided to the
+        configuration object before the load() method is called.
+        """
+
+        self.registry[typeName] = typeDef
+
+    def get_type_config(self, typeInstance):
+        return dict(self.type_config[typeInstance.__class__.__name__])

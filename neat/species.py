@@ -1,8 +1,3 @@
-# -*- coding: UTF-8 -*-
-import math
-import random
-
-
 class Species(object):
     """ A collection of genetically similar individuals."""
 

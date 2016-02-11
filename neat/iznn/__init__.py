@@ -1,4 +1,3 @@
-# -*- coding: UTF-8 -*-
 """
 This module implements a spiking neural network.
 Neurons are based on the model described by:

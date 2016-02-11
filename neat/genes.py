@@ -1,6 +1,4 @@
-# -*- coding: UTF-8 -*-
 import random
-from neat.indexer import Indexer
 
 
 class NodeGene(object):

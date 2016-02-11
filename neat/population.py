@@ -92,6 +92,10 @@ class Population(object):
     def _create_population(self):
         # Create a collection of unconnected genomes with no hidden nodes.
         new_population = []
+
+        # TODO: The genotype class should know how to do everything below, based
+        # solely on what's in the config object. This allows users to completely
+        # replace the initial population creation scheme if they choose.
         for i in range(self.config.pop_size):
             g_id = self.genome_indexer.next()
             g = self.config.genotype.create_unconnected(g_id, self.config)
@@ -198,7 +202,7 @@ class Population(object):
                 break
 
             # Create the next generation from the current generation.
-            self.species, new_population = self.reproduction.reproduce(self.species)
+            self.species, new_population = self.reproduction.reproduce(self.species, self.config.pop_size)
 
             # Check for complete extinction
             if not self.species:
@@ -219,14 +223,14 @@ class Population(object):
             self._speciate(new_population)
 
             # Save checkpoints if necessary.
-            if self.config.checkpoint_interval is not None:
-                timed_checkpoint_due = last_checkpoint + 60 * self.config.checkpoint_interval
+            if self.config.checkpoint_time_interval is not None:
+                timed_checkpoint_due = last_checkpoint + 60 * self.config.checkpoint_time_interval
                 if time.time() >= timed_checkpoint_due:
                     self.save_checkpoint(checkpoint_type="timed")
                     last_checkpoint = time.time()
 
-            if self.config.checkpoint_generation is not None \
-                    and self.generation % self.config.checkpoint_generation == 0:
+            if self.config.checkpoint_gen_interval is not None \
+                    and self.generation % self.config.checkpoint_gen_interval == 0:
                 self.save_checkpoint(checkpoint_type="generation")
 
             self.reporters.end_generation()
