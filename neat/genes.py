@@ -1,5 +1,8 @@
 import random
 
+# TODO: Provide a more generalized node implementation, for example with an arbitrary operation
+# (max, sum, product, etc.) over input*weight values instead of only addition.
+
 
 class NodeGene(object):
     def __init__(self, ID, node_type, bias=0.0, response=4.924273, activation_type='sigmoid'):
