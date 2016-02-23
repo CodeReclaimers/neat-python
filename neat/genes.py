@@ -112,9 +112,13 @@ class ConnectionGene(object):
     def copy(self):
         return ConnectionGene(self.innovation_id, self.in_node_id, self.out_node_id, self.weight, self.enabled)
 
-    def is_same_innov(self, cg):
-        return self.innovation_id == cg.innovation_id
+    def is_same_innov(self, other):
+        return self.innovation_id == other.innovation_id
 
-    def get_child(self, cg):
-        # TODO: average both weights (Stanley, p. 38)
-        return random.choice((self, cg)).copy()
+    def get_child(self, other):
+        """ Creates a new ConnectionGene randomly inheriting attributes from its parents."""
+        assert self.innovation_id == other.innovation_id
+        cg = ConnectionGene(self.innovation_id, self.in_node_id, self.out_node_id,
+                      random.choice((self.weight, other.weight)),
+                      random.choice((self.enabled, other.enabled)))
+        return cg

@@ -16,6 +16,10 @@ class Indexer(object):
         self.next_id = 1
 
 
+# TODO: Why not just use (in, out) as a unique innovation index?  That's what
+# the current scheme ends up doing anyway.  If the scheme needs to be configurable,
+# then the key member of connection genes should be used everywhere instead of
+# having hard-coded (input, output) tuple keys sprinkled all over the code.
 class InnovationIndexer(object):
     def __init__(self, first):
         self.indexer = Indexer(first)

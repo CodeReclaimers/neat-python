@@ -155,6 +155,18 @@ class StatisticsReporter(BaseReporter):
 
         return avg_fitness
 
+    def best_unique_genomes(self, n):
+        """Returns the most n fit genomes, with no duplication."""
+        best_unique = {}
+        for g in self.most_fit_genomes:
+            best_unique[g.ID] = g
+        best_unique = list(best_unique.values())
+
+        def key(g):
+            return g.fitness
+
+        return sorted(best_unique, key=key, reverse=True)[:n]
+
     def best_genomes(self, n):
         """Returns the n most fit genomes ever seen."""
         def key(g):
