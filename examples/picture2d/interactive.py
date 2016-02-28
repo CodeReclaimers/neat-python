@@ -4,18 +4,59 @@ This is an example that amounts to an offline picbreeder.org without any nice fe
 Left-click on thumbnails to pick images to breed for next generation, right-click to
 render a high-resolution version of an image.  Genomes and images chosen for breeding
 and rendering are saved to disk.
+
+This example also demonstrates how to customize species stagnation.
 """
 import math
 import os
 import pickle
 import pygame
 
-# TODO: Allow user-defined species stagnation test.  It's annoying to have an interesting species
-# die out in this application just because the fitness can't go up forever.
-
 from multiprocessing import Pool
-from neat import population, config
+from neat import population, config, stagnation
 from common import eval_mono_image, eval_gray_image, eval_color_image
+
+
+class InteractiveStagnation(object):
+    """
+    This class is used as a drop-in replacement for the default species stagnation scheme.
+
+    A species is only marked as stagnant if the user has not selected one of its output images
+    within the last `max_stagnation` generations.
+    """
+    def __init__(self, config, reporters):
+        params = config.get_type_config(self)
+        self.max_stagnation = int(params.get('max_stagnation'))
+
+        self.reporters = reporters
+        self.stagnant_counts = {}
+
+    def remove(self, species):
+        if species.ID in self.stagnant_counts:
+            del self.stagnant_counts[species.ID]
+
+    def update(self, species):
+        result = []
+        for s in species:
+            # If any member of the species is selected (i.e., has a fitness above zero), then we reset
+            # the stagnation count.  Otherwise we increment the count.
+            scount = self.stagnant_counts.get(s.ID, 0) + 1
+            for m in s.members:
+                if m.fitness > 0:
+                    scount = 0
+                    break
+
+            self.stagnant_counts[s.ID] = scount
+
+            is_stagnant = scount >= self.max_stagnation
+            result.append((s, is_stagnant))
+
+            if is_stagnant:
+                self.remove(s)
+
+        self.reporters.info('Species no improv: {0!r}'.format(self.stagnant_counts))
+
+        return result
 
 
 class PictureBreeder(object):
@@ -159,9 +200,12 @@ class PictureBreeder(object):
                 g.fitness = 0.0
 
 def run():
-    # 128x128 thumbnails, 1500x1500 rendered images, 1100x810 viewer, grayscale images.
+    # 128x128 thumbnails, 1500x1500 rendered images, 1100x810 viewer, grayscale images, 4 worker processes.
     pb = PictureBreeder(128, 128, 1500, 1500, 1100, 810, 'gray', 4)
-    cfg = config.Config('config')
+    cfg = config.Config()
+    # Register the custom stagnation class.
+    cfg.register('InteractiveStagnation', InteractiveStagnation)
+    cfg.load('interactive_config')
 
     # Make sure the network has the expected number of outputs.
     if pb.scheme == 'color':

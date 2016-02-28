@@ -28,11 +28,12 @@ class Config(object):
 
     allowed_connectivity = ['unconnected', 'fs_neat', 'fully_connected', 'partial']
 
-    def __init__(self, filename):
+    def __init__(self, filename=None):
         self.registry = {'DefaultStagnation':DefaultStagnation,
                          'DefaultReproduction':DefaultReproduction}
         self.type_config = {}
-        self.load(filename)
+        if filename is not None:
+            self.load(filename)
 
     def load(self, filename):
         if not os.path.isfile(filename):
@@ -139,7 +140,6 @@ class Config(object):
         User-defined classes mentioned in the config file must be provided to the
         configuration object before the load() method is called.
         """
-
         self.registry[typeName] = typeDef
 
     def get_type_config(self, typeInstance):

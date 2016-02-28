@@ -76,7 +76,7 @@ class NoveltyEvaluator(object):
 
 
 def run():
-    cfg = config.Config('config')
+    cfg = config.Config('novelty_config')
     cfg.pop_size = 100
     cfg.max_fitness_threshold = 1e38
 

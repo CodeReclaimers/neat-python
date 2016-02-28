@@ -2,6 +2,8 @@
 This example produces networks that can remember a fixed-length sequence of bits. It is
 intentionally very (overly?) simplistic just to show the usage of the NEAT library. However,
 if you come up with a more interesting or impressive example, please submit a pull request!
+
+This example also demonstrates the use of a custom activation function.
 """
 
 from __future__ import print_function

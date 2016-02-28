@@ -18,7 +18,6 @@ feedforward          = 1
 activation_functions = sigmoid
 weight_stdev         = 1.0
 
-
 [genetic]
 pop_size                = 150
 max_fitness_threshold   = 0.95
