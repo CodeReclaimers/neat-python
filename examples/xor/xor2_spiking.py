@@ -1,10 +1,12 @@
 """ 2-input XOR example using Izhikevich's spiking neuron model. """
 from __future__ import print_function
 import os
+import pickle
 import matplotlib.pyplot as plt
 from matplotlib import patches
 from neat import population, iznn, visualize
 from neat.config import Config
+
 
 # Network inputs and expected outputs.
 xor_inputs = ((0, 0), (0, 1), (1, 0), (1, 1))
@@ -106,6 +108,10 @@ def run():
     print('\nBest network output:')
     net = iznn.create_phenotype(winner, *iz_params)
     sum_square_error, simulated = simulate(winner)
+
+    # Save winner genome and simulation results.
+    with open('spiking-winner.dat', 'wb') as f:
+        pickle.dump((winner, simulated), f)
 
     # Create a plot of the traces out to the max time for each set of inputs.
     plt.figure(figsize=(12, 12))

@@ -123,7 +123,8 @@ def plot_species(statistics, view=False, filename='speciation.svg'):
     plt.close()
 
 
-def draw_net(genome, view=False, filename=None, node_names=None, show_disabled=True, prune_unused=False):
+def draw_net(genome, view=False, filename=None, node_names=None, show_disabled=True, prune_unused=False,
+             node_colors=None, fmt='svg'):
     """ Receives a genome and draws a neural network with arbitrary topology. """
     # Attributes for network nodes.
     if graphviz is None:
@@ -135,29 +136,27 @@ def draw_net(genome, view=False, filename=None, node_names=None, show_disabled=T
 
     assert type(node_names) is dict
 
+    if node_colors is None:
+        node_colors = {}
+
+    assert type(node_colors) is dict
+
     node_attrs = {
         'shape': 'circle',
         'fontsize': '9',
         'height': '0.2',
         'width': '0.2'}
 
-    # Attributes for network input nodes.
-    input_attrs = {
-        'style': 'filled',
-        'shape': 'box'}
-
-    # Attributes for network output nodes.
-    output_attrs = {
-        'style': 'filled',
-        'color': 'lightblue'}
-
-    dot = graphviz.Digraph(format='svg', node_attr=node_attrs)
+    dot = graphviz.Digraph(format=fmt, node_attr=node_attrs)
 
     inputs = set()
     for ng_id, ng in genome.node_genes.items():
         if ng.type == 'INPUT':
             inputs.add(ng_id)
             name = node_names.get(ng_id, str(ng_id))
+            input_attrs = {'style': 'filled',
+                           'shape': 'box'}
+            input_attrs['fillcolor'] = node_colors.get(ng_id, 'lightgray')
             dot.node(name, _attributes=input_attrs)
 
     outputs = set()
@@ -165,7 +164,10 @@ def draw_net(genome, view=False, filename=None, node_names=None, show_disabled=T
         if ng.type == 'OUTPUT':
             outputs.add(ng_id)
             name = node_names.get(ng_id, str(ng_id))
-            dot.node(name, _attributes=output_attrs)
+            node_attrs = {'style': 'filled'}
+            node_attrs['fillcolor'] = node_colors.get(ng_id, 'lightblue')
+
+            dot.node(name, _attributes=node_attrs)
 
     if prune_unused:
         connections = set()
@@ -176,7 +178,7 @@ def draw_net(genome, view=False, filename=None, node_names=None, show_disabled=T
         used_nodes = copy.copy(outputs)
         pending = copy.copy(outputs)
         while pending:
-            print(pending, used_nodes)
+            #print(pending, used_nodes)
             new_pending = set()
             for a, b in connections:
                 if b in pending and a not in used_nodes:
@@ -185,6 +187,14 @@ def draw_net(genome, view=False, filename=None, node_names=None, show_disabled=T
             pending = new_pending
     else:
         used_nodes = set(genome.node_genes.keys())
+
+    for n in used_nodes:
+        if n in inputs or n in outputs:
+            continue
+        attrs = {'style': 'filled'}
+        attrs['fillcolor'] = node_colors.get(ng_id, 'white')
+        dot.node(str(n), _attributes=attrs)
+
 
     for cg in genome.conn_genes.values():
         if cg.enabled or show_disabled:
@@ -198,4 +208,6 @@ def draw_net(genome, view=False, filename=None, node_names=None, show_disabled=T
             width = str(0.1 + abs(cg.weight / 5.0))
             dot.edge(a, b, _attributes={'style': style, 'color': color, 'penwidth': width})
 
-    return dot.render(filename, view=view)
+    dot.render(filename, view=view)
+
+    return dot
