@@ -134,15 +134,20 @@ class StatisticsReporter(BaseReporter):
         BaseReporter.__init__(self)
         self.most_fit_genomes = []
         self.generation_statistics = []
+        self.generation_cross_validation_statistics = []
+
 
     def post_evaluate(self, population, species, best):
         self.most_fit_genomes.append(copy.deepcopy(best))
 
         # Store the fitnesses of the members of each currently active species.
         species_stats = {}
+        species_cross_validation_stats = {}
         for s in species:
             species_stats[s.ID] = [m.fitness for m in s.members]
+            species_cross_validation_stats[s.ID] = [m.cross_validation_fitness for m in s.members]
         self.generation_statistics.append(species_stats)
+        self.generation_cross_validation_statistics.append(species_cross_validation_stats)
 
     def get_average_fitness(self):
         """Get the per-generation average fitness."""
@@ -154,6 +159,18 @@ class StatisticsReporter(BaseReporter):
             avg_fitness.append(mean(scores))
 
         return avg_fitness
+
+    def get_average_cross_validation_fitness(self):
+        """Get the per-generation average cross_validation fitness."""
+        avg_cross_validation_fitness = []
+        for stats in self.generation_cross_validation_statistics:
+            scores = []
+            for fitness in stats.values():
+                scores.extend(fitness)
+            avg_cross_validation_fitness.append(mean(scores))
+
+        return avg_cross_validation_fitness
+
 
     def best_unique_genomes(self, n):
         """Returns the most n fit genomes, with no duplication."""

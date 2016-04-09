@@ -39,15 +39,23 @@ def get_species_fitness(population, null_value=''):
     return species_fitness
 
 
-def save_stats(statistics, delimiter=' ', filename='fitness_history.csv'):
+def save_stats(statistics, delimiter=' ', filename='fitness_history.csv', with_cross_validation = False):
     """ Saves the population's best and average fitness. """
     with open(filename, 'w') as f:
         w = csv.writer(f, delimiter=delimiter)
 
         best_fitness = [c.fitness for c in statistics.most_fit_genomes]
         avg_fitness = statistics.get_average_fitness()
-        for best, avg in zip(best_fitness, avg_fitness):
-            w.writerow([best, avg])
+
+
+        if(with_cross_validation==True):
+            cv_best_fitness = [c.cross_validation_fitness for c in statistics.most_fit_genomes]
+            cv_avg_fitness = statistics.get_average_cross_validation_fitness()
+            for best, avg, cv_best, cv_avg in zip(best_fitness, avg_fitness, cv_best_fitness, cv_avg_fitness):
+                w.writerow([best, avg, cv_best, cv_avg])
+        else:
+            for best, avg in zip(best_fitness, avg_fitness):
+                w.writerow([best, avg])
 
 
 def save_species_count(statistics, delimiter=' ', filename='speciation.csv'):
