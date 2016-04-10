@@ -2,12 +2,35 @@
 Installation
 ============
 
-Because the library is still changing fairly rapidly, attempting to run examples with a significantly newer or older
-version of the library will result in errors.  It is best to install and get the examples using one of the two methods
-outlined below.
+About The Examples
+------------------
 
-From PyPI using pip
--------------------
+Much of the sample code uses libraries that are not required to use `neat-python` itself.  Below are all the
+packages you should install in addition to `neat-python` if you want to be able to run all the included examples.  **None
+of these libraries are required if you are using `neat-python` in your own code and you do not import `neat.visualize`.**
+
+`graphviz
+<https://pypi.python.org/pypi/graphviz>`_
+
+`maptlotlib
+<http://matplotlib.org/users/installing.html>`_
+
+`gizeh
+<https://pypi.python.org/pypi/gizeh>`_
+
+`moviepy
+<https://pypi.python.org/pypi/moviepy>`_
+
+`Pillow
+<https://pypi.python.org/pypi/Pillow>`_
+
+
+Because `neat-python` is still changing fairly rapidly, attempting to run examples with a significantly newer or older
+version of the library will result in errors.  It is best to obtain matching example/library code by using one of the
+two methods outlined below:
+
+Install neat-python From PyPI using pip
+---------------------------------------
 To install the most recent release (version 0.6) from PyPI, you should run the command (as root or using `sudo`
 as necessary)::
 
