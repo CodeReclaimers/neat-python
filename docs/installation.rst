@@ -29,7 +29,7 @@ Because `neat-python` is still changing fairly rapidly, attempting to run exampl
 version of the library will result in errors.  It is best to obtain matching example/library code by using one of the
 two methods outlined below:
 
-Install neat-python From PyPI using pip
+Install neat-python from PyPI using pip
 ---------------------------------------
 To install the most recent release (version 0.6) from PyPI, you should run the command (as root or using `sudo`
 as necessary)::
@@ -43,8 +43,8 @@ for release 0.6
 You may also just download the 0.6 release source, and install it directly using `setup.py` (as shown below)
 instead of `pip`.
 
-From source using setup.py
---------------------------
+Install neat-python from source using setup.py
+----------------------------------------------
 Obtain the source code by either cloning the source repository::
 
     git clone https://github.com/CodeReclaimers/neat-python.git
