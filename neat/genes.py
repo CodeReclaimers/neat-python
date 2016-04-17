@@ -1,4 +1,4 @@
-import random
+from random import choice, gauss, random
 
 # TODO: Provide a more generalized node implementation, for example with an arbitrary operation
 # (max, sum, product, etc.) over input*weight values instead of only addition.
@@ -27,34 +27,36 @@ class NodeGene(object):
         """ Creates a new NodeGene randomly inheriting attributes from its parents."""
         assert (self.ID == other.ID)
 
+        # Note: we use "a if random() > 0.5 else b" instead of choice((a, b))
+        # here because `choice` is substantially slower.
         ng = NodeGene(self.ID, self.type,
-                      random.choice((self.bias, other.bias)),
-                      random.choice((self.response, other.response)),
-                      random.choice((self.activation_type, other.activation_type)))
+                      self.bias if random() > 0.5 else other.bias,
+                      self.response if random() > 0.5 else other.response,
+                      self.activation_type if random() > 0.5 else other.activation_type)
         return ng
 
     def mutate_bias(self, config):
-        new_bias = self.bias + random.gauss(0, 1) * config.bias_mutation_power
+        new_bias = self.bias + gauss(0, 1) * config.bias_mutation_power
         self.bias = max(config.min_weight, min(config.max_weight, new_bias))
 
     def mutate_response(self, config):
         """ Mutates the neuron's average firing response. """
-        new_response = self.response + random.gauss(0, 1) * config.response_mutation_power
+        new_response = self.response + gauss(0, 1) * config.response_mutation_power
         self.response = max(config.min_weight, min(config.max_weight, new_response))
 
     def mutate_activation(self, config):
-        self.activation_type = random.choice(config.activation_functions)
+        self.activation_type = choice(config.activation_functions)
 
     def copy(self):
         return NodeGene(self.ID, self.type, self.bias,
                         self.response, self.activation_type)
 
     def mutate(self, config):
-        if random.random() < config.prob_mutate_bias:
+        if random() < config.prob_mutate_bias:
             self.mutate_bias(config)
-        if random.random() < config.prob_mutate_response:
+        if random() < config.prob_mutate_response:
             self.mutate_response(config)
-        if random.random() < config.prob_mutate_activation:
+        if random() < config.prob_mutate_activation:
             self.mutate_activation(config)
 
 
@@ -76,17 +78,16 @@ class ConnectionGene(object):
     key = property(lambda self: (self.in_node_id, self.out_node_id))
 
     def mutate(self, config):
-        r = random.random
-        if r() < config.prob_mutate_weight:
-            if r() < config.prob_replace_weight:
+        if random() < config.prob_mutate_weight:
+            if random() < config.prob_replace_weight:
                 # Replace weight with a random value.
-                self.weight = random.gauss(0, config.weight_stdev)
+                self.weight = gauss(0, config.weight_stdev)
             else:
                 # Perturb weight.
-                new_weight = self.weight + random.gauss(0, 1) * config.weight_mutation_power
+                new_weight = self.weight + gauss(0, 1) * config.weight_mutation_power
                 self.weight = max(config.min_weight, min(config.max_weight, new_weight))
 
-        if r() < config.prob_toggle_link:
+        if random() < config.prob_toggle_link:
             self.enabled = not self.enabled
 
     def enable(self):
@@ -121,7 +122,9 @@ class ConnectionGene(object):
     def get_child(self, other):
         """ Creates a new ConnectionGene randomly inheriting attributes from its parents."""
         assert self.innovation_id == other.innovation_id
+        # Note: we use "a if random() > 0.5 else b" instead of choice((a, b))
+        # here because `choice` is substantially slower.
         cg = ConnectionGene(self.innovation_id, self.in_node_id, self.out_node_id,
-                      random.choice((self.weight, other.weight)),
-                      random.choice((self.enabled, other.enabled)))
+                      self.weight if random() > 0.5 else other.weight,
+                      self.enabled if random() > 0.5 else other.enabled)
         return cg
