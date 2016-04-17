@@ -1,5 +1,5 @@
 from random import choice, gauss, randint, random, shuffle
-import math
+from math import fabs
 
 
 class Genome(object):
@@ -194,61 +194,68 @@ class Genome(object):
     def distance(self, other):
         """ Returns the distance between this genome and the other. """
         if len(self.conn_genes) > len(other.conn_genes):
-            genome1 = self
-            genome2 = other
+            node_genes1 = self.node_genes
+            conn_genes1 = self.conn_genes
+            node_genes2 = other.node_genes
+            conn_genes2 = other.conn_genes
+
         else:
-            genome1 = other
-            genome2 = self
+            node_genes1 = other.node_genes
+            conn_genes1 = other.conn_genes
+            node_genes2 = self.node_genes
+            conn_genes2 = self.conn_genes
 
         # Compute node gene differences.
-        excess1 = sum(1 for k1 in genome1.node_genes if k1 not in genome2.node_genes)
-        excess2 = sum(1 for k2 in genome2.node_genes if k2 not in genome1.node_genes)
-        common_nodes = [k1 for k1 in genome1.node_genes if k1 in genome2.node_genes]
+        excess1 = 0
+        excess2 = sum(1 for k2 in node_genes2 if k2 not in node_genes1)
         bias_diff = 0.0
         response_diff = 0.0
         activation_diff = 0
-        for n in common_nodes:
-            g1 = genome1.node_genes[n]
-            g2 = genome2.node_genes[n]
-            bias_diff += math.fabs(g1.bias - g2.bias)
-            response_diff += math.fabs(g1.response - g2.response)
-            if g1.activation_type != g2.activation_type:
-                activation_diff += 1
+        num_common = 0
+        for k1, g1 in node_genes1.iteritems():
+            if k1 in node_genes2:
+                num_common += 1
+                g2 = node_genes2[k1]
+                bias_diff += fabs(g1.bias - g2.bias)
+                response_diff += fabs(g1.response - g2.response)
+                if g1.activation_type != g2.activation_type:
+                    activation_diff += 1
+            else:
+                excess1 += 1
 
-        most_nodes = max(len(genome1.node_genes), len(genome2.node_genes))
+        most_nodes = max(len(node_genes1), len(node_genes2))
         distance = (self.config.excess_coefficient * float(excess1 + excess2) / most_nodes
                     + self.config.excess_coefficient * float(activation_diff) / most_nodes
-                    + self.config.weight_coefficient * (bias_diff + response_diff) / len(common_nodes))
+                    + self.config.weight_coefficient * (bias_diff + response_diff) / num_common)
 
         # Compute connection gene differences.
-        if genome1.conn_genes:
-            N = len(genome1.conn_genes)
+        if conn_genes1:
+            N = len(conn_genes1)
             weight_diff = 0
             matching = 0
             disjoint = 0
             excess = 0
 
             max_cg_genome2 = None
-            if genome2.conn_genes:
-                max_cg_genome2 = max(genome2.conn_genes.values())
+            if conn_genes2:
+                max_cg_genome2 = max(conn_genes2.itervalues())
 
-            for cg1 in genome1.conn_genes.values():
-                try:
-                    cg2 = genome2.conn_genes[cg1.key]
-                except KeyError:
-                    if max_cg_genome2 is not None and cg1 > max_cg_genome2:
-                        excess += 1
-                    else:
-                        disjoint += 1
-                else:
+            for k1, cg1 in conn_genes1.iteritems():
+                if k1 in conn_genes2:
                     # Homologous genes
-                    weight_diff += math.fabs(cg1.weight - cg2.weight)
+                    cg2 = conn_genes2[k1]
+                    weight_diff += fabs(cg1.weight - cg2.weight)
                     matching += 1
 
                     if cg1.enabled != cg2.enabled:
                         weight_diff += 1.0
+                else:
+                    if max_cg_genome2 is not None and cg1 > max_cg_genome2:
+                        excess += 1
+                    else:
+                        disjoint += 1
 
-            disjoint += len(genome2.conn_genes) - matching
+            disjoint += len(conn_genes2) - matching
 
             distance += self.config.excess_coefficient * float(excess) / N
             distance += self.config.disjoint_coefficient * float(disjoint) / N

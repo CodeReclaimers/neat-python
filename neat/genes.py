@@ -29,10 +29,10 @@ class NodeGene(object):
 
         # Note: we use "a if random() > 0.5 else b" instead of choice((a, b))
         # here because `choice` is substantially slower.
-        ng = NodeGene(self.ID, self.type,
-                      self.bias if random() > 0.5 else other.bias,
-                      self.response if random() > 0.5 else other.response,
-                      self.activation_type if random() > 0.5 else other.activation_type)
+        bias = self.bias if random() > 0.5 else other.bias
+        response = self.response if random() > 0.5 else other.response
+        activation = self.activation_type if random() > 0.5 else other.activation_type
+        ng = NodeGene(self.ID, self.type, bias, response, activation)
         return ng
 
     def mutate_bias(self, config):
@@ -124,7 +124,7 @@ class ConnectionGene(object):
         assert self.innovation_id == other.innovation_id
         # Note: we use "a if random() > 0.5 else b" instead of choice((a, b))
         # here because `choice` is substantially slower.
-        cg = ConnectionGene(self.innovation_id, self.in_node_id, self.out_node_id,
-                      self.weight if random() > 0.5 else other.weight,
-                      self.enabled if random() > 0.5 else other.enabled)
+        weight = self.weight if random() > 0.5 else other.weight
+        enabled = self.enabled if random() > 0.5 else other.enabled
+        cg = ConnectionGene(self.innovation_id, self.in_node_id, self.out_node_id, weight, enabled)
         return cg
