@@ -1,6 +1,15 @@
 from math import fabs
 from random import choice, gauss, randint, random, shuffle
-from six import iteritems
+import sys
+
+# Instead of adding six as a dependency, this code was copied from the six
+# implementation, six is Copyright (c) 2010-2015 Benjamin Peterson
+if sys.version_info[0] == 3:
+    def iteritems(d, **kw):
+        return iter(d.items(**kw))
+else:
+    def iteritems(d, **kw):
+        return iter(d.iteritems(**kw))
 
 
 class Genome(object):
