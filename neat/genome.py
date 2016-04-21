@@ -5,9 +5,15 @@ import sys
 # Instead of adding six as a dependency, this code was copied from the six
 # implementation, six is Copyright (c) 2010-2015 Benjamin Peterson
 if sys.version_info[0] == 3:
+    def itervalues(d, **kw):
+        return iter(d.values(**kw))
+
     def iteritems(d, **kw):
         return iter(d.items(**kw))
 else:
+    def itervalues(d, **kw):
+        return iter(d.itervalues(**kw))
+
     def iteritems(d, **kw):
         return iter(d.iteritems(**kw))
 
@@ -248,7 +254,7 @@ class Genome(object):
 
             max_cg_genome2 = None
             if conn_genes2:
-                max_cg_genome2 = max(conn_genes2.itervalues())
+                max_cg_genome2 = max(itervalues(conn_genes2))
 
             for k1, cg1 in iteritems(conn_genes1):
                 if k1 in conn_genes2:
