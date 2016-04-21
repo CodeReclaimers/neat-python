@@ -1,5 +1,6 @@
-from random import choice, gauss, randint, random, shuffle
 from math import fabs
+from random import choice, gauss, randint, random, shuffle
+from six import iteritems
 
 
 class Genome(object):
@@ -212,7 +213,7 @@ class Genome(object):
         response_diff = 0.0
         activation_diff = 0
         num_common = 0
-        for k1, g1 in node_genes1.iteritems():
+        for k1, g1 in iteritems(node_genes1):
             if k1 in node_genes2:
                 num_common += 1
                 g2 = node_genes2[k1]
@@ -240,7 +241,7 @@ class Genome(object):
             if conn_genes2:
                 max_cg_genome2 = max(conn_genes2.itervalues())
 
-            for k1, cg1 in conn_genes1.iteritems():
+            for k1, cg1 in iteritems(conn_genes1):
                 if k1 in conn_genes2:
                     # Homologous genes
                     cg2 = conn_genes2[k1]
