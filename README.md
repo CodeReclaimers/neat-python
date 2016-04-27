@@ -16,4 +16,4 @@ For further information regarding general concepts and theory, please see [Selec
 If you want to try neat-python, please check out the repository, start playing with the examples (XOR, single pole 
 balancing, or double pole balancing) and then try creating your own experiment.
 
-The documentation, which is still a work in progress, is available on [Read The Docs](http://neat-python.readthedocs.org/en/latest/).
+The documentation, which is still a work in progress, is available on [Read The Docs](http://neat-python.readthedocs.io).
