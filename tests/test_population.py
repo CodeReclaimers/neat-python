@@ -20,7 +20,12 @@ def test_minimal():
     # run the simulation for up to 20 generations
     pop.run(eval_fitness, 20)
 
+    # Test save_checkpoint with defaults
+    pop.save_checkpoint()
+
     # get statistics
+    best_unique = pop.statistics.best_unique_genomes(1)
+    best_unique = pop.statistics.best_unique_genomes(2)
     avg_fitness = pop.statistics.get_average_fitness()
     assert len(avg_fitness) == 1
     assert all(f == 1 for f in avg_fitness)

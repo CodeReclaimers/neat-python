@@ -74,6 +74,7 @@ def test_evolve():
     local_dir = os.path.dirname(__file__)
     config = Config(os.path.join(local_dir, 'ctrnn_config'))
     config.node_gene_type = ctrnn.CTNodeGene
+    config.prob_mutate_time_constant = 0.1
 
     pop = population.Population(config)
     pop.run(evaluate_genome, 10)

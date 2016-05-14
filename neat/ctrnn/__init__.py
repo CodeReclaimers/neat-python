@@ -21,18 +21,17 @@ class CTNodeGene(NodeGene):
 
     def mutate(self, config):
         super(CTNodeGene, self).mutate(config)
-        # mutating the time constant could bring numerical instability
-        # do it with caution
-        # if random.random() < 0.1:
-        #    self.mutate_time_constant()
+        # TODO: There is no support for prob_mutate_time_constant in the Config
+        # class, so currently the user must add it themselves.
+        if hasattr(config, 'prob_mutate_time_constant') and \
+            random.random() < config.prob_mutate_time_constant:
+            self.mutate_time_constant(config)
 
     def mutate_time_constant(self, config):
         """ Warning: perturbing the time constant (tau) may result in numerical instability """
-        self.time_constant += random.gauss(1.0, 0.5) * 0.001
-        if self.time_constant > config.max_weight:
-            self.time_constant = config.max_weight
-        elif self.time_constant < config.min_weight:
-            self.time_constant = config.min_weight
+        self.time_constant *= random.gauss(1.0, 0.01)
+        if self.time_constant < 0:
+            self.time_constant = 0
         return self
 
     def get_child(self, other):
