@@ -1,9 +1,15 @@
 from __future__ import print_function
 
+
+import os
+import pickle
+import random
+
+from neat import ctrnn, parallel, population
+from neat.config import Config
+
 from neat.ctrnn import CTNeuron, Neuron, Network
 
-# TODO: These tests are just smoke tests to make sure nothing has become badly broken.  Expand
-# to include more detailed tests of actual functionality.
 
 def test_basic():
     # create two output neurons (they won't receive any external inputs)
@@ -40,3 +46,42 @@ def test_manual_network():
     net.serial_activate([0.04])
     net.parallel_activate([0.04])
     repr(net)
+
+def test_evolve():
+
+    test_values = [random.random() for _ in range(10)]
+
+
+    def evaluate_genome(genomes):
+        for g in genomes:
+            net = ctrnn.create_phenotype(g)
+
+            fitness = 0.0
+            for t in test_values:
+                net.reset()
+                output = net.serial_activate([t])
+
+                expected = t**2
+
+                error = output[0] - expected
+                fitness -= error ** 2
+
+            g.fitness = fitness
+
+
+    # Load the config file, which is assumed to live in
+    # the same directory as this script.
+    local_dir = os.path.dirname(__file__)
+    config = Config(os.path.join(local_dir, 'ctrnn_config'))
+    config.node_gene_type = ctrnn.CTNodeGene
+
+    pop = population.Population(config)
+    pop.run(evaluate_genome, 10)
+
+    # Save the winner.
+    print('Number of evaluations: {0:d}'.format(pop.total_evaluations))
+    winner = pop.statistics.best_genome()
+    with open('winner_genome', 'wb') as f:
+        pickle.dump(winner, f)
+
+    print(winner)
