@@ -1,4 +1,7 @@
-from neat.activations import *
+from neat.activations import sigmoid_activation, tanh_activation, \
+    sin_activation, gauss_activation, relu_activation, identity_activation, \
+    clamped_activation, inv_activation, log_activation, exp_activation, \
+    abs_activation, hat_activation, square_activation, cube_activation
 
 
 # TODO: These tests are just smoke tests to make sure nothing has become badly broken.  Expand
@@ -78,3 +81,19 @@ def test_hat():
     assert hat_activation(-1.0) == 0.0
     assert hat_activation(0.0) == 1.0
     assert hat_activation(1.0) == 0.0
+
+
+def test_square():
+    assert square_activation(-1.0) == 1.0
+    assert square_activation(-0.5) == 0.25
+    assert square_activation(0.0) == 0.0
+    assert square_activation(0.5) == 0.25
+    assert square_activation(1.0) == 1.0
+
+
+def test_cube():
+    assert cube_activation(-1.0) == -1.0
+    assert cube_activation(-0.5) == -0.125
+    assert cube_activation(0.0) == 0.0
+    assert cube_activation(0.5) == 0.125
+    assert cube_activation(1.0) == 1.0
