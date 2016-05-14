@@ -12,7 +12,7 @@ import math
 import os
 import random
 
-from neat import nn, population, statistics, visualize, parallel, activation_functions
+from neat import nn, population, statistics, parallel, activation_functions
 
 # num_tests is the number of random examples each network is tested against.
 num_tests = 16
@@ -81,11 +81,11 @@ def run():
             print("expected {0:1.5f} got {1:1.5f}".format(s, output[0]))
 
     # Visualize the winner network and plot/log statistics.
-    visualize.draw_net(winner, view=True, filename="nn_winner.gv")
-    visualize.draw_net(winner, view=True, filename="nn_winner-enabled.gv", show_disabled=False)
-    visualize.draw_net(winner, view=True, filename="nn_winner-enabled-pruned.gv", show_disabled=False, prune_unused=True)
-    visualize.plot_stats(pop.statistics)
-    visualize.plot_species(pop.statistics)
+    #visualize.draw_net(winner, view=True, filename="nn_winner.gv")
+    #visualize.draw_net(winner, view=True, filename="nn_winner-enabled.gv", show_disabled=False)
+    #visualize.draw_net(winner, view=True, filename="nn_winner-enabled-pruned.gv", show_disabled=False, prune_unused=True)
+    #visualize.plot_stats(pop.statistics)
+    #visualize.plot_species(pop.statistics)
     statistics.save_stats(pop.statistics)
     statistics.save_species_count(pop.statistics)
     statistics.save_species_fitness(pop.statistics)

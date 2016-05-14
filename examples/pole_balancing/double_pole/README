@@ -1,8 +1,0 @@
-evolve_double_pole.py -- neat-python experiment (main program)
-dpole_config          -- NEAT parameters
-test_double_pole.py   -- test an evolved solution
-cart_pole.py          -- CartPole class (for the single or double problem)
-dpole.cpp             -- double cart-pole equations (C++ Python interface)
-setup.py              -- compile the extension module using distutils
-run_cartpole.py       -- run the experiment n times and print some stats
-

@@ -63,7 +63,7 @@ To use a different diversity scheme, you can create a custom class whose interfa
 TODO: document, include example
 
 Using different gene types
----------------------
+--------------------------
 
 To use a different gene type, you can create a custom class whose interface matches that of
 `Genome`, and set the `node_gene_type` or `conn_gene_type` member, respectively, of your Config

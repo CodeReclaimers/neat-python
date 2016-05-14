@@ -21,7 +21,7 @@ import math
 import os
 import time
 
-from neat import nn, parallel, population, visualize
+from neat import nn, parallel, population
 
 # Network inputs and expected outputs.
 xor_inputs = ((0, 0), (0, 1), (1, 0), (1, 1))
@@ -77,9 +77,9 @@ def run():
         print("{0:1.5f} \t {1:1.5f}".format(xor_outputs[i], output[0]))
 
     # Visualize the winner network and plot statistics.
-    visualize.plot_stats(pop.statistics)
-    visualize.plot_species(pop.statistics)
-    visualize.draw_net(winner, view=True)
+    #visualize.plot_stats(pop.statistics)
+    #visualize.plot_species(pop.statistics)
+    #visualize.draw_net(winner, view=True)
 
 
 if __name__ == '__main__':

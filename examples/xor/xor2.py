@@ -1,7 +1,8 @@
 """ 2-input XOR example """
 from __future__ import print_function
 
-from neat import nn, population, statistics, visualize
+from neat import nn, population, statistics
+import os
 
 # Network inputs and expected outputs.
 xor_inputs = [[0, 0], [0, 1], [1, 0], [1, 1]]
@@ -23,7 +24,9 @@ def eval_fitness(genomes):
         g.fitness = 1 - sum_square_error
 
 
-pop = population.Population('xor2_config')
+local_dir = os.path.dirname(__file__)
+config_path = os.path.join(local_dir, 'xor2_config')
+pop = population.Population(config_path)
 pop.run(eval_fitness, 300)
 
 print('Number of evaluations: {0}'.format(pop.total_evaluations))
@@ -39,12 +42,7 @@ for inputs, expected in zip(xor_inputs, xor_outputs):
     output = winner_net.serial_activate(inputs)
     print("expected {0:1.5f} got {1:1.5f}".format(expected, output[0]))
 
-# Visualize the winner network and plot/log statistics.
-visualize.plot_stats(pop.statistics)
-visualize.plot_species(pop.statistics)
-visualize.draw_net(winner, view=True, filename="xor2-all.gv")
-visualize.draw_net(winner, view=True, filename="xor2-enabled.gv", show_disabled=False)
-visualize.draw_net(winner, view=True, filename="xor2-enabled-pruned.gv", show_disabled=False, prune_unused=True)
+# Log statistics.
 statistics.save_stats(pop.statistics)
 statistics.save_species_count(pop.statistics)
 statistics.save_species_fitness(pop.statistics)

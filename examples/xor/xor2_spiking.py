@@ -2,9 +2,7 @@
 from __future__ import print_function
 import os
 import pickle
-import matplotlib.pyplot as plt
-from matplotlib import patches
-from neat import population, iznn, visualize
+from neat import population, iznn
 from neat.config import Config
 
 
@@ -99,10 +97,10 @@ def run():
 
     # Visualize the winner network and plot statistics.
     winner = pop.statistics.best_genome()
-    node_names = {0: 'A', 1: 'B', 2: 'Out1', 3: 'Out2'}
-    visualize.draw_net(winner, view=True, node_names=node_names)
-    visualize.plot_stats(pop.statistics)
-    visualize.plot_species(pop.statistics)
+    #node_names = {0: 'A', 1: 'B', 2: 'Out1', 3: 'Out2'}
+    #visualize.draw_net(winner, view=True, node_names=node_names)
+    #visualize.plot_stats(pop.statistics)
+    #visualize.plot_species(pop.statistics)
 
     # Verify network output against training data.
     print('\nBest network output:')
@@ -112,35 +110,6 @@ def run():
     # Save winner genome and simulation results.
     with open('spiking-winner.dat', 'wb') as f:
         pickle.dump((winner, simulated), f)
-
-    # Create a plot of the traces out to the max time for each set of inputs.
-    plt.figure(figsize=(12, 12))
-    for r, (inputData, outputData, t0, t1, v0, v1, neuron_data) in enumerate(simulated):
-        response = compute_output(t0, t1)
-        print("{0!r} expected {1:.3f} got {2:.3f}".format(inputData, outputData, response))
-
-        axes = plt.subplot(4, 1, r + 1)
-        plt.title("Traces for XOR input {{{0:.1f}, {1:.1f}}}".format(*inputData), fontsize=12)
-        for i, s in neuron_data.items():
-            if i in net.outputs:
-                t, v = zip(*s)
-                plt.plot(t, v, "-", label="neuron {0:d}".format(i))
-
-        # Circle the first peak of each output.
-        circle0 = patches.Ellipse((t0, v0), 1.0, 10.0, color='r', fill=False)
-        circle1 = patches.Ellipse((t1, v1), 1.0, 10.0, color='r', fill=False)
-        axes.add_artist(circle0)
-        axes.add_artist(circle1)
-
-        plt.ylabel("Potential (mv)", fontsize=10)
-        plt.ylim(-100, 50)
-        plt.tick_params(labelsize=8)
-        plt.grid()
-
-    plt.xlabel("Time (in ms)", fontsize=10)
-    plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
-    plt.savefig("traces.png", dpi=90)
-    plt.show()
 
 
 if __name__ == '__main__':
