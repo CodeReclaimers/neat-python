@@ -1,5 +1,6 @@
 from neat.activations import *
 
+
 # TODO: These tests are just smoke tests to make sure nothing has become badly broken.  Expand
 # to include more detailed tests of actual functionality.
 
@@ -30,7 +31,7 @@ def test_sin():
 def test_gauss():
     assert_almost_equal(gauss_activation(0.0), 0.398942280401)
     assert_almost_equal(gauss_activation(-1.0),
-                        gauss_activation( 1.0))
+                        gauss_activation(1.0))
 
 
 def test_relu():
