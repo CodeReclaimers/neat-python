@@ -15,6 +15,7 @@ def test_minimal():
     # creates the population
     local_dir = os.path.dirname(__file__)
     config = Config(os.path.join(local_dir, 'test_configuration'))
+    config.save_best = True
 
     pop = Population(config)
     # run the simulation for up to 20 generations
