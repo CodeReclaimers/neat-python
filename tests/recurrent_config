@@ -1,0 +1,52 @@
+# Parameters for the bit-sequence memory experiment.
+
+# The `Types` section specifies which classes should be used for various
+# tasks in the NEAT algorithm.  If you use a non-default class here, you
+# must register it with your Config instance before loading the config file.
+[Types]
+stagnation_type      = DefaultStagnation
+reproduction_type    = DefaultReproduction
+
+[phenotype]
+input_nodes          = 2
+hidden_nodes         = 0
+output_nodes         = 1
+initial_connection   = partial 0.5
+max_weight           = 30
+min_weight           = -30
+feedforward          = 0
+activation_functions = clamped sigmoid tanh my_sinc_function
+weight_stdev         = 1.0
+
+[genetic]
+pop_size                = 150
+max_fitness_threshold   = -0.05
+prob_add_conn           = 0.5
+prob_add_node           = 0.5
+prob_delete_conn        = 0.25
+prob_delete_node        = 0.25
+prob_mutate_bias        = 0.8
+bias_mutation_power     = 0.5
+prob_mutate_response    = 0.8
+response_mutation_power = 0.5
+prob_mutate_weight      = 0.8
+prob_replace_weight     = 0.1
+weight_mutation_power   = 0.5
+prob_mutate_activation  = 0.002
+prob_toggle_link        = 0.01
+reset_on_extinction     = 1
+
+[genotype compatibility]
+compatibility_threshold = 3.0
+excess_coefficient      = 1.0
+disjoint_coefficient    = 1.0
+weight_coefficient      = 0.5
+
+[DefaultStagnation]
+species_fitness_func = median
+max_stagnation       = 10
+
+[DefaultReproduction]
+elitism              = 2
+survival_threshold   = 0.2
+
