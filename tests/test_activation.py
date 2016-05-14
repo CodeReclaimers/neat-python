@@ -61,6 +61,7 @@ def test_inv():
     assert inv_activation(1.0) == 1.0
     assert inv_activation(0.5) == 2.0
     assert inv_activation(2.0) == 0.5
+    assert inv_activation(0.0) == 0.0
 
 
 def test_log():

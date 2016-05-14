@@ -121,3 +121,12 @@ def test_iznn_evolve():
     print('\nBest network output:')
     net = iznn.create_phenotype(winner, *iz_params)
     sum_square_error, simulated = simulate(winner)
+
+    repr(winner)
+    str(winner)
+    for g in winner.node_genes:
+        repr(g)
+        str(g)
+    for g in winner.conn_genes:
+        repr(g)
+        str(g)

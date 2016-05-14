@@ -1,20 +1,24 @@
 from __future__ import print_function
 
-
 import os
 import pickle
 import random
 
-from neat import ctrnn, parallel, population
+from neat import ctrnn, population
 from neat.config import Config
-
 from neat.ctrnn import CTNeuron, Neuron, Network
 
 
 def test_basic():
     # create two output neurons (they won't receive any external inputs)
     n1 = CTNeuron('OUTPUT', 1, -2.75, 1.0, 'sigmoid', 0.5)
+    n1.set_integration_step(0.04)
+    repr(n1)
+    str(n1)
     n2 = CTNeuron('OUTPUT', 2, -1.75, 1.0, 'sigmoid', 0.5)
+    n2.set_integration_step(0.04)
+    repr(n2)
+    str(n2)
     n1.set_init_state(-0.084000643)
     n2.set_init_state(-0.408035109)
 
@@ -23,6 +27,9 @@ def test_basic():
     conn_list = [(1, 1, 4.5), (1, 2, -1.0), (2, 1, 1.0), (2, 2, 4.5)]
     # create the network
     net = Network(neurons_list, conn_list, 0)
+    net.set_integration_step(0.03)
+    repr(net)
+    str(net)
     # activates the network
     print("{0:.7f} {1:.7f}".format(n1.output, n2.output))
     outputs = []
@@ -31,21 +38,29 @@ def test_basic():
         outputs.append(output)
         print("{0:.7f} {1:.7f}".format(output[0], output[1]))
 
+    for s in net.synapses:
+        repr(s)
+        str(s)
+
 
 def create_simple():
     neurons = [Neuron('INPUT', 1, 0.0, 5.0, 'sigmoid'),
                Neuron('HIDDEN', 2, 0.0, 5.0, 'sigmoid'),
                Neuron('OUTPUT', 3, 0.0, 5.0, 'sigmoid')]
     connections = [(1, 2, 0.5), (1, 3, 0.5), (2, 3, 0.5)]
+    map(repr, neurons)
 
     return Network(neurons, connections, 1)
 
 
 def test_manual_network():
     net = create_simple()
+    repr(net)
+    str(net)
     net.serial_activate([0.04])
     net.parallel_activate([0.04])
     repr(net)
+    str(net)
 
 def test_evolve():
 
@@ -86,4 +101,12 @@ def test_evolve():
     with open('winner_genome', 'wb') as f:
         pickle.dump(winner, f)
 
-    print(winner)
+    repr(winner)
+    str(winner)
+
+    for g in winner.node_genes:
+        repr(g)
+        str(g)
+    for g in winner.conn_genes:
+        repr(g)
+        str(g)

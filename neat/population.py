@@ -135,8 +135,8 @@ class Population(object):
             closest_species = None
             for s in self.species:
                 distance = individual.distance(s.representative)
-                if distance < self.config.compatibility_threshold:
-                    if min_distance is None or distance < min_distance:
+                if distance < self.config.compatibility_threshold \
+                    and (min_distance is None or distance < min_distance):
                         closest_species = s
                         min_distance = distance
 

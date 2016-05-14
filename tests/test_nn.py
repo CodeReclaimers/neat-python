@@ -59,3 +59,13 @@ def test_concurrent_nn():
     statistics.save_stats(pop.statistics)
     statistics.save_species_count(pop.statistics)
     statistics.save_species_fitness(pop.statistics)
+
+    winner = pop.statistics.best_genome()
+    repr(winner)
+    str(winner)
+    for g in winner.node_genes:
+        repr(g)
+        str(g)
+    for g in winner.conn_genes:
+        repr(g)
+        str(g)

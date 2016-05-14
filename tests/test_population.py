@@ -3,6 +3,7 @@ import tempfile
 
 from neat import activation_functions
 from neat.config import Config
+from neat.indexer import Indexer
 from neat.population import Population
 
 
@@ -91,3 +92,15 @@ def test_checkpoint():
 
     # assert pop.statistics.generation_statistics == pop2.statistics.generation_statistics
     # assert id(pop.statistics.generation_statistics) != id(pop2.statistics.generation_statistics)
+
+
+def test_indexer():
+    indexer = Indexer(0)
+    assert indexer.next() == 0
+    assert indexer.next() == 1
+
+    # TODO: Why doesn't Indexer remember its starting value given in the ctor?
+    indexer.clear()
+    assert indexer.next() == 1
+    assert indexer.next() == 2
+

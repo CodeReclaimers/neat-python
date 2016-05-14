@@ -43,7 +43,7 @@ disjoint_coefficient    = 1.0
 weight_coefficient      = 0.5
 
 [DefaultStagnation]
-species_fitness_func = mean
+species_fitness_func = max
 max_stagnation       = 10
 
 [DefaultReproduction]

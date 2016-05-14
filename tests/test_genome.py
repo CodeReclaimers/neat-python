@@ -11,13 +11,19 @@ def check_simple(genome_type):
     config = Config(os.path.join(local_dir, 'test_configuration'))
     c1 = genome_type.create_unconnected(1, config)
     c1.connect_full(indexer)
+    repr(c1)
+    str(c1)
 
     # add two hidden nodes
     c1.add_hidden_nodes(2)
+    repr(c1)
+    str(c1)
 
     # apply some mutations
     c1.mutate_add_node(indexer)
     c1.mutate_add_connection(indexer)
+    repr(c1)
+    str(c1)
 
 
 def test_recurrent():
