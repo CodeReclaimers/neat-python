@@ -102,7 +102,12 @@ def test_iznn_evolve():
     # the same directory as this script.
     local_dir = os.path.dirname(__file__)
     config = Config(os.path.join(local_dir, 'test_configuration'))
-    config.species_fitness_func = 'median'
+
+    # TODO: This is a little hackish, but will a user ever want to do it?
+    # If so, provide a convenience method on Config for it.
+    for i, tc in enumerate(config.type_config['DefaultStagnation']):
+        if tc[0] == 'species_fitness_func':
+            config.type_config['DefaultStagnation'][i] = (tc[0], 'median')
 
     # For this network, we use two output neurons and use the difference between
     # the "time to first spike" to determine the network response.  There are

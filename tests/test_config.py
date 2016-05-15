@@ -4,6 +4,8 @@ from neat.config import Config
 
 
 def test_nonexistent_config():
+    """Check that attempting to open a non-existent config file raises
+    an Exception with appropriate message."""
     passed = False
     try:
         c = Config('wubba-lubba-dub-dub')
@@ -13,6 +15,8 @@ def test_nonexistent_config():
 
 
 def test_bad_config_activation():
+    """Check that an unknown activation function raises an Exception with
+    the appropriate message."""
     passed = False
     try:
         local_dir = os.path.dirname(__file__)
