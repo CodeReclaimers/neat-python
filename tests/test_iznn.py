@@ -102,6 +102,7 @@ def test_iznn_evolve():
     # the same directory as this script.
     local_dir = os.path.dirname(__file__)
     config = Config(os.path.join(local_dir, 'test_configuration'))
+    config.species_fitness_func = 'median'
 
     # For this network, we use two output neurons and use the difference between
     # the "time to first spike" to determine the network response.  There are

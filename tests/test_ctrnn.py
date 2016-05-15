@@ -91,6 +91,7 @@ def test_evolve():
     config.node_gene_type = ctrnn.CTNodeGene
     config.prob_mutate_time_constant = 0.1
     config.checkpoint_time_interval = 0.1
+    config.checkpoint_gen_interval = 1
 
     pop = population.Population(config)
     pop.run(evaluate_genome, 10)
