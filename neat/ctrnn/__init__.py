@@ -63,7 +63,7 @@ class Neuron(object):
         assert neuron_type in ('INPUT', 'OUTPUT', 'HIDDEN')
 
         self.type = neuron_type
-        self.ID = self.indexer.next(ID)
+        self.ID = self.indexer.get_next(ID)
         self.bias = bias
         self.response = response
         self.activation = activation_functions.get(activation_type)

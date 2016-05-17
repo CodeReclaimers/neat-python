@@ -180,7 +180,7 @@ class Genome(object):
 
         keys_to_delete = set()
         for key, value in self.conn_genes.items():
-            if value.in_node_id == node_id or value.out_node_id == node_id:
+            if node_id in (value.in_node_id, value.out_node_id):
                 keys_to_delete.add(key)
 
         # Do not allow deletion of all connection genes.

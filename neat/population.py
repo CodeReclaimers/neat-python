@@ -96,7 +96,7 @@ class Population(object):
         # solely on what's in the config object. This allows users to completely
         # replace the initial population creation scheme if they choose.
         for i in range(self.config.pop_size):
-            g_id = self.genome_indexer.next()
+            g_id = self.genome_indexer.get_next()
             g = self.config.genotype.create_unconnected(g_id, self.config)
             new_population.append(g)
 
@@ -143,7 +143,7 @@ class Population(object):
                 closest_species.add(individual)
             else:
                 # No species is similar enough, create a new species for this individual.
-                self.species.append(Species(individual, self.species_indexer.next()))
+                self.species.append(Species(individual, self.species_indexer.get_next()))
 
         # Only keep non-empty species.
         self.species = [s for s in self.species if s.members]

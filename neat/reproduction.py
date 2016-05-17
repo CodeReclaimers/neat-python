@@ -108,7 +108,7 @@ class DefaultReproduction(object):
 
                 # Note that if the parents are not distinct, crossover will produce a
                 # genetically identical clone of the parent (but with a different ID).
-                child = parent1.crossover(parent2, self.genome_indexer.next())
+                child = parent1.crossover(parent2, self.genome_indexer.get_next())
                 new_population.append(child.mutate())
 
         # Sort species by ID (purely for ease of reading the reported list).
