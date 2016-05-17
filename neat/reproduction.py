@@ -13,14 +13,13 @@ class DefaultReproduction(object):
     Implements the default NEAT-python reproduction scheme: explicit fitness sharing
     with fixed-time species stagnation.
     """
-    def __init__(self, config, reporters, genome_indexer, innovation_indexer):
+    def __init__(self, config, reporters, genome_indexer):
         params = config.get_type_config(self)
         self.elitism = int(params.get('elitism'))
         self.survival_threshold = float(params.get('survival_threshold'))
 
         self.reporters = reporters
         self.genome_indexer = genome_indexer
-        self.innovation_indexer = innovation_indexer
         self.stagnation = config.stagnation_type(config, reporters)
 
     def reproduce(self, species, pop_size):
@@ -110,7 +109,7 @@ class DefaultReproduction(object):
                 # Note that if the parents are not distinct, crossover will produce a
                 # genetically identical clone of the parent (but with a different ID).
                 child = parent1.crossover(parent2, self.genome_indexer.next())
-                new_population.append(child.mutate(self.innovation_indexer))
+                new_population.append(child.mutate())
 
         # Sort species by ID (purely for ease of reading the reported list).
         new_species.sort(key=lambda s: s.ID)

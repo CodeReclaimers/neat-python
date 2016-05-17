@@ -2,15 +2,13 @@ import os
 
 from neat import genome
 from neat.config import Config
-from neat.indexer import InnovationIndexer
 
 
 def check_simple(genome_type):
-    indexer = InnovationIndexer(0)
     local_dir = os.path.dirname(__file__)
     config = Config(os.path.join(local_dir, 'test_configuration'))
     c1 = genome_type.create_unconnected(1, config)
-    c1.connect_full(indexer)
+    c1.connect_full()
     repr(c1)
     str(c1)
 
@@ -20,8 +18,8 @@ def check_simple(genome_type):
     str(c1)
 
     # apply some mutations
-    c1.mutate_add_node(indexer)
-    c1.mutate_add_connection(indexer)
+    c1.mutate_add_node()
+    c1.mutate_add_connection()
     repr(c1)
     str(c1)
 
@@ -36,11 +34,10 @@ def test_feed_forward():
 
 def check_self_crossover(genome_type):
     # Check that self-crossover produces a genetically identical child (with a different ID).
-    indexer = InnovationIndexer(0)
     local_dir = os.path.dirname(__file__)
     config = Config(os.path.join(local_dir, 'test_configuration'))
     c = genome_type.create_unconnected(1, config)
-    c.connect_full(indexer)
+    c.connect_full()
     c.fitness = 0.0
 
     cnew = c.crossover(c, 2)
@@ -79,7 +76,6 @@ def test_feed_forward_self_crossover():
 
 
 def check_add_connection(genome_type, feed_forward):
-    indexer = InnovationIndexer(0)
     local_dir = os.path.dirname(__file__)
     config = Config(os.path.join(local_dir, 'test_configuration'))
     config.input_nodes = 3
@@ -93,7 +89,7 @@ def check_add_connection(genome_type, feed_forward):
         g = genome_type.create_unconnected(a, config)
         g.add_hidden_nodes(config.hidden_nodes)
         for b in range(1000):
-            g.mutate_add_connection(indexer)
+            g.mutate_add_connection()
         for c in g.conn_genes.values():
             connections[c.key] = connections.get(c.key, 0) + 1
 

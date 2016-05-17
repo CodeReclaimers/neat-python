@@ -6,7 +6,7 @@ import random
 import time
 
 from neat.config import Config
-from neat.indexer import Indexer, InnovationIndexer
+from neat.indexer import Indexer
 from neat.reporting import ReporterSet, StatisticsReporter, StdOutReporter
 from neat.species import Species
 
@@ -47,9 +47,8 @@ class Population(object):
         self.config = config
         self.species_indexer = Indexer(1)
         self.genome_indexer = Indexer(1)
-        self.innovation_indexer = InnovationIndexer(0)
         self.reproduction = config.reproduction_type(self.config, self.reporters,
-                                                     self.genome_indexer, self.innovation_indexer)
+                                                     self.genome_indexer)
 
         self.species = []
         self.generation = -1
@@ -109,13 +108,13 @@ class Population(object):
         # Add connections based on initial connectivity type.
         if self.config.initial_connection == 'fs_neat':
             for g in new_population:
-                g.connect_fs_neat(self.innovation_indexer)
+                g.connect_fs_neat()
         elif self.config.initial_connection == 'fully_connected':
             for g in new_population:
-                g.connect_full(self.innovation_indexer)
+                g.connect_full()
         elif self.config.initial_connection == 'partial':
             for g in new_population:
-                g.connect_partial(self.innovation_indexer, self.config.connection_fraction)
+                g.connect_partial(self.config.connection_fraction)
 
         return new_population
 

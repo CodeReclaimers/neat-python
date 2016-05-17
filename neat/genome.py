@@ -38,16 +38,16 @@ class Genome(object):
         self.parent1_id = parent1_id
         self.parent2_id = parent2_id
 
-    def mutate(self, innovation_indexer):
+    def mutate(self):
         """ Mutates this genome """
 
         # TODO: Make a configuration item to choose whether or not multiple mutations can happen at once.
 
         if random() < self.config.prob_add_node:
-            self.mutate_add_node(innovation_indexer)
+            self.mutate_add_node()
 
         if random() < self.config.prob_add_conn:
-            self.mutate_add_connection(innovation_indexer)
+            self.mutate_add_connection()
 
         if random() < self.config.prob_delete_node:
             self.mutate_delete_node()
@@ -128,7 +128,7 @@ class Genome(object):
             new_id += 1
         return new_id
 
-    def mutate_add_node(self, innovation_indexer):
+    def mutate_add_node(self):
         if not self.conn_genes:
             return None
 
@@ -139,12 +139,12 @@ class Genome(object):
         ng = self.config.node_gene_type(new_node_id, 'HIDDEN', activation_type=act_func)
         assert ng.ID not in self.node_genes
         self.node_genes[ng.ID] = ng
-        new_conn1, new_conn2 = conn_to_split.split(innovation_indexer, ng.ID)
+        new_conn1, new_conn2 = conn_to_split.split(ng.ID)
         self.conn_genes[new_conn1.key] = new_conn1
         self.conn_genes[new_conn2.key] = new_conn2
         return ng, conn_to_split  # the return is only used in genome_feedforward
 
-    def mutate_add_connection(self, innovation_indexer):
+    def mutate_add_connection(self):
         '''
         Attempt to add a new connection, the only restriction being that the output
         node cannot be one of the network input nodes.
@@ -161,8 +161,7 @@ class Genome(object):
         if key not in self.conn_genes:
             weight = gauss(0, self.config.weight_stdev)
             enabled = choice([False, True])
-            innovation_id = innovation_indexer.get_innovation_id(in_node.ID, out_node.ID)
-            cg = self.config.conn_gene_type(innovation_id, in_node.ID, out_node.ID, weight, enabled)
+            cg = self.config.conn_gene_type(in_node.ID, out_node.ID, weight, enabled)
             self.conn_genes[cg.key] = cg
 
     def mutate_delete_node(self):
@@ -337,7 +336,7 @@ class Genome(object):
         assert node_id == len(c.node_genes)
         return c
 
-    def connect_fs_neat(self, innovation_indexer):
+    def connect_fs_neat(self):
         """ Randomly connect one input to all hidden and output nodes (FS-NEAT). """
         in_genes = [g for g in self.node_genes.values() if g.type == 'INPUT']
         hid_genes = [g for g in self.node_genes.values() if g.type == 'HIDDEN']
@@ -346,8 +345,7 @@ class Genome(object):
         ig = choice(in_genes)
         for og in hid_genes + out_genes:
             weight = gauss(0, self.config.weight_stdev)
-            innovation_id = innovation_indexer.get_innovation_id(ig.ID, og.ID)
-            cg = self.config.conn_gene_type(innovation_id, ig.ID, og.ID, weight, True)
+            cg = self.config.conn_gene_type(ig.ID, og.ID, weight, True)
             self.conn_genes[cg.key] = cg
 
     def compute_full_connections(self):
@@ -369,23 +367,21 @@ class Genome(object):
 
         return connections
 
-    def connect_full(self, innovation_indexer):
+    def connect_full(self):
         """ Create a fully-connected genome. """
         for input_id, output_id in self.compute_full_connections():
             weight = gauss(0, self.config.weight_stdev)
-            innovation_id = innovation_indexer.get_innovation_id(input_id, output_id)
-            cg = self.config.conn_gene_type(innovation_id, input_id, output_id, weight, True)
+            cg = self.config.conn_gene_type(input_id, output_id, weight, True)
             self.conn_genes[cg.key] = cg
 
-    def connect_partial(self, innovation_indexer, fraction):
+    def connect_partial(self, fraction):
         assert 0 <= fraction <= 1
         all_connections = self.compute_full_connections()
         shuffle(all_connections)
         num_to_add = int(round(len(all_connections) * fraction))
         for input_id, output_id in all_connections[:num_to_add]:
             weight = gauss(0, self.config.weight_stdev)
-            innovation_id = innovation_indexer.get_innovation_id(input_id, output_id)
-            cg = self.config.conn_gene_type(innovation_id, input_id, output_id, weight, True)
+            cg = self.config.conn_gene_type(input_id, output_id, weight, True)
             self.conn_genes[cg.key] = cg
 
 
@@ -405,8 +401,8 @@ class FFGenome(Genome):
 
         assert (len(self.node_order) == len([n for n in self.node_genes.values() if n.type == 'HIDDEN']))
 
-    def mutate_add_node(self, innovation_indexer):
-        result = super(FFGenome, self).mutate_add_node(innovation_indexer)
+    def mutate_add_node(self):
+        result = super(FFGenome, self).mutate_add_node()
         if result is None:
             return
 
@@ -427,7 +423,7 @@ class FFGenome(Genome):
         assert (len(self.node_order) == len([n for n in self.node_genes.values() if n.type == 'HIDDEN']))
         return ng, split_conn
 
-    def mutate_add_connection(self, innovation_indexer):
+    def mutate_add_connection(self):
         '''
         Attempt to add a new connection, with the restrictions that (1) the output node
         cannot be one of the network input nodes, and (2) the connection must be feed-forward.
@@ -444,8 +440,7 @@ class FFGenome(Genome):
             if key not in self.conn_genes:
                 weight = gauss(0, self.config.weight_stdev)
                 enabled = choice([False, True])
-                innovation_id = innovation_indexer.get_innovation_id(in_node.ID, out_node.ID)
-                cg = self.config.conn_gene_type(innovation_id, in_node.ID, out_node.ID, weight, enabled)
+                cg = self.config.conn_gene_type(in_node.ID, out_node.ID, weight, enabled)
                 self.conn_genes[cg.key] = cg
 
     def mutate_delete_node(self):

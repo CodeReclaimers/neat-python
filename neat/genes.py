@@ -61,14 +61,12 @@ class NodeGene(object):
 
 
 class ConnectionGene(object):
-    def __init__(self, innovation_id, in_node_id, out_node_id, weight, enabled):
-        assert type(innovation_id) is int
+    def __init__(self, in_node_id, out_node_id, weight, enabled):
         assert type(in_node_id) is int
         assert type(out_node_id) is int
         assert type(weight) is float
         assert type(enabled) is bool
 
-        self.innovation_id = innovation_id
         self.in_node_id = in_node_id
         self.out_node_id = out_node_id
         self.weight = weight
@@ -96,35 +94,32 @@ class ConnectionGene(object):
 
     def __str__(self):
         return 'ConnectionGene(in={0}, out={1}, weight={2}, enabled={3}, innov={4})'.format(
-            self.in_node_id, self.out_node_id, self.weight, self.enabled, self.innovation_id)
+            self.in_node_id, self.out_node_id, self.weight, self.enabled, self.key)
 
     def __lt__(self, other):
-        return self.innovation_id < other.innovation_id
+        return self.key < other.key
 
-    def split(self, innovation_indexer, node_id):
+    def split(self, node_id):
         """ Splits a connection, creating two new connections and disabling this one """
         self.enabled = False
 
-        innovation1 = innovation_indexer.get_innovation_id(self.in_node_id, node_id)
-        new_conn1 = ConnectionGene(innovation1, self.in_node_id, node_id, 1.0, True)
-
-        innovation2 = innovation_indexer.get_innovation_id(node_id, self.out_node_id)
-        new_conn2 = ConnectionGene(innovation2, node_id, self.out_node_id, self.weight, True)
+        new_conn1 = ConnectionGene(self.in_node_id, node_id, 1.0, True)
+        new_conn2 = ConnectionGene(node_id, self.out_node_id, self.weight, True)
 
         return new_conn1, new_conn2
 
     def copy(self):
-        return ConnectionGene(self.innovation_id, self.in_node_id, self.out_node_id, self.weight, self.enabled)
+        return ConnectionGene(self.in_node_id, self.out_node_id, self.weight, self.enabled)
 
     def is_same_innov(self, other):
-        return self.innovation_id == other.innovation_id
+        return self.key == other.key
 
     def get_child(self, other):
         """ Creates a new ConnectionGene randomly inheriting attributes from its parents."""
-        assert self.innovation_id == other.innovation_id
+        assert self.key == other.key
         # Note: we use "a if random() > 0.5 else b" instead of choice((a, b))
         # here because `choice` is substantially slower.
         weight = self.weight if random() > 0.5 else other.weight
         enabled = self.enabled if random() > 0.5 else other.enabled
-        cg = ConnectionGene(self.innovation_id, self.in_node_id, self.out_node_id, weight, enabled)
+        cg = ConnectionGene(self.in_node_id, self.out_node_id, weight, enabled)
         return cg
