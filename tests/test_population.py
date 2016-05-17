@@ -96,11 +96,11 @@ def test_checkpoint():
 
 def test_indexer():
     indexer = Indexer(0)
-    assert indexer.next() == 0
-    assert indexer.next() == 1
+    assert indexer.get_next() == 0
+    assert indexer.get_next() == 1
 
     # TODO: Why doesn't Indexer remember its starting value given in the ctor?
     indexer.clear()
-    assert indexer.next() == 1
-    assert indexer.next() == 2
+    assert indexer.get_next() == 1
+    assert indexer.get_next() == 2
 
