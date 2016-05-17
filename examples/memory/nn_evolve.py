@@ -60,14 +60,17 @@ def run():
     pe = parallel.ParallelEvaluator(4, eval_fitness)
     pop.run(pe.evaluate, 1000)
 
+    # Log statistics.
+    statistics.save_stats(pop.statistics)
+    statistics.save_species_count(pop.statistics)
+    statistics.save_species_fitness(pop.statistics)
+
     print('Number of evaluations: {0}'.format(pop.total_evaluations))
 
-    # Display the most fit genome.
-    print('\nBest genome:')
+    # Show output of the most fit genome against a random input.
     winner = pop.statistics.best_genome()
-    print(winner)
-
-    # Verify network output against a few randomly-generated sequences.
+    print('\nBest genome:\n{!s}'.format(winner))
+    print('\nOutput:')
     winner_net = nn.create_recurrent_phenotype(winner)
     for n in range(4):
         print('\nRun {0} output:'.format(n))
@@ -80,15 +83,6 @@ def run():
             output = winner_net.activate([0, 1])
             print("expected {0:1.5f} got {1:1.5f}".format(s, output[0]))
 
-    # Visualize the winner network and plot/log statistics.
-    #visualize.draw_net(winner, view=True, filename="nn_winner.gv")
-    #visualize.draw_net(winner, view=True, filename="nn_winner-enabled.gv", show_disabled=False)
-    #visualize.draw_net(winner, view=True, filename="nn_winner-enabled-pruned.gv", show_disabled=False, prune_unused=True)
-    #visualize.plot_stats(pop.statistics)
-    #visualize.plot_species(pop.statistics)
-    statistics.save_stats(pop.statistics)
-    statistics.save_species_count(pop.statistics)
-    statistics.save_species_fitness(pop.statistics)
 
 if __name__ == '__main__':
     run()

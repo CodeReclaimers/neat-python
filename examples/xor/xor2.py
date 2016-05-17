@@ -1,8 +1,9 @@
 """ 2-input XOR example """
 from __future__ import print_function
 
-from neat import nn, population, statistics
 import os
+
+from neat import nn, population, statistics
 
 # Network inputs and expected outputs.
 xor_inputs = [[0, 0], [0, 1], [1, 0], [1, 1]]
@@ -29,20 +30,19 @@ config_path = os.path.join(local_dir, 'xor2_config')
 pop = population.Population(config_path)
 pop.run(eval_fitness, 300)
 
+# Log statistics.
+statistics.save_stats(pop.statistics)
+statistics.save_species_count(pop.statistics)
+statistics.save_species_fitness(pop.statistics)
+
 print('Number of evaluations: {0}'.format(pop.total_evaluations))
 
-# Display the most fit genome.
+# Show output of the most fit genome against training data.
 winner = pop.statistics.best_genome()
 print('\nBest genome:\n{!s}'.format(winner))
-
-# Verify network output against training data.
 print('\nOutput:')
 winner_net = nn.create_feed_forward_phenotype(winner)
 for inputs, expected in zip(xor_inputs, xor_outputs):
     output = winner_net.serial_activate(inputs)
     print("expected {0:1.5f} got {1:1.5f}".format(expected, output[0]))
 
-# Log statistics.
-statistics.save_stats(pop.statistics)
-statistics.save_species_count(pop.statistics)
-statistics.save_species_fitness(pop.statistics)

@@ -1,10 +1,10 @@
 """ 2-input XOR example using Izhikevich's spiking neuron model. """
 from __future__ import print_function
+
 import os
-import pickle
+
 from neat import population, iznn
 from neat.config import Config
-
 
 # Network inputs and expected outputs.
 xor_inputs = ((0, 0), (0, 1), (1, 0), (1, 1))
@@ -95,21 +95,46 @@ def run():
 
     print('Number of evaluations: {0}'.format(pop.total_evaluations))
 
-    # Visualize the winner network and plot statistics.
+    # Display the winning genome.
     winner = pop.statistics.best_genome()
-    #node_names = {0: 'A', 1: 'B', 2: 'Out1', 3: 'Out2'}
-    #visualize.draw_net(winner, view=True, node_names=node_names)
-    #visualize.plot_stats(pop.statistics)
-    #visualize.plot_species(pop.statistics)
+    print('\nBest genome:\n{!s}'.format(winner))
 
-    # Verify network output against training data.
+    # Show output of the most fit genome against training data.
+    winner = pop.statistics.best_genome()
+    print('\nBest genome:\n{!s}'.format(winner))
     print('\nBest network output:')
     net = iznn.create_phenotype(winner, *iz_params)
-    sum_square_error, simulated = simulate(winner)
+    dt = iz_params[-1]
+    for inputData, outputData in zip(xor_inputs, xor_outputs):
+        neuron_data = {}
+        for i, n in net.neurons.items():
+            neuron_data[i] = []
 
-    # Save winner genome and simulation results.
-    with open('spiking-winner.dat', 'wb') as f:
-        pickle.dump((winner, simulated), f)
+        # Reset the network, apply the XOR inputs, and run for the maximum allowed time.
+        net.reset()
+        net.set_inputs(inputData)
+        t0 = None
+        t1 = None
+        v0 = None
+        v1 = None
+        num_steps = int(max_time / dt)
+        for j in range(num_steps):
+            t = dt * j
+            output = net.advance()
+
+            # Capture the time and neuron membrane potential for later use if desired.
+            for i, n in net.neurons.items():
+                neuron_data[i].append((t, n.v))
+
+            # Remember time and value of the first output spikes from each neuron.
+            if t0 is None and output[0] > 0:
+                t0, v0 = neuron_data[net.outputs[0]][-2]
+
+            if t1 is None and output[1] > 0:
+                t1, v1 = neuron_data[net.outputs[1]][-2]
+
+        response = compute_output(t0, t1)
+        print(inputData, response)
 
 
 if __name__ == '__main__':
