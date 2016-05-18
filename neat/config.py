@@ -29,8 +29,8 @@ class Config(object):
     allowed_connectivity = ['unconnected', 'fs_neat', 'fully_connected', 'partial']
 
     def __init__(self, filename=None):
-        self.registry = {'DefaultStagnation':DefaultStagnation,
-                         'DefaultReproduction':DefaultReproduction}
+        self.registry = {'DefaultStagnation': DefaultStagnation,
+                         'DefaultReproduction': DefaultReproduction}
         self.type_config = {}
         if filename is not None:
             self.load(filename)
@@ -122,7 +122,6 @@ class Config(object):
             raise Exception('Unknown reproduction type: {!r}'.format(reproduction_type_name))
         self.reproduction_type = self.registry[reproduction_type_name]
         self.type_config[reproduction_type_name] = parameters.items(reproduction_type_name)
-
 
         # Gather statistics for each generation.
         self.collect_statistics = True

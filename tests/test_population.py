@@ -89,7 +89,6 @@ def test_checkpoint():
     #assert pop.species == pop2.species
     #assert id(pop.species) != id(pop2.species)
 
-
     # assert pop.statistics.generation_statistics == pop2.statistics.generation_statistics
     # assert id(pop.statistics.generation_statistics) != id(pop2.statistics.generation_statistics)
 

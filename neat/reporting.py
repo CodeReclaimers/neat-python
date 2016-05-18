@@ -162,8 +162,8 @@ class StatisticsReporter(BaseReporter):
             best_unique[g.ID] = g
         best_unique = list(best_unique.values())
 
-        def key(g):
-            return g.fitness
+        def key(genome):
+            return genome.fitness
 
         return sorted(best_unique, key=key, reverse=True)[:n]
 

@@ -112,6 +112,6 @@ class DefaultReproduction(object):
                 new_population.append(child.mutate())
 
         # Sort species by ID (purely for ease of reading the reported list).
-        new_species.sort(key=lambda s: s.ID)
+        new_species.sort(key=lambda sp: sp.ID)
 
         return new_species, new_population

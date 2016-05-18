@@ -62,10 +62,9 @@ def test_manual_network():
     repr(net)
     str(net)
 
+
 def test_evolve():
-
     test_values = [random.random() for _ in range(10)]
-
 
     def evaluate_genome(genomes):
         for g in genomes:
@@ -76,13 +75,12 @@ def test_evolve():
                 net.reset()
                 output = net.serial_activate([t])
 
-                expected = t**2
+                expected = t ** 2
 
                 error = output[0] - expected
                 fitness -= error ** 2
 
             g.fitness = fitness
-
 
     # Load the config file, which is assumed to live in
     # the same directory as this script.
