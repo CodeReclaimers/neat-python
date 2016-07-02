@@ -5,6 +5,8 @@ Neurons are based on the model described by:
 Izhikevich, E. M.
 Simple Model of Spiking Neurons
 IEEE TRANSACTIONS ON NEURAL NETWORKS, VOL. 14, NO. 6, NOVEMBER 2003
+
+http://www.izhikevich.org/publications/spikes.pdf
 """
 
 
@@ -132,7 +134,7 @@ def create_phenotype(genome, a, b, c, d, time_step_msec=1.0):
     outputs = []
     for ng in genome.node_genes.values():
         # TODO: It seems like we should have a separate node gene implementation
-        # that encodes more (all?) of the Izhikevitch model parameters.
+        # that encodes more (all?) of the Izhikevich model parameters.
         neurons[ng.ID] = Neuron(ng.bias, a, b, c, d, time_step_msec)
         if ng.type == 'INPUT':
             inputs.append(ng.ID)

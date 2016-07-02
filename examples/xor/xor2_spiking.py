@@ -12,7 +12,7 @@ xor_outputs = (0, 1, 1, 0)
 
 # Maximum amount of simulated time (in milliseconds) to wait for the network to produce an output.
 max_time = 50.0
-# Parameters for "fast spiking" Izhikevitch neurons, simulation time step 0.25 millisecond.
+# Parameters for "fast spiking" Izhikevich neurons, simulation time step 0.25 millisecond.
 iz_params = [0.1, 0.2, -65.0, 2.0, 0.25]
 
 
@@ -31,7 +31,7 @@ def compute_output(t0, t1):
 
 
 def simulate(genome):
-    # Create a network of Izhikevitch neurons based on the given genome.
+    # Create a network of Izhikevich neurons based on the given genome.
     net = iznn.create_phenotype(genome, *iz_params)
     dt = iz_params[-1]
     sum_square_error = 0.0
