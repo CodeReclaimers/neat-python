@@ -89,32 +89,10 @@ class Population(object):
             pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     def _create_population(self):
-        # Create a collection of unconnected genomes with no hidden nodes.
         new_population = []
-
-        # TODO: The genotype class should know how to do everything below, based
-        # solely on what's in the config object. This allows users to completely
-        # replace the initial population creation scheme if they choose.
         for i in range(self.config.pop_size):
-            g_id = self.genome_indexer.get_next()
-            g = self.config.genotype.create_unconnected(g_id, self.config)
+            g = self.config.genotype.create(self.genome_indexer.get_next(), self.config)
             new_population.append(g)
-
-        # Add hidden nodes if requested.
-        if self.config.hidden_nodes > 0:
-            for g in new_population:
-                g.add_hidden_nodes(self.config.hidden_nodes)
-
-        # Add connections based on initial connectivity type.
-        if self.config.initial_connection == 'fs_neat':
-            for g in new_population:
-                g.connect_fs_neat()
-        elif self.config.initial_connection == 'fully_connected':
-            for g in new_population:
-                g.connect_full()
-        elif self.config.initial_connection == 'partial':
-            for g in new_population:
-                g.connect_partial(self.config.connection_fraction)
 
         return new_population
 

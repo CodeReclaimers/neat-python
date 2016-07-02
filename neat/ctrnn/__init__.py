@@ -22,7 +22,7 @@ class CTNodeGene(NodeGene):
     def mutate(self, config):
         super(CTNodeGene, self).mutate(config)
         # TODO: There is no support for prob_mutate_time_constant in the Config
-        # class, so currently the user must add it themselves.
+        # class, so currently the user must add this member themselves.
         if hasattr(config, 'prob_mutate_time_constant') and \
             random.random() < config.prob_mutate_time_constant:
             self.mutate_time_constant(config)

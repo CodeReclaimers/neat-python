@@ -73,7 +73,6 @@ class Genome(object):
         assert self.species_id == other.species_id, 'Different parents species ID: {0} vs {1}'.format(self.species_id,
                                                                                                       other.species_id)
 
-        # TODO: if they're of equal fitness, choose the shortest
         if self.fitness > other.fitness:
             parent1 = self
             parent2 = other
@@ -310,6 +309,25 @@ class Genome(object):
             assert node_gene.ID not in self.node_genes
             self.node_genes[node_gene.ID] = node_gene
             node_id += 1
+
+    @classmethod
+    def create(cls, ID, config):
+        g = config.genotype.create_unconnected(ID, config)
+
+        # Add hidden nodes if requested.
+        if config.hidden_nodes > 0:
+            g.add_hidden_nodes(config.hidden_nodes)
+
+        # Add connections based on initial connectivity type.
+        if config.initial_connection == 'fs_neat':
+            g.connect_fs_neat()
+        elif config.initial_connection == 'fully_connected':
+            g.connect_full()
+        elif config.initial_connection == 'partial':
+            g.connect_partial(config.connection_fraction)
+
+        return g
+
 
     # TODO: Can this be changed to not need a configuration object?
     @classmethod

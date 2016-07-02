@@ -134,7 +134,7 @@ def create_phenotype(genome, a, b, c, d, time_step_msec=1.0):
     outputs = []
     for ng in genome.node_genes.values():
         # TODO: It seems like we should have a separate node gene implementation
-        # that encodes more (all?) of the Izhikevich model parameters.
+        # that optionally encodes more (all?) of the Izhikevich model parameters.
         neurons[ng.ID] = Neuron(ng.bias, a, b, c, d, time_step_msec)
         if ng.type == 'INPUT':
             inputs.append(ng.ID)
