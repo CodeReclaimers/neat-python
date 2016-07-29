@@ -32,6 +32,7 @@ class Genome(object):
         self.node_genes = {}
 
         self.fitness = None
+        self.cross_validation_fitness = None
         self.species_id = None
 
         # my parents id: helps in tracking genome's genealogy
