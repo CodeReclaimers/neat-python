@@ -61,7 +61,7 @@ Visualizations
 --------------
 
 Functions are available in the `neat-python-examples
-<https://github.com/CodeReclaimers/neat-python-examples>` project to plot the best and average fitness vs. generation,
+<https://github.com/CodeReclaimers/neat-python-examples>`_ project to plot the best and average fitness vs. generation,
 plot the change in species vs. generation, and to show the structure of a network described by a genome.
 
 Example Source
