@@ -11,6 +11,3 @@ class Indexer(object):
             result = self.next_id
             self.next_id += 1
         return result
-
-    def clear(self):
-        self.next_id = 1
