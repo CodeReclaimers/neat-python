@@ -35,7 +35,7 @@ class Genome(object):
         self.cross_validation_fitness = None
         self.species_id = None
 
-        # my parents id: helps in tracking genome's genealogy
+        # Parent genome IDs, used to track genealogy.
         self.parent1_id = parent1_id
         self.parent2_id = parent2_id
 

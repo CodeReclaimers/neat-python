@@ -62,20 +62,20 @@ To use a different diversity scheme, you can create a custom class whose interfa
 
 TODO: document, include example
 
-Using different gene types
+Using different genome types
 --------------------------
 
-To use a different gene type, you can create a custom class whose interface matches that of
-`Genome`, and set the `node_gene_type` or `conn_gene_type` member, respectively, of your Config
-instance to this class.
+To use a different genome type, you can create a custom class whose interface matches that of
+`Genome` or `FFGenome`, and set the `genotype` member of your Config instance to this class.
 
 TODO: document, include example
 
-Using a different genome type
+Using a different gene type
 -----------------------------
 
 To use a different gene type, you can create a custom class whose interface matches that of
-`NodeGene` or `ConnectionGene`, and set the `genotype` member of your Config instance to this class.
+`NodeGene` or `ConnectionGene`, and set the `node_gene_type` or `conn_gene_type` member,
+respectively, of your Config instance to this class.
 
 TODO: document, include example
 

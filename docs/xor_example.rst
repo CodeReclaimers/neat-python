@@ -42,7 +42,7 @@ the following steps:
 
 * Create a ``neat.population.Population`` object using the ``Config`` object created above.
 
-* Call the ``epoch`` method on the ``Population`` object, giving it your fitness function and the maximum number of generations you want NEAT to run.
+* Call the ``run`` method on the ``Population`` object, giving it your fitness function and the maximum number of generations you want NEAT to run.
 
 After these three things are completed, NEAT will run until either you reach the specified number of generations, or
 at least one genome achieves the ``max_fitness_threshold`` value you specified in your config file.
@@ -50,25 +50,27 @@ at least one genome achieves the ``max_fitness_threshold`` value you specified i
 Getting the results
 -------------------
 
-Once the call to the population object's ``epoch`` method has returned, a list of the most fit genome for each generation
-is available as the ``most_fit_genomes`` member of the population.  We take the 'winner' genome as the last genome in
-this list.
+Once the call to the population object's ``run`` method has returned, you can query the ``statistics`` member of the
+population (a `StatisticsReporter` object) to get the best genome(s) seen during the run.  In this example, we take the
+'winner' genome to be that returned by `pop.statistics.best_genome()`.
 
-A list of the average fitness for each generation is also available as ``avg_fitness_scores``.
+Other information from the default statistics object includes per-generation average fitness, cross-validation fitness,
+and the best N genomes (with or without duplicates).
 
 Visualizations
 --------------
 
-Functions are available in the ``neat.visualize`` module to plot the best and average fitness vs. generation, plot the
-change in species vs. generation, and to show the structure of a network described by a genome.
+Functions are available in the `neat-python-examples
+<https://github.com/CodeReclaimers/neat-python-examples>` project to plot the best and average fitness vs. generation,
+plot the change in species vs. generation, and to show the structure of a network described by a genome.
 
 Example Source
 --------------
 
 NOTE: This page shows the source and configuration file for the current version of neat-python available on
-GitHub.  If you are using the version 0.6 installed from PyPI, make sure you get the script and config file from
+GitHub.  If you are using the version 0.7 installed from PyPI, make sure you get the script and config file from
 the `archived source for that release
-<https://github.com/CodeReclaimers/neat-python/releases/tag/v0.6>`_.
+<https://github.com/CodeReclaimers/neat-python/releases/tag/v0.7>`_.
 
 Here's the entire example:
 

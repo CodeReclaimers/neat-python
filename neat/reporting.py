@@ -170,7 +170,6 @@ class StatisticsReporter(BaseReporter):
 
         return avg_cross_validation_fitness
 
-
     def best_unique_genomes(self, n):
         """Returns the most n fit genomes, with no duplication."""
         best_unique = {}
