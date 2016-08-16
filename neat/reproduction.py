@@ -1,6 +1,7 @@
 import math
 import random
 
+from neat.indexer import Indexer
 
 # TODO: Provide some sort of optional cross-species performance criteria, which
 # are then used to control stagnation and possibly the mutation rate configuration.
@@ -10,17 +11,27 @@ import random
 
 class DefaultReproduction(object):
     """
-    Implements the default NEAT-python reproduction scheme: explicit fitness sharing
-    with fixed-time species stagnation.
+    Handles creation of genomes, either from scratch or by sexual or asexual
+    reproduction from parents. Implements the default NEAT-python reproduction
+    scheme: explicit fitness sharing with fixed-time species stagnation.
     """
-    def __init__(self, config, reporters, genome_indexer):
+    def __init__(self, config, reporters):
+        self.config = config
         params = config.get_type_config(self)
         self.elitism = int(params.get('elitism'))
         self.survival_threshold = float(params.get('survival_threshold'))
 
         self.reporters = reporters
-        self.genome_indexer = genome_indexer
+        self.genome_indexer = Indexer(1)
         self.stagnation = config.stagnation_type(config, reporters)
+
+    def create_new(self, num_genomes):
+        new_genomes = []
+        for i in range(num_genomes):
+            g = self.config.genotype.create(self.genome_indexer.get_next(), self.config)
+            new_genomes.append(g)
+
+        return new_genomes
 
     def reproduce(self, species, pop_size):
         # Filter out stagnated species and collect the set of non-stagnated species members.

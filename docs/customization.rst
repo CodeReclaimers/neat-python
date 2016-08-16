@@ -52,7 +52,9 @@ TODO: document, include example
 Speciation
 ----------
 
-If you need to change the speciation scheme, you should subclass `Population` and override the `_speciate` method.
+If you need to change the speciation scheme, you should subclass `Population` and override the `_speciate` method (or,
+if you must, `monkey patch/duck punch
+<https://en.wikipedia.org/wiki/Monkey_patch>`_ it).
 
 Diversity
 ---------

@@ -46,9 +46,7 @@ class Population(object):
 
         self.config = config
         self.species_indexer = Indexer(1)
-        self.genome_indexer = Indexer(1)
-        self.reproduction = config.reproduction_type(self.config, self.reporters,
-                                                     self.genome_indexer)
+        self.reproduction = config.reproduction_type(self.config, self.reporters)
 
         self.species = []
         self.generation = -1
@@ -56,7 +54,7 @@ class Population(object):
 
         # Create a population if one is not given, then partition into species.
         if initial_population is None:
-            initial_population = self._create_population()
+            initial_population = self.reproduction.create_new(config.pop_size)
         self._speciate(initial_population)
 
     def add_reporter(self, reporter):
@@ -87,14 +85,6 @@ class Population(object):
                     self.generation,
                     random.getstate())
             pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
-
-    def _create_population(self):
-        new_population = []
-        for i in range(self.config.pop_size):
-            g = self.config.genotype.create(self.genome_indexer.get_next(), self.config)
-            new_population.append(g)
-
-        return new_population
 
     def _speciate(self, population):
         """
@@ -132,7 +122,7 @@ class Population(object):
 
     def run(self, fitness_function, n):
         """
-        Runs NEAT's genetic algorithm for n generations.
+        Runs NEAT's genetic algorithm for at most n generations.
 
         The user-provided fitness_function should take one argument, a list of all genomes in the population,
         and its return value is ignored.  This function is free to maintain external state, perform evaluations
@@ -160,7 +150,8 @@ class Population(object):
             # TODO: Add an option to only evaluate each genome once, to reduce number of
             # fitness evaluations in cases where the fitness is known to be the same if the
             # genome doesn't change--in these cases, evaluating unmodified elites in each
-            # generation is a waste of time.
+            # generation is a waste of time.  The user can always take care of this in their
+            # fitness function in the for now if they wish.
             fitness_function(population)
             self.total_evaluations += len(population)
 
