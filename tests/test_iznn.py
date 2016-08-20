@@ -5,25 +5,26 @@ from neat.config import Config
 
 
 def test_basic():
-    n = iznn.Neuron(10, 0.02, 0.2, -65.0, 8.0)
+    n = iznn.Neuron(10, **iznn.REGULAR_SPIKING_PARAMS)
     spike_train = []
     for i in range(1000):
         spike_train.append(n.v)
-        n.advance()
+        n.advance(0.25)
 
 
 def test_network():
-    neurons = {0: iznn.Neuron(0, 0.02, 0.2, -65.0, 8.0),
-               1: iznn.Neuron(0, 0.02, 0.2, -65.0, 8.0),
-               2: iznn.Neuron(0, 0.02, 0.2, -65.0, 8.0)}
+    neurons = {0: iznn.Neuron(0, **iznn.INTRINSICALLY_BURSTING_PARAMS),
+               1: iznn.Neuron(0, **iznn.CHATTERING_PARAMS),
+               2: iznn.Neuron(0, **iznn.FAST_SPIKING_PARAMS),
+               3: iznn.Neuron(0, **iznn.LOW_THRESHOLD_SPIKING_PARAMS)}
     inputs = [0, 1]
     outputs = [2]
     connections = [(0, 2, 0.123), (1, 2, 0.234)]
 
     net = iznn.IzNetwork(neurons, inputs, outputs, connections)
     net.set_inputs([1.0, 0.0])
-    net.advance()
-    net.advance()
+    net.advance(0.25)
+    net.advance(0.25)
 
 
 def test_iznn_evolve():
@@ -35,8 +36,6 @@ def test_iznn_evolve():
 
     # Maximum amount of simulated time (in milliseconds) to wait for the network to produce an output.
     max_time = 50.0
-    # Parameters for "fast spiking" Izhikevich neurons, simulation time step 0.25 millisecond.
-    iz_params = [0.1, 0.2, -65.0, 2.0, 0.25]
 
     def compute_output(t0, t1):
         '''Compute the network's output based on the "time to first spike" of the two output neurons.'''
@@ -53,8 +52,8 @@ def test_iznn_evolve():
 
     def simulate(genome):
         # Create a network of Izhikevich neurons based on the given genome.
-        net = iznn.create_phenotype(genome, *iz_params)
-        dt = iz_params[-1]
+        net = iznn.create_phenotype(genome, **iznn.THALAMO_CORTICAL_PARAMS)
+        dt = 0.25
         sum_square_error = 0.0
         simulated = []
         for inputData, outputData in zip(xor_inputs, xor_outputs):
@@ -72,7 +71,7 @@ def test_iznn_evolve():
             num_steps = int(max_time / dt)
             for j in range(num_steps):
                 t = dt * j
-                output = net.advance()
+                output = net.advance(dt)
 
                 # Capture the time and neuron membrane potential for later use if desired.
                 for i, n in net.neurons.items():
@@ -125,7 +124,7 @@ def test_iznn_evolve():
 
     # Verify network output against training data.
     print('\nBest network output:')
-    net = iznn.create_phenotype(winner, *iz_params)
+    net = iznn.create_phenotype(winner, **iznn.RESONATOR_PARAMS)
     sum_square_error, simulated = simulate(winner)
 
     repr(winner)

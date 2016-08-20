@@ -9,9 +9,17 @@ IEEE TRANSACTIONS ON NEURAL NETWORKS, VOL. 14, NO. 6, NOVEMBER 2003
 http://www.izhikevich.org/publications/spikes.pdf
 """
 
+REGULAR_SPIKING_PARAMS        = {'a': 0.02, 'b': 0.20, 'c': -65.0, 'd': 8.00}
+INTRINSICALLY_BURSTING_PARAMS = {'a': 0.02, 'b': 0.20, 'c': -55.0, 'd': 4.00}
+CHATTERING_PARAMS             = {'a': 0.02, 'b': 0.20, 'c': -50.0, 'd': 2.00}
+FAST_SPIKING_PARAMS           = {'a': 0.10, 'b': 0.20, 'c': -65.0, 'd': 2.00}
+THALAMO_CORTICAL_PARAMS       = {'a': 0.02, 'b': 0.25, 'c': -65.0, 'd': 0.05}
+RESONATOR_PARAMS              = {'a': 0.10, 'b': 0.25, 'c': -65.0, 'd': 2.00}
+LOW_THRESHOLD_SPIKING_PARAMS  = {'a': 0.02, 'b': 0.25, 'c': -65.0, 'd': 2.00}
+
 
 class Neuron(object):
-    def __init__(self, bias, a, b, c, d, time_step_msec=1.0):
+    def __init__(self, bias, a, b, c, d):
         """
         a, b, c, d are the parameters of this model.
         a: the time scale of the recovery variable.
@@ -20,20 +28,19 @@ class Neuron(object):
         d: after-spike reset of the recovery variable.
 
         The following parameters produce some known spiking behaviors:
-            Regular spiking: a = 0.02, b = 0.2, c = -65.0, d = 8.0
-            Intrinsically bursting: a = 0.02, b = 0.2, c = -55.0, d = 4.0
-            Chattering: a = 0.02, b = 0.2, c = -50.0, d = 2.0
-            Fast spiking: a = 0.1, b = 0.2, c = -65.0, d = 2.0
-            Thalamo-cortical: a = 0.02, b = 0.25, c = -65.0, d = 0.05
-            Resonator: a = 0.1, b = 0.25, c = -65.0, d = 2.0
-            Low-threshold spiking: a = 0.02, b = 0.25, c = -65, d = 2.0
+            Regular spiking:        a = 0.02, b = 0.2,  c = -65.0, d = 8.0
+            Intrinsically bursting: a = 0.02, b = 0.2,  c = -55.0, d = 4.0
+            Chattering:             a = 0.02, b = 0.2,  c = -50.0, d = 2.0
+            Fast spiking:           a = 0.1,  b = 0.2,  c = -65.0, d = 2.0
+            Thalamo-cortical:       a = 0.02, b = 0.25, c = -65.0, d = 0.05
+            Resonator:              a = 0.1,  b = 0.25, c = -65.0, d = 2.0
+            Low-threshold spiking:  a = 0.02, b = 0.25, c = -65.0, d = 2.0
         """
         self.a = a
         self.b = b
         self.c = c
         self.d = d
         self.bias = bias
-        self.dt_msec = time_step_msec
 
         # Membrane potential (millivolts).
         self.v = self.c
@@ -44,9 +51,9 @@ class Neuron(object):
         self.output = 0.0
         self.current = self.bias
 
-    def advance(self):
+    def advance(self, dt_msec):
         """
-        Advances simulation time by 1 ms.
+        Advances simulation time by the given time step in milliseconds.
 
         v' = 0.04 * v^2 + 5v + 140 - u + I
         u' = a * (b * v - u)
@@ -59,9 +66,9 @@ class Neuron(object):
         # TODO: The need to catch overflows indicates that the current method is
         # not stable for all possible network configurations and states.
         try:
-            self.v += 0.5 * self.dt_msec * (0.04 * self.v ** 2 + 5 * self.v + 140 - self.u + self.current)
-            self.v += 0.5 * self.dt_msec * (0.04 * self.v ** 2 + 5 * self.v + 140 - self.u + self.current)
-            self.u += self.dt_msec * self.a * (self.b * self.v - self.u)
+            self.v += 0.5 * dt_msec * (0.04 * self.v ** 2 + 5 * self.v + 140 - self.u + self.current)
+            self.v += 0.5 * dt_msec * (0.04 * self.v ** 2 + 5 * self.v + 140 - self.u + self.current)
+            self.u += dt_msec * self.a * (self.b * self.v - self.u)
         except OverflowError:
             # Reset without producing a spike.
             self.v = self.c
@@ -97,6 +104,7 @@ class IzNetwork(object):
         self.currents = [0.0] * (1 + max_node)
 
     def set_inputs(self, inputs):
+        """Assign input voltages and reset currents to zero."""
         assert len(inputs) == len(self.inputs)
         for i, v in zip(self.inputs, inputs):
             self.currents[i] = 0.0
@@ -104,11 +112,11 @@ class IzNetwork(object):
             self.neurons[i].output = v
 
     def reset(self):
-        # Reset all neurons.
+        """Reset all neurons to their default state."""
         for i, n in self.neurons.items():
             n.reset()
 
-    def advance(self):
+    def advance(self, dt_msec):
         # Initialize all non-input neuron currents to the bias value.
         for i, n in self.neurons.items():
             if i not in self.inputs:
@@ -121,12 +129,12 @@ class IzNetwork(object):
         for i, n in self.neurons.items():
             if i not in self.inputs:
                 n.current = self.currents[i]
-                n.advance()
+                n.advance(dt_msec)
 
         return [self.neurons[i].output for i in self.outputs]
 
 
-def create_phenotype(genome, a, b, c, d, time_step_msec=1.0):
+def create_phenotype(genome, a, b, c, d):
     """ Receives a genome and returns its phenotype (a neural network) """
 
     neurons = {}
@@ -135,7 +143,7 @@ def create_phenotype(genome, a, b, c, d, time_step_msec=1.0):
     for ng in genome.node_genes.values():
         # TODO: It seems like we should have a separate node gene implementation
         # that optionally encodes more (all?) of the Izhikevich model parameters.
-        neurons[ng.ID] = Neuron(ng.bias, a, b, c, d, time_step_msec)
+        neurons[ng.ID] = Neuron(ng.bias, a, b, c, d)
         if ng.type == 'INPUT':
             inputs.append(ng.ID)
         elif ng.type == 'OUTPUT':

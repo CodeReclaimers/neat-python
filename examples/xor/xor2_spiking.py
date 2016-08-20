@@ -10,10 +10,12 @@ from neat.config import Config
 xor_inputs = ((0, 0), (0, 1), (1, 0), (1, 1))
 xor_outputs = (0, 1, 1, 0)
 
+# Use fast spiking neurons.
+neuron_params = iznn.FAST_SPIKING_PARAMS
 # Maximum amount of simulated time (in milliseconds) to wait for the network to produce an output.
 max_time = 50.0
-# Parameters for "fast spiking" Izhikevich neurons, simulation time step 0.25 millisecond.
-iz_params = [0.1, 0.2, -65.0, 2.0, 0.25]
+# Use a simulation time step of 0.25 millisecond.
+dt = 0.25
 
 
 def compute_output(t0, t1):
@@ -31,9 +33,8 @@ def compute_output(t0, t1):
 
 
 def simulate(genome):
-    # Create a network of Izhikevich neurons based on the given genome.
-    net = iznn.create_phenotype(genome, *iz_params)
-    dt = iz_params[-1]
+    # Create a network of "fast spiking" Izhikevich neurons.
+    net = iznn.create_phenotype(genome, **neuron_params)
     sum_square_error = 0.0
     simulated = []
     for inputData, outputData in zip(xor_inputs, xor_outputs):
@@ -51,7 +52,7 @@ def simulate(genome):
         num_steps = int(max_time / dt)
         for j in range(num_steps):
             t = dt * j
-            output = net.advance()
+            output = net.advance(dt)
 
             # Capture the time and neuron membrane potential for later use if desired.
             for i, n in net.neurons.items():
@@ -103,8 +104,9 @@ def run():
     winner = pop.statistics.best_genome()
     print('\nBest genome:\n{!s}'.format(winner))
     print('\nBest network output:')
-    net = iznn.create_phenotype(winner, *iz_params)
-    dt = iz_params[-1]
+
+    # Create a network of "fast spiking" Izhikevich neurons, simulation time step 0.25 millisecond.
+    net = iznn.create_phenotype(winner, **neuron_params)
     for inputData, outputData in zip(xor_inputs, xor_outputs):
         neuron_data = {}
         for i, n in net.neurons.items():
@@ -115,12 +117,10 @@ def run():
         net.set_inputs(inputData)
         t0 = None
         t1 = None
-        v0 = None
-        v1 = None
         num_steps = int(max_time / dt)
         for j in range(num_steps):
             t = dt * j
-            output = net.advance()
+            output = net.advance(dt)
 
             # Capture the time and neuron membrane potential for later use if desired.
             for i, n in net.neurons.items():

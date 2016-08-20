@@ -6,9 +6,8 @@ faster than the single-process version, due to the overhead of
 inter-process communication.
 
 If your evaluation function is what's taking up most of your processing time
-(and you should probably check by using a profiler while running
-single-process), you should see a significant performance improvement by
-evaluating in parallel.
+(and you should check by using a profiler while running single-process),
+you should see a significant performance improvement by evaluating in parallel.
 
 This example is only intended to show how to do a parallel experiment
 in neat-python.  You can of course roll your own parallelism mechanism
