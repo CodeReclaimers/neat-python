@@ -12,6 +12,10 @@ class ParallelEvaluator(object):
         self.timeout = timeout
         self.pool = Pool(num_workers)
 
+    def __del__(self):
+        self.pool.close()
+        self.pool.join()
+
     def evaluate(self, genomes):
         jobs = []
         for genome in genomes:
