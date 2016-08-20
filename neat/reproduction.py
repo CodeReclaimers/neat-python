@@ -34,11 +34,14 @@ class DefaultReproduction(object):
         return new_genomes
 
     def reproduce(self, species, pop_size):
+        # TODO: I don't like this modification of the species object,
+        # because it requires internal knowledge of the object.
+
         # Filter out stagnated species and collect the set of non-stagnated species members.
         remaining_species = {}
         species_fitness = []
         avg_adjusted_fitness = 0.0
-        for s, stagnant in self.stagnation.update(species):
+        for s, stagnant in self.stagnation.update(species.species):
             if stagnant:
                 self.reporters.species_stagnant(s)
             else:
@@ -56,7 +59,8 @@ class DefaultReproduction(object):
 
         # No species left.
         if not remaining_species:
-            return [], []
+            species.species = []
+            return []
 
         avg_adjusted_fitness /= len(species_fitness)
         self.reporters.info("Average adjusted fitness: {:.3f}".format(avg_adjusted_fitness))
@@ -80,7 +84,7 @@ class DefaultReproduction(object):
         self.reporters.info('Species fitness  : {0!r}'.format([sfitness for s, sfitness in species_fitness]))
 
         new_population = []
-        new_species = []
+        species.species = []
         for spawn, (s, sfitness) in zip(spawn_amounts, species_fitness):
             # If elitism is enabled, each species always at least gets to retain its elites.
             spawn = max(spawn, self.elitism)
@@ -91,7 +95,7 @@ class DefaultReproduction(object):
             # The species has at least one member for the next generation, so retain it.
             old_members = s.members
             s.members = []
-            new_species.append(s)
+            species.species.append(s)
 
             # Sort members in order of descending fitness.
             old_members.sort(reverse=True)
@@ -123,6 +127,7 @@ class DefaultReproduction(object):
                 new_population.append(child.mutate())
 
         # Sort species by ID (purely for ease of reading the reported list).
-        new_species.sort(key=lambda sp: sp.ID)
+        # TODO: This should probably be done by the species object.
+        species.species.sort(key=lambda sp: sp.ID)
 
-        return new_species, new_population
+        return new_population

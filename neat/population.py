@@ -6,9 +6,8 @@ import random
 import time
 
 from neat.config import Config
-from neat.indexer import Indexer
 from neat.reporting import ReporterSet, StatisticsReporter, StdOutReporter
-from neat.species import Species
+from neat.species import SpeciesSet
 
 
 class CompleteExtinctionException(Exception):
@@ -45,17 +44,16 @@ class Population(object):
             self.add_reporter(StdOutReporter())
 
         self.config = config
-        self.species_indexer = Indexer(1)
-        self.reproduction = config.reproduction_type(self.config, self.reporters)
+        self.reproduction = config.reproduction_type(config, self.reporters)
 
-        self.species = []
+        self.species = SpeciesSet(config)
         self.generation = -1
         self.total_evaluations = 0
 
         # Create a population if one is not given, then partition into species.
         if initial_population is None:
             initial_population = self.reproduction.create_new(config.pop_size)
-        self._speciate(initial_population)
+        self.species.speciate(initial_population)
 
     def add_reporter(self, reporter):
         self.reporters.add(reporter)
@@ -86,39 +84,6 @@ class Population(object):
                     random.getstate())
             pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-    def _speciate(self, population):
-        """
-        Place genomes into species by genetic similarity.
-
-        Note that this method assumes the current representatives of the species are from the old
-        generation, and that after speciation has been performed, the old representatives should be
-        dropped and replaced with representatives from the new generation.  If you violate this
-        assumption, you should make sure other necessary parts of the code are updated to reflect
-        the new behavior.
-        """
-        for individual in population:
-            # Find the species with the most similar representative.
-            min_distance = None
-            closest_species = None
-            for s in self.species:
-                distance = individual.distance(s.representative)
-                if distance < self.config.compatibility_threshold \
-                    and (min_distance is None or distance < min_distance):
-                        closest_species = s
-                        min_distance = distance
-
-            if closest_species:
-                closest_species.add(individual)
-            else:
-                # No species is similar enough, create a new species for this individual.
-                self.species.append(Species(individual, self.species_indexer.get_next()))
-
-        # Only keep non-empty species.
-        self.species = [s for s in self.species if s.members]
-
-        # Select a random current member as the new representative.
-        for s in self.species:
-            s.representative = random.choice(s.members)
 
     def run(self, fitness_function, n):
         """
@@ -143,7 +108,7 @@ class Population(object):
 
             # Collect a list of all members from all species.
             population = []
-            for s in self.species:
+            for s in self.species.species:
                 population.extend(s.members)
 
             # Evaluate all individuals in the population using the user-provided function.
@@ -151,13 +116,13 @@ class Population(object):
             # fitness evaluations in cases where the fitness is known to be the same if the
             # genome doesn't change--in these cases, evaluating unmodified elites in each
             # generation is a waste of time.  The user can always take care of this in their
-            # fitness function in the for now if they wish.
+            # fitness function in the time being if they wish.
             fitness_function(population)
             self.total_evaluations += len(population)
 
             # Gather and report statistics.
             best = max(population)
-            self.reporters.post_evaluate(population, self.species, best)
+            self.reporters.post_evaluate(population, self.species.species, best)
 
             # Save the best genome from the current generation if requested.
             if self.config.save_best:
@@ -170,25 +135,25 @@ class Population(object):
                 break
 
             # Create the next generation from the current generation.
-            self.species, new_population = self.reproduction.reproduce(self.species, self.config.pop_size)
+            new_population = self.reproduction.reproduce(self.species, self.config.pop_size)
 
             # Check for complete extinction
-            if not self.species:
+            if not self.species.species:
                 self.reporters.complete_extinction()
 
                 # If requested by the user, create a completely new population,
                 # otherwise raise an exception.
                 if self.config.reset_on_extinction:
-                    new_population = self._create_population()
+                    new_population = self.reproduction.create_new(self.config.pop_size)
                 else:
                     raise CompleteExtinctionException()
 
             # Update species age.
-            for s in self.species:
+            for s in self.species.species:
                 s.age += 1
 
             # Divide the new population into species.
-            self._speciate(new_population)
+            self.species.speciate(new_population)
 
             # Save checkpoints if necessary.
             if self.config.checkpoint_time_interval is not None:
