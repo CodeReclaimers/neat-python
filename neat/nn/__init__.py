@@ -1,4 +1,7 @@
+import copy
+
 from neat import activation_functions
+from neat.six_util import iterkeys, itervalues
 
 
 def find_feed_forward_layers(inputs, connections):
@@ -60,28 +63,36 @@ def create_feed_forward_phenotype(genome):
     """ Receives a genome and returns its phenotype (a neural network). """
 
     # Gather inputs and expressed connections.
-    input_nodes = [ng.ID for ng in genome.node_genes.values() if ng.type == 'INPUT']
-    output_nodes = [ng.ID for ng in genome.node_genes.values() if ng.type == 'OUTPUT']
-    connections = [(cg.in_node_id, cg.out_node_id) for cg in genome.conn_genes.values() if cg.enabled]
+    input_nodes = list(iterkeys(genome.inputs))
+    output_nodes = list(iterkeys(genome.outputs))
+    connections = [cg.key for cg in itervalues(genome.connections) if cg.enabled]
+
+    # TODO: It seems like this might be worth factoring out somewhere.
+    all_nodes = copy.copy(genome.inputs)
+    all_nodes.update(genome.outputs)
+    all_nodes.update(genome.hidden)
 
     layers = find_feed_forward_layers(input_nodes, connections)
     node_evals = []
-    used_nodes = set(input_nodes + output_nodes)
+    #used_nodes = set(input_nodes + output_nodes)
+    max_used_node = max(max(input_nodes), max(output_nodes))
     for layer in layers:
         for node in layer:
             inputs = []
             # TODO: This could be more efficient.
-            for cg in genome.conn_genes.values():
-                if cg.out_node_id == node and cg.enabled:
-                    inputs.append((cg.in_node_id, cg.weight))
-                    used_nodes.add(cg.in_node_id)
+            for cg in itervalues(genome.connections):
+                if cg.output == node and cg.enabled:
+                    inputs.append((cg.input, cg.weight))
+                    #used_nodes.add(cg.in_node_id)
+                    max_used_node = max(max_used_node, cg.input)
 
-            used_nodes.add(node)
-            ng = genome.node_genes[node]
-            activation_function = activation_functions.get(ng.activation_type)
+            #used_nodes.add(node)
+            max_used_node = max(max_used_node, node)
+            ng = all_nodes[node]
+            activation_function = activation_functions.get(ng.activation)
             node_evals.append((node, activation_function, ng.bias, ng.response, inputs))
 
-    return FeedForwardNetwork(max(used_nodes), input_nodes, output_nodes, node_evals)
+    return FeedForwardNetwork(max_used_node, input_nodes, output_nodes, node_evals)
 
 
 class RecurrentNetwork(object):
@@ -119,27 +130,34 @@ def create_recurrent_phenotype(genome):
     """ Receives a genome and returns its phenotype (a recurrent neural network). """
 
     # Gather inputs and expressed connections.
-    input_nodes = [ng.ID for ng in genome.node_genes.values() if ng.type == 'INPUT']
-    output_nodes = [ng.ID for ng in genome.node_genes.values() if ng.type == 'OUTPUT']
-
     node_inputs = {}
-    used_nodes = set(input_nodes + output_nodes)
-    for cg in genome.conn_genes.values():
+    used_nodes = {}
+    used_nodes.update(genome.inputs)
+    used_nodes.update(genome.outputs)
+    for cg in genome.connections.values():
         if not cg.enabled:
             continue
 
-        used_nodes.add(cg.out_node_id)
-        used_nodes.add(cg.in_node_id)
+        if cg.output not in used_nodes:
+            used_nodes[cg.output] = genome.hidden[cg.output]
 
-        if cg.out_node_id not in node_inputs:
-            node_inputs[cg.out_node_id] = [(cg.in_node_id, cg.weight)]
+        if cg.input not in used_nodes:
+            used_nodes[cg.input] = genome.hidden[cg.input]
+
+        if cg.output not in node_inputs:
+            node_inputs[cg.output] = [(cg.input, cg.weight)]
         else:
-            node_inputs[cg.out_node_id].append((cg.in_node_id, cg.weight))
+            node_inputs[cg.output].append((cg.input, cg.weight))
 
     node_evals = []
     for onode, inputs in node_inputs.items():
-        ng = genome.node_genes[onode]
-        activation_function = activation_functions.get(ng.activation_type)
+        ng = used_nodes[onode]
+        activation_function = activation_functions.get(ng.activation)
         node_evals.append((onode, activation_function, ng.bias, ng.response, inputs))
+
+    input_nodes = list(genome.inputs.keys())
+    input_nodes.sort()
+    output_nodes = list(genome.outputs.keys())
+    output_nodes.sort()
 
     return RecurrentNetwork(max(used_nodes), input_nodes, output_nodes, node_evals)

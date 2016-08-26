@@ -1,6 +1,6 @@
+from random import random, gauss, choice
 import os
 
-from neat.genes import NodeGene, ConnectionGene
 from neat.genome import Genome, FFGenome
 from neat import activation_functions
 from neat.reproduction import DefaultReproduction
@@ -11,6 +11,7 @@ try:
 except ImportError:
     from ConfigParser import SafeConfigParser as ConfigParser
 
+aggregation_function_defs = {'sum': sum, 'max': max, 'min': min}
 
 class Config(object):
     '''
@@ -60,6 +61,7 @@ class Config(object):
         self.feedforward = bool(int(parameters.get('phenotype', 'feedforward')))
         self.weight_stdev = float(parameters.get('phenotype', 'weight_stdev'))
         self.activation_functions = parameters.get('phenotype', 'activation_functions').strip().split()
+        self.aggregation_functions = parameters.get('phenotype', 'aggregation_functions').strip().split()
 
         # Verify that initial connection type is valid.
         if 'partial' in self.initial_connection:
@@ -97,6 +99,7 @@ class Config(object):
         self.prob_replace_weight = float(parameters.get('genetic', 'prob_replace_weight'))
         self.weight_mutation_power = float(parameters.get('genetic', 'weight_mutation_power'))
         self.prob_mutate_activation = float(parameters.get('genetic', 'prob_mutate_activation'))
+        self.prob_mutate_aggregation = float(parameters.get('genetic', 'prob_mutate_aggregation'))
         self.prob_toggle_link = float(parameters.get('genetic', 'prob_toggle_link'))
         self.reset_on_extinction = bool(int(parameters.get('genetic', 'reset_on_extinction')))
 
@@ -105,10 +108,6 @@ class Config(object):
         self.excess_coefficient = float(parameters.get('genotype compatibility', 'excess_coefficient'))
         self.disjoint_coefficient = float(parameters.get('genotype compatibility', 'disjoint_coefficient'))
         self.weight_coefficient = float(parameters.get('genotype compatibility', 'weight_coefficient'))
-
-        # Gene types
-        self.node_gene_type = NodeGene
-        self.conn_gene_type = ConnectionGene
 
         stagnation_type_name = parameters.get('Types', 'stagnation_type')
         reproduction_type_name = parameters.get('Types', 'reproduction_type')
@@ -143,3 +142,57 @@ class Config(object):
 
     def get_type_config(self, typeInstance):
         return dict(self.type_config[typeInstance.__class__.__name__])
+
+    # TODO: Factor out these mutation methods into a separate class.
+    def new_weight(self):
+        return gauss(0, self.weight_stdev)
+
+    def new_bias(self):
+        return gauss(0, self.weight_stdev)
+
+    def new_response(self):
+        return 1.0
+
+    def new_aggregation(self):
+        return choice(self.aggregation_functions)
+
+    def new_activation(self):
+        return choice(list(activation_functions.functions.keys()))
+
+    def mutate_weight(self, weight):
+        if random() < self.prob_mutate_weight:
+            if random() < self.prob_replace_weight:
+                # Replace weight with a random value.
+                weight = self.new_weight()
+            else:
+                # Perturb weight.
+                weight += gauss(0, self.weight_mutation_power)
+                weight = max(self.min_weight, min(self.max_weight, weight))
+
+        return weight
+
+    def mutate_bias(self, bias):
+        if random() < self.prob_mutate_bias:
+            bias += gauss(0, self.bias_mutation_power)
+            bias = max(self.min_weight, min(self.max_weight, bias))
+
+        return bias
+
+    def mutate_response(self, response):
+        if random() < self.prob_mutate_response:
+            response += gauss(0, self.response_mutation_power)
+            response = max(self.min_weight, min(self.max_weight, response))
+
+        return response
+
+    def mutate_aggregation(self, aggregation):
+        if random() < self.prob_mutate_aggregation:
+            aggregation = self.new_aggregation()
+
+        return aggregation
+
+    def mutate_activation(self, activation):
+        if random() < self.prob_mutate_activation:
+            activation = self.new_activation()
+
+        return activation

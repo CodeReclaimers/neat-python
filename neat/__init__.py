@@ -1,5 +1,6 @@
 from neat import activations
 
+# TODO: This collection should probably be held by the Config object.
 activation_functions = activations.ActivationFunctionSet()
 
 activation_functions.add('sigmoid', activations.sigmoid_activation)

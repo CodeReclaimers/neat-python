@@ -20,8 +20,8 @@ num_tests = 16
 N = 4
 
 
-def eval_fitness(g):
-    net = nn.create_recurrent_phenotype(g)
+def eval_fitness(genome_id, genome):
+    net = nn.create_recurrent_phenotype(genome)
 
     error = 0.0
     for _ in range(num_tests):
@@ -43,6 +43,11 @@ def eval_fitness(g):
     return -(error / (N * num_tests)) ** 0.5
 
 
+def eval_genomes(genomes):
+    for genome_id, genome in genomes:
+        genome.fitness = eval_fitness(genome_id, genome)
+
+
 # Demonstration of how to add your own custom activation function.
 def sinc(x):
     return 1.0 if x == 0 else math.sin(x) / x
@@ -57,8 +62,9 @@ activation_functions.add('my_sinc_function', sinc)
 def run():
     local_dir = os.path.dirname(__file__)
     pop = population.Population(os.path.join(local_dir, 'nn_config'))
-    pe = parallel.ParallelEvaluator(4, eval_fitness)
-    pop.run(pe.evaluate, 1000)
+    #pe = parallel.ParallelEvaluator(4, eval_fitness)
+    #pop.run(pe.evaluate, 1000)
+    pop.run(eval_genomes, 1000)
 
     # Log statistics.
     statistics.save_stats(pop.statistics)

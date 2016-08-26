@@ -16,6 +16,7 @@ max_weight           = 30
 min_weight           = -30
 feedforward          = 0
 activation_functions = clamped sigmoid tanh my_sinc_function
+aggregation_functions = sum
 weight_stdev         = 1.0
 
 [genetic]
@@ -33,6 +34,7 @@ prob_mutate_weight      = 0.8
 prob_replace_weight     = 0.1
 weight_mutation_power   = 0.5
 prob_mutate_activation  = 0.002
+prob_mutate_aggregation = 0.0
 prob_toggle_link        = 0.01
 reset_on_extinction     = 1
 

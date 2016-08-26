@@ -5,13 +5,42 @@ import os
 
 from neat import nn, population, statistics
 
+
 # Network inputs and expected outputs.
 xor_inputs = [[0, 0], [0, 1], [1, 0], [1, 1]]
 xor_outputs = [0, 1, 1, 0]
 
+def ideal_demo():
+    import neat
+
+    # default Config
+    # default to parallel processing using auto-detected # hardware cores
+    n = neat.Sequential(xor_inputs, xor_outputs)
+
+    n.evolve(300)
+
+    n.save_statistics(".")
+
+    print('Number of evaluations: {0}'.format(n.total_evaluations))
+
+    # Show output of the most fit genome against training data.
+    winner = n.best_genome()
+    print('\nBest genome:\n{!s}'.format(winner))
+    print('\nOutput:')
+    winner_output = n.evaluate(winner, xor_inputs)
+    for inputs, expected, outputs in zip(xor_inputs, xor_outputs, winner_output):
+        print("input {!r}, expected output {0:1.5f} got {1:1.5f}".format(inputs, expected, outputs[0]))
+
+
+
+total_evaluations = 0
 
 def eval_fitness(genomes):
-    for g in genomes:
+    global total_evaluations
+    total_evaluations += len(genomes)
+
+    for gid, g in genomes:
+
         net = nn.create_feed_forward_phenotype(g)
 
         sum_square_error = 0.0
@@ -35,7 +64,7 @@ statistics.save_stats(pop.statistics)
 statistics.save_species_count(pop.statistics)
 statistics.save_species_fitness(pop.statistics)
 
-print('Number of evaluations: {0}'.format(pop.total_evaluations))
+print('Number of evaluations: {0}'.format(total_evaluations))
 
 # Show output of the most fit genome against training data.
 winner = pop.statistics.best_genome()

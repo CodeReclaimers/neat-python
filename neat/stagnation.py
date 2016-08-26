@@ -1,26 +1,10 @@
 import sys
-from neat.math_util import mean
 
-
-def species_max_fitness(species):
-    return max([m.fitness for m in species.members])
-
-
-def species_min_fitness(species):
-    return min([m.fitness for m in species.members])
-
-
-def species_mean_fitness(species):
-    return mean([m.fitness for m in species.members])
-
-
-def species_median_fitness(species):
-    fitnesses = [m.fitness for m in species.members]
-    fitnesses.sort()
-    return fitnesses[len(fitnesses) // 2]
-
+from neat.species import Species
+from neat.six_util import iteritems
 
 # TODO: Add a method for the user to change the "is stagnant" computation.
+
 
 class DefaultStagnation(object):
     def __init__(self, config, reporters):
@@ -30,13 +14,13 @@ class DefaultStagnation(object):
         self.species_fitness = params.get('species_fitness_func')
 
         if self.species_fitness == 'max':
-            self.species_fitness_func = species_max_fitness
+            self.species_fitness_func = Species.max_fitness
         elif self.species_fitness == 'min':
-            self.species_fitness_func = species_min_fitness
+            self.species_fitness_func = Species.min_fitness
         elif self.species_fitness == 'mean':
-            self.species_fitness_func = species_mean_fitness
+            self.species_fitness_func = Species.mean_fitness
         elif self.species_fitness == 'median':
-            self.species_fitness_func = species_median_fitness
+            self.species_fitness_func = Species.median_fitness
         else:
             raise Exception("Unexpected species fitness: {0!r}".format(self.species_fitness))
 
@@ -45,29 +29,25 @@ class DefaultStagnation(object):
         self.previous_fitnesses = {}
         self.stagnant_counts = {}
 
-    def remove(self, species):
-        if species.ID in self.previous_fitnesses:
-            del self.previous_fitnesses[species.ID]
-
-        if species.ID in self.stagnant_counts:
-            del self.stagnant_counts[species.ID]
+    def remove(self, sid):
+        self.previous_fitnesses.pop(sid, None)
+        self.stagnant_counts.pop(sid, None)
 
     def update(self, species):
         result = []
-        for s in species:
+        for sid, s in iteritems(species):
             fitness = self.species_fitness_func(s)
-            scount = self.stagnant_counts.get(s.ID, 0)
-            prev_fitness = self.previous_fitnesses.get(s.ID, -sys.float_info.max)
+            prev_fitness = self.previous_fitnesses.get(sid, -sys.float_info.max)
             if fitness > prev_fitness:
                 scount = 0
             else:
-                scount += 1
+                scount = self.stagnant_counts.get(sid, 0) + 1
 
-            self.previous_fitnesses[s.ID] = fitness
-            self.stagnant_counts[s.ID] = scount
+            self.previous_fitnesses[sid] = fitness
+            self.stagnant_counts[sid] = scount
 
             is_stagnant = scount >= self.max_stagnation
-            result.append((s, is_stagnant))
+            result.append((sid, s, is_stagnant))
 
             if is_stagnant:
                 self.remove(s)

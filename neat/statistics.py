@@ -47,8 +47,8 @@ def save_stats(statistics, delimiter=' ', filename='fitness_history.csv', with_c
         best_fitness = [c.fitness for c in statistics.most_fit_genomes]
         avg_fitness = statistics.get_average_fitness()
 
-        if(with_cross_validation==True):
-            cv_best_fitness = [c.cross_validation_fitness for c in statistics.most_fit_genomes]
+        if with_cross_validation:
+            cv_best_fitness = [c.cross_fitness for c in statistics.most_fit_genomes]
             cv_avg_fitness = statistics.get_average_cross_validation_fitness()
             for best, avg, cv_best, cv_avg in zip(best_fitness, avg_fitness, cv_best_fitness, cv_avg_fitness):
                 w.writerow([best, avg, cv_best, cv_avg])

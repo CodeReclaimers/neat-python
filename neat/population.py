@@ -3,11 +3,13 @@ from __future__ import print_function
 import gzip
 import pickle
 import random
+import sys
 import time
 
 from neat.config import Config
 from neat.reporting import ReporterSet, StatisticsReporter, StdOutReporter
 from neat.species import SpeciesSet
+from neat.six_util import iteritems, itervalues
 
 
 class CompleteExtinctionException(Exception):
@@ -48,12 +50,13 @@ class Population(object):
 
         self.species = SpeciesSet(config)
         self.generation = -1
-        self.total_evaluations = 0
+        #self.total_evaluations = 0
 
         # Create a population if one is not given, then partition into species.
-        if initial_population is None:
-            initial_population = self.reproduction.create_new(config.pop_size)
-        self.species.speciate(initial_population)
+        self.population = initial_population
+        if self.population is None:
+            self.population = self.reproduction.create_new(config.pop_size)
+        self.species.speciate(self.population)
 
     def add_reporter(self, reporter):
         self.reporters.add(reporter)
@@ -107,9 +110,9 @@ class Population(object):
             self.reporters.start_generation(self.generation)
 
             # Collect a list of all members from all species.
-            population = []
-            for s in self.species.species:
-                population.extend(s.members)
+            #population = []
+            #for s in self.species.species:
+            #    population.extend(s.members)
 
             # Evaluate all individuals in the population using the user-provided function.
             # TODO: Add an option to only evaluate each genome once, to reduce number of
@@ -117,12 +120,18 @@ class Population(object):
             # genome doesn't change--in these cases, evaluating unmodified elites in each
             # generation is a waste of time.  The user can always take care of this in their
             # fitness function in the time being if they wish.
-            fitness_function(population)
-            self.total_evaluations += len(population)
+            fitness_function(list(iteritems(self.population)))
+            #self.total_evaluations += len(self.population)
 
             # Gather and report statistics.
-            best = max(population)
-            self.reporters.post_evaluate(population, self.species.species, best)
+            best_id = None
+            best = None
+            best_fitness = -sys.float_info.max
+            for k, v in iteritems(self.population):
+                if v.fitness > best_fitness:
+                    best = v
+                    best_id = k
+            self.reporters.post_evaluate(self.population, self.species, best_id, best)
 
             # Save the best genome from the current generation if requested.
             if self.config.save_best:
@@ -135,25 +144,26 @@ class Population(object):
                 break
 
             # Create the next generation from the current generation.
-            new_population = self.reproduction.reproduce(self.species, self.config.pop_size)
+            self.population = self.reproduction.reproduce(self.species, self.config.pop_size)
 
-            # Check for complete extinction
+            # Check for complete extinction.
             if not self.species.species:
                 self.reporters.complete_extinction()
 
                 # If requested by the user, create a completely new population,
                 # otherwise raise an exception.
                 if self.config.reset_on_extinction:
-                    new_population = self.reproduction.create_new(self.config.pop_size)
+                    self.population = self.reproduction.create_new(self.config.pop_size)
                 else:
                     raise CompleteExtinctionException()
 
             # Update species age.
-            for s in self.species.species:
+            # TODO: Wouldn't it be easier to remember creation time?
+            for s in itervalues(self.species.species):
                 s.age += 1
 
             # Divide the new population into species.
-            self.species.speciate(new_population)
+            self.species.speciate(self.population)
 
             # Save checkpoints if necessary.
             if self.config.checkpoint_time_interval is not None:

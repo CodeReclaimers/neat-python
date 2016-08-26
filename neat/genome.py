@@ -1,78 +1,63 @@
+from neat.genes import ConnectionGene, NodeGene
+from neat.six_util import iteritems, itervalues
+
 from math import fabs
 from random import choice, gauss, randint, random, shuffle
-import sys
-
-# Instead of adding six as a dependency, this code was copied from the six
-# implementation, six is Copyright (c) 2010-2015 Benjamin Peterson
-if sys.version_info[0] == 3:
-    def itervalues(d, **kw):
-        return iter(d.values(**kw))
-
-    def iteritems(d, **kw):
-        return iter(d.items(**kw))
-else:
-    def itervalues(d, **kw):
-        return iter(d.itervalues(**kw))
-
-    def iteritems(d, **kw):
-        return iter(d.iteritems(**kw))
 
 
 class Genome(object):
-    """ A genome for general recurrent neural networks. """
+    """ A genome for generalized neural networks. """
 
-    def __init__(self, ID, config, parent1_id, parent2_id):
-        self.ID = ID
-        self.config = config
-        self.num_inputs = config.input_nodes
-        self.num_outputs = config.output_nodes
+    def __init__(self, key):
+        # (id, gene) pairs for gene sets.
+        self.key = key
+        self.connections = {}
+        self.hidden = {}
+        self.inputs = {}
+        self.outputs = {}
 
-        # (id, gene) pairs for connection and node gene sets.
-        self.conn_genes = {}
-        self.node_genes = {}
+        # TODO: Do we really need to track this, or is it sufficient
+        # for each species to know which genomes are its members?
+        #self.species_id = None
 
+        # Fitness results.
+        # TODO: This should probably be stored elsewhere.
         self.fitness = None
-        self.cross_validation_fitness = None
-        self.species_id = None
+        self.cross_fitness = None
 
-        # Parent genome IDs, used to track genealogy.
-        self.parent1_id = parent1_id
-        self.parent2_id = parent2_id
-
-    def mutate(self):
-        """ Mutates this genome """
+    def mutate(self, config):
+        """ Mutates this genome. """
 
         # TODO: Make a configuration item to choose whether or not multiple mutations can happen at once.
 
-        if random() < self.config.prob_add_node:
-            self.mutate_add_node()
+        if random() < config.prob_add_node:
+            self.mutate_add_node(config)
 
-        if random() < self.config.prob_add_conn:
-            self.mutate_add_connection()
+        if random() < config.prob_add_conn:
+            self.mutate_add_connection(config)
 
-        if random() < self.config.prob_delete_node:
+        if random() < config.prob_delete_node:
             self.mutate_delete_node()
 
-        if random() < self.config.prob_delete_conn:
+        if random() < config.prob_delete_conn:
             self.mutate_delete_connection()
 
-        # Mutate connection genes (weights, enabled, etc.).
-        for cg in self.conn_genes.values():
-            cg.mutate(self.config)
+        # Mutate connections.
+        for cg in self.connections.values():
+            cg.mutate(config)
 
-        # Mutate node genes (bias, response, etc.).
-        for ng in self.node_genes.values():
-            if ng.type != 'INPUT':
-                ng.mutate(self.config)
+        # Mutate hidden and output node genes (bias, response, etc.).
+        for ng in self.hidden.values():
+            ng.mutate(config)
+        for ng in self.outputs.values():
+            ng.mutate(config)
 
-        return self
-
-    def crossover(self, other, child_id):
+    def crossover(self, other, key):
         """ Crosses over parents' genomes and returns a child. """
 
         # Parents must belong to the same species.
-        assert self.species_id == other.species_id, 'Different parents species ID: {0} vs {1}'.format(self.species_id,
-                                                                                                      other.species_id)
+        #assert self.species_id == other.species_id, 'Different parents species ID: {0} vs {1}'.format(self.species_id,
+        #                                                                                              other.species_id)
 
         if self.fitness > other.fitness:
             parent1 = self
@@ -82,11 +67,11 @@ class Genome(object):
             parent2 = self
 
         # creates a new child
-        child = self.__class__(child_id, self.config, self.ID, other.ID)
+        child = self.__class__(key)
 
         child.inherit_genes(parent1, parent2)
 
-        child.species_id = parent1.species_id
+        #child.species_id = parent1.species_id
 
         return child
 
@@ -94,171 +79,161 @@ class Genome(object):
         """ Applies the crossover operator. """
         assert (parent1.fitness >= parent2.fitness)
 
-        # Crossover connection genes
-        for cg1 in parent1.conn_genes.values():
-            try:
-                cg2 = parent2.conn_genes[cg1.key]
-            except KeyError:
-                # Copy excess or disjoint genes from the fittest parent
-                self.conn_genes[cg1.key] = cg1.copy()
+        # Inherit connection genes
+        for key, cg1 in iteritems(parent1.connections):
+            cg2 = parent2.connections.get(key)
+            if cg2 is None:
+                # Excess or disjoint gene: copy from the fittest parent.
+                self.connections[key] = cg1.copy()
             else:
-                if cg2.is_same_innov(cg1):  # Always true for *global* INs
-                    # Homologous gene found
-                    new_gene = cg1.get_child(cg2)
+                # Homologous gene: combine genes from both parents.
+                self.connections[key] = cg1.crossover(cg2)
+
+        # Inherit node genes
+        for set_name in ('inputs', 'hidden', 'outputs'):
+            parent1_set = getattr(parent1, set_name)
+            parent2_set = getattr(parent2, set_name)
+            self_set = getattr(self, set_name)
+
+            for key, ng1 in parent1_set.items():
+                ng2 = parent2_set.get(key)
+                assert key not in self_set
+                if ng2 is None:
+                    # Extra gene: copy from the fittest parent
+                    self_set[key] = ng1.copy()
                 else:
-                    new_gene = cg1.copy()
-                self.conn_genes[new_gene.key] = new_gene
-
-        # Crossover node genes
-        for ng1_id, ng1 in parent1.node_genes.items():
-            ng2 = parent2.node_genes.get(ng1_id)
-            if ng2 is None:
-                # copies extra genes from the fittest parent
-                new_gene = ng1.copy()
-            else:
-                # matching node genes: randomly selects the neuron's bias and response
-                new_gene = ng1.get_child(ng2)
-
-            assert new_gene.ID not in self.node_genes
-            self.node_genes[new_gene.ID] = new_gene
+                    # Homologous gene: combine genes from both parents.
+                    self_set[key] = ng1.crossover(ng2)
 
     def get_new_hidden_id(self):
         new_id = 0
-        while new_id in self.node_genes:
+        while new_id in self.inputs or new_id in self.hidden or new_id in self.outputs:
             new_id += 1
         return new_id
 
-    def mutate_add_node(self):
-        if not self.conn_genes:
-            return None
+    def mutate_add_node(self, config):
+        if not self.connections:
+            return None, None
 
         # Choose a random connection to split
-        conn_to_split = choice(list(self.conn_genes.values()))
+        conn_to_split = choice(list(self.connections.values()))
         new_node_id = self.get_new_hidden_id()
-        act_func = choice(self.config.activation_functions)
-        ng = self.config.node_gene_type(new_node_id, 'HIDDEN', activation_type=act_func)
-        assert ng.ID not in self.node_genes
-        self.node_genes[ng.ID] = ng
-        new_conn1, new_conn2 = conn_to_split.split(ng.ID)
-        self.conn_genes[new_conn1.key] = new_conn1
-        self.conn_genes[new_conn2.key] = new_conn2
+        act_func = choice(config.activation_functions)
+        ng = self.create_node(config, new_node_id)
+        self.hidden[new_node_id] = ng
+        new_conn1, new_conn2 = conn_to_split.split(new_node_id)
+        self.connections[new_conn1.key] = new_conn1
+        self.connections[new_conn2.key] = new_conn2
         return ng, conn_to_split  # the return is only used in genome_feedforward
 
-    def mutate_add_connection(self):
+    def mutate_add_connection(self, config):
         '''
         Attempt to add a new connection, the only restriction being that the output
         node cannot be one of the network input nodes.
         '''
-        in_node = choice(list(self.node_genes.values()))
-
-        # TODO: We do this filtering of input/output/hidden nodes a lot;
-        # they should probably be separate collections.
-        possible_outputs = [n for n in self.node_genes.values() if n.type != 'INPUT']
+        possible_outputs = list(self.hidden.keys()) + list(self.outputs.keys())
         out_node = choice(possible_outputs)
 
+        possible_inputs = possible_outputs + list(self.inputs.keys())
+        in_node = choice(possible_inputs)
+
         # Only create the connection if it doesn't already exist.
-        key = (in_node.ID, out_node.ID)
-        if key not in self.conn_genes:
-            weight = gauss(0, self.config.weight_stdev)
+        key = (in_node, out_node)
+        if key not in self.connections:
+            # TODO: factor out new connection creation based on config
+            weight = gauss(0, config.weight_stdev)
             enabled = choice([False, True])
-            cg = self.config.conn_gene_type(in_node.ID, out_node.ID, weight, enabled)
-            self.conn_genes[cg.key] = cg
+            cg = ConnectionGene(in_node, out_node, weight, enabled)
+            self.connections[cg.key] = cg
 
     def mutate_delete_node(self):
         # Do nothing if there are no hidden nodes.
-        if len(self.node_genes) <= self.num_inputs + self.num_outputs:
+        if not self.hidden:
             return -1
 
-        idx = None
-        while 1:
-            idx = choice(list(self.node_genes.keys()))
-            if self.node_genes[idx].type == 'HIDDEN':
-                break
+        del_key, del_node = choice(list(self.hidden.items()))
 
-        node = self.node_genes[idx]
-        node_id = node.ID
+        connections_to_delete = set()
+        for k, v in self.connections.items():
+            if del_key in v.key:
+                connections_to_delete.add(v.key)
 
-        keys_to_delete = set()
-        for key, value in self.conn_genes.items():
-            if node_id in (value.in_node_id, value.out_node_id):
-                keys_to_delete.add(key)
+        for key in connections_to_delete:
+            del self.connections[key]
 
-        # Do not allow deletion of all connection genes.
-        if len(keys_to_delete) >= len(self.conn_genes):
-            return -1
+        del self.hidden[del_key]
 
-        for key in keys_to_delete:
-            del self.conn_genes[key]
-
-        del self.node_genes[idx]
-
-        assert len(self.conn_genes) > 0
-        assert len(self.node_genes) >= self.num_inputs + self.num_outputs
-
-        return node_id
+        return del_key
 
     def mutate_delete_connection(self):
-        if len(self.conn_genes) > self.num_inputs + self.num_outputs:
-            key = choice(list(self.conn_genes.keys()))
-            del self.conn_genes[key]
+        if self.connections:
+            key = choice(list(self.connections.keys()))
+            del self.connections[key]
 
-            assert len(self.conn_genes) > 0
-            assert len(self.node_genes) >= self.num_inputs + self.num_outputs
-
-    # compatibility function
-    def distance(self, other):
-        """ Returns the distance between this genome and the other. """
-        if len(self.conn_genes) > len(other.conn_genes):
-            node_genes1 = self.node_genes
-            conn_genes1 = self.conn_genes
-            node_genes2 = other.node_genes
-            conn_genes2 = other.conn_genes
-
+    def distance(self, other, config):
+        """
+        Returns the genetic distance between this genome and the other. This distance value
+        is used to compute genome compatibility for speciation.
+        """
+        # Take genome1 to be the one with the most connections.
+        genome1, genome2 = self, other
+        if len(self.connections) > len(other.connections):
+            genome1, genome2 = self, other
         else:
-            node_genes1 = other.node_genes
-            conn_genes1 = other.conn_genes
-            node_genes2 = self.node_genes
-            conn_genes2 = self.conn_genes
+            genome2, genome1 = self, other
 
         # Compute node gene differences.
         excess1 = 0
-        excess2 = sum(1 for k2 in node_genes2 if k2 not in node_genes1)
+        excess2 = 0
         bias_diff = 0.0
         response_diff = 0.0
         activation_diff = 0
         num_common = 0
-        for k1, g1 in iteritems(node_genes1):
-            if k1 in node_genes2:
-                num_common += 1
-                g2 = node_genes2[k1]
-                bias_diff += fabs(g1.bias - g2.bias)
-                response_diff += fabs(g1.response - g2.response)
-                if g1.activation_type != g2.activation_type:
-                    activation_diff += 1
-            else:
-                excess1 += 1
+        node_gene_count1 = 0
+        node_gene_count2 = 0
+        for set_name in ('inputs', 'hidden', 'outputs'):
+            node_genes1 = getattr(genome1, set_name)
+            node_genes2 = getattr(genome2, set_name)
 
-        most_nodes = max(len(node_genes1), len(node_genes2))
-        distance = (self.config.excess_coefficient * float(excess1 + excess2) / most_nodes
-                    + self.config.excess_coefficient * float(activation_diff) / most_nodes
-                    + self.config.weight_coefficient * (bias_diff + response_diff) / num_common)
+            node_gene_count1 += len(node_genes1)
+            node_gene_count2 += len(node_genes2)
+
+            for k2 in node_genes2.keys():
+                if k2 not in node_genes1.keys():
+                    excess2 += 1
+
+            for k1, g1 in iteritems(node_genes1):
+                if k1 in node_genes2:
+                    num_common += 1
+                    g2 = node_genes2[k1]
+                    bias_diff += fabs(g1.bias - g2.bias)
+                    response_diff += fabs(g1.response - g2.response)
+                    if g1.activation != g2.activation:
+                        activation_diff += 1
+                else:
+                    excess1 += 1
+
+        most_nodes = max(node_gene_count1, node_gene_count2)
+        distance = (config.excess_coefficient * float(excess1 + excess2) / most_nodes
+                    + config.excess_coefficient * float(activation_diff) / most_nodes
+                    + config.weight_coefficient * (bias_diff + response_diff) / num_common)
 
         # Compute connection gene differences.
-        if conn_genes1:
-            N = len(conn_genes1)
+        if genome1.connections:
+            N = len(genome1.connections)
             weight_diff = 0
             matching = 0
             disjoint = 0
             excess = 0
 
             max_cg_genome2 = None
-            if conn_genes2:
-                max_cg_genome2 = max(itervalues(conn_genes2))
+            if genome2.connections:
+                max_cg_genome2 = max(itervalues(genome2.connections))
 
-            for k1, cg1 in iteritems(conn_genes1):
-                if k1 in conn_genes2:
+            for k1, cg1 in iteritems(genome1.connections):
+                if k1 in genome2.connections:
                     # Homologous genes
-                    cg2 = conn_genes2[k1]
+                    cg2 = genome2.connections[k1]
                     weight_diff += fabs(cg1.weight - cg2.weight)
                     matching += 1
 
@@ -270,50 +245,50 @@ class Genome(object):
                     else:
                         disjoint += 1
 
-            disjoint += len(conn_genes2) - matching
+            disjoint += len(genome2.connections) - matching
 
-            distance += self.config.excess_coefficient * float(excess) / N
-            distance += self.config.disjoint_coefficient * float(disjoint) / N
+            distance += config.excess_coefficient * float(excess) / N
+            distance += config.disjoint_coefficient * float(disjoint) / N
             if matching > 0:
-                distance += self.config.weight_coefficient * (weight_diff / matching)
+                distance += config.weight_coefficient * (weight_diff / matching)
 
         return distance
 
     def size(self):
         '''Returns genome 'complexity', taken to be (number of hidden nodes, number of enabled connections)'''
-        num_hidden_nodes = len(self.node_genes) - self.num_inputs - self.num_outputs
-        num_enabled_connections = sum([1 for cg in self.conn_genes.values() if cg.enabled is True])
-        return num_hidden_nodes, num_enabled_connections
-
-    def __lt__(self, other):
-        '''Order genomes by fitness.'''
-        return self.fitness < other.fitness
+        num_enabled_connections = sum([1 for cg in self.connections.values() if cg.enabled is True])
+        return len(self.hidden), num_enabled_connections
 
     def __str__(self):
-        s = "Nodes:"
-        for ng in self.node_genes.values():
-            s += "\n\t" + str(ng)
+        s = "Input Nodes:"
+        for k, ng in iteritems(self.inputs):
+            s += "{0} {1!s}\n\t".format(k, ng)
+        s = "Output Nodes:"
+        for k, ng in iteritems(self.outputs):
+            s += "{0} {1!s}\n\t".format(k, ng)
+        s = "Hidden Nodes:"
+        for k, ng in iteritems(self.hidden):
+            s += "{0} {1!s}\n\t".format(k, ng)
         s += "\nConnections:"
-        connections = list(self.conn_genes.values())
+        connections = list(self.connections.values())
         connections.sort()
         for c in connections:
             s += "\n\t" + str(c)
         return s
 
-    def add_hidden_nodes(self, num_hidden):
+    def add_hidden_nodes(self, num_hidden, config):
         node_id = self.get_new_hidden_id()
         for i in range(num_hidden):
-            act_func = choice(self.config.activation_functions)
-            node_gene = self.config.node_gene_type(node_id,
-                                                   node_type='HIDDEN',
-                                                   activation_type=act_func)
-            assert node_gene.ID not in self.node_genes
-            self.node_genes[node_gene.ID] = node_gene
+            # TODO: factor out new node creation.
+            act_func = choice(config.activation_functions)
+            node_gene = config.node_gene_type(activation_type=act_func)
+            assert node_id not in self.hidden
+            self.hidden[node_id] = node_gene
             node_id += 1
 
     @classmethod
-    def create(cls, ID, config):
-        g = config.genotype.create_unconnected(ID, config)
+    def create(cls, config, key):
+        g = config.genotype.create_unconnected(config, key)
 
         # Add hidden nodes if requested.
         if config.hidden_nodes > 0:
@@ -325,83 +300,80 @@ class Genome(object):
         elif config.initial_connection == 'fully_connected':
             g.connect_full()
         elif config.initial_connection == 'partial':
-            g.connect_partial(config.connection_fraction)
+            g.connect_partial(config)
 
         return g
 
+    @staticmethod
+    def create_node(config, node_id):
+        return NodeGene(node_id, config.new_bias(), config.new_response(),
+                        config.new_aggregation(), config.new_activation())
 
     # TODO: Can this be changed to not need a configuration object?
     @classmethod
-    def create_unconnected(cls, ID, config):
+    def create_unconnected(cls, config, key):
         '''Create a genome for a network with no hidden nodes and no connections.'''
-        c = cls(ID, config, None, None)
+        c = cls(key)
         node_id = 0
         # Create input node genes.
         for i in range(config.input_nodes):
-            assert node_id not in c.node_genes
-            c.node_genes[node_id] = config.node_gene_type(node_id, 'INPUT')
+            assert node_id not in c.inputs
+            c.inputs[node_id] = cls.create_node(config, node_id)
             node_id += 1
 
         # Create output node genes.
         for i in range(config.output_nodes):
             act_func = choice(config.activation_functions)
-            node_gene = config.node_gene_type(node_id,
-                                              node_type='OUTPUT',
-                                              activation_type=act_func)
-            assert node_gene.ID not in c.node_genes
-            c.node_genes[node_gene.ID] = node_gene
+            assert node_id not in c.outputs
+            c.outputs[node_id] = cls.create_node(config, node_id)
             node_id += 1
 
-        assert node_id == len(c.node_genes)
+        assert node_id == len(c.inputs) + len(c.outputs)
         return c
 
-    def connect_fs_neat(self):
+    def connect_fs_neat(self, config):
         """ Randomly connect one input to all hidden and output nodes (FS-NEAT). """
-        in_genes = [g for g in self.node_genes.values() if g.type == 'INPUT']
-        hid_genes = [g for g in self.node_genes.values() if g.type == 'HIDDEN']
-        out_genes = [g for g in self.node_genes.values() if g.type == 'OUTPUT']
-
-        ig = choice(in_genes)
-        for og in hid_genes + out_genes:
-            weight = gauss(0, self.config.weight_stdev)
-            cg = self.config.conn_gene_type(ig.ID, og.ID, weight, True)
-            self.conn_genes[cg.key] = cg
+        # TODO: Factor out the gene creation.
+        input_id = choice(self.inputs.keys())
+        for output_id in list(self.hidden.keys()) + list(self.outputs.keys()):
+            weight = gauss(0, config.weight_stdev)
+            cg = config.conn_gene_type(input_id, output_id, weight, True)
+            self.connections[cg.key] = cg
 
     def compute_full_connections(self):
         """ Create a fully-connected genome. """
-        in_genes = [g for g in self.node_genes.values() if g.type == 'INPUT']
-        hid_genes = [g for g in self.node_genes.values() if g.type == 'HIDDEN']
-        out_genes = [g for g in self.node_genes.values() if g.type == 'OUTPUT']
-
         # Connect each input node to all hidden and output nodes.
         connections = []
-        for ig in in_genes:
-            for og in hid_genes + out_genes:
-                connections.append((ig.ID, og.ID))
+        for input_id in self.inputs.keys():
+            for output_id in list(self.hidden.keys()) + list(self.outputs.keys()):
+                connections.append((input_id, output_id))
 
         # Connect each hidden node to all output nodes.
-        for hg in hid_genes:
-            for og in out_genes:
-                connections.append((hg.ID, og.ID))
+        for hidden_id in self.hidden.keys():
+            for output_id in self.outputs.keys():
+                connections.append((hidden_id, output_id))
 
         return connections
 
-    def connect_full(self):
+    def connect_full(self, config):
         """ Create a fully-connected genome. """
+        # TODO: Factor out the gene creation.
         for input_id, output_id in self.compute_full_connections():
-            weight = gauss(0, self.config.weight_stdev)
-            cg = self.config.conn_gene_type(input_id, output_id, weight, True)
-            self.conn_genes[cg.key] = cg
+            weight = gauss(0, config.weight_stdev)
+            cg = config.conn_gene_type(input_id, output_id, weight, True)
+            self.connections[cg.key] = cg
 
-    def connect_partial(self, fraction):
-        assert 0 <= fraction <= 1
+    def connect_partial(self, config):
+        # TODO: Factor out the gene creation.
+        assert 0 <= config.connection_fraction <= 1
         all_connections = self.compute_full_connections()
         shuffle(all_connections)
-        num_to_add = int(round(len(all_connections) * fraction))
+        num_to_add = int(round(len(all_connections) * config.connection_fraction))
         for input_id, output_id in all_connections[:num_to_add]:
-            weight = gauss(0, self.config.weight_stdev)
-            cg = self.config.conn_gene_type(input_id, output_id, weight, True)
-            self.conn_genes[cg.key] = cg
+            weight = gauss(0, config.weight_stdev)
+            cg = ConnectionGene(input_id, output_id, weight, True)
+            self.connections[cg.key] = cg
+
 
 
 class FFGenome(Genome):
@@ -409,8 +381,8 @@ class FFGenome(Genome):
         topologies are a particular case of Recurrent NNs.
     """
 
-    def __init__(self, ID, config, parent1_id, parent2_id):
-        super(FFGenome, self).__init__(ID, config, parent1_id, parent2_id)
+    def __init__(self, key):
+        super(FFGenome, self).__init__(key)
         self.node_order = []  # hidden node order
 
     def inherit_genes(self, parent1, parent2):
@@ -418,74 +390,70 @@ class FFGenome(Genome):
 
         self.node_order = list(parent1.node_order)
 
-        assert (len(self.node_order) == len([n for n in self.node_genes.values() if n.type == 'HIDDEN']))
+        assert len(self.node_order) == len(self.hidden)
 
-    def mutate_add_node(self):
-        result = super(FFGenome, self).mutate_add_node()
-        if result is None:
-            return
-
+    def mutate_add_node(self, config):
+        # TODO: This method is overcomplicated, we should factor out the base class
+        # capability, pick a valid place to insert, and then tell it to do that.
+        result = super(FFGenome, self).mutate_add_node(config)
         ng, split_conn = result
-        # Add node to node order list: after the presynaptic node of the split connection
-        # and before the postsynaptic node of the split connection
-        if self.node_genes[split_conn.in_node_id].type == 'HIDDEN':
-            mini = self.node_order.index(split_conn.in_node_id) + 1
-        else:
-            # Presynaptic node is an input node, not hidden node
-            mini = 0
-        if self.node_genes[split_conn.out_node_id].type == 'HIDDEN':
-            maxi = self.node_order.index(split_conn.out_node_id)
-        else:
-            # Postsynaptic node is an output node, not hidden node
-            maxi = len(self.node_order)
-        self.node_order.insert(randint(mini, maxi), ng.ID)
-        assert (len(self.node_order) == len([n for n in self.node_genes.values() if n.type == 'HIDDEN']))
+        if ng is not None:
+            # Add node to node order list: after the presynaptic node of the split connection
+            # and before the postsynaptic node of the split connection
+            if split_conn.input in self.hidden:
+                mini = self.node_order.index(split_conn.input) + 1
+            else:
+                # Presynaptic node is an input node, not hidden node
+                mini = 0
+            if split_conn.output in self.hidden:
+                maxi = self.node_order.index(split_conn.output)
+            else:
+                # Postsynaptic node is an output node, not hidden node
+                maxi = len(self.node_order)
+            self.node_order.insert(randint(mini, maxi), ng.key)
+            assert len(self.node_order) == len(self.hidden)
+
         return ng, split_conn
 
-    def mutate_add_connection(self):
+    def mutate_add_connection(self, config):
         '''
         Attempt to add a new connection, with the restrictions that (1) the output node
         cannot be one of the network input nodes, and (2) the connection must be feed-forward.
         '''
-        possible_inputs = [n for n in self.node_genes.values() if n.type != 'OUTPUT']
-        possible_outputs = [n for n in self.node_genes.values() if n.type != 'INPUT']
-
-        in_node = choice(possible_inputs)
-        out_node = choice(possible_outputs)
+        in_node = choice(list(self.inputs.keys()))
+        out_node = choice(list(self.outputs.keys()))
 
         # Only create the connection if it's feed-forward and it doesn't already exist.
         if self.__is_connection_feedforward(in_node, out_node):
-            key = (in_node.ID, out_node.ID)
-            if key not in self.conn_genes:
-                weight = gauss(0, self.config.weight_stdev)
+            key = (in_node, out_node)
+            if key not in self.connections:
+                weight = gauss(0, config.weight_stdev)
                 enabled = choice([False, True])
-                cg = self.config.conn_gene_type(in_node.ID, out_node.ID, weight, enabled)
-                self.conn_genes[cg.key] = cg
+                cg = ConnectionGene(in_node, out_node, weight, enabled)
+                self.connections[cg.key] = cg
 
     def mutate_delete_node(self):
         deleted_id = super(FFGenome, self).mutate_delete_node()
         if deleted_id != -1:
             self.node_order.remove(deleted_id)
 
-        assert len(self.node_genes) >= self.num_inputs + self.num_outputs
+        #assert len(self.node_genes) >= self.num_inputs + self.num_outputs
 
     def __is_connection_feedforward(self, in_node, out_node):
-        if in_node.type == 'INPUT' or out_node.type == 'OUTPUT':
+        if in_node in self.inputs or out_node in self.outputs:
             return True
 
-        assert in_node.ID in self.node_order
-        assert out_node.ID in self.node_order
-        return self.node_order.index(in_node.ID) < self.node_order.index(out_node.ID)
+        assert in_node in self.node_order
+        assert out_node in self.node_order
+        return self.node_order.index(in_node) < self.node_order.index(out_node)
 
-    def add_hidden_nodes(self, num_hidden):
+    def add_hidden_nodes(self, num_hidden, config):
         node_id = self.get_new_hidden_id()
         for i in range(num_hidden):
-            act_func = choice(self.config.activation_functions)
-            node_gene = self.config.node_gene_type(node_id,
-                                                   node_type='HIDDEN',
-                                                   activation_type=act_func)
-            assert node_gene.ID not in self.node_genes
-            self.node_genes[node_gene.ID] = node_gene
+            act_func = choice(config.activation_functions)
+            node_gene = config.node_gene_type()
+            assert node_id not in self.hidden
+            self.hidden[node_id] = node_gene
             self.node_order.append(node_gene.ID)
             node_id += 1
 

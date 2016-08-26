@@ -1,125 +1,120 @@
-from random import choice, gauss, random
+from random import random
 
-# TODO: Provide a more generalized node implementation, for example with an arbitrary operation
-# (max, sum, product, etc.) over input*weight values instead of only addition.
+# TODO: Evaluate using __slots__ for performance/memory usage improvement.
 
 
 class NodeGene(object):
-    def __init__(self, ID, node_type, bias=0.0, response=4.924273, activation_type='sigmoid'):
-        """ A node gene encodes the basic artificial neuron model.
-            node_type must be 'INPUT', 'HIDDEN', or 'OUTPUT'
-        """
-        assert activation_type is not None
-        # TODO: Node genes probably shouldn't need to know whether they are input/output/hidden.
-        assert node_type in ('INPUT', 'OUTPUT', 'HIDDEN')
+    """ Encodes parameters for a single artificial neuron. """
 
-        self.ID = ID
-        self.type = node_type
+    def __init__(self, key, bias, response, aggregation, activation):
+        # TODO: Move these asserts into an external validation mechanism that can be omitted at runtime if desired.
+        # TODO: Validate aggregation and activation against current configuration.
+        assert type(bias) is float
+        assert type(response) is float
+        assert type(aggregation) is str
+        assert type(activation) is str
+
+        self.key = key
         self.bias = bias
         self.response = response
-        self.activation_type = activation_type
+        self.aggregation = aggregation
+        self.activation = activation
 
     def __str__(self):
-        return 'NodeGene(id={0}, type={1}, bias={2}, response={3}, activation={4})'.format(
-            self.ID, self.type, self.bias, self.response, self.activation_type)
+        return 'NodeGene(key= {0}, bias={1}, response={2}, aggregation={3}, activation={4})'.format(
+            self.key, self.bias, self.response, self.aggregation, self.activation)
 
-    def get_child(self, other):
+    def crossover(self, gene2):
         """ Creates a new NodeGene randomly inheriting attributes from its parents."""
-        assert (self.ID == other.ID)
+        # TODO: Move these asserts into an external validation mechanism that can be omitted at runtime if desired.
+        assert isinstance(self, NodeGene)
+        assert isinstance(gene2, NodeGene)
+        assert self.key == gene2.key
 
         # Note: we use "a if random() > 0.5 else b" instead of choice((a, b))
         # here because `choice` is substantially slower.
-        bias = self.bias if random() > 0.5 else other.bias
-        response = self.response if random() > 0.5 else other.response
-        activation = self.activation_type if random() > 0.5 else other.activation_type
-        ng = NodeGene(self.ID, self.type, bias, response, activation)
+        bias = self.bias if random() > 0.5 else gene2.bias
+        response = self.response if random() > 0.5 else gene2.response
+        aggregation = self.aggregation if random() > 0.5 else gene2.aggregation
+        activation = self.activation if random() > 0.5 else gene2.activation
+        ng = NodeGene(self.key, bias, response, aggregation, activation)
         return ng
 
-    def mutate_bias(self, config):
-        new_bias = self.bias + gauss(0, 1) * config.bias_mutation_power
-        self.bias = max(config.min_weight, min(config.max_weight, new_bias))
-
-    def mutate_response(self, config):
-        """ Mutates the neuron's average firing response. """
-        new_response = self.response + gauss(0, 1) * config.response_mutation_power
-        self.response = max(config.min_weight, min(config.max_weight, new_response))
-
-    def mutate_activation(self, config):
-        self.activation_type = choice(config.activation_functions)
-
     def copy(self):
-        return NodeGene(self.ID, self.type, self.bias,
-                        self.response, self.activation_type)
+        return NodeGene(self.key, self.bias, self.response, self.aggregation, self.activation)
 
+    # TODO: Factor out mutation into a separate class.
     def mutate(self, config):
         if random() < config.prob_mutate_bias:
-            self.mutate_bias(config)
-        if random() < config.prob_mutate_response:
-            self.mutate_response(config)
-        if random() < config.prob_mutate_activation:
-            self.mutate_activation(config)
+            self.bias = config.mutate_bias(self.bias)
 
+        if random() < config.prob_mutate_response:
+            self.response = config.mutate_response(self.response)
+
+        if random() < config.prob_mutate_aggregation:
+            self.aggregation = config.mutate_aggregation(self.aggregation)
+
+        if random() < config.prob_mutate_activation:
+            self.activation = config.mutate_activation(self.activation)
+
+
+# TODO: Evaluate using __slots__ for performance/memory usage improvement.
 
 class ConnectionGene(object):
-    def __init__(self, in_node_id, out_node_id, weight, enabled):
-        assert type(in_node_id) is int
-        assert type(out_node_id) is int
+    def __init__(self, input_id, output_id, weight, enabled):
+        # TODO: Move these asserts into an external validation mechanism that can be omitted at runtime if desired.
+        assert type(input_id) is int
+        assert type(output_id) is int
         assert type(weight) is float
         assert type(enabled) is bool
 
-        self.in_node_id = in_node_id
-        self.out_node_id = out_node_id
+        self.key = (input_id, output_id)
+        self.input = input_id
+        self.output = output_id
         self.weight = weight
+        # TODO: Do an ablation study to determine whether the enabled setting is
+        # important--presumably mutations that set the weight to near zero could
+        # provide a similar effect depending on the weight range and mutation rate.
         self.enabled = enabled
 
-    # Key for dictionaries, avoids two connections between the same nodes.
-    key = property(lambda self: (self.in_node_id, self.out_node_id))
-
+    # TODO: Factor out mutation into a separate class.
     def mutate(self, config):
-        if random() < config.prob_mutate_weight:
-            if random() < config.prob_replace_weight:
-                # Replace weight with a random value.
-                self.weight = gauss(0, config.weight_stdev)
-            else:
-                # Perturb weight.
-                new_weight = self.weight + gauss(0, 1) * config.weight_mutation_power
-                self.weight = max(config.min_weight, min(config.max_weight, new_weight))
+        self.weight = config.mutate_weight(self.weight)
 
         if random() < config.prob_toggle_link:
             self.enabled = not self.enabled
 
-    def enable(self):
-        """ Enables a link. """
-        self.enabled = True
-
     def __str__(self):
-        return 'ConnectionGene(in={0}, out={1}, weight={2}, enabled={3}, innov={4})'.format(
-            self.in_node_id, self.out_node_id, self.weight, self.enabled, self.key)
+        return 'ConnectionGene(in={0}, out={1}, weight={2}, enabled={3}, innovation={4})'.format(
+            self.input, self.output, self.weight, self.enabled, self.key)
 
     def __lt__(self, other):
         return self.key < other.key
 
     def split(self, node_id):
-        """ Splits a connection, creating two new connections and disabling this one """
+        """
+        Disable this connection and create two new connections joining its nodes via
+        the given node.  The new node+connections have roughly the same behavior as
+        the original connection (depending on the activation function of the new node).
+        """
         self.enabled = False
-
-        new_conn1 = ConnectionGene(self.in_node_id, node_id, 1.0, True)
-        new_conn2 = ConnectionGene(node_id, self.out_node_id, self.weight, True)
+        new_conn1 = ConnectionGene(self.input, node_id, 1.0, True)
+        new_conn2 = ConnectionGene(node_id, self.output, self.weight, True)
 
         return new_conn1, new_conn2
 
     def copy(self):
-        return ConnectionGene(self.in_node_id, self.out_node_id, self.weight, self.enabled)
+        return ConnectionGene(self.input, self.output, self.weight, self.enabled)
 
-    def is_same_innov(self, other):
-        return self.key == other.key
-
-    def get_child(self, other):
+    def crossover(self, gene2):
         """ Creates a new ConnectionGene randomly inheriting attributes from its parents."""
-        assert self.key == other.key
+        # TODO: Move these asserts into an external validation mechanism that can be omitted at runtime if desired.
+        assert isinstance(self, ConnectionGene)
+        assert isinstance(gene2, ConnectionGene)
+        assert self.key == gene2.key
+
         # Note: we use "a if random() > 0.5 else b" instead of choice((a, b))
         # here because `choice` is substantially slower.
-        weight = self.weight if random() > 0.5 else other.weight
-        enabled = self.enabled if random() > 0.5 else other.enabled
-        cg = ConnectionGene(self.in_node_id, self.out_node_id, weight, enabled)
-        return cg
+        weight = self.weight if random() > 0.5 else gene2.weight
+        enabled = self.enabled if random() > 0.5 else gene2.enabled
+        return ConnectionGene(self.input, self.output, weight, enabled)

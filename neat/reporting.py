@@ -2,8 +2,10 @@ from __future__ import print_function
 
 import copy
 import time
+import sys
 
 from neat.math_util import mean, stdev
+from neat.six_util import iteritems, itervalues
 
 
 class ReporterSet(object):
@@ -32,9 +34,9 @@ class ReporterSet(object):
         for r in self.reporters:
             r.saving_checkpoint(checkpoint_type, filename)
 
-    def post_evaluate(self, population, species, best):
+    def post_evaluate(self, population, species, best_id, best):
         for r in self.reporters:
-            r.post_evaluate(population, species, best)
+            r.post_evaluate(population, species, best_id, best)
 
     def complete_extinction(self):
         for r in self.reporters:
@@ -44,9 +46,9 @@ class ReporterSet(object):
         for r in self.reporters:
             r.found_solution(generation, best)
 
-    def species_stagnant(self, species):
+    def species_stagnant(self, sid, species):
         for r in self.reporters:
-            r.species_stagnant(species)
+            r.species_stagnant(sid, species)
 
     def info(self, msg):
         for r in self.reporters:
@@ -67,7 +69,7 @@ class BaseReporter(object):
     def saving_checkpoint(self, checkpoint_type, filename):
         pass
 
-    def post_evaluate(self, population, species, best):
+    def post_evaluate(self, population, species, best_id, best):
         pass
 
     def complete_extinction(self):
@@ -76,7 +78,7 @@ class BaseReporter(object):
     def found_solution(self, generation, best):
         pass
 
-    def species_stagnant(self, species):
+    def species_stagnant(self, sid, species):
         pass
 
     def info(self, msg):
@@ -103,17 +105,18 @@ class StdOutReporter(BaseReporter):
         print('Creating {0} checkpoint file {1} at generation: {0}'.format(
             checkpoint_type, filename, self.generation))
 
-    def post_evaluate(self, population, species, best):
-        fit_mean = mean([c.fitness for c in population])
-        fit_std = stdev([c.fitness for c in population])
+    def post_evaluate(self, population, species, best_id, best):
+        fitnesses = [c.fitness for c in itervalues(population)]
+        fit_mean = mean(fitnesses)
+        fit_std = stdev(fitnesses)
+        best_species_id = species.get_species_id(best_id)
         print('Population\'s average fitness: {0:3.5f} stdev: {1:3.5f}'.format(fit_mean, fit_std))
         print('Best fitness: {0:3.5f} - size: {1!r} - species {2} - id {3}'.format(best.fitness, best.size(),
-                                                                                   best.species_id, best.ID))
-        print('Species length: {0:d} totaling {1:d} individuals'.format(len(species), sum(
-            [len(s.members) for s in species])))
-        print('Species ID       : {0!s}'.format([s.ID for s in species]))
-        print('Species size     : {0!s}'.format([len(s.members) for s in species]))
-        print('Species age      : {0}'.format([s.age for s in species]))
+                                                                                   best_species_id, best_id))
+        print('Species length: {0:d} totaling {1:d} individuals'.format(len(species.species), len(population)))
+        #print('Species ID       : {0!s}'.format([s.ID for s in species]))
+        #print('Species size     : {0!s}'.format([len(s.members) for s in species]))
+        #print('Species age      : {0}'.format([s.age for s in species]))
 
     def complete_extinction(self):
         print('All species extinct.')
@@ -122,8 +125,8 @@ class StdOutReporter(BaseReporter):
         print('\nBest individual in generation {0} meets fitness threshold - complexity: {1!r}'.format(
             self.generation, best.size()))
 
-    def species_stagnant(self, species):
-        print("\nSpecies {0} with {1} members is stagnated: removing it".format(species.ID, len(species.members)))
+    def species_stagnant(self, sid, species):
+        print("\nSpecies {0} with {1} members is stagnated: removing it".format(sid, len(species.members)))
 
     def info(self, msg):
         print(msg)
@@ -136,15 +139,15 @@ class StatisticsReporter(BaseReporter):
         self.generation_statistics = []
         self.generation_cross_validation_statistics = []
 
-    def post_evaluate(self, population, species, best):
+    def post_evaluate(self, population, species, best_id, best):
         self.most_fit_genomes.append(copy.deepcopy(best))
 
         # Store the fitnesses of the members of each currently active species.
         species_stats = {}
         species_cross_validation_stats = {}
-        for s in species:
-            species_stats[s.ID] = [m.fitness for m in s.members]
-            species_cross_validation_stats[s.ID] = [m.cross_validation_fitness for m in s.members]
+        for sid, s in iteritems(species.species):
+            species_stats[sid] = dict((k, v.fitness) for k, v in iteritems(s.members))
+            species_cross_validation_stats[sid] = dict((k, v.cross_fitness) for k, v in iteritems(s.members))
         self.generation_statistics.append(species_stats)
         self.generation_cross_validation_statistics.append(species_cross_validation_stats)
 
