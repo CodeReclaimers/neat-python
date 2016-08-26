@@ -2,12 +2,15 @@
 [![Code Issues](https://www.quantifiedcode.com/api/v1/project/2bb1d19f57684f4589cb4700f99dd75e/badge.svg)](https://www.quantifiedcode.com/app/project/2bb1d19f57684f4589cb4700f99dd75e)
 [![Coverage Status](https://coveralls.io/repos/CodeReclaimers/neat-python/badge.svg?branch=master&service=github)](https://coveralls.io/github/CodeReclaimers/neat-python?branch=master)
 
-## NOTE ##
+## NOTES ##
 
-The examples are currently being moved into a separate repository (and
-Python package) from the NEAT library itself.  During this time if you use the
-code from the GitHub repository you may find that examples are missing and/or
-not working.
+Some large-scale changes are in progress on the [refactor-and-simplify branch](https://github.com/CodeReclaimers/neat-python/tree/refactor-and-simplify). 
+Once these are more stable they will be released as version 0.8.
+
+
+The more complicated examples have been moved into a [separate repository](https://github.com/CodeReclaimers/neat-python-examples) 
+(and eventually a separate Python package on PyPI) from the NEAT library 
+itself.  
 
 ## About ##
 
