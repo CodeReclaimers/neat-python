@@ -7,7 +7,8 @@ import sys
 import time
 
 from neat.config import Config
-from neat.reporting import ReporterSet, StatisticsReporter, StdOutReporter
+from neat.reporting import ReporterSet, StdOutReporter
+from neat.statistics import StatisticsReporter
 from neat.species import SpeciesSet
 from neat.six_util import iteritems, itervalues
 
@@ -120,18 +121,16 @@ class Population(object):
             # genome doesn't change--in these cases, evaluating unmodified elites in each
             # generation is a waste of time.  The user can always take care of this in their
             # fitness function in the time being if they wish.
-            fitness_function(list(iteritems(self.population)))
+            fitness_function(list(itervalues(self.population)))
             #self.total_evaluations += len(self.population)
 
             # Gather and report statistics.
-            best_id = None
             best = None
             best_fitness = -sys.float_info.max
-            for k, v in iteritems(self.population):
-                if v.fitness > best_fitness:
-                    best = v
-                    best_id = k
-            self.reporters.post_evaluate(self.population, self.species, best_id, best)
+            for g in itervalues(self.population):
+                if g.fitness > best_fitness:
+                    best = g
+            self.reporters.post_evaluate(self.population, self.species, best)
 
             # Save the best genome from the current generation if requested.
             if self.config.save_best:

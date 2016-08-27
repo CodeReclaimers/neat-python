@@ -5,12 +5,13 @@ from math import fabs
 from random import choice, gauss, randint, random, shuffle
 
 
-class Genome(object):
+class DefaultGenome(object):
     """ A genome for generalized neural networks. """
 
     def __init__(self, key):
-        # (id, gene) pairs for gene sets.
         self.key = key
+
+        # (id, gene) pairs for gene sets.
         self.connections = {}
         self.hidden = {}
         self.inputs = {}
@@ -54,11 +55,6 @@ class Genome(object):
 
     def crossover(self, other, key):
         """ Crosses over parents' genomes and returns a child. """
-
-        # Parents must belong to the same species.
-        #assert self.species_id == other.species_id, 'Different parents species ID: {0} vs {1}'.format(self.species_id,
-        #                                                                                              other.species_id)
-
         if self.fitness > other.fitness:
             parent1 = self
             parent2 = other
@@ -68,10 +64,7 @@ class Genome(object):
 
         # creates a new child
         child = self.__class__(key)
-
         child.inherit_genes(parent1, parent2)
-
-        #child.species_id = parent1.species_id
 
         return child
 
@@ -288,7 +281,7 @@ class Genome(object):
 
     @classmethod
     def create(cls, config, key):
-        g = config.genotype.create_unconnected(config, key)
+        g = config.genome_type.create_unconnected(config, key)
 
         # Add hidden nodes if requested.
         if config.hidden_nodes > 0:
@@ -376,7 +369,11 @@ class Genome(object):
 
 
 
-class FFGenome(Genome):
+# TODO: This class only differs from DefaultGenome in mutation behavior and
+# the node_order member.  Its complexity suggests the bar is set too high
+# for creating user-defined genome types.
+
+class FFGenome(DefaultGenome):
     """ A genome for feed-forward neural networks. Feed-forward
         topologies are a particular case of Recurrent NNs.
     """

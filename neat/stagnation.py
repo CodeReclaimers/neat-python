@@ -52,6 +52,8 @@ class DefaultStagnation(object):
             if is_stagnant:
                 self.remove(s)
 
+        # TODO: shouldn't this information be a specific event type instead of just "info"?
+        # TODO: this should probably be reported higher up by the caller of update().
         self.reporters.info('Species no improv: {0!r}'.format(self.stagnant_counts))
 
         return result

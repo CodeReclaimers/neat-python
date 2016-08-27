@@ -1,7 +1,7 @@
 from random import random, gauss, choice
 import os
 
-from neat.genome import Genome, FFGenome
+from neat.genome import DefaultGenome, FFGenome
 from neat import activation_functions
 from neat.reproduction import DefaultReproduction
 from neat.stagnation import DefaultStagnation
@@ -31,7 +31,9 @@ class Config(object):
 
     def __init__(self, filename=None):
         self.registry = {'DefaultStagnation': DefaultStagnation,
-                         'DefaultReproduction': DefaultReproduction}
+                         'DefaultReproduction': DefaultReproduction,
+                         'DefaultGenome': DefaultGenome,
+                         'FFGenome': FFGenome}
         self.type_config = {}
         if filename is not None:
             self.load(filename)
@@ -58,7 +60,6 @@ class Config(object):
         self.connection_fraction = None
         self.max_weight = float(parameters.get('phenotype', 'max_weight'))
         self.min_weight = float(parameters.get('phenotype', 'min_weight'))
-        self.feedforward = bool(int(parameters.get('phenotype', 'feedforward')))
         self.weight_stdev = float(parameters.get('phenotype', 'weight_stdev'))
         self.activation_functions = parameters.get('phenotype', 'activation_functions').strip().split()
         self.aggregation_functions = parameters.get('phenotype', 'aggregation_functions').strip().split()
@@ -77,12 +78,6 @@ class Config(object):
         for fn in self.activation_functions:
             if not activation_functions.is_valid(fn):
                 raise Exception("Invalid activation function name: {0!r}".format(fn))
-
-        # Select a genotype class.
-        if self.feedforward:
-            self.genotype = FFGenome
-        else:
-            self.genotype = Genome
 
         # Genetic algorithm configuration
         self.pop_size = int(parameters.get('genetic', 'pop_size'))
@@ -111,6 +106,7 @@ class Config(object):
 
         stagnation_type_name = parameters.get('Types', 'stagnation_type')
         reproduction_type_name = parameters.get('Types', 'reproduction_type')
+        genome_type_name = parameters.get('Types', 'genome_type')
 
         if stagnation_type_name not in self.registry:
             raise Exception('Unknown stagnation type: {!r}'.format(stagnation_type_name))
@@ -121,6 +117,11 @@ class Config(object):
             raise Exception('Unknown reproduction type: {!r}'.format(reproduction_type_name))
         self.reproduction_type = self.registry[reproduction_type_name]
         self.type_config[reproduction_type_name] = parameters.items(reproduction_type_name)
+
+        if genome_type_name not in self.registry:
+            raise Exception('Unknown reproduction type: {!r}'.format(reproduction_type_name))
+        self.genome_type = self.registry[genome_type_name]
+        self.type_config[genome_type_name] = parameters.items(genome_type_name)
 
         # Gather statistics for each generation.
         self.collect_statistics = True
@@ -151,13 +152,13 @@ class Config(object):
         return gauss(0, self.weight_stdev)
 
     def new_response(self):
-        return 1.0
+        return 5.0
 
     def new_aggregation(self):
         return choice(self.aggregation_functions)
 
     def new_activation(self):
-        return choice(list(activation_functions.functions.keys()))
+        return choice(self.activation_functions)
 
     def mutate_weight(self, weight):
         if random() < self.prob_mutate_weight:

@@ -45,17 +45,10 @@ class NodeGene(object):
 
     # TODO: Factor out mutation into a separate class.
     def mutate(self, config):
-        if random() < config.prob_mutate_bias:
-            self.bias = config.mutate_bias(self.bias)
-
-        if random() < config.prob_mutate_response:
-            self.response = config.mutate_response(self.response)
-
-        if random() < config.prob_mutate_aggregation:
-            self.aggregation = config.mutate_aggregation(self.aggregation)
-
-        if random() < config.prob_mutate_activation:
-            self.activation = config.mutate_activation(self.activation)
+        self.bias = config.mutate_bias(self.bias)
+        self.response = config.mutate_response(self.response)
+        self.aggregation = config.mutate_aggregation(self.aggregation)
+        self.activation = config.mutate_activation(self.activation)
 
 
 # TODO: Evaluate using __slots__ for performance/memory usage improvement.

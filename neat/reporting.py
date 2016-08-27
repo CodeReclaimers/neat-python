@@ -1,11 +1,9 @@
 from __future__ import print_function
 
-import copy
 import time
-import sys
 
 from neat.math_util import mean, stdev
-from neat.six_util import iteritems, itervalues
+from neat.six_util import itervalues
 
 
 class ReporterSet(object):
@@ -34,9 +32,9 @@ class ReporterSet(object):
         for r in self.reporters:
             r.saving_checkpoint(checkpoint_type, filename)
 
-    def post_evaluate(self, population, species, best_id, best):
+    def post_evaluate(self, population, species, best_genome):
         for r in self.reporters:
-            r.post_evaluate(population, species, best_id, best)
+            r.post_evaluate(population, species, best_genome)
 
     def complete_extinction(self):
         for r in self.reporters:
@@ -69,7 +67,7 @@ class BaseReporter(object):
     def saving_checkpoint(self, checkpoint_type, filename):
         pass
 
-    def post_evaluate(self, population, species, best_id, best):
+    def post_evaluate(self, population, species, best_genome):
         pass
 
     def complete_extinction(self):
@@ -105,14 +103,14 @@ class StdOutReporter(BaseReporter):
         print('Creating {0} checkpoint file {1} at generation: {0}'.format(
             checkpoint_type, filename, self.generation))
 
-    def post_evaluate(self, population, species, best_id, best):
+    def post_evaluate(self, population, species, best_genome):
         fitnesses = [c.fitness for c in itervalues(population)]
         fit_mean = mean(fitnesses)
         fit_std = stdev(fitnesses)
-        best_species_id = species.get_species_id(best_id)
+        best_species_id = species.get_species_id(best_genome.key)
         print('Population\'s average fitness: {0:3.5f} stdev: {1:3.5f}'.format(fit_mean, fit_std))
-        print('Best fitness: {0:3.5f} - size: {1!r} - species {2} - id {3}'.format(best.fitness, best.size(),
-                                                                                   best_species_id, best_id))
+        print('Best fitness: {0:3.5f} - size: {1!r} - species {2} - id {3}'.format(best_genome.fitness, best_genome.size(),
+                                                                                   best_species_id, best_genome.key))
         print('Species length: {0:d} totaling {1:d} individuals'.format(len(species.species), len(population)))
         #print('Species ID       : {0!s}'.format([s.ID for s in species]))
         #print('Species size     : {0!s}'.format([len(s.members) for s in species]))
@@ -130,69 +128,3 @@ class StdOutReporter(BaseReporter):
 
     def info(self, msg):
         print(msg)
-
-
-class StatisticsReporter(BaseReporter):
-    def __init__(self):
-        BaseReporter.__init__(self)
-        self.most_fit_genomes = []
-        self.generation_statistics = []
-        self.generation_cross_validation_statistics = []
-
-    def post_evaluate(self, population, species, best_id, best):
-        self.most_fit_genomes.append(copy.deepcopy(best))
-
-        # Store the fitnesses of the members of each currently active species.
-        species_stats = {}
-        species_cross_validation_stats = {}
-        for sid, s in iteritems(species.species):
-            species_stats[sid] = dict((k, v.fitness) for k, v in iteritems(s.members))
-            species_cross_validation_stats[sid] = dict((k, v.cross_fitness) for k, v in iteritems(s.members))
-        self.generation_statistics.append(species_stats)
-        self.generation_cross_validation_statistics.append(species_cross_validation_stats)
-
-    def get_average_fitness(self):
-        """Get the per-generation average fitness."""
-        avg_fitness = []
-        for stats in self.generation_statistics:
-            scores = []
-            for fitness in stats.values():
-                scores.extend(fitness)
-            avg_fitness.append(mean(scores))
-
-        return avg_fitness
-
-    def get_average_cross_validation_fitness(self):
-        """Get the per-generation average cross_validation fitness."""
-        avg_cross_validation_fitness = []
-        for stats in self.generation_cross_validation_statistics:
-            scores = []
-            for fitness in stats.values():
-                scores.extend(fitness)
-            avg_cross_validation_fitness.append(mean(scores))
-
-        return avg_cross_validation_fitness
-
-    def best_unique_genomes(self, n):
-        """Returns the most n fit genomes, with no duplication."""
-        best_unique = {}
-        for g in self.most_fit_genomes:
-            best_unique[g.ID] = g
-        best_unique = list(best_unique.values())
-
-        def key(genome):
-            return genome.fitness
-
-        return sorted(best_unique, key=key, reverse=True)[:n]
-
-    def best_genomes(self, n):
-        """Returns the n most fit genomes ever seen."""
-        def key(g):
-            return g.fitness
-
-        return sorted(self.most_fit_genomes, key=key, reverse=True)[:n]
-
-    def best_genome(self):
-        """Returns the most fit genome ever seen."""
-        return self.best_genomes(1)[0]
-

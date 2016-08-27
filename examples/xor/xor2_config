@@ -6,6 +6,7 @@
 [Types]
 stagnation_type      = DefaultStagnation
 reproduction_type    = DefaultReproduction
+genome_type          = DefaultGenome
 
 [phenotype]
 input_nodes          = 2
@@ -14,10 +15,11 @@ output_nodes         = 1
 initial_connection   = unconnected
 max_weight           = 30
 min_weight           = -30
-feedforward          = 1
 activation_functions = sigmoid
 aggregation_functions = sum
 weight_stdev         = 1.0
+
+[FFGenome]
 
 [genetic]
 pop_size                = 150

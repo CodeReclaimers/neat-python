@@ -7,7 +7,8 @@ from neat.six_util import iteritems, itervalues
 
 
 class Species(object):
-    def __init__(self, rep_id, representative):
+    def __init__(self, key, rep_id, representative):
+        self.key = key
         self.representative = representative
         self.members = {rep_id: representative}
         self.age = 0
@@ -81,7 +82,7 @@ class SpeciesSet(object):
             else:
                 # No species is similar enough, create a new species for this individual.
                 sid = self.indexer.get_next()
-                self.species[sid] = Species(key, individual)
+                self.species[sid] = Species(sid, key, individual)
                 self.to_species[key] = sid
 
         # Only keep non-empty species.

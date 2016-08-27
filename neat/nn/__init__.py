@@ -2,6 +2,7 @@ import copy
 
 from neat import activation_functions
 from neat.six_util import iterkeys, itervalues
+from neat.config import aggregation_function_defs
 
 
 def find_feed_forward_layers(inputs, connections):
@@ -50,11 +51,15 @@ class FeedForwardNetwork(object):
         for i, v in zip(self.input_nodes, inputs):
             self.values[i] = v
 
-        for node, func, bias, response, links in self.node_evals:
-            s = 0.0
+        for node, agg_func, act_func, bias, response, links in self.node_evals:
+            #print(node, func, bias, response, links)
+            node_inputs = []
             for i, w in links:
-                s += self.values[i] * w
-            self.values[node] = func(bias + response * s)
+                node_inputs.append(self.values[i] * w)
+            s = agg_func(node_inputs)
+            self.values[node] = act_func(bias + response * s)
+            print("  v[{}] = {}({} + {} * {} = {}) = {}".format(node, act_func, bias, response, s, bias + response * s, self.values[node]))
+        print(self.values)
 
         return [self.values[i] for i in self.output_nodes]
 
@@ -74,23 +79,25 @@ def create_feed_forward_phenotype(genome):
 
     layers = find_feed_forward_layers(input_nodes, connections)
     node_evals = []
-    #used_nodes = set(input_nodes + output_nodes)
     max_used_node = max(max(input_nodes), max(output_nodes))
     for layer in layers:
         for node in layer:
             inputs = []
+            node_expr = []
             # TODO: This could be more efficient.
             for cg in itervalues(genome.connections):
                 if cg.output == node and cg.enabled:
                     inputs.append((cg.input, cg.weight))
-                    #used_nodes.add(cg.in_node_id)
+                    node_expr.append("v[%d] * %f" % (cg.input, cg.weight))
                     max_used_node = max(max_used_node, cg.input)
 
-            #used_nodes.add(node)
             max_used_node = max(max_used_node, node)
             ng = all_nodes[node]
+            aggregation_function = aggregation_function_defs[ng.aggregation]
             activation_function = activation_functions.get(ng.activation)
-            node_evals.append((node, activation_function, ng.bias, ng.response, inputs))
+            node_evals.append((node, aggregation_function, activation_function, ng.bias, ng.response, inputs))
+
+            print("  v[%d] = %s(%f + %f * %s(%s))" % (node, ng.activation, ng.bias, ng.response, ng.aggregation, ", ".join(node_expr)))
 
     return FeedForwardNetwork(max_used_node, input_nodes, output_nodes, node_evals)
 
