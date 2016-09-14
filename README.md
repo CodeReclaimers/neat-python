@@ -5,7 +5,7 @@
 ## NOTES ##
 
 Some large-scale changes are in progress on the [refactor-and-simplify branch](https://github.com/CodeReclaimers/neat-python/tree/refactor-and-simplify). 
-Once these are more stable they will be released as version 0.8.
+Once these are more stable they will be released as version 0.9.
 
 
 The more complicated examples have been moved into a [separate repository](https://github.com/CodeReclaimers/neat-python-examples) 
