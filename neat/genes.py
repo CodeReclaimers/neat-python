@@ -7,20 +7,21 @@ class NodeGene(object):
     """ Encodes parameters for a single artificial neuron. """
 
     def __init__(self, key, bias, response, aggregation, activation):
-        # TODO: Move these asserts into an external validation mechanism that can be omitted at runtime if desired.
-        #       Maybe this class should implement a validate(config) method that can optionally be called
-        #       by the NEAT framework?
-        # TODO: Validate aggregation and activation against current configuration.
-        assert type(bias) is float
-        assert type(response) is float
-        assert type(aggregation) is str
-        assert type(activation) is str
-
         self.key = key
         self.bias = bias
         self.response = response
         self.aggregation = aggregation
         self.activation = activation
+
+        # TODO: Implement an external validation mechanism that can be omitted at runtime if desired.
+        self.validate()
+
+    def validate(self):
+        # TODO: Validate aggregation and activation against current configuration.
+        assert type(self.bias) is float
+        assert type(self.response) is float
+        assert type(self.aggregation) is str
+        assert type(self.activation) is str
 
     def __str__(self):
         return 'NodeGene(key= {0}, bias={1}, response={2}, aggregation={3}, activation={4})'.format(
@@ -57,12 +58,6 @@ class NodeGene(object):
 
 class ConnectionGene(object):
     def __init__(self, input_id, output_id, weight, enabled):
-        # TODO: Move these asserts into an external validation mechanism that can be omitted at runtime if desired.
-        assert type(input_id) is int
-        assert type(output_id) is int
-        assert type(weight) is float
-        assert type(enabled) is bool
-
         self.key = (input_id, output_id)
         self.input = input_id
         self.output = output_id
@@ -71,6 +66,15 @@ class ConnectionGene(object):
         # important--presumably mutations that set the weight to near zero could
         # provide a similar effect depending on the weight range and mutation rate.
         self.enabled = enabled
+
+        # TODO: Implement an external validation mechanism that can be omitted at runtime if desired.
+        self.validate()
+
+    def validate(self):
+        assert type(self.key) is tuple
+        assert len(self.key) == 2
+        assert type(self.weight) is float
+        assert type(self.enabled) is bool
 
     # TODO: Factor out mutation into a separate class.
     def mutate(self, config):

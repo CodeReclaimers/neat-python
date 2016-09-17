@@ -42,6 +42,14 @@ class DefaultGenome(object):
         self.fitness = None
         self.cross_fitness = None
 
+    def add_node(self, key, bias, response, aggregation, activation):
+        # TODO: Add validation of this node addition.
+        self.nodes[key] = NodeGene(key, bias, response, aggregation, activation)
+
+    def add_connection(self, input_key, output_key, weight, enabled):
+        # TODO: Add validation of this connection addition.
+        self.connections[input_key, output_key] = ConnectionGene(input_key, output_key, weight, enabled)
+
     def mutate(self, config):
         """ Mutates this genome. """
 

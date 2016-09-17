@@ -1,7 +1,8 @@
 import random
 
 from neat import nn
-from neat.genome import FFGenome
+from neat.config import Config
+from neat.genome import DefaultGenome
 from neat.genes import NodeGene, ConnectionGene
 
 
@@ -157,11 +158,14 @@ def test_fuzz_feed_forward_layers():
 
 
 def test_simple_nohidden():
-    g = FFGenome(0, [0, 1], [2])
-    g.nodes[2] = NodeGene(2, 0.0, 1.0, 'sum', 'tanh')
-    g.connections[(0, 2)] = ConnectionGene(0, 2, 1.0, True)
-    g.connections[(1, 2)] = ConnectionGene(1, 2, -1.0, True)
-    net = nn.create_feed_forward_phenotype(g)
+    config = Config()
+    config.set_input_output_sizes(2, 1)
+    g = DefaultGenome(0, config)
+    g.add_node(0, 0.0, 1.0, 'sum', 'tanh')
+    g.add_connection(-1, 0, 1.0, True)
+    g.add_connection(-2, 0, -1.0, True)
+
+    net = nn.create_feed_forward_phenotype(g, config)
 
     v00 = net.serial_activate([0.0, 0.0])
     assert_almost_equal(v00[0], 0.0, 1e-3)
@@ -177,15 +181,18 @@ def test_simple_nohidden():
 
 
 def test_simple_hidden():
-    g = FFGenome(0, [0, 1], [2])
-    g.nodes[2] = NodeGene(2, 0.0, 1.0, 'sum', 'identity')
-    g.nodes[3] = NodeGene(3, -0.5, 5.0, 'sum', 'sigmoid')
-    g.nodes[4] = NodeGene(3, -1.5, 5.0, 'sum', 'sigmoid')
-    g.connections[(0, 3)] = ConnectionGene(0, 3, 1.0, True)
-    g.connections[(1, 4)] = ConnectionGene(1, 4, 1.0, True)
-    g.connections[(3, 2)] = ConnectionGene(3, 2, 1.0, True)
-    g.connections[(4, 2)] = ConnectionGene(4, 2, -1.0, True)
-    net = nn.create_feed_forward_phenotype(g)
+    config = Config()
+    config.set_input_output_sizes(2, 1)
+    g = DefaultGenome(0, config)
+
+    g.add_node(0, 0.0, 1.0, 'sum', 'identity')
+    g.add_node(1, -0.5, 5.0, 'sum', 'sigmoid')
+    g.add_node(2, -1.5, 5.0, 'sum', 'sigmoid')
+    g.add_connection(-1, 1, 1.0, True)
+    g.add_connection(-2, 2, 1.0, True)
+    g.add_connection(1, 0, 1.0, True)
+    g.add_connection(2, 0, -1.0, True)
+    net = nn.create_feed_forward_phenotype(g, config)
 
     v00 = net.serial_activate([0.0, 0.0])
     assert_almost_equal(v00[0], 0.195115, 1e-3)
