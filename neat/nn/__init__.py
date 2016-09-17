@@ -1,20 +1,77 @@
 import copy
 
-from neat import activation_functions
 from neat.six_util import iterkeys, itervalues
 from neat.config import aggregation_function_defs
 
 
-def find_feed_forward_layers(inputs, connections):
+def creates_cycle(connections, test):
+    """
+    Returns true if the addition of the "test" connection would create a cycle,
+    assuming that no cycle already exists in the graph represented by "connections".
+    """
+    i, o = test
+    if i == o:
+        return True
+
+    visited = set([o])
+    while True:
+        num_added = 0
+        for a, b in connections:
+            if a in visited and b not in visited:
+                if b == i:
+                    return True
+
+                visited.add(b)
+                num_added += 1
+
+        if num_added == 0:
+            return False
+
+
+def required_for_output(inputs, outputs, connections):
+    '''
+    Collect the nodes whose state is required to compute the final network output(s).
+    :param inputs: list of the input identifiers
+    :param outputs: list of the output node identifiers
+    :param connections: list of (input, output) connections in the network.
+    NOTE: It is assumed that the input identifier set and the node identifier set are disjoint.
+    By convention, the output node ids are always the same as the output index.
+
+    Returns a list of layers, with each layer consisting of a set of identifiers.
+    '''
+
+    required = set(outputs)
+    S = set(outputs)
+    while 1:
+        # Find nodes not in S whose output is consumed by a node in S.
+        T = set(a for (a, b) in connections if b in S and a not in S)
+
+        if not T:
+            break
+
+        layer_nodes = set(x for x in T if x not in inputs)
+        if not layer_nodes:
+            break
+
+        required = required.union(layer_nodes)
+        S = S.union(T)
+
+    return required
+
+
+def feed_forward_layers(inputs, outputs, connections):
     '''
     Collect the layers whose members can be evaluated in parallel in a feed-forward network.
     :param inputs: list of the network input nodes
+    :param outputs: list of the output node identifiers
     :param connections: list of (input, output) connections in the network.
 
     Returns a list of layers, with each layer consisting of a set of node identifiers.
+    Note that the returned layers do not contain nodes whose output is ultimately
+    never used to compute the final network output.
     '''
 
-    # TODO: Detect and omit nodes whose output is ultimately never used.
+    required = required_for_output(inputs, outputs, connections)
 
     layers = []
     S = set(inputs)
@@ -22,10 +79,10 @@ def find_feed_forward_layers(inputs, connections):
         # Find candidate nodes C for the next layer.  These nodes should connect
         # a node in S to a node not in S.
         C = set(b for (a, b) in connections if a in S and b not in S)
-        # Keep only the nodes whose entire input set is contained in S.
+        # Keep only the used nodes whose entire input set is contained in S.
         T = set()
         for n in C:
-            if all(a in S for (a, b) in connections if b == n):
+            if n in required and all(a in S for (a, b) in connections if b == n):
                 T.add(n)
 
         if not T:
@@ -37,19 +94,55 @@ def find_feed_forward_layers(inputs, connections):
     return layers
 
 
+# def find_evaluation_order(inputs, outputs, connections):
+#     '''
+#     Collect the layers whose members can be evaluated in parallel in a feed-forward network.
+#     :param inputs: list of the input identifiers
+#     :param outputs: list of the output node identifiers
+#     :param connections: list of (input, output) connections in the network.
+#     NOTE: It is assumed that the input identifier set and the node identifier set are disjoint.
+#     By convention, the output node ids are always the same as the output index.
+#
+#     Returns a list of layers, with each layer consisting of a set of identifiers.
+#     '''
+#
+#     layers = [set(outputs)]
+#     S = set(outputs)
+#     while 1:
+#         # Find candidate nodes C for the previous layer.  These nodes
+#         # should connect a node in S to a node not in S.
+#         T = set(a for (a, b) in connections if b in S and a not in S)
+#         #T = set()
+#         #for n in C:
+#         #    if all(a in S for (a, b) in connections if b == n):
+#         #        T.add(n)
+#
+#         if not T:
+#             break
+#
+#         layer_nodes = set(x for x in T if x not in inputs)
+#         if not layer_nodes:
+#             break
+#
+#         layers.append(layer_nodes)
+#         S = S.union(T)
+#
+#     return layers[::-1]
+
+
 class FeedForwardNetwork(object):
     def __init__(self, max_node, inputs, outputs, node_evals):
         self.node_evals = node_evals
         self.input_nodes = inputs
         self.output_nodes = outputs
-        self.values = [0.0] * (1 + max_node)
+        self.values = dict((key, 0.0) for key in inputs + outputs)
 
     def serial_activate(self, inputs):
         if len(self.input_nodes) != len(inputs):
             raise Exception("Expected {0} inputs, got {1}".format(len(self.input_nodes), len(inputs)))
 
-        for i, v in zip(self.input_nodes, inputs):
-            self.values[i] = v
+        for k, v in zip(self.input_nodes, inputs):
+            self.values[k] = v
 
         for node, agg_func, act_func, bias, response, links in self.node_evals:
             #print(node, func, bias, response, links)
@@ -58,28 +151,22 @@ class FeedForwardNetwork(object):
                 node_inputs.append(self.values[i] * w)
             s = agg_func(node_inputs)
             self.values[node] = act_func(bias + response * s)
-            print("  v[{}] = {}({} + {} * {} = {}) = {}".format(node, act_func, bias, response, s, bias + response * s, self.values[node]))
-        print(self.values)
+            #print("  v[{}] = {}({} + {} * {} = {}) = {}".format(node, act_func, bias, response, s, bias + response * s, self.values[node]))
+        #print(self.values)
 
         return [self.values[i] for i in self.output_nodes]
 
 
-def create_feed_forward_phenotype(genome):
+def create_feed_forward_phenotype(genome, config):
     """ Receives a genome and returns its phenotype (a neural network). """
 
-    # Gather inputs and expressed connections.
-    input_nodes = list(iterkeys(genome.inputs))
-    output_nodes = list(iterkeys(genome.outputs))
+    # Gather expressed connections.
     connections = [cg.key for cg in itervalues(genome.connections) if cg.enabled]
 
-    # TODO: It seems like this might be worth factoring out somewhere.
-    all_nodes = copy.copy(genome.inputs)
-    all_nodes.update(genome.outputs)
-    all_nodes.update(genome.hidden)
-
-    layers = find_feed_forward_layers(input_nodes, connections)
+    layers = feed_forward_layers(config.input_keys, config.output_keys, connections)
+    #print(layers)
     node_evals = []
-    max_used_node = max(max(input_nodes), max(output_nodes))
+    max_used_node = max(max(config.input_keys), max(config.output_keys))
     for layer in layers:
         for node in layer:
             inputs = []
@@ -92,14 +179,14 @@ def create_feed_forward_phenotype(genome):
                     max_used_node = max(max_used_node, cg.input)
 
             max_used_node = max(max_used_node, node)
-            ng = all_nodes[node]
+            ng = genome.nodes[node]
             aggregation_function = aggregation_function_defs[ng.aggregation]
-            activation_function = activation_functions.get(ng.activation)
+            activation_function = config.available_activations.get(ng.activation)
             node_evals.append((node, aggregation_function, activation_function, ng.bias, ng.response, inputs))
 
-            print("  v[%d] = %s(%f + %f * %s(%s))" % (node, ng.activation, ng.bias, ng.response, ng.aggregation, ", ".join(node_expr)))
+            #print("  v[%d] = %s(%f + %f * %s(%s))" % (node, ng.activation, ng.bias, ng.response, ng.aggregation, ", ".join(node_expr)))
 
-    return FeedForwardNetwork(max_used_node, input_nodes, output_nodes, node_evals)
+    return FeedForwardNetwork(max_used_node, config.input_keys, config.output_keys, node_evals)
 
 
 class RecurrentNetwork(object):

@@ -1,5 +1,7 @@
 import sys
 
+# TODO: Perhaps rename this to platform.py or something and add OS-specific hardware detection.
+
 # Instead of adding six as a dependency, this code was copied from the six implementation.
 # six is Copyright (c) 2010-2015 Benjamin Peterson
 if sys.version_info[0] == 3:

@@ -1,8 +1,8 @@
-from random import random, gauss, choice
 import os
+from random import random, gauss, choice
 
-from neat.genome import DefaultGenome, FFGenome
-from neat import activation_functions
+from neat.activations import ActivationFunctionSet
+from neat.genome import DefaultGenome
 from neat.reproduction import DefaultReproduction
 from neat.stagnation import DefaultStagnation
 
@@ -12,6 +12,7 @@ except ImportError:
     from ConfigParser import SafeConfigParser as ConfigParser
 
 aggregation_function_defs = {'sum': sum, 'max': max, 'min': min}
+
 
 class Config(object):
     '''
@@ -29,14 +30,81 @@ class Config(object):
 
     allowed_connectivity = ['unconnected', 'fs_neat', 'fully_connected', 'partial']
 
-    def __init__(self, filename=None):
+    def __init__(self):
+        # Initialize type registry with default implementations.
         self.registry = {'DefaultStagnation': DefaultStagnation,
                          'DefaultReproduction': DefaultReproduction,
-                         'DefaultGenome': DefaultGenome,
-                         'FFGenome': FFGenome}
+                         'DefaultGenome': DefaultGenome}
         self.type_config = {}
-        if filename is not None:
-            self.load(filename)
+
+        # Phenotype configuration
+        self.input_nodes = 0
+        self.output_nodes = 0
+        self.hidden_nodes = 0
+        self.initial_connection = 'unconnected'
+        self.connection_fraction = None
+        self.max_weight = 30.0
+        self.min_weight = -30.0
+        self.weight_stdev = 1.0
+        self.activation_functions = ['sigmoid']
+        self.aggregation_functions = ['sum']
+
+        # Genetic algorithm configuration
+        self.pop_size = 150
+        self.max_fitness_threshold = -0.05
+        self.prob_add_conn = 0.5
+        self.prob_add_node = 0.1
+        self.prob_delete_conn = 0.1
+        self.prob_delete_node = 0.05
+        self.prob_mutate_bias = 0.05
+        self.bias_mutation_power = 2.0
+        self.prob_mutate_response = 0.5
+        self.response_mutation_power = 0.1
+        self.prob_mutate_weight = 0.5
+        self.prob_replace_weight = 0.02
+        self.weight_mutation_power = 0.8
+        self.prob_mutate_activation = 0.0
+        self.prob_mutate_aggregation = 0.0
+        self.prob_toggle_link = 0.01
+        self.reset_on_extinction = True
+
+        # genotype compatibility
+        self.compatibility_threshold = 3.0
+        self.excess_coefficient = 1.0
+        self.disjoint_coefficient = 1.0
+        self.weight_coefficient = 0.4
+
+        stagnation_type_name = 'DefaultStagnation'
+        self.stagnation_type = self.registry[stagnation_type_name]
+        # TODO: Look up the default type configuration from a static method on the type?
+        self.type_config[stagnation_type_name] = {'species_fitness_func': 'mean',
+                                                  'max_stagnation': 15}
+
+        reproduction_type_name = 'DefaultReproduction'
+        self.reproduction_type = self.registry[reproduction_type_name]
+        # TODO: Look up the default type configuration from a static method on the type?
+        self.type_config[reproduction_type_name] = {'elitism': 1,
+                                                    'survival_threshold': 0.2}
+
+        genome_type_name = 'DefaultGenome'
+        self.genome_type = self.registry[genome_type_name]
+        # TODO: Look up the default type configuration from a static method on the type?
+        self.type_config[genome_type_name] = {}
+
+        # Gather statistics for each generation.
+        self.collect_statistics = True
+        # Show stats after each generation.
+        self.report = True
+        # Save the best genome from each generation.
+        self.save_best = False
+        # Time in minutes between saving checkpoints, None for no timed checkpoints.
+        self.checkpoint_time_interval = None
+        # Time in generations between saving checkpoints, None for no generational checkpoints.
+        self.checkpoint_gen_interval = None
+
+        # Create full set of available activation functions.
+        # TODO: pick a better name for this member, it's too confusing alongside activation_functions.
+        self.available_activations = ActivationFunctionSet()
 
     def load(self, filename):
         if not os.path.isfile(filename):
@@ -76,7 +144,7 @@ class Config(object):
 
         # Verify that specified activation functions are valid.
         for fn in self.activation_functions:
-            if not activation_functions.is_valid(fn):
+            if not self.available_activations.is_valid(fn):
                 raise Exception("Invalid activation function name: {0!r}".format(fn))
 
         # Genetic algorithm configuration
@@ -123,28 +191,26 @@ class Config(object):
         self.genome_type = self.registry[genome_type_name]
         self.type_config[genome_type_name] = parameters.items(genome_type_name)
 
-        # Gather statistics for each generation.
-        self.collect_statistics = True
-        # Show stats after each generation.
-        self.report = True
-        # Save the best genome from each generation.
-        self.save_best = False
-        # Time in minutes between saving checkpoints, None for no timed checkpoints.
-        self.checkpoint_time_interval = None
-        # Time in generations between saving checkpoints, None for no generational checkpoints.
-        self.checkpoint_gen_interval = None
+    def set_input_output_sizes(self, num_inputs, num_outputs):
+        self.input_nodes = num_inputs
+        self.output_nodes = num_outputs
+        self.input_keys = [-i-1 for i in range(self.input_nodes)]
+        self.output_keys = [i for i in range(self.output_nodes)]
 
-    def register(self, typeName, typeDef):
+    def save(self, filename):
+        pass
+
+    def register(self, type_name, type_def):
         """
         User-defined classes mentioned in the config file must be provided to the
         configuration object before the load() method is called.
         """
-        self.registry[typeName] = typeDef
+        self.registry[type_name] = type_def
 
-    def get_type_config(self, typeInstance):
-        return dict(self.type_config[typeInstance.__class__.__name__])
+    def get_type_config(self, type_instance):
+        return dict(self.type_config[type_instance.__class__.__name__])
 
-    # TODO: Factor out these mutation methods into a separate class.
+    # TODO: Factor out these mutation methods into a separate class?
     def new_weight(self):
         return gauss(0, self.weight_stdev)
 

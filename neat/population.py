@@ -130,7 +130,7 @@ class Population(object):
             for g in itervalues(self.population):
                 if g.fitness > best_fitness:
                     best = g
-            self.reporters.post_evaluate(self.population, self.species, best)
+            self.reporters.post_evaluate(self.config, self.population, self.species, best)
 
             # Save the best genome from the current generation if requested.
             if self.config.save_best:
@@ -139,7 +139,7 @@ class Population(object):
 
             # End if the fitness threshold is reached.
             if best.fitness >= self.config.max_fitness_threshold:
-                self.reporters.found_solution(self.generation, best)
+                self.reporters.found_solution(self.config, self.generation, best)
                 break
 
             # Create the next generation from the current generation.

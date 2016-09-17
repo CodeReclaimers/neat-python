@@ -8,6 +8,8 @@ class NodeGene(object):
 
     def __init__(self, key, bias, response, aggregation, activation):
         # TODO: Move these asserts into an external validation mechanism that can be omitted at runtime if desired.
+        #       Maybe this class should implement a validate(config) method that can optionally be called
+        #       by the NEAT framework?
         # TODO: Validate aggregation and activation against current configuration.
         assert type(bias) is float
         assert type(response) is float

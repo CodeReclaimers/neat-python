@@ -14,7 +14,7 @@ class StatisticsReporter(BaseReporter):
         self.generation_statistics = []
         self.generation_cross_validation_statistics = []
 
-    def post_evaluate(self, population, species, best_genome):
+    def post_evaluate(self, config, population, species, best_genome):
         self.most_fit_genomes.append(copy.deepcopy(best_genome))
 
         # Store the fitnesses of the members of each currently active species.

@@ -19,7 +19,7 @@ activation_functions = sigmoid
 aggregation_functions = sum
 weight_stdev         = 1.0
 
-[FFGenome]
+[DefaultGenome]
 
 [genetic]
 pop_size                = 150

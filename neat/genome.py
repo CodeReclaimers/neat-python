@@ -1,25 +1,41 @@
 from neat.genes import ConnectionGene, NodeGene
-from neat.six_util import iteritems, itervalues
+from neat.six_util import iteritems, itervalues, iterkeys
 
 from math import fabs
 from random import choice, gauss, randint, random, shuffle
 
 
 class DefaultGenome(object):
-    """ A genome for generalized neural networks. """
+    """
+    A genome for generalized neural networks.
 
-    def __init__(self, key):
+    Terminology
+        pin: Point at which the network is conceptually connected to the external world;
+             pins are either input or output.
+        node:
+        connection:
+        key: Identifier for an object, unique within the set of similar objects.
+
+    Design assumptions and conventions.
+        1. Each output pin is connected only to the output of its own unique
+           neuron by an implicit connection with weight one. This connection
+           is permanently enabled.
+        2. The output pin's key is always the same as the key for its
+           associated neuron.
+        3. Output neurons can be modified but not deleted.
+        4. The input values are applied to the input pins unmodified.
+    """
+
+    def __init__(self, key, config):
+        """
+        :param key: This genome's unique identifier.
+        :param config: A neat.config.Config instance.
+        """
         self.key = key
 
-        # (id, gene) pairs for gene sets.
+        # (gene_key, gene) pairs for gene sets.
         self.connections = {}
-        self.hidden = {}
-        self.inputs = {}
-        self.outputs = {}
-
-        # TODO: Do we really need to track this, or is it sufficient
-        # for each species to know which genomes are its members?
-        #self.species_id = None
+        self.nodes = {}
 
         # Fitness results.
         # TODO: This should probably be stored elsewhere.
@@ -29,7 +45,8 @@ class DefaultGenome(object):
     def mutate(self, config):
         """ Mutates this genome. """
 
-        # TODO: Make a configuration item to choose whether or not multiple mutations can happen at once.
+        # TODO: Make a configuration item to choose whether or not multiple
+        # mutations can happen simulataneously.
 
         if random() < config.prob_add_node:
             self.mutate_add_node(config)
@@ -38,22 +55,20 @@ class DefaultGenome(object):
             self.mutate_add_connection(config)
 
         if random() < config.prob_delete_node:
-            self.mutate_delete_node()
+            self.mutate_delete_node(config)
 
         if random() < config.prob_delete_conn:
             self.mutate_delete_connection()
 
-        # Mutate connections.
+        # Mutate connection genes.
         for cg in self.connections.values():
             cg.mutate(config)
 
-        # Mutate hidden and output node genes (bias, response, etc.).
-        for ng in self.hidden.values():
-            ng.mutate(config)
-        for ng in self.outputs.values():
+        # Mutate node genes (bias, response, etc.).
+        for ng in self.nodes.values():
             ng.mutate(config)
 
-    def crossover(self, other, key):
+    def crossover(self, other, key, config):
         """ Crosses over parents' genomes and returns a child. """
         if self.fitness > other.fitness:
             parent1 = self
@@ -63,7 +78,7 @@ class DefaultGenome(object):
             parent2 = self
 
         # creates a new child
-        child = self.__class__(key)
+        child = DefaultGenome(key, config)
         child.inherit_genes(parent1, parent2)
 
         return child
@@ -83,24 +98,22 @@ class DefaultGenome(object):
                 self.connections[key] = cg1.crossover(cg2)
 
         # Inherit node genes
-        for set_name in ('inputs', 'hidden', 'outputs'):
-            parent1_set = getattr(parent1, set_name)
-            parent2_set = getattr(parent2, set_name)
-            self_set = getattr(self, set_name)
+        parent1_set = parent1.nodes
+        parent2_set = parent2.nodes
 
-            for key, ng1 in parent1_set.items():
-                ng2 = parent2_set.get(key)
-                assert key not in self_set
-                if ng2 is None:
-                    # Extra gene: copy from the fittest parent
-                    self_set[key] = ng1.copy()
-                else:
-                    # Homologous gene: combine genes from both parents.
-                    self_set[key] = ng1.crossover(ng2)
+        for key, ng1 in parent1_set.items():
+            ng2 = parent2_set.get(key)
+            assert key not in self.nodes
+            if ng2 is None:
+                # Extra gene: copy from the fittest parent
+                self.nodes[key] = ng1.copy()
+            else:
+                # Homologous gene: combine genes from both parents.
+                self.nodes[key] = ng1.crossover(ng2)
 
     def get_new_hidden_id(self):
         new_id = 0
-        while new_id in self.inputs or new_id in self.hidden or new_id in self.outputs:
+        while new_id in self.nodes:
             new_id += 1
         return new_id
 
@@ -113,7 +126,7 @@ class DefaultGenome(object):
         new_node_id = self.get_new_hidden_id()
         act_func = choice(config.activation_functions)
         ng = self.create_node(config, new_node_id)
-        self.hidden[new_node_id] = ng
+        self.nodes[new_node_id] = ng
         new_conn1, new_conn2 = conn_to_split.split(new_node_id)
         self.connections[new_conn1.key] = new_conn1
         self.connections[new_conn2.key] = new_conn2
@@ -122,12 +135,12 @@ class DefaultGenome(object):
     def mutate_add_connection(self, config):
         '''
         Attempt to add a new connection, the only restriction being that the output
-        node cannot be one of the network input nodes.
+        node cannot be one of the network input pins.
         '''
-        possible_outputs = list(self.hidden.keys()) + list(self.outputs.keys())
+        possible_outputs = list(iterkeys(self.nodes))
         out_node = choice(possible_outputs)
 
-        possible_inputs = possible_outputs + list(self.inputs.keys())
+        possible_inputs = possible_outputs + config.input_keys
         in_node = choice(possible_inputs)
 
         # Only create the connection if it doesn't already exist.
@@ -139,12 +152,13 @@ class DefaultGenome(object):
             cg = ConnectionGene(in_node, out_node, weight, enabled)
             self.connections[cg.key] = cg
 
-    def mutate_delete_node(self):
-        # Do nothing if there are no hidden nodes.
-        if not self.hidden:
+    def mutate_delete_node(self, config):
+        # Do nothing if there are no non-output nodes.
+        available_nodes = [(k, v) for k, v in iteritems(self.nodes) if k not in config.output_keys]
+        if not available_nodes:
             return -1
 
-        del_key, del_node = choice(list(self.hidden.items()))
+        del_key, del_node = choice(available_nodes)
 
         connections_to_delete = set()
         for k, v in self.connections.items():
@@ -154,7 +168,7 @@ class DefaultGenome(object):
         for key in connections_to_delete:
             del self.connections[key]
 
-        del self.hidden[del_key]
+        del self.nodes[del_key]
 
         return del_key
 
@@ -184,27 +198,27 @@ class DefaultGenome(object):
         num_common = 0
         node_gene_count1 = 0
         node_gene_count2 = 0
-        for set_name in ('inputs', 'hidden', 'outputs'):
-            node_genes1 = getattr(genome1, set_name)
-            node_genes2 = getattr(genome2, set_name)
 
-            node_gene_count1 += len(node_genes1)
-            node_gene_count2 += len(node_genes2)
+        node_genes1 = genome1.nodes
+        node_genes2 = genome2.nodes
 
-            for k2 in node_genes2.keys():
-                if k2 not in node_genes1.keys():
-                    excess2 += 1
+        node_gene_count1 += len(node_genes1)
+        node_gene_count2 += len(node_genes2)
 
-            for k1, g1 in iteritems(node_genes1):
-                if k1 in node_genes2:
-                    num_common += 1
-                    g2 = node_genes2[k1]
-                    bias_diff += fabs(g1.bias - g2.bias)
-                    response_diff += fabs(g1.response - g2.response)
-                    if g1.activation != g2.activation:
-                        activation_diff += 1
-                else:
-                    excess1 += 1
+        for k2 in node_genes2.keys():
+            if k2 not in node_genes1.keys():
+                excess2 += 1
+
+        for k1, g1 in iteritems(node_genes1):
+            if k1 in node_genes2:
+                num_common += 1
+                g2 = node_genes2[k1]
+                bias_diff += fabs(g1.bias - g2.bias)
+                response_diff += fabs(g1.response - g2.response)
+                if g1.activation != g2.activation:
+                    activation_diff += 1
+            else:
+                excess1 += 1
 
         most_nodes = max(node_gene_count1, node_gene_count2)
         distance = (config.excess_coefficient * float(excess1 + excess2) / most_nodes
@@ -247,20 +261,14 @@ class DefaultGenome(object):
 
         return distance
 
-    def size(self):
+    def size(self, config):
         '''Returns genome 'complexity', taken to be (number of hidden nodes, number of enabled connections)'''
         num_enabled_connections = sum([1 for cg in self.connections.values() if cg.enabled is True])
-        return len(self.hidden), num_enabled_connections
+        return len(self.nodes) - len(config.output_keys), num_enabled_connections
 
     def __str__(self):
-        s = "Input Nodes:"
-        for k, ng in iteritems(self.inputs):
-            s += "{0} {1!s}\n\t".format(k, ng)
-        s = "Output Nodes:"
-        for k, ng in iteritems(self.outputs):
-            s += "{0} {1!s}\n\t".format(k, ng)
-        s = "Hidden Nodes:"
-        for k, ng in iteritems(self.hidden):
+        s = "Nodes:"
+        for k, ng in iteritems(self.nodes):
             s += "{0} {1!s}\n\t".format(k, ng)
         s += "\nConnections:"
         connections = list(self.connections.values())
@@ -302,26 +310,15 @@ class DefaultGenome(object):
         return NodeGene(node_id, config.new_bias(), config.new_response(),
                         config.new_aggregation(), config.new_activation())
 
-    # TODO: Can this be changed to not need a configuration object?
     @classmethod
     def create_unconnected(cls, config, key):
         '''Create a genome for a network with no hidden nodes and no connections.'''
-        c = cls(key)
-        node_id = 0
-        # Create input node genes.
-        for i in range(config.input_nodes):
-            assert node_id not in c.inputs
-            c.inputs[node_id] = cls.create_node(config, node_id)
-            node_id += 1
+        c = cls(key, config)
 
-        # Create output node genes.
-        for i in range(config.output_nodes):
-            act_func = choice(config.activation_functions)
-            assert node_id not in c.outputs
-            c.outputs[node_id] = cls.create_node(config, node_id)
-            node_id += 1
+        # Create node genes for the output pins.
+        for node_key in config.output_keys:
+            c.nodes[node_key] = cls.create_node(config, node_key)
 
-        assert node_id == len(c.inputs) + len(c.outputs)
         return c
 
     def connect_fs_neat(self, config):
@@ -373,88 +370,88 @@ class DefaultGenome(object):
 # the node_order member.  Its complexity suggests the bar is set too high
 # for creating user-defined genome types.
 
-class FFGenome(DefaultGenome):
-    """ A genome for feed-forward neural networks. Feed-forward
-        topologies are a particular case of Recurrent NNs.
-    """
-
-    def __init__(self, key):
-        super(FFGenome, self).__init__(key)
-        self.node_order = []  # hidden node order
-
-    def inherit_genes(self, parent1, parent2):
-        super(FFGenome, self).inherit_genes(parent1, parent2)
-
-        self.node_order = list(parent1.node_order)
-
-        assert len(self.node_order) == len(self.hidden)
-
-    def mutate_add_node(self, config):
-        # TODO: This method is overcomplicated, we should factor out the base class
-        # capability, pick a valid place to insert, and then tell it to do that.
-        result = super(FFGenome, self).mutate_add_node(config)
-        ng, split_conn = result
-        if ng is not None:
-            # Add node to node order list: after the presynaptic node of the split connection
-            # and before the postsynaptic node of the split connection
-            if split_conn.input in self.hidden:
-                mini = self.node_order.index(split_conn.input) + 1
-            else:
-                # Presynaptic node is an input node, not hidden node
-                mini = 0
-            if split_conn.output in self.hidden:
-                maxi = self.node_order.index(split_conn.output)
-            else:
-                # Postsynaptic node is an output node, not hidden node
-                maxi = len(self.node_order)
-            self.node_order.insert(randint(mini, maxi), ng.key)
-            assert len(self.node_order) == len(self.hidden)
-
-        return ng, split_conn
-
-    def mutate_add_connection(self, config):
-        '''
-        Attempt to add a new connection, with the restrictions that (1) the output node
-        cannot be one of the network input nodes, and (2) the connection must be feed-forward.
-        '''
-        in_node = choice(list(self.inputs.keys()))
-        out_node = choice(list(self.outputs.keys()))
-
-        # Only create the connection if it's feed-forward and it doesn't already exist.
-        if self.__is_connection_feedforward(in_node, out_node):
-            key = (in_node, out_node)
-            if key not in self.connections:
-                weight = gauss(0, config.weight_stdev)
-                enabled = choice([False, True])
-                cg = ConnectionGene(in_node, out_node, weight, enabled)
-                self.connections[cg.key] = cg
-
-    def mutate_delete_node(self):
-        deleted_id = super(FFGenome, self).mutate_delete_node()
-        if deleted_id != -1:
-            self.node_order.remove(deleted_id)
-
-        #assert len(self.node_genes) >= self.num_inputs + self.num_outputs
-
-    def __is_connection_feedforward(self, in_node, out_node):
-        if in_node in self.inputs or out_node in self.outputs:
-            return True
-
-        assert in_node in self.node_order
-        assert out_node in self.node_order
-        return self.node_order.index(in_node) < self.node_order.index(out_node)
-
-    def add_hidden_nodes(self, num_hidden, config):
-        node_id = self.get_new_hidden_id()
-        for i in range(num_hidden):
-            act_func = choice(config.activation_functions)
-            node_gene = config.node_gene_type()
-            assert node_id not in self.hidden
-            self.hidden[node_id] = node_gene
-            self.node_order.append(node_gene.ID)
-            node_id += 1
-
-    def __str__(self):
-        s = super(FFGenome, self).__str__()
-        s += '\nNode order: ' + str(self.node_order)
-        return s
+# class FFGenome(DefaultGenome):
+#     """ A genome for feed-forward neural networks. Feed-forward
+#         topologies are a particular case of Recurrent NNs.
+#     """
+#
+#     def __init__(self, key, input_keys, output_keys):
+#         super(FFGenome, self).__init__(key, input_keys, output_keys)
+#         self.node_order = []  # hidden node order
+#
+#     def inherit_genes(self, parent1, parent2):
+#         super(FFGenome, self).inherit_genes(parent1, parent2)
+#
+#         self.node_order = list(parent1.node_order)
+#
+#         assert len(self.node_order) == len(self.hidden)
+#
+#     def mutate_add_node(self, config):
+#         # TODO: This method is overcomplicated, we should factor out the base class
+#         # capability, pick a valid place to insert, and then tell it to do that.
+#         result = super(FFGenome, self).mutate_add_node(config)
+#         ng, split_conn = result
+#         if ng is not None:
+#             # Add node to node order list: after the presynaptic node of the split connection
+#             # and before the postsynaptic node of the split connection
+#             if split_conn.input in self.hidden:
+#                 mini = self.node_order.index(split_conn.input) + 1
+#             else:
+#                 # Presynaptic node is an input node, not hidden node
+#                 mini = 0
+#             if split_conn.output in self.hidden:
+#                 maxi = self.node_order.index(split_conn.output)
+#             else:
+#                 # Postsynaptic node is an output node, not hidden node
+#                 maxi = len(self.node_order)
+#             self.node_order.insert(randint(mini, maxi), ng.key)
+#             assert len(self.node_order) == len(self.hidden)
+#
+#         return ng, split_conn
+#
+#     def mutate_add_connection(self, config):
+#         '''
+#         Attempt to add a new connection, with the restrictions that (1) the output node
+#         cannot be one of the network input nodes, and (2) the connection must be feed-forward.
+#         '''
+#         in_node = choice(list(self.inputs.keys()))
+#         out_node = choice(list(self.outputs.keys()))
+#
+#         # Only create the connection if it's feed-forward and it doesn't already exist.
+#         if self.__is_connection_feedforward(in_node, out_node):
+#             key = (in_node, out_node)
+#             if key not in self.connections:
+#                 weight = gauss(0, config.weight_stdev)
+#                 enabled = choice([False, True])
+#                 cg = ConnectionGene(in_node, out_node, weight, enabled)
+#                 self.connections[cg.key] = cg
+#
+#     def mutate_delete_node(self):
+#         deleted_id = super(FFGenome, self).mutate_delete_node()
+#         if deleted_id != -1:
+#             self.node_order.remove(deleted_id)
+#
+#         #assert len(self.node_genes) >= self.num_inputs + self.num_outputs
+#
+#     def __is_connection_feedforward(self, in_node, out_node):
+#         if in_node in self.inputs or out_node in self.outputs:
+#             return True
+#
+#         assert in_node in self.node_order
+#         assert out_node in self.node_order
+#         return self.node_order.index(in_node) < self.node_order.index(out_node)
+#
+#     def add_hidden_nodes(self, num_hidden, config):
+#         node_id = self.get_new_hidden_id()
+#         for i in range(num_hidden):
+#             act_func = choice(config.activation_functions)
+#             node_gene = config.node_gene_type()
+#             assert node_id not in self.hidden
+#             self.hidden[node_id] = node_gene
+#             self.node_order.append(node_gene.ID)
+#             node_id += 1
+#
+#     def __str__(self):
+#         s = super(FFGenome, self).__str__()
+#         s += '\nNode order: ' + str(self.node_order)
+#         return s

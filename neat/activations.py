@@ -72,7 +72,20 @@ class InvalidActivationFunction(Exception):
 
 class ActivationFunctionSet(object):
     def __init__(self):
-        self.functions = {}
+        self.functions = {'sigmoid': sigmoid_activation,
+                          'tanh': tanh_activation,
+                          'sin': sin_activation,
+                          'gauss': gauss_activation,
+                          'relu': relu_activation,
+                          'identity': identity_activation,
+                          'clamped': clamped_activation,
+                          'inv': inv_activation,
+                          'log': log_activation,
+                          'exp': exp_activation,
+                          'abs': abs_activation,
+                          'hat': hat_activation,
+                          'square': square_activation,
+                          'cube': cube_activation}
 
     def add(self, config_name, function):
         # TODO: Verify that the given function has the correct signature.
@@ -86,6 +99,7 @@ class ActivationFunctionSet(object):
         return f
 
     def is_valid(self, config_name):
+        # TODO: Verify that the given function has the correct signature.
         return config_name in self.functions
 
 

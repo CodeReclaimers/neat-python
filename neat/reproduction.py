@@ -47,7 +47,7 @@ class DefaultReproduction(object):
         avg_adjusted_fitness = 0.0
         for sid, s, stagnant in self.stagnation.update(species.species):
             if stagnant:
-                self.reporters.species_stagnant(s)
+                self.reporters.species_stagnant(sid, s)
             else:
                 num_remaining += 1
 
@@ -129,7 +129,7 @@ class DefaultReproduction(object):
                 # Note that if the parents are not distinct, crossover will produce a
                 # genetically identical clone of the parent (but with a different ID).
                 gid = self.genome_indexer.get_next()
-                child = parent1.crossover(parent2, gid)
+                child = parent1.crossover(parent2, gid, self.config)
                 child.mutate(self.config)
                 new_population[gid] = child
                 self.ancestors[gid] = (parent1_id, parent2_id)

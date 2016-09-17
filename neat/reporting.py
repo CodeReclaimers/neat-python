@@ -32,17 +32,17 @@ class ReporterSet(object):
         for r in self.reporters:
             r.saving_checkpoint(checkpoint_type, filename)
 
-    def post_evaluate(self, population, species, best_genome):
+    def post_evaluate(self, config, population, species, best_genome):
         for r in self.reporters:
-            r.post_evaluate(population, species, best_genome)
+            r.post_evaluate(config, population, species, best_genome)
 
     def complete_extinction(self):
         for r in self.reporters:
             r.complete_extinction()
 
-    def found_solution(self, generation, best):
+    def found_solution(self, config, generation, best):
         for r in self.reporters:
-            r.found_solution(generation, best)
+            r.found_solution(config, generation, best)
 
     def species_stagnant(self, sid, species):
         for r in self.reporters:
@@ -67,13 +67,13 @@ class BaseReporter(object):
     def saving_checkpoint(self, checkpoint_type, filename):
         pass
 
-    def post_evaluate(self, population, species, best_genome):
+    def post_evaluate(self, config, population, species, best_genome):
         pass
 
     def complete_extinction(self):
         pass
 
-    def found_solution(self, generation, best):
+    def found_solution(self, config, generation, best):
         pass
 
     def species_stagnant(self, sid, species):
@@ -103,13 +103,13 @@ class StdOutReporter(BaseReporter):
         print('Creating {0} checkpoint file {1} at generation: {0}'.format(
             checkpoint_type, filename, self.generation))
 
-    def post_evaluate(self, population, species, best_genome):
+    def post_evaluate(self, config, population, species, best_genome):
         fitnesses = [c.fitness for c in itervalues(population)]
         fit_mean = mean(fitnesses)
         fit_std = stdev(fitnesses)
         best_species_id = species.get_species_id(best_genome.key)
         print('Population\'s average fitness: {0:3.5f} stdev: {1:3.5f}'.format(fit_mean, fit_std))
-        print('Best fitness: {0:3.5f} - size: {1!r} - species {2} - id {3}'.format(best_genome.fitness, best_genome.size(),
+        print('Best fitness: {0:3.5f} - size: {1!r} - species {2} - id {3}'.format(best_genome.fitness, best_genome.size(config),
                                                                                    best_species_id, best_genome.key))
         print('Species length: {0:d} totaling {1:d} individuals'.format(len(species.species), len(population)))
         #print('Species ID       : {0!s}'.format([s.ID for s in species]))
@@ -119,9 +119,9 @@ class StdOutReporter(BaseReporter):
     def complete_extinction(self):
         print('All species extinct.')
 
-    def found_solution(self, generation, best):
+    def found_solution(self, config, generation, best):
         print('\nBest individual in generation {0} meets fitness threshold - complexity: {1!r}'.format(
-            self.generation, best.size()))
+            self.generation, best.size(config)))
 
     def species_stagnant(self, sid, species):
         print("\nSpecies {0} with {1} members is stagnated: removing it".format(sid, len(species.members)))
