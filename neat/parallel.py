@@ -16,11 +16,11 @@ class ParallelEvaluator(object):
         self.pool.close()
         self.pool.join()
 
-    def evaluate(self, genomes):
+    def evaluate(self, genomes, config):
         jobs = []
-        for genome in genomes:
-            jobs.append(self.pool.apply_async(self.eval_function, (genome,)))
+        for genome_id, genome in genomes:
+            jobs.append(self.pool.apply_async(self.eval_function, (genome, config)))
 
         # assign the fitness back to each genome
-        for job, genome in zip(jobs, genomes):
+        for job, (genome_id, genome) in zip(jobs, genomes):
             genome.fitness = job.get(timeout=self.timeout)

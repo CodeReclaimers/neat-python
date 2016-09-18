@@ -4,7 +4,7 @@ from neat import parallel
 
 
 # dummy fitness function
-def eval_fitness(individual):
+def eval_fitness(individual, config):
     return 1.0
 
 
@@ -15,3 +15,7 @@ def test_minimal():
     pop = Population(config_path)
     pe = parallel.ParallelEvaluator(4, eval_fitness)
     pop.run(pe.evaluate, 400)
+
+
+if __name__ == '__main__':
+    test_minimal()

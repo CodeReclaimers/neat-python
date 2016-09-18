@@ -3,7 +3,6 @@ import random
 from neat import nn
 from neat.config import Config
 from neat.genome import DefaultGenome
-from neat.genes import NodeGene, ConnectionGene
 
 
 def assert_almost_equal(x, y, tol):
@@ -117,7 +116,7 @@ def test_feed_forward_layers():
                    (8, 11), (8, 12), (8, 9), (9, 10), (7, 10),
                    (10, 12), (10, 13)]
     layers = nn.feed_forward_layers(inputs, outputs, connections)
-    print(layers)
+    #print(layers)
     assert [{4, 5, 6}, {8, 7}, {9, 11}, {10}, {12, 13}] == layers
 
     inputs = [0, 1, 2, 3]
@@ -128,7 +127,7 @@ def test_feed_forward_layers():
                    (10, 12), (10, 13),
                    (3, 14), (14, 15), (5, 16), (10, 16)]
     layers = nn.feed_forward_layers(inputs, outputs, connections)
-    print(layers)
+    #print(layers)
     assert [{4, 5, 6}, {8, 7}, {9, 11}, {10}, {12, 13}] == layers
 
 
@@ -159,7 +158,7 @@ def test_fuzz_feed_forward_layers():
 
 def test_simple_nohidden():
     config = Config()
-    config.set_input_output_sizes(2, 1)
+    config.genome_config.set_input_output_sizes(2, 1)
     g = DefaultGenome(0, config)
     g.add_node(0, 0.0, 1.0, 'sum', 'tanh')
     g.add_connection(-1, 0, 1.0, True)
@@ -182,7 +181,7 @@ def test_simple_nohidden():
 
 def test_simple_hidden():
     config = Config()
-    config.set_input_output_sizes(2, 1)
+    config.genome_config.set_input_output_sizes(2, 1)
     g = DefaultGenome(0, config)
 
     g.add_node(0, 0.0, 1.0, 'sum', 'identity')

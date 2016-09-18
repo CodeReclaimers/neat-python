@@ -34,8 +34,7 @@ class Population(object):
         # If config is not a Config object, assume it is a path to the config file.
         if not isinstance(config, Config):
             config_path = config
-            config = Config()
-            config.load(config_path)
+            config = Config(config_path)
 
         # Configure statistics and reporting as requested by the user.
         self.reporters = ReporterSet()

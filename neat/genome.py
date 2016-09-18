@@ -445,7 +445,7 @@ class DefaultGenome(object):
         if genome_config.initial_connection == 'fs_neat':
             g.connect_fs_neat()
         elif genome_config.initial_connection == 'fully_connected':
-            g.connect_full()
+            g.connect_full(config)
         elif genome_config.initial_connection == 'partial':
             g.connect_partial(config)
 
@@ -495,7 +495,7 @@ class DefaultGenome(object):
         genome_config = config.genome_config
 
         # TODO: Factor out the gene creation.
-        for input_id, output_id in self.compute_full_connections():
+        for input_id, output_id in self.compute_full_connections(config):
             weight = gauss(0, genome_config.weight_stdev)
             cg = ConnectionGene(input_id, output_id, weight, True)
             self.connections[cg.key] = cg
