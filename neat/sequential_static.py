@@ -24,18 +24,18 @@ class SequentialStatic(object):
         self.config = cfg
         num_inputs = len(input_records[0])
         num_outputs = len(output_records[0])
-        self.config.set_input_output_sizes(num_inputs, num_outputs)
+        self.config.genome_config.set_input_output_sizes(num_inputs, num_outputs)
 
         self.pop = population.Population(self.config)
 
         # TODO: Default to parallel processing using auto-detected # hardware cores.
         # TODO: Review common customizations and make this wrapper support them in a friendly way when possible.
 
-    def eval_fitness(self, genomes):
+    def eval_fitness(self, genomes, config):
         self.total_evaluations += len(genomes)
 
-        for g in genomes:
-            net = nn.create_feed_forward_phenotype(g, self.config)
+        for g_id, g in genomes:
+            net = nn.create_feed_forward_phenotype(g, config)
 
             sum_square_error = 0.0
             for inputs, expected in zip(self.input_records, self.output_records):

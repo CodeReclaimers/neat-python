@@ -1,7 +1,7 @@
 import copy
 
-from neat.six_util import iterkeys, itervalues
-from neat.config import aggregation_function_defs
+from neat.six_util import iterkeys, itervalues, iteritems
+#from neat.config import aggregation_function_defs
 
 
 def creates_cycle(connections, test):
@@ -163,10 +163,10 @@ def create_feed_forward_phenotype(genome, config):
     # Gather expressed connections.
     connections = [cg.key for cg in itervalues(genome.connections) if cg.enabled]
 
-    layers = feed_forward_layers(config.input_keys, config.output_keys, connections)
+    layers = feed_forward_layers(config.genome_config.input_keys, config.genome_config.output_keys, connections)
     #print(layers)
     node_evals = []
-    max_used_node = max(max(config.input_keys), max(config.output_keys))
+    max_used_node = max(max(config.genome_config.input_keys), max(config.genome_config.output_keys))
     for layer in layers:
         for node in layer:
             inputs = []
@@ -180,26 +180,33 @@ def create_feed_forward_phenotype(genome, config):
 
             max_used_node = max(max_used_node, node)
             ng = genome.nodes[node]
-            aggregation_function = aggregation_function_defs[ng.aggregation]
-            activation_function = config.available_activations.get(ng.activation)
+            aggregation_function = config.genome_config.aggregation_function_defs[ng.aggregation]
+            activation_function = config.genome_config.activation_defs.get(ng.activation)
             node_evals.append((node, aggregation_function, activation_function, ng.bias, ng.response, inputs))
 
             #print("  v[%d] = %s(%f + %f * %s(%s))" % (node, ng.activation, ng.bias, ng.response, ng.aggregation, ", ".join(node_expr)))
 
-    return FeedForwardNetwork(max_used_node, config.input_keys, config.output_keys, node_evals)
+    return FeedForwardNetwork(max_used_node, config.genome_config.input_keys, config.genome_config.output_keys, node_evals)
 
 
 class RecurrentNetwork(object):
-    def __init__(self, max_node, inputs, outputs, node_evals):
-        self.max_node = max_node
-        self.node_evals = node_evals
+    def __init__(self, inputs, outputs, node_evals):
         self.input_nodes = inputs
         self.output_nodes = outputs
-        self.reset()
+        self.node_evals = node_evals
+
+        self.values = [{}, {}]
+        for v in self.values:
+            for k in inputs + outputs:
+                v[k] = 0.0
+
+            for node, func, bias, response, links in self.node_evals:
+                v[node] = 0.0
+                for i, w in links:
+                    v[i] = 0.0
 
     def reset(self):
-        self.values = [[0.0] * (1 + self.max_node),
-                       [0.0] * (1 + self.max_node)]
+        self.values = [dict((k, 0.0) for k in v) for v in self.values]
         self.active = 0
 
     def activate(self, inputs):
@@ -220,23 +227,19 @@ class RecurrentNetwork(object):
         return [ovalues[i] for i in self.output_nodes]
 
 
-def create_recurrent_phenotype(genome):
+def create_recurrent_phenotype(genome, config):
     """ Receives a genome and returns its phenotype (a recurrent neural network). """
+    genome_config = config.genome_config
+    required = required_for_output(genome_config.input_keys, genome_config.output_keys, genome.connections)
 
     # Gather inputs and expressed connections.
     node_inputs = {}
-    used_nodes = {}
-    used_nodes.update(genome.inputs)
-    used_nodes.update(genome.outputs)
-    for cg in genome.connections.values():
+    for cg in itervalues(genome.connections):
         if not cg.enabled:
             continue
 
-        if cg.output not in used_nodes:
-            used_nodes[cg.output] = genome.hidden[cg.output]
-
-        if cg.input not in used_nodes:
-            used_nodes[cg.input] = genome.hidden[cg.input]
+        if cg.output not in required and cg.input not in required:
+            continue
 
         if cg.output not in node_inputs:
             node_inputs[cg.output] = [(cg.input, cg.weight)]
@@ -244,14 +247,9 @@ def create_recurrent_phenotype(genome):
             node_inputs[cg.output].append((cg.input, cg.weight))
 
     node_evals = []
-    for onode, inputs in node_inputs.items():
-        ng = used_nodes[onode]
-        activation_function = activation_functions.get(ng.activation)
-        node_evals.append((onode, activation_function, ng.bias, ng.response, inputs))
+    for node_key, inputs in iteritems(node_inputs):
+        node = genome.nodes[node_key]
+        activation_function = genome_config.activation_defs.get(node.activation)
+        node_evals.append((node_key, activation_function, node.bias, node.response, inputs))
 
-    input_nodes = list(genome.inputs.keys())
-    input_nodes.sort()
-    output_nodes = list(genome.outputs.keys())
-    output_nodes.sort()
-
-    return RecurrentNetwork(max(used_nodes), input_nodes, output_nodes, node_evals)
+    return RecurrentNetwork(genome_config.input_keys, genome_config.output_keys, node_evals)

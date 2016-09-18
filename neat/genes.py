@@ -48,10 +48,10 @@ class NodeGene(object):
 
     # TODO: Factor out mutation into a separate class.
     def mutate(self, config):
-        self.bias = config.mutate_bias(self.bias)
-        self.response = config.mutate_response(self.response)
-        self.aggregation = config.mutate_aggregation(self.aggregation)
-        self.activation = config.mutate_activation(self.activation)
+        self.bias = config.genome_config.mutate_bias(self.bias)
+        self.response = config.genome_config.mutate_response(self.response)
+        self.aggregation = config.genome_config.mutate_aggregation(self.aggregation)
+        self.activation = config.genome_config.mutate_activation(self.activation)
 
 
 # TODO: Evaluate using __slots__ for performance/memory usage improvement.
@@ -78,9 +78,9 @@ class ConnectionGene(object):
 
     # TODO: Factor out mutation into a separate class.
     def mutate(self, config):
-        self.weight = config.mutate_weight(self.weight)
+        self.weight = config.genome_config.mutate_weight(self.weight)
 
-        if random() < config.prob_toggle_link:
+        if random() < config.genome_config.link_toggle_prob:
             self.enabled = not self.enabled
 
     def __str__(self):

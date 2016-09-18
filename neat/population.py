@@ -33,7 +33,9 @@ class Population(object):
 
         # If config is not a Config object, assume it is a path to the config file.
         if not isinstance(config, Config):
-            config = Config(config)
+            config_path = config
+            config = Config()
+            config.load(config_path)
 
         # Configure statistics and reporting as requested by the user.
         self.reporters = ReporterSet()
@@ -56,8 +58,8 @@ class Population(object):
         # Create a population if one is not given, then partition into species.
         self.population = initial_population
         if self.population is None:
-            self.population = self.reproduction.create_new(config.pop_size)
-        self.species.speciate(self.population)
+            self.population = self.reproduction.create_new(config, config.pop_size)
+        self.species.speciate(config, self.population)
 
     def add_reporter(self, reporter):
         self.reporters.add(reporter)
@@ -121,7 +123,7 @@ class Population(object):
             # genome doesn't change--in these cases, evaluating unmodified elites in each
             # generation is a waste of time.  The user can always take care of this in their
             # fitness function in the time being if they wish.
-            fitness_function(list(itervalues(self.population)))
+            fitness_function(list(iteritems(self.population)), self.config)
             #self.total_evaluations += len(self.population)
 
             # Gather and report statistics.
@@ -143,7 +145,7 @@ class Population(object):
                 break
 
             # Create the next generation from the current generation.
-            self.population = self.reproduction.reproduce(self.species, self.config.pop_size)
+            self.population = self.reproduction.reproduce(self.config, self.species, self.config.pop_size)
 
             # Check for complete extinction.
             if not self.species.species:
@@ -162,7 +164,7 @@ class Population(object):
                 s.age += 1
 
             # Divide the new population into species.
-            self.species.speciate(self.population)
+            self.species.speciate(self.config, self.population)
 
             # Save checkpoints if necessary.
             if self.config.checkpoint_time_interval is not None:

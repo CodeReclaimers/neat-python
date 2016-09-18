@@ -40,12 +40,11 @@ class SpeciesSet(object):
     """
 
     def __init__(self, config):
-        self.config = config
         self.indexer = Indexer(1)
         self.species = {}
         self.to_species = {}
 
-    def speciate(self, population):
+    def speciate(self, config, population):
         """
         Place genomes into species by genetic similarity.
 
@@ -70,8 +69,8 @@ class SpeciesSet(object):
             closest_species_id = None
             for sid, s in iteritems(self.species):
                 rep = s.representative
-                distance = individual.distance(rep, self.config)
-                if distance < self.config.compatibility_threshold and distance < min_distance:
+                distance, compatible = individual.distance(rep, config)
+                if compatible and distance < min_distance:
                     closest_species = s
                     closest_species_id = sid
                     min_distance = distance

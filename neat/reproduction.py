@@ -16,28 +16,37 @@ class DefaultReproduction(object):
     reproduction from parents. Implements the default NEAT-python reproduction
     scheme: explicit fitness sharing with fixed-time species stagnation.
     """
+
+    @staticmethod
+    def create_config(kwargs):
+        config = {'elitism': 1,
+                  'survival_threshold': 0.2}
+
+        config.update(kwargs)
+
+        return config
+
     def __init__(self, config, reporters):
-        self.config = config
-        params = config.get_type_config(self)
-        self.elitism = int(params.get('elitism'))
-        self.survival_threshold = float(params.get('survival_threshold'))
+        repro_config = config.reproduction_config
+        self.elitism = int(repro_config.get('elitism'))
+        self.survival_threshold = float(repro_config.get('survival_threshold'))
 
         self.reporters = reporters
         self.genome_indexer = Indexer(1)
         self.stagnation = config.stagnation_type(config, reporters)
         self.ancestors = {}
 
-    def create_new(self, num_genomes):
+    def create_new(self, config, num_genomes):
         new_genomes = {}
         for i in range(num_genomes):
             key = self.genome_indexer.get_next()
-            g = self.config.genome_type.create(self.config, key)
+            g = config.genome_type.create(config, key)
             new_genomes[key] = g
             self.ancestors[key] = tuple()
 
         return new_genomes
 
-    def reproduce(self, species, pop_size):
+    def reproduce(self, config, species, pop_size):
         # TODO: I don't like this modification of the species object,
         # because it requires internal knowledge of the object.
 
@@ -129,8 +138,8 @@ class DefaultReproduction(object):
                 # Note that if the parents are not distinct, crossover will produce a
                 # genetically identical clone of the parent (but with a different ID).
                 gid = self.genome_indexer.get_next()
-                child = parent1.crossover(parent2, gid, self.config)
-                child.mutate(self.config)
+                child = parent1.crossover(parent2, gid, config)
+                child.mutate(config)
                 new_population[gid] = child
                 self.ancestors[gid] = (parent1_id, parent2_id)
 
