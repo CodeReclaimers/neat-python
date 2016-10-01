@@ -1,119 +1,104 @@
 from random import random
+from neat.attributes import FloatAttribute, BoolAttribute, StringAttribute
 
+# TODO: There is probably a lot of room for simplification of these classes using metaprogramming.
 # TODO: Evaluate using __slots__ for performance/memory usage improvement.
 
-
-class NodeGene(object):
-    """ Encodes parameters for a single artificial neuron. """
-
-    def __init__(self, key, bias, response, aggregation, activation):
+class BaseGene(object):
+    def __init__(self, key):
         self.key = key
-        self.bias = bias
-        self.response = response
-        self.aggregation = aggregation
-        self.activation = activation
-
-        # TODO: Implement an external validation mechanism that can be omitted at runtime if desired.
-        self.validate()
-
-    def validate(self):
-        # TODO: Validate aggregation and activation against current configuration.
-        assert type(self.bias) is float
-        assert type(self.response) is float
-        assert type(self.aggregation) is str
-        assert type(self.activation) is str
 
     def __str__(self):
-        return 'NodeGene(key= {0}, bias={1}, response={2}, aggregation={3}, activation={4})'.format(
-            self.key, self.bias, self.response, self.aggregation, self.activation)
-
-    def crossover(self, gene2):
-        """ Creates a new NodeGene randomly inheriting attributes from its parents."""
-        # TODO: Move these asserts into an external validation mechanism that can be omitted at runtime if desired.
-        assert isinstance(self, NodeGene)
-        assert isinstance(gene2, NodeGene)
-        assert self.key == gene2.key
-
-        # Note: we use "a if random() > 0.5 else b" instead of choice((a, b))
-        # here because `choice` is substantially slower.
-        bias = self.bias if random() > 0.5 else gene2.bias
-        response = self.response if random() > 0.5 else gene2.response
-        aggregation = self.aggregation if random() > 0.5 else gene2.aggregation
-        activation = self.activation if random() > 0.5 else gene2.activation
-        ng = NodeGene(self.key, bias, response, aggregation, activation)
-        return ng
-
-    def copy(self):
-        return NodeGene(self.key, self.bias, self.response, self.aggregation, self.activation)
-
-    # TODO: Factor out mutation into a separate class.
-    def mutate(self, config):
-        self.bias = config.genome_config.mutate_bias(self.bias)
-        self.response = config.genome_config.mutate_response(self.response)
-        self.aggregation = config.genome_config.mutate_aggregation(self.aggregation)
-        self.activation = config.genome_config.mutate_activation(self.activation)
-
-
-# TODO: Evaluate using __slots__ for performance/memory usage improvement.
-
-class ConnectionGene(object):
-    def __init__(self, input_id, output_id, weight, enabled):
-        self.key = (input_id, output_id)
-        self.input = input_id
-        self.output = output_id
-        self.weight = weight
-        # TODO: Do an ablation study to determine whether the enabled setting is
-        # important--presumably mutations that set the weight to near zero could
-        # provide a similar effect depending on the weight range and mutation rate.
-        self.enabled = enabled
-
-        # TODO: Implement an external validation mechanism that can be omitted at runtime if desired.
-        self.validate()
-
-    def validate(self):
-        assert type(self.key) is tuple
-        assert len(self.key) == 2
-        assert type(self.weight) is float
-        assert type(self.enabled) is bool
-
-    # TODO: Factor out mutation into a separate class.
-    def mutate(self, config):
-        self.weight = config.genome_config.mutate_weight(self.weight)
-
-        if random() < config.genome_config.link_toggle_prob:
-            self.enabled = not self.enabled
-
-    def __str__(self):
-        return 'ConnectionGene(in={0}, out={1}, weight={2}, enabled={3}, innovation={4})'.format(
-            self.input, self.output, self.weight, self.enabled, self.key)
+        attrib = ['key'] + [a.name for a in self.__gene_attributes__]
+        attrib = ['{0}={1}'.format(a, getattr(self, a)) for a in attrib]
+        return '{0}({1})'.format(__class__.__name__, "".join(attrib))
 
     def __lt__(self, other):
         return self.key < other.key
 
-    def split(self, node_id):
-        """
-        Disable this connection and create two new connections joining its nodes via
-        the given node.  The new node+connections have roughly the same behavior as
-        the original connection (depending on the activation function of the new node).
-        """
-        self.enabled = False
-        new_conn1 = ConnectionGene(self.input, node_id, 1.0, True)
-        new_conn2 = ConnectionGene(node_id, self.output, self.weight, True)
+    @classmethod
+    def parse_config(cls, config, param_dict):
+        pass
 
-        return new_conn1, new_conn2
+    @classmethod
+    def get_config_params(cls):
+        params = []
+        for a in cls.__gene_attributes__:
+            params += a.get_config_params()
+        return params
+
+    def init_attributes(self, config):
+        for a in self.__gene_attributes__:
+            setattr(self, a.name, a.init_value(config))
+
+    def mutate(self, config):
+        for a in self.__gene_attributes__:
+            v = getattr(self, a.name)
+            setattr(self, a.name, a.mutate_value(v, config))
 
     def copy(self):
-        return ConnectionGene(self.input, self.output, self.weight, self.enabled)
+        new_gene = self.__class__(self.key)
+        for a in self.__gene_attributes__:
+            setattr(new_gene, a.name, getattr(self, a.name))
 
     def crossover(self, gene2):
-        """ Creates a new ConnectionGene randomly inheriting attributes from its parents."""
-        # TODO: Move these asserts into an external validation mechanism that can be omitted at runtime if desired.
-        assert isinstance(self, ConnectionGene)
-        assert isinstance(gene2, ConnectionGene)
+        """ Creates a new gene randomly inheriting attributes from its parents."""
         assert self.key == gene2.key
 
         # Note: we use "a if random() > 0.5 else b" instead of choice((a, b))
         # here because `choice` is substantially slower.
-        weight = self.weight if random() > 0.5 else gene2.weight
-        enabled = self.enabled if random() > 0.5 else gene2.enabled
-        return ConnectionGene(self.input, self.output, weight, enabled)
+        new_gene = self.__class__(self.key)
+        for a in self.__gene_attributes__:
+            # TODO: This may be faster if we only do one of the lookups.
+            v1 = getattr(self, a.name)
+            v2 = getattr(gene2, a.name)
+            setattr(new_gene, a.name, v1 if random() > 0.5 else v2)
+
+        return new_gene
+
+
+# TODO: Create some kind of aggregated config object that can replace
+# most of DefaultGeneConfig and genome.DefaultGenomeConfig?
+
+class DefaultGeneConfig(object):
+    def __init__(self, attribs, params):
+        self.attribs = attribs
+        for a in attribs:
+            for n in a.config_item_names():
+                setattr(self, n, params.get(n))
+
+    def save(self, f):
+        for a in self.attribs:
+            for n in a.config_item_names():
+                v = getattr(self, n)
+                if v is not None:
+                    f.write('{0} = {1}\n'.format(n, v))
+
+
+class DefaultNodeGene(BaseGene):
+    __gene_attributes__ = [FloatAttribute('bias'),
+                           FloatAttribute('response'),
+                           StringAttribute('activation'),
+                           StringAttribute('aggregation')]
+
+    @classmethod
+    def parse_config(cls, config, param_dict):
+        return DefaultGeneConfig(cls.__gene_attributes__, param_dict)
+
+    def distance(self, other):
+        raise NotImplementedError()
+
+
+# TODO: Do an ablation study to determine whether the enabled setting is
+# important--presumably mutations that set the weight to near zero could
+# provide a similar effect depending on the weight range and mutation rate.
+class DefaultConnectionGene(BaseGene):
+    __gene_attributes__ = [FloatAttribute('weight'),
+                           BoolAttribute('enabled')]
+
+    @classmethod
+    def parse_config(cls, config, param_dict):
+        return DefaultGeneConfig(cls.__gene_attributes__, param_dict)
+
+    def distance(self, other):
+        raise NotImplementedError()

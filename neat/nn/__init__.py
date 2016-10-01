@@ -3,6 +3,8 @@ import copy
 from neat.six_util import iterkeys, itervalues, iteritems
 #from neat.config import aggregation_function_defs
 
+# TODO: All this directed graph logic should be in a core module.
+
 
 def creates_cycle(connections, test):
     """
@@ -238,13 +240,14 @@ def create_recurrent_phenotype(genome, config):
         if not cg.enabled:
             continue
 
-        if cg.output not in required and cg.input not in required:
+        i, o = cg.key
+        if o not in required and i not in required:
             continue
 
-        if cg.output not in node_inputs:
-            node_inputs[cg.output] = [(cg.input, cg.weight)]
+        if o not in node_inputs:
+            node_inputs[o] = [(i, cg.weight)]
         else:
-            node_inputs[cg.output].append((cg.input, cg.weight))
+            node_inputs[o].append((i, cg.weight))
 
     node_evals = []
     for node_key, inputs in iteritems(node_inputs):

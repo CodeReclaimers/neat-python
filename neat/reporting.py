@@ -109,7 +109,7 @@ class StdOutReporter(BaseReporter):
         fit_std = stdev(fitnesses)
         best_species_id = species.get_species_id(best_genome.key)
         print('Population\'s average fitness: {0:3.5f} stdev: {1:3.5f}'.format(fit_mean, fit_std))
-        print('Best fitness: {0:3.5f} - size: {1!r} - species {2} - id {3}'.format(best_genome.fitness, best_genome.size(config),
+        print('Best fitness: {0:3.5f} - size: {1!r} - species {2} - id {3}'.format(best_genome.fitness, best_genome.size(),
                                                                                    best_species_id, best_genome.key))
         print('Species length: {0:d} totaling {1:d} individuals'.format(len(species.species), len(population)))
         #print('Species ID       : {0!s}'.format([s.ID for s in species]))

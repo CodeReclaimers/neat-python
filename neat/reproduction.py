@@ -17,30 +17,28 @@ class DefaultReproduction(object):
     scheme: explicit fitness sharing with fixed-time species stagnation.
     """
 
-    @staticmethod
-    def create_config(kwargs):
+    @classmethod
+    def parse_config(cls, param_dict):
         config = {'elitism': 1,
-                  'survival_threshold': 0.2}
-
-        config.update(kwargs)
+                       'survival_threshold': 0.2}
+        config.update(param_dict)
 
         return config
 
-    def __init__(self, config, reporters):
-        repro_config = config.reproduction_config
-        self.elitism = int(repro_config.get('elitism'))
-        self.survival_threshold = float(repro_config.get('survival_threshold'))
+    def __init__(self, config, reporters, stagnation):
+        self.elitism = int(config.get('elitism'))
+        self.survival_threshold = float(config.get('survival_threshold'))
 
         self.reporters = reporters
         self.genome_indexer = Indexer(1)
-        self.stagnation = config.stagnation_type(config, reporters)
+        self.stagnation = stagnation
         self.ancestors = {}
 
-    def create_new(self, config, num_genomes):
+    def create_new(self, genome_type, genome_config, num_genomes):
         new_genomes = {}
         for i in range(num_genomes):
             key = self.genome_indexer.get_next()
-            g = config.genome_type.create(config, key)
+            g = genome_type.create(genome_config, key)
             new_genomes[key] = g
             self.ancestors[key] = tuple()
 
@@ -138,8 +136,8 @@ class DefaultReproduction(object):
                 # Note that if the parents are not distinct, crossover will produce a
                 # genetically identical clone of the parent (but with a different ID).
                 gid = self.genome_indexer.get_next()
-                child = parent1.crossover(parent2, gid, config)
-                child.mutate(config)
+                child = parent1.crossover(parent2, gid, config.genome_config)
+                child.mutate(config.genome_config)
                 new_population[gid] = child
                 self.ancestors[gid] = (parent1_id, parent2_id)
 

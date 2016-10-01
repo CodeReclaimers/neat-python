@@ -32,8 +32,8 @@ it with an object which implements the same interface as `BaseReporter`.
 <https://github.com/CodeReclaimers/neat-python/blob/master/neat/reporting.py#L56>`_ may be useful as examples of the
 behavior you can add using a reporter.
 
-Species stagnation
-------------------
+Species stagnation scheme
+-------------------------
 
 To use a different species stagnation scheme, you must create and register a custom class whose interface matches that
 of `DefaultStagnation` and set the `stagnation_type` of your Config instance to this class.
@@ -49,12 +49,16 @@ is encapsulated in the DefaultReproduction class.
 
 TODO: document, include example
 
+EXAMPLE: ???
+
 Speciation
 ----------
 
 If you need to change the speciation scheme, you should subclass `Population` and override the `_speciate` method (or,
 if you must, `monkey patch/duck punch
 <https://en.wikipedia.org/wiki/Monkey_patch>`_ it).
+
+EXAMPLE: ???
 
 Diversity
 ---------
@@ -64,16 +68,20 @@ To use a different diversity scheme, you can create a custom class whose interfa
 
 TODO: document, include example
 
+EXAMPLE: ???
+
 Using different genome types
---------------------------
+----------------------------
 
 To use a different genome type, you can create a custom class whose interface matches that of
 `Genome` or `FFGenome`, and set the `genotype` member of your Config instance to this class.
 
 TODO: document, include example
 
+EXAMPLE: genome with an additional set of genes (used for?)
+
 Using a different gene type
------------------------------
+---------------------------
 
 To use a different gene type, you can create a custom class whose interface matches that of
 `NodeGene` or `ConnectionGene`, and set the `node_gene_type` or `conn_gene_type` member,
@@ -81,3 +89,14 @@ respectively, of your Config instance to this class.
 
 TODO: document, include example
 
+EXAMPLE: ???  reference the IZNN genes?
+
+Using a different network type
+------------------------------
+
+EXAMPLE: ???
+
+Cross-validation
+----------------
+
+EXAMPLE: ???

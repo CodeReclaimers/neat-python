@@ -14,8 +14,7 @@ class CTNodeGene(NodeGene):
         The main difference here is the addition of
         a decay rate given by the time constant.
     """
-    def __init__(self, ID, bias=0.0, response=4.924273,
-                 activation_type='sigmoid', time_constant=1.0):
+    def __init__(self, ID, bias, response, activation_type, time_constant):
         super(CTNodeGene, self).__init__(ID, bias, response, activation_type)
         self.time_constant = time_constant
 

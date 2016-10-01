@@ -7,20 +7,17 @@ from neat.six_util import iteritems
 
 
 class DefaultStagnation(object):
-    @staticmethod
-    def create_config(kwargs):
+    @classmethod
+    def parse_config(cls, param_dict):
         config = {'species_fitness_func': 'mean',
-                  'max_stagnation': 15}
-
-        config.update(kwargs)
+                       'max_stagnation': 15}
+        config.update(param_dict)
 
         return config
 
     def __init__(self, config, reporters):
-        params = config.stagnation_config
-
-        self.max_stagnation = int(params.get('max_stagnation'))
-        self.species_fitness = params.get('species_fitness_func')
+        self.max_stagnation = int(config.get('max_stagnation'))
+        self.species_fitness = config.get('species_fitness_func')
 
         if self.species_fitness == 'max':
             self.species_fitness_func = Species.max_fitness

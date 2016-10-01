@@ -48,7 +48,8 @@ class Population(object):
             self.add_reporter(StdOutReporter())
 
         self.config = config
-        self.reproduction = config.reproduction_type(config, self.reporters)
+        stagnation = config.stagnation_type(config.stagnation_config, self.reporters)
+        self.reproduction = config.reproduction_type(config.reproduction_config, self.reporters, stagnation)
 
         self.species = SpeciesSet(config)
         self.generation = -1
@@ -57,7 +58,7 @@ class Population(object):
         # Create a population if one is not given, then partition into species.
         self.population = initial_population
         if self.population is None:
-            self.population = self.reproduction.create_new(config, config.pop_size)
+            self.population = self.reproduction.create_new(config.genome_type, config.genome_config, config.pop_size)
         self.species.speciate(config, self.population)
 
     def add_reporter(self, reporter):

@@ -69,7 +69,7 @@ class SpeciesSet(object):
             closest_species_id = None
             for sid, s in iteritems(self.species):
                 rep = s.representative
-                distance, compatible = individual.distance(rep, config)
+                distance, compatible = individual.distance(rep, config.genome_config)
                 if compatible and distance < min_distance:
                     closest_species = s
                     closest_species_id = sid

@@ -116,7 +116,6 @@ def test_feed_forward_layers():
                    (8, 11), (8, 12), (8, 9), (9, 10), (7, 10),
                    (10, 12), (10, 13)]
     layers = nn.feed_forward_layers(inputs, outputs, connections)
-    #print(layers)
     assert [{4, 5, 6}, {8, 7}, {9, 11}, {10}, {12, 13}] == layers
 
     inputs = [0, 1, 2, 3]
@@ -127,7 +126,6 @@ def test_feed_forward_layers():
                    (10, 12), (10, 13),
                    (3, 14), (14, 15), (5, 16), (10, 16)]
     layers = nn.feed_forward_layers(inputs, outputs, connections)
-    #print(layers)
     assert [{4, 5, 6}, {8, 7}, {9, 11}, {10}, {12, 13}] == layers
 
 

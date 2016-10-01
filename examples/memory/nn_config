@@ -1,19 +1,14 @@
-# Parameters for the bit-sequence memory experiment.
-
-# The `Types` section specifies which classes should be used for various
-# tasks in the NEAT algorithm.  If you use a non-default class here, you
-# must register it with your Config instance before loading the config file.
-[Types]
-genome_type       = DefaultGenome
-reproduction_type = DefaultReproduction
-stagnation_type   = DefaultStagnation
+# NEAT configuration for the bit-sequence memory experiment.
 
 # The `NEAT` section specifies parameters particular to the NEAT algorithm
-# or the experiment itself.
+# or the experiment itself.  This is the only required section.
 [NEAT]
 pop_size              = 150
 max_fitness_threshold = -0.05
 reset_on_extinction   = 0
+collect_statistics = True
+report = True
+save_best = False
 
 [DefaultGenome]
 num_inputs              = 2
@@ -21,30 +16,44 @@ num_hidden              = 0
 num_outputs             = 1
 initial_connection      = partial 0.5
 feed_forward            = 0
-activation              = clamped sigmoid tanh my_sinc_function
-aggregation             = sum
-conn_add_prob           = 0.5
-conn_delete_prob        = 0.25
-node_add_prob           = 0.5
-node_delete_prob        = 0.25
-bias_mutate_prob        = 0.8
-bias_mutate_power       = 0.5
-response_mutate_prob    = 0.8
-response_mutate_power   = 0.5
-weight_max              = 30
-weight_min              = -30
-weight_mean             = 0.0
-weight_stdev            = 1.0
-weight_mutate_prob      = 0.8
-weight_replace_prob     = 0.1
-weight_mutate_power     = 0.5
-activation_mutate_prob  = 0.002
-aggregation_mutate_prob = 0.0
-link_toggle_prob        = 0.01
 compatibility_threshold = 3.0
 excess_coefficient      = 1.0
 disjoint_coefficient    = 1.0
 weight_coefficient      = 0.5
+conn_add_prob           = 0.5
+conn_delete_prob        = 0.25
+node_add_prob           = 0.5
+node_delete_prob        = 0.25
+activation_default      = sigmoid
+activation_options      = clamped sigmoid tanh my_sinc_function
+activation_mutate_rate  = 0.02
+aggregation_default     = sum
+aggregation_options     = sum
+aggregation_mutate_rate = 0.0
+bias_init_mean          = 0.0
+bias_init_stdev         = 1.0
+bias_replace_rate       = 0.1
+bias_mutate_rate        = 0.7
+bias_mutate_power       = 0.5
+bias_max_value          = 30.0
+bias_min_value          = -30.0
+response_init_mean      = 0.0
+response_init_stdev     = 1.0
+response_replace_rate   = 0.1
+response_mutate_rate    = 0.7
+response_mutate_power   = 0.5
+response_max_value      = 30.0
+response_min_value      = -30.0
+
+weight_max_value        = 30
+weight_min_value        = -30
+weight_init_mean        = 0.0
+weight_init_stdev       = 1.0
+weight_mutate_rate      = 0.8
+weight_replace_rate     = 0.1
+weight_mutate_power     = 0.5
+enabled_default         = True
+enabled_mutate_rate     = 0.01
 
 [DefaultStagnation]
 species_fitness = median

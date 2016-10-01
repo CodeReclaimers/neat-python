@@ -14,6 +14,9 @@ import random
 
 from neat.config import Config
 from neat import nn, population, statistics, parallel
+from neat.genome import DefaultGenome
+from neat.reproduction import DefaultReproduction
+from neat.stagnation import DefaultStagnation
 
 # num_tests is the number of random examples each network is tested against.
 num_tests = 16
@@ -59,13 +62,15 @@ def run():
     # Determine path to configuration file.
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'nn_config')
-    config = Config(config_path)
+    config = Config(DefaultGenome, DefaultReproduction, DefaultStagnation, config_path)
+
+    config.save('test_save_config.txt')
 
     # This sinc function will be available if my_sinc_function is included in the
     # config file activation_functions option under the pheotype section.
     # Note that sinc is not necessarily useful for this example, it was chosen
     # arbitrarily just to demonstrate adding a custom activation function.
-    config.genome_config.activation_defs.add('my_sinc_function', sinc)
+    config.genome_config.add_activation('my_sinc_function', sinc)
 
     pop = population.Population(config)
     #pe = parallel.ParallelEvaluator(4, eval_fitness)

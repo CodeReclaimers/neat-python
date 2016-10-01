@@ -1,13 +1,68 @@
 import os
 
-from neat.genome import DefaultGenome
-from neat.reproduction import DefaultReproduction
-from neat.stagnation import DefaultStagnation
-
 try:
     from configparser import ConfigParser
 except ImportError:
     from ConfigParser import SafeConfigParser as ConfigParser
+
+
+class ConfigParameter(object):
+    def __init__(self, name, value_type):
+        self.name = name
+        self.value_type = value_type
+
+    def __repr__(self):
+        return "ConfigParameter({!r}, {!r})".format(self.name, self.value_type)
+
+    def parse(self, section, config_parser):
+        if int == self.value_type:
+            return config_parser.getint(section, self.name)
+        if bool == self.value_type:
+            return config_parser.getboolean(section, self.name)
+        if float == self.value_type:
+            return config_parser.getfloat(section, self.name)
+        if list == self.value_type:
+            v = config_parser.get(section, self.name)
+            return v.split(" ")
+        return config_parser.get(section, self.name)
+
+    def interpret(self, config_dict):
+        value = config_dict.get(self.name)
+        if value is None:
+            raise Exception('Missing configuration item: ' + self.name)
+
+        if str == self.value_type:
+            return str(value)
+        if int == self.value_type:
+            return int(value)
+        if bool == self.value_type:
+            if "true" == value.lower():
+                return True
+            if "false" == value.lower():
+                return False
+            return bool(int(value))
+        if float == self.value_type:
+            return float(value)
+        if list == self.value_type:
+            return value.split(" ")
+
+        raise Exception("Unexpected configuration type: " + repr(self.value_type))
+
+    def format(self, value):
+        if list == self.value_type:
+            return " ".join(value)
+        return str(value)
+
+
+def write_pretty_params(f, config, params):
+    param_names = [p.name for p in params]
+    longest_name = max(len(name) for name in param_names)
+    param_names.sort()
+    params = dict((p.name, p) for p in params)
+
+    for name in param_names:
+        p = params[name]
+        f.write('{} = {}\n'.format(p.name.ljust(longest_name), p.format(getattr(config, p.name))))
 
 
 class Config(object):
@@ -15,22 +70,14 @@ class Config(object):
     A simple container for all of the user-configurable parameters of NEAT.
     '''
 
-    def __init__(self, filename=None, reg_dict={}):
-        # Initialize type registry with default implementations.
-        self.registry = {'DefaultStagnation': DefaultStagnation,
-                         'DefaultReproduction': DefaultReproduction,
-                         'DefaultGenome': DefaultGenome}
-        self.registry.update(reg_dict)
+    __params = [ConfigParameter('pop_size', int),
+                ConfigParameter('max_fitness_threshold', float),
+                ConfigParameter('reset_on_extinction', bool),
+                ConfigParameter('collect_statistics', bool),
+                ConfigParameter('report', bool),
+                ConfigParameter('save_best', bool)]
 
-        genome_type_name = 'DefaultGenome'
-        genome_config = {}
-
-        reproduction_type_name = 'DefaultReproduction'
-        reproduction_config = {}
-
-        stagnation_type_name = 'DefaultStagnation'
-        stagnation_config = {}
-
+    def __init__(self, genome_type, reproduction_type, stagnation_type, filename=None):
 
         parameters = ConfigParser()
         if filename is not None:
@@ -47,62 +94,39 @@ class Config(object):
             if not parameters.has_section('NEAT'):
                 raise RuntimeError("'NEAT' section not found in NEAT configuration file.")
 
-            # Type registry.
-            if not parameters.has_section('Types'):
-                raise RuntimeError("'Types' section not found in NEAT configuration file.")
+        for p in self.__params:
+            setattr(self, p.name, p.parse('NEAT', parameters))
 
-            genome_type_name = parameters.get('Types', 'genome_type')
-            genome_config = dict(parameters.items(genome_type_name))
-
-            reproduction_type_name = parameters.get('Types', 'reproduction_type')
-            reproduction_config = dict(parameters.items(reproduction_type_name))
-
-            stagnation_type_name = parameters.get('Types', 'stagnation_type')
-            stagnation_config = dict(parameters.items(stagnation_type_name))
-
-
-        self.pop_size = int(parameters.get('NEAT', 'pop_size', fallback=150))
-        self.max_fitness_threshold = float(parameters.get('NEAT', 'max_fitness_threshold', fallback=-0.05))
-        self.reset_on_extinction = bool(int(parameters.get('NEAT', 'reset_on_extinction', fallback=False)))
-
-        # Gather statistics for each generation.
-        self.collect_statistics = True
-        # Show stats after each generation.
-        self.report = True
-        # Save the best genome from each generation.
-        self.save_best = False
         # Time in minutes between saving checkpoints, None for no timed checkpoints.
         self.checkpoint_time_interval = None
         # Time in generations between saving checkpoints, None for no generational checkpoints.
         self.checkpoint_gen_interval = None
 
+        # Set default empty configuration.
+        self.genome_type = genome_type
+        genome_dict = dict(parameters.items(genome_type.__name__))
+        self.genome_config = genome_type.parse_config(genome_dict)
 
-        # Genome type configuration.
-        if genome_type_name not in self.registry:
-            raise Exception('Unknown genome type: {!r}'.format(genome_type_name))
-        self.genome_type = self.registry[genome_type_name]
-        self.genome_config = self.genome_type.create_config(genome_config)
+        self.stagnation_type = stagnation_type
+        stagnation_dict = dict(parameters.items(stagnation_type.__name__))
+        self.stagnation_config = stagnation_type.parse_config(stagnation_dict)
 
-        # Reproduction type configuration.
-        if reproduction_type_name not in self.registry:
-            raise Exception('Unknown reproduction type: {!r}'.format(reproduction_type_name))
-        self.reproduction_type = self.registry[reproduction_type_name]
-        self.reproduction_config = self.reproduction_type.create_config(reproduction_config)
-
-        # Stagnation type configuration.
-        if stagnation_type_name not in self.registry:
-            raise Exception('Unknown stagnation type: {!r}'.format(stagnation_type_name))
-        self.stagnation_type = self.registry[stagnation_type_name]
-        self.stagnation_config = self.stagnation_type.create_config(stagnation_config)
+        self.reproduction_type = reproduction_type
+        reproduction_dict = dict(parameters.items(reproduction_type.__name__))
+        self.reproduction_config = reproduction_type.parse_config(reproduction_dict)
 
     def save(self, filename):
-        # TODO: Implement
-        pass
+        with open(filename, 'w') as f:
+            f.write('# The `NEAT` section specifies parameters particular to the NEAT algorithm\n')
+            f.write('# or the experiment itself.  This is the only required section.\n')
+            f.write('[NEAT]\n')
+            write_pretty_params(f, self, self.__params)
 
-    def register(self, type_name, type_def):
-        """
-        User-defined classes mentioned in the config file must be provided to the
-        configuration object before the load() method is called.
-        """
-        self.registry[type_name] = type_def
+            f.write('\n[{0}]\n'.format(self.genome_type.__name__))
+            self.genome_type.write_config(f, self.genome_config)
 
+            f.write('\n[{0}]\n'.format(self.stagnation_type.__name__))
+            self.stagnation_type.write_config(f, self.stagnation_config)
+
+            f.write('\n[{0}]\n'.format(self.reproduction_type.__name__))
+            self.reproduction_type.write_config(f, self.reproduction_config)
