@@ -15,6 +15,13 @@ class DefaultStagnation(object):
 
         return config
 
+    @classmethod
+    def write_config(cls, f, config):
+        fitness_func = config.get('species_fitness_func', 'mean')
+        f.write('species_fitness_func = {}\n'.format(fitness_func))
+        max_stagnation = config.get('max_stagnation', 15)
+        f.write('max_stagnation       = {}\n'.format(max_stagnation))
+
     def __init__(self, config, reporters):
         self.max_stagnation = int(config.get('max_stagnation'))
         self.species_fitness = config.get('species_fitness_func')

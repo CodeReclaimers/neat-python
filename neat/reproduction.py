@@ -20,10 +20,17 @@ class DefaultReproduction(object):
     @classmethod
     def parse_config(cls, param_dict):
         config = {'elitism': 1,
-                       'survival_threshold': 0.2}
+                  'survival_threshold': 0.2}
         config.update(param_dict)
 
         return config
+
+    @classmethod
+    def write_config(cls, f, param_dict):
+        elitism = param_dict.get('elitism', 1)
+        f.write('elitism            = {}\n'.format(elitism))
+        survival_threshold = param_dict.get('survival_threshold', 0.2)
+        f.write('survival_threshold = {}\n'.format(survival_threshold))
 
     def __init__(self, config, reporters, stagnation):
         self.elitism = int(config.get('elitism'))
