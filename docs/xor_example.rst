@@ -24,7 +24,7 @@ are not important, only their relative values.
 
 In this example, we create a feed-forward neural network based on the genome, and then for each case in the
 table above, we provide that network with the inputs, and compute the network's output.  The error for each genome
-is 1 minus the root mean square difference between the expected and actual outputs, so that if the network produces exactly
+is :math:`1 - \sum_i (e_i - a_i)^2` between the expected (:math:`e_i`) and actual (:math:`a_i`) outputs, so that if the network produces exactly
 the expected output, its fitness is 1, otherwise it is a value less than 1, with the fitness value decreasing the more
 incorrect the network responses are.
 
@@ -68,9 +68,9 @@ Example Source
 --------------
 
 NOTE: This page shows the source and configuration file for the current version of neat-python available on
-GitHub.  If you are using the version 0.7 installed from PyPI, make sure you get the script and config file from
+GitHub.  If you are using the version 0.9 installed from PyPI, make sure you get the script and config file from
 the `archived source for that release
-<https://github.com/CodeReclaimers/neat-python/releases/tag/v0.7>`_.
+<https://github.com/CodeReclaimers/neat-python/releases/tag/v0.9>`_.
 
 Here's the entire example:
 
