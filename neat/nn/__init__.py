@@ -1,7 +1,4 @@
-import copy
-
 from neat.six_util import iterkeys, itervalues, iteritems
-#from neat.config import aggregation_function_defs
 
 # TODO: All this directed graph logic should be in a core module.
 
@@ -94,42 +91,6 @@ def feed_forward_layers(inputs, outputs, connections):
         S = S.union(T)
 
     return layers
-
-
-# def find_evaluation_order(inputs, outputs, connections):
-#     '''
-#     Collect the layers whose members can be evaluated in parallel in a feed-forward network.
-#     :param inputs: list of the input identifiers
-#     :param outputs: list of the output node identifiers
-#     :param connections: list of (input, output) connections in the network.
-#     NOTE: It is assumed that the input identifier set and the node identifier set are disjoint.
-#     By convention, the output node ids are always the same as the output index.
-#
-#     Returns a list of layers, with each layer consisting of a set of identifiers.
-#     '''
-#
-#     layers = [set(outputs)]
-#     S = set(outputs)
-#     while 1:
-#         # Find candidate nodes C for the previous layer.  These nodes
-#         # should connect a node in S to a node not in S.
-#         T = set(a for (a, b) in connections if b in S and a not in S)
-#         #T = set()
-#         #for n in C:
-#         #    if all(a in S for (a, b) in connections if b == n):
-#         #        T.add(n)
-#
-#         if not T:
-#             break
-#
-#         layer_nodes = set(x for x in T if x not in inputs)
-#         if not layer_nodes:
-#             break
-#
-#         layers.append(layer_nodes)
-#         S = S.union(T)
-#
-#     return layers[::-1]
 
 
 class FeedForwardNetwork(object):

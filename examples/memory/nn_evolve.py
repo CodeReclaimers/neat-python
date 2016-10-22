@@ -19,12 +19,15 @@ from neat.reproduction import DefaultReproduction
 from neat.stagnation import DefaultStagnation
 
 # num_tests is the number of random examples each network is tested against.
-num_tests = 16
+num_tests = 8
 # N is the length of the test sequence.
-N = 4
+N = 2
 
+num_evaluations = 0
 
 def eval_fitness(genome_id, genome, config):
+    global num_evaluations
+    num_evaluations += 1
     net = nn.create_recurrent_phenotype(genome, config)
 
     error = 0.0
@@ -78,17 +81,15 @@ def run():
     pop.run(eval_genomes, 1000)
 
     # Log statistics.
-    statistics.save_stats(pop.statistics)
-    statistics.save_species_count(pop.statistics)
-    statistics.save_species_fitness(pop.statistics)
+    pop.statistics.save()
 
-    print('Number of evaluations: {0}'.format(pop.total_evaluations))
+    print('Number of genome evaluations: {0}'.format(num_evaluations))
 
     # Show output of the most fit genome against a random input.
     winner = pop.statistics.best_genome()
     print('\nBest genome:\n{!s}'.format(winner))
     print('\nOutput:')
-    winner_net = nn.create_recurrent_phenotype(winner)
+    winner_net = nn.create_recurrent_phenotype(winner, config)
     for n in range(4):
         print('\nRun {0} output:'.format(n))
         seq = [random.choice((0, 1)) for _ in range(N)]

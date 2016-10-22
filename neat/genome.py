@@ -131,7 +131,7 @@ class DefaultGenome(object):
         """ Mutates this genome. """
 
         # TODO: Make a configuration item to choose whether or not multiple
-        # mutations can happen simulataneously.
+        # mutations can happen simultaneously.
         if random() < config.node_add_prob:
             self.mutate_add_node(config)
 

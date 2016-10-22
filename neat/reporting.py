@@ -121,7 +121,7 @@ class StdOutReporter(BaseReporter):
 
     def found_solution(self, config, generation, best):
         print('\nBest individual in generation {0} meets fitness threshold - complexity: {1!r}'.format(
-            self.generation, best.size(config)))
+            self.generation, best.size()))
 
     def species_stagnant(self, sid, species):
         print("\nSpecies {0} with {1} members is stagnated: removing it".format(sid, len(species.members)))
