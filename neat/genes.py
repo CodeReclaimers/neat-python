@@ -4,6 +4,7 @@ from neat.attributes import FloatAttribute, BoolAttribute, StringAttribute
 # TODO: There is probably a lot of room for simplification of these classes using metaprogramming.
 # TODO: Evaluate using __slots__ for performance/memory usage improvement.
 
+
 class BaseGene(object):
     def __init__(self, key):
         self.key = key
@@ -40,6 +41,8 @@ class BaseGene(object):
         new_gene = self.__class__(self.key)
         for a in self.__gene_attributes__:
             setattr(new_gene, a.name, getattr(self, a.name))
+
+        return new_gene
 
     def crossover(self, gene2):
         """ Creates a new gene randomly inheriting attributes from its parents."""

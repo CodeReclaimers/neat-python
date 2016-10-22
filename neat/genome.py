@@ -6,7 +6,8 @@ from neat.activations import ActivationFunctionSet
 from neat.nn import creates_cycle
 
 from math import fabs
-from random import choice, gauss, random, shuffle
+from random import choice, random, shuffle
+
 
 class DefaultGenomeConfig(object):
     __params = [ConfigParameter('num_inputs', int),
@@ -45,7 +46,10 @@ class DefaultGenomeConfig(object):
         for p in self.__params:
             setattr(self, p.name, p.interpret(params))
 
-        self.build_keys()
+        # By convention, input pins have negative keys, and the output
+        # pins have keys 0,1,...
+        self.input_keys = [-i - 1 for i in range(self.num_inputs)]
+        self.output_keys = [i for i in range(self.num_outputs)]
 
         self.connection_fraction = None
 
@@ -76,10 +80,6 @@ class DefaultGenomeConfig(object):
         #
         # assert self.initial_connection in self.allowed_connectivity
         write_pretty_params(f, self, self.__params)
-
-    def build_keys(self):
-        self.input_keys = [-i - 1 for i in range(self.num_inputs)]
-        self.output_keys = [i for i in range(self.num_outputs)]
 
 
 class DefaultGenome(object):
@@ -126,15 +126,6 @@ class DefaultGenome(object):
         # TODO: This should probably be stored elsewhere.
         self.fitness = None
         self.cross_fitness = None
-
-    def add_node(self, key, bias, response, aggregation, activation):
-        # TODO: Add validation of this node addition.
-        self.nodes[key] = DefaultNodeGene(key, bias, response, aggregation, activation)
-
-    def add_connection(self, input_key, output_key, weight, enabled):
-        # TODO: Add validation of this connection addition.
-        key = (input_key, output_key)
-        self.connections[key] = DefaultConnectionGene(key, weight, enabled)
 
     def mutate(self, config):
         """ Mutates this genome. """
@@ -217,31 +208,26 @@ class DefaultGenome(object):
         # Choose a random connection to split
         conn_to_split = choice(list(self.connections.values()))
         new_node_id = self.get_new_hidden_id()
-        act_func = choice(config.activation_options)
         ng = self.create_node(config, new_node_id)
         self.nodes[new_node_id] = ng
-        new_conn1, new_conn2 = conn_to_split.split(new_node_id)
 
-        # TODO: Make sure this logic is retained in the appropriate place.
-        # class ConnectionGene(object):
-        #     def split(self, node_id):
-        #         """
-        #         Disable this connection and create two new connections joining its nodes via
-        #         the given node.  The new node+connections have roughly the same behavior as
-        #         the original connection (depending on the activation function of the new node).
-        #         """
-        #         self.enabled = False
-        #         new_conn1 = ConnectionGene(self.input, node_id, 1.0, True)
-        #         new_conn2 = ConnectionGene(node_id, self.output, self.weight, True)
-        #
-        #         return new_conn1, new_conn2
+        # Disable this connection and create two new connections joining its nodes via
+        # the given node.  The new node+connections have roughly the same behavior as
+        # the original connection (depending on the activation function of the new node).
+        conn_to_split.enabled = False
 
+        i, o = conn_to_split.key
+        self.add_connection(config, i, new_node_id, 1.0, True)
+        self.add_connection(config, new_node_id, o, conn_to_split.weight, True)
 
-
-
-        self.connections[new_conn1.key] = new_conn1
-        self.connections[new_conn2.key] = new_conn2
-        return ng, conn_to_split  # the return is only used in genome_feedforward
+    def add_connection(self, config, input_key, output_key, weight, enabled):
+        # TODO: Add validation of this connection addition.
+        key = (input_key, output_key)
+        connection = DefaultConnectionGene(key)
+        connection.init_attributes(config)
+        connection.weight = weight
+        connection.enabled = enabled
+        self.connections[key] = connection
 
     def mutate_add_connection(self, config):
         '''
@@ -263,10 +249,7 @@ class DefaultGenome(object):
         if config.feed_forward and creates_cycle(list(iterkeys(self.connections)), key):
             return
 
-        # TODO: factor out new connection creation based on config
-        weight = gauss(0, config.weight_stdev)
-        enabled = choice([False, True])
-        cg = DefaultConnectionGene(in_node, out_node, weight, enabled)
+        cg = self.create_connection(config, in_node, out_node)
         self.connections[cg.key] = cg
 
     def mutate_delete_node(self, config):
@@ -320,7 +303,6 @@ class DefaultGenome(object):
         response_diff = 0.0
         activation_diff = 0
         num_common = 0
-
 
         # TODO: Factor out the gene-specific distance components into the gene classes.
 
@@ -431,8 +413,12 @@ class DefaultGenome(object):
         node = DefaultNodeGene(node_id)
         node.init_attributes(config)
         return node
-        # return NodeGene(node_id, genome_config.new_bias(), genome_config.new_response(),
-        #                 genome_config.new_aggregation(), genome_config.new_activation())
+
+    @staticmethod
+    def create_connection(config, input_id, output_id):
+        connection = DefaultConnectionGene((input_id, output_id))
+        connection.init_attributes(config)
+        return connection
 
     @classmethod
     def create_unconnected(cls, config, key):
@@ -451,9 +437,8 @@ class DefaultGenome(object):
         # TODO: Factor out the gene creation.
         input_id = choice(self.inputs.keys())
         for output_id in list(self.hidden.keys()) + list(self.outputs.keys()):
-            weight = gauss(0, config.weight_stdev)
-            cg = DefaultConnectionGene(input_id, output_id, weight, True)
-            self.connections[cg.key] = cg
+            connection = self.create_connection(config, input_id, output_id)
+            self.connections[connection.key] = connection
 
     def compute_full_connections(self, config):
         """ Compute connections for a fully-connected feed-forward genome (each input connected to all nodes). """
@@ -466,18 +451,15 @@ class DefaultGenome(object):
 
     def connect_full(self, config):
         """ Create a fully-connected genome. """
-        # TODO: Factor out the gene creation.
         for input_id, output_id in self.compute_full_connections(config):
-            weight = gauss(0, config.weight_stdev)
-            cg = DefaultConnectionGene(input_id, output_id, weight, True)
-            self.connections[cg.key] = cg
+            connection = self.create_connection(config, input_id, output_id)
+            self.connections[connection.key] = connection
 
     def connect_partial(self, config):
         assert 0 <= config.connection_fraction <= 1
         all_connections = self.compute_full_connections(config)
         shuffle(all_connections)
         num_to_add = int(round(len(all_connections) * config.connection_fraction))
-        for key in all_connections[:num_to_add]:
-            gene = DefaultConnectionGene(key)
-            gene.init_attributes(config)
-            self.connections[key] = gene
+        for input_id, output_id in all_connections[:num_to_add]:
+            connection = self.create_connection(config, input_id, output_id)
+            self.connections[connection.key] = connection
