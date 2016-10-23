@@ -1,3 +1,4 @@
+import inspect
 import math
 
 
@@ -22,7 +23,7 @@ def gauss_activation(z):
 
 
 def relu_activation(z):
-    return z if z > 0.0 else 0
+    return z if z > 0.0 else 0.0
 
 
 def identity_activation(z):
@@ -70,6 +71,15 @@ class InvalidActivationFunction(Exception):
     pass
 
 
+def validate_activation(function):
+    if not inspect.isfunction(function):
+        raise InvalidActivationFunction("A function object is required.")
+
+    args = inspect.getargspec(function.__call__)
+    if len(args[0]) != 1:
+        raise InvalidActivationFunction("A single-argument function is required.")
+
+
 class ActivationFunctionSet(object):
     def __init__(self):
         self.functions = {'sigmoid': sigmoid_activation,
@@ -88,7 +98,7 @@ class ActivationFunctionSet(object):
                           'cube': cube_activation}
 
     def add(self, config_name, function):
-        # TODO: Verify that the given function has the correct signature.
+        validate_activation(function)
         self.functions[config_name] = function
 
     def get(self, config_name):
@@ -99,7 +109,4 @@ class ActivationFunctionSet(object):
         return f
 
     def is_valid(self, config_name):
-        # TODO: Verify that the given function has the correct signature.
         return config_name in self.functions
-
-
