@@ -163,10 +163,11 @@ class RecurrentNetwork(object):
             for k in inputs + outputs:
                 v[k] = 0.0
 
-            for node, func, bias, response, links in self.node_evals:
+            for node, activation, aggregation, bias, response, links in self.node_evals:
                 v[node] = 0.0
                 for i, w in links:
                     v[i] = 0.0
+        self.active = 0
 
     def reset(self):
         self.values = [dict((k, 0.0) for k in v) for v in self.values]
@@ -181,11 +182,10 @@ class RecurrentNetwork(object):
             ivalues[i] = v
             ovalues[i] = v
 
-        for node, func, bias, response, links in self.node_evals:
-            s = 0.0
-            for i, w in links:
-                s += ivalues[i] * w
-            ovalues[node] = func(bias + response * s)
+        for node, activation, aggregation, bias, response, links in self.node_evals:
+            node_inputs = [ivalues[i] * w for i, w in links]
+            s = aggregation(node_inputs)
+            ovalues[node] = activation(bias + response * s)
 
         return [ovalues[i] for i in self.output_nodes]
 
@@ -214,6 +214,7 @@ def create_recurrent_phenotype(genome, config):
     for node_key, inputs in iteritems(node_inputs):
         node = genome.nodes[node_key]
         activation_function = genome_config.activation_defs.get(node.activation)
-        node_evals.append((node_key, activation_function, node.bias, node.response, inputs))
+        aggregation_function = genome_config.aggregation_function_defs.get(node.aggregation)
+        node_evals.append((node_key, activation_function, aggregation_function, node.bias, node.response, inputs))
 
     return RecurrentNetwork(genome_config.input_keys, genome_config.output_keys, node_evals)

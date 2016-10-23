@@ -36,10 +36,11 @@ class ConfigParameter(object):
         if int == self.value_type:
             return int(value)
         if bool == self.value_type:
-            if "true" == value.lower():
-                return True
-            if "false" == value.lower():
-                return False
+            if type(value) is str:
+                if "true" == value.lower():
+                    return True
+                if "false" == value.lower():
+                    return False
             return bool(int(value))
         if float == self.value_type:
             return float(value)
@@ -77,43 +78,43 @@ class Config(object):
                 ConfigParameter('report', bool),
                 ConfigParameter('save_best', bool)]
 
-    def __init__(self, genome_type, reproduction_type, stagnation_type, filename=None):
+    def __init__(self, genome_type, reproduction_type, stagnation_type, filename):
+        self.genome_type = genome_type
+        self.stagnation_type = stagnation_type
+        self.reproduction_type = reproduction_type
 
+        if not os.path.isfile(filename):
+            raise Exception('No such config file: ' + os.path.abspath(filename))
         parameters = ConfigParser()
-        if filename is not None:
-            if not os.path.isfile(filename):
-                raise Exception('No such config file: ' + os.path.abspath(filename))
 
-            with open(filename) as f:
-                if hasattr(parameters, 'read_file'):
-                    parameters.read_file(f)
-                else:
-                    parameters.readfp(f)
+        with open(filename) as f:
+            if hasattr(parameters, 'read_file'):
+                parameters.read_file(f)
+            else:
+                parameters.readfp(f)
 
-            # NEAT configuration
-            if not parameters.has_section('NEAT'):
-                raise RuntimeError("'NEAT' section not found in NEAT configuration file.")
+        # NEAT configuration
+        if not parameters.has_section('NEAT'):
+            raise RuntimeError("'NEAT' section not found in NEAT configuration file.")
 
         for p in self.__params:
             setattr(self, p.name, p.parse('NEAT', parameters))
 
-        # Time in minutes between saving checkpoints, None for no timed checkpoints.
-        self.checkpoint_time_interval = None
-        # Time in generations between saving checkpoints, None for no generational checkpoints.
-        self.checkpoint_gen_interval = None
-
-        # Set default empty configuration.
-        self.genome_type = genome_type
+        # Parse type sections.
         genome_dict = dict(parameters.items(genome_type.__name__))
         self.genome_config = genome_type.parse_config(genome_dict)
 
-        self.stagnation_type = stagnation_type
         stagnation_dict = dict(parameters.items(stagnation_type.__name__))
         self.stagnation_config = stagnation_type.parse_config(stagnation_dict)
 
-        self.reproduction_type = reproduction_type
         reproduction_dict = dict(parameters.items(reproduction_type.__name__))
         self.reproduction_config = reproduction_type.parse_config(reproduction_dict)
+
+        # Time in minutes between saving checkpoints, None for no timed checkpoints.
+        self.checkpoint_time_interval = None
+
+        # Time in generations between saving checkpoints, None for no generational checkpoints.
+        self.checkpoint_gen_interval = None
 
     def save(self, filename):
         with open(filename, 'w') as f:
