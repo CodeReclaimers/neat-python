@@ -1,9 +1,47 @@
-import random
-from neat import nn
+from neat import activations
+from neat.nn import FeedForwardNetwork
 
 
 def assert_almost_equal(x, y, tol):
     assert abs(x - y) < tol, "{!r} !~= {!r}".format(x, y)
+
+
+def test_unconnected():
+    # Unconnected network with no inputs and one output neuron.
+    node_evals = [(0, activations.sigmoid_activation, sum, 0.0, 1.0, [])]
+    r = FeedForwardNetwork([], [0], node_evals)
+
+    assert r.values[0] == 0.0
+
+    result = r.activate([])
+
+    assert_almost_equal(r.values[0], 0.5, 0.001)
+    assert result[0] == r.values[0]
+
+    result = r.activate([])
+
+    assert_almost_equal(r.values[0], 0.5, 0.001)
+    assert result[0] == r.values[0]
+
+
+def test_basic():
+    # Very simple network with one connection of weight one to a single sigmoid output node.
+    node_evals = [(0, activations.sigmoid_activation, sum, 0.0, 1.0, [(-1, 1.0)])]
+    r = FeedForwardNetwork([-1], [0], node_evals)
+
+    assert r.values[0] == 0.0
+
+    result = r.activate([1.0])
+
+    assert r.values[-1] == 1.0
+    assert_almost_equal(r.values[0], 0.731, 0.001)
+    assert result[0] == r.values[0]
+
+    result = r.activate([2.0])
+
+    assert r.values[-1] == 2.0
+    assert_almost_equal(r.values[0], 0.881, 0.001)
+    assert result[0] == r.values[0]
 
 
 # TODO: Update this test for the current implementation.
@@ -72,10 +110,5 @@ def assert_almost_equal(x, y, tol):
 
 
 if __name__ == '__main__':
-    test_creates_cycle()
-    test_required_for_output()
-    test_fuzz_required()
-    test_feed_forward_layers()
-    test_fuzz_feed_forward_layers()
-    #test_simple_nohidden()
-    #test_simple_hidden()
+    test_unconnected()
+    test_basic()

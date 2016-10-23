@@ -3,20 +3,20 @@ from neat.six_util import iterkeys, itervalues, iteritems
 
 
 class FeedForwardNetwork(object):
-    def __init__(self, max_node, inputs, outputs, node_evals):
-        self.node_evals = node_evals
+    def __init__(self, inputs, outputs, node_evals):
         self.input_nodes = inputs
         self.output_nodes = outputs
+        self.node_evals = node_evals
         self.values = dict((key, 0.0) for key in inputs + outputs)
 
-    def serial_activate(self, inputs):
+    def activate(self, inputs):
         if len(self.input_nodes) != len(inputs):
             raise Exception("Expected {0} inputs, got {1}".format(len(self.input_nodes), len(inputs)))
 
         for k, v in zip(self.input_nodes, inputs):
             self.values[k] = v
 
-        for node, agg_func, act_func, bias, response, links in self.node_evals:
+        for node, act_func, agg_func, bias, response, links in self.node_evals:
             #print(node, func, bias, response, links)
             node_inputs = []
             for i, w in links:
@@ -38,7 +38,6 @@ def create_feed_forward_phenotype(genome, config):
     layers = feed_forward_layers(config.genome_config.input_keys, config.genome_config.output_keys, connections)
     #print(layers)
     node_evals = []
-    max_used_node = max(max(config.genome_config.input_keys), max(config.genome_config.output_keys))
     for layer in layers:
         for node in layer:
             inputs = []
@@ -48,17 +47,15 @@ def create_feed_forward_phenotype(genome, config):
                 if cg.output == node and cg.enabled:
                     inputs.append((cg.input, cg.weight))
                     node_expr.append("v[%d] * %f" % (cg.input, cg.weight))
-                    max_used_node = max(max_used_node, cg.input)
 
-            max_used_node = max(max_used_node, node)
             ng = genome.nodes[node]
             aggregation_function = config.genome_config.aggregation_function_defs[ng.aggregation]
             activation_function = config.genome_config.activation_defs.get(ng.activation)
-            node_evals.append((node, aggregation_function, activation_function, ng.bias, ng.response, inputs))
+            node_evals.append((node, activation_function, aggregation_function, ng.bias, ng.response, inputs))
 
             #print("  v[%d] = %s(%f + %f * %s(%s))" % (node, ng.activation, ng.bias, ng.response, ng.aggregation, ", ".join(node_expr)))
 
-    return FeedForwardNetwork(max_used_node, config.genome_config.input_keys, config.genome_config.output_keys, node_evals)
+    return FeedForwardNetwork(config.genome_config.input_keys, config.genome_config.output_keys, node_evals)
 
 
 class RecurrentNetwork(object):
@@ -83,6 +80,9 @@ class RecurrentNetwork(object):
         self.active = 0
 
     def activate(self, inputs):
+        if len(self.input_nodes) != len(inputs):
+            raise Exception("Expected {0} inputs, got {1}".format(len(self.input_nodes), len(inputs)))
+
         ivalues = self.values[self.active]
         ovalues = self.values[1 - self.active]
         self.active = 1 - self.active
