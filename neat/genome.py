@@ -30,12 +30,6 @@ class DefaultGenomeConfig(object):
         # Create full set of available activation functions.
         self.activation_defs = ActivationFunctionSet()
         self.activation_options = params.get('activation_options', 'sigmoid').strip().split()
-
-        # TODO: Verify that specified activation functions are valid before using them.
-        # for fn in self.activation:
-        #     if not self.activation_defs.is_valid(fn):
-        #         raise Exception("Invalid activation function name: {0!r}".format(fn))
-
         self.aggregation_options = params.get('aggregation_options', 'sum').strip().split()
 
         # Gather configuration data from the gene classes.
@@ -195,7 +189,7 @@ class DefaultGenome(object):
                 # Homologous gene: combine genes from both parents.
                 self.nodes[key] = ng1.crossover(ng2)
 
-    def get_new_hidden_id(self):
+    def get_new_node_key(self):
         new_id = 0
         while new_id in self.nodes:
             new_id += 1
@@ -207,7 +201,7 @@ class DefaultGenome(object):
 
         # Choose a random connection to split
         conn_to_split = choice(list(self.connections.values()))
-        new_node_id = self.get_new_hidden_id()
+        new_node_id = self.get_new_node_key()
         ng = self.create_node(config, new_node_id)
         self.nodes[new_node_id] = ng
 
@@ -380,15 +374,12 @@ class DefaultGenome(object):
             s += "\n\t" + str(c)
         return s
 
-    def add_hidden_nodes(self, num_hidden, config):
-        node_id = self.get_new_hidden_id()
-        for i in range(num_hidden):
-            # TODO: factor out new node creation.
-            act_func = choice(config.activation)
-            node_gene = config.node_gene_type(activation_type=act_func)
-            assert node_id not in self.hidden
-            self.hidden[node_id] = node_gene
-            node_id += 1
+    def add_hidden_nodes(self, config):
+        for i in range(config.num_hidden):
+            node_key = self.get_new_node_key()
+            assert node_key not in self.nodes
+            node = self.__class__.create_node(config, node_key)
+            self.nodes[node_key] = node
 
     @classmethod
     def create(cls, config, key):
@@ -396,7 +387,7 @@ class DefaultGenome(object):
 
         # Add hidden nodes if requested.
         if config.num_hidden > 0:
-            g.add_hidden_nodes(config.num_hidden)
+            g.add_hidden_nodes(config)
 
         # Add connections based on initial connectivity type.
         if config.initial_connection == 'fs_neat':

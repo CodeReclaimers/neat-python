@@ -67,9 +67,7 @@ def write_pretty_params(f, config, params):
 
 
 class Config(object):
-    '''
-    A simple container for all of the user-configurable parameters of NEAT.
-    '''
+    ''' A simple container for user-configurable parameters of NEAT. '''
 
     __params = [ConfigParameter('pop_size', int),
                 ConfigParameter('max_fitness_threshold', float),
@@ -79,14 +77,19 @@ class Config(object):
                 ConfigParameter('save_best', bool)]
 
     def __init__(self, genome_type, reproduction_type, stagnation_type, filename):
+        # Check that the provided types have the required methods.
+        assert hasattr(genome_type, 'parse_config')
+        assert hasattr(reproduction_type, 'parse_config')
+        assert hasattr(stagnation_type, 'parse_config')
+
         self.genome_type = genome_type
         self.stagnation_type = stagnation_type
         self.reproduction_type = reproduction_type
 
         if not os.path.isfile(filename):
             raise Exception('No such config file: ' + os.path.abspath(filename))
-        parameters = ConfigParser()
 
+        parameters = ConfigParser()
         with open(filename) as f:
             if hasattr(parameters, 'read_file'):
                 parameters.read_file(f)

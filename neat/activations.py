@@ -82,31 +82,32 @@ def validate_activation(function):
 
 class ActivationFunctionSet(object):
     def __init__(self):
-        self.functions = {'sigmoid': sigmoid_activation,
-                          'tanh': tanh_activation,
-                          'sin': sin_activation,
-                          'gauss': gauss_activation,
-                          'relu': relu_activation,
-                          'identity': identity_activation,
-                          'clamped': clamped_activation,
-                          'inv': inv_activation,
-                          'log': log_activation,
-                          'exp': exp_activation,
-                          'abs': abs_activation,
-                          'hat': hat_activation,
-                          'square': square_activation,
-                          'cube': cube_activation}
+        self.functions = {}
+        self.add('sigmoid', sigmoid_activation)
+        self.add('tanh', tanh_activation)
+        self.add('sin', sin_activation)
+        self.add('gauss', gauss_activation)
+        self.add('relu', relu_activation)
+        self.add('identity', identity_activation)
+        self.add('clamped', clamped_activation)
+        self.add('inv', inv_activation)
+        self.add('log', log_activation)
+        self.add('exp', exp_activation)
+        self.add('abs', abs_activation)
+        self.add('hat', hat_activation)
+        self.add('square', square_activation)
+        self.add('cube', cube_activation)
 
-    def add(self, config_name, function):
+    def add(self, name, function):
         validate_activation(function)
-        self.functions[config_name] = function
+        self.functions[name] = function
 
-    def get(self, config_name):
-        f = self.functions.get(config_name)
+    def get(self, name):
+        f = self.functions.get(name)
         if f is None:
-            raise InvalidActivationFunction("No such function: {0!r}".format(config_name))
+            raise InvalidActivationFunction("No such activation function: {0!r}".format(name))
 
         return f
 
-    def is_valid(self, config_name):
-        return config_name in self.functions
+    def is_valid(self, name):
+        return name in self.functions
