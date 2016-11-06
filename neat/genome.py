@@ -1,3 +1,6 @@
+from operator import mul
+from functools import reduce
+
 from neat.config import ConfigParameter, write_pretty_params
 from neat.genes import DefaultConnectionGene, DefaultNodeGene
 from neat.six_util import iteritems, itervalues, iterkeys
@@ -6,6 +9,9 @@ from neat.activations import ActivationFunctionSet
 from neat.nn import creates_cycle
 
 from random import choice, random, shuffle
+
+def product(x):
+    return reduce(mul, x, 1.0)
 
 
 class DefaultGenomeConfig(object):
@@ -22,7 +28,7 @@ class DefaultGenomeConfig(object):
                 ConfigParameter('node_delete_prob', float)]
 
     allowed_connectivity = ['unconnected', 'fs_neat', 'full', 'partial']
-    aggregation_function_defs = {'sum': sum, 'max': max, 'min': min}
+    aggregation_function_defs = {'sum': sum, 'max': max, 'min': min, 'product':product}
 
     def __init__(self, params):
         # Create full set of available activation functions.

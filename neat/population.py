@@ -1,8 +1,5 @@
 from __future__ import print_function
 
-import sys
-import time
-
 from neat.reporting import ReporterSet
 from neat.species import SpeciesSet
 from neat.six_util import iteritems, itervalues
