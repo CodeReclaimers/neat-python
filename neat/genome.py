@@ -5,7 +5,6 @@ from neat.six_util import iteritems, itervalues, iterkeys
 from neat.activations import ActivationFunctionSet
 from neat.nn import creates_cycle
 
-from math import fabs
 from random import choice, random, shuffle
 
 
@@ -15,7 +14,6 @@ class DefaultGenomeConfig(object):
                 ConfigParameter('num_hidden', int),
                 ConfigParameter('feed_forward', bool),
                 ConfigParameter('compatibility_threshold', float),
-                ConfigParameter('excess_coefficient', float),
                 ConfigParameter('disjoint_coefficient', float),
                 ConfigParameter('weight_coefficient', float),
                 ConfigParameter('conn_add_prob', float),
@@ -23,7 +21,7 @@ class DefaultGenomeConfig(object):
                 ConfigParameter('node_add_prob', float),
                 ConfigParameter('node_delete_prob', float)]
 
-    allowed_connectivity = ['unconnected', 'fs_neat', 'fully_connected', 'partial']
+    allowed_connectivity = ['unconnected', 'fs_neat', 'full', 'partial']
     aggregation_function_defs = {'sum': sum, 'max': max, 'min': min}
 
     def __init__(self, params):
@@ -236,7 +234,7 @@ class DefaultGenome(object):
 
         # Don't duplicate connections.
         key = (in_node, out_node)
-        if key not in self.connections:
+        if key in self.connections:
             return
 
         # For feed-forward networks, avoid creating cycles.
@@ -277,83 +275,45 @@ class DefaultGenome(object):
         is used to compute genome compatibility for speciation.
         """
 
-        # Take genome1 to be the one with the most connections.
-        genome1, genome2 = self, other
-        if len(self.connections) > len(other.connections):
-            genome1, genome2 = self, other
-        else:
-            genome2, genome1 = self, other
+        # Compute node gene distance component.
+        node_distance = 0.0
+        if self.nodes or other.nodes:
+            disjoint_nodes = 0
+            for k2 in iterkeys(other.nodes):
+                if k2 not in self.nodes:
+                    disjoint_nodes += 1
 
-        node_genes1 = genome1.nodes
-        node_gene_count1 = len(node_genes1)
+            for k1, n1 in iteritems(self.nodes):
+                n2 = other.nodes.get(k1)
+                if n2 is None:
+                    disjoint_nodes += 1
+                else:
+                    # Homologous genes compute their own distance value.
+                    node_distance += n1.distance(n2, config)
 
-        node_genes2 = genome2.nodes
-        node_gene_count2 = len(node_genes2)
-
-        # Compute node gene differences.
-        excess1 = 0
-        excess2 = 0
-        bias_diff = 0.0
-        response_diff = 0.0
-        activation_diff = 0
-        num_common = 0
-
-        # TODO: Factor out the gene-specific distance components into the gene classes.
-
-        for k2 in node_genes2.keys():
-            if k2 not in node_genes1.keys():
-                excess2 += 1
-
-        for k1, g1 in iteritems(node_genes1):
-            if k1 in node_genes2:
-                num_common += 1
-                g2 = node_genes2[k1]
-                bias_diff += fabs(g1.bias - g2.bias)
-                response_diff += fabs(g1.response - g2.response)
-                if g1.activation != g2.activation:
-                    activation_diff += 1
-            else:
-                excess1 += 1
-
-        most_nodes = max(node_gene_count1, node_gene_count2)
-        distance = (config.excess_coefficient * float(excess1 + excess2) / most_nodes
-                    + config.excess_coefficient * float(activation_diff) / most_nodes
-                    + config.weight_coefficient * (bias_diff + response_diff) / num_common)
+            max_nodes = max(len(self.nodes), len(other.nodes))
+            node_distance = (node_distance + config.disjoint_coefficient * disjoint_nodes) / max_nodes
 
         # Compute connection gene differences.
-        if genome1.connections:
-            N = len(genome1.connections)
-            weight_diff = 0
-            matching = 0
-            disjoint = 0
-            excess = 0
+        connection_distance = 0.0
+        if self.connections or other.connections:
+            disjoint_connections = 0
+            for k2 in iterkeys(other.connections):
+                if k2 not in self.connections:
+                    disjoint_connections += 1
 
-            max_cg_genome2 = None
-            if genome2.connections:
-                max_cg_genome2 = max(itervalues(genome2.connections))
-
-            for k1, cg1 in iteritems(genome1.connections):
-                if k1 in genome2.connections:
-                    # Homologous genes
-                    cg2 = genome2.connections[k1]
-                    weight_diff += fabs(cg1.weight - cg2.weight)
-                    matching += 1
-
-                    if cg1.enabled != cg2.enabled:
-                        weight_diff += 1.0
+            for k1, c1 in iteritems(self.connections):
+                c2 = other.connections.get(k1)
+                if c2 is None:
+                    disjoint_connections += 1
                 else:
-                    if max_cg_genome2 is not None and cg1 > max_cg_genome2:
-                        excess += 1
-                    else:
-                        disjoint += 1
+                    # Homologous genes compute their own distance value.
+                    connection_distance += c1.distance(c2, config)
 
-            disjoint += len(genome2.connections) - matching
+            max_conn = max(len(self.connections), len(other.connections))
+            connection_distance = (connection_distance + config.disjoint_coefficient * disjoint_connections) / max_conn
 
-            distance += config.excess_coefficient * float(excess) / N
-            distance += config.disjoint_coefficient * float(disjoint) / N
-            if matching > 0:
-                distance += config.weight_coefficient * (weight_diff / matching)
-
+        distance = node_distance + connection_distance
         compatible = distance < config.compatibility_threshold
 
         return distance, compatible
@@ -366,7 +326,7 @@ class DefaultGenome(object):
     def __str__(self):
         s = "Nodes:"
         for k, ng in iteritems(self.nodes):
-            s += "{0} {1!s}\n\t".format(k, ng)
+            s += "\n\t{0} {1!s}".format(k, ng)
         s += "\nConnections:"
         connections = list(self.connections.values())
         connections.sort()
@@ -392,7 +352,7 @@ class DefaultGenome(object):
         # Add connections based on initial connectivity type.
         if config.initial_connection == 'fs_neat':
             g.connect_fs_neat()
-        elif config.initial_connection == 'fully_connected':
+        elif config.initial_connection == 'full':
             g.connect_full(config)
         elif config.initial_connection == 'partial':
             g.connect_partial(config)
@@ -424,8 +384,6 @@ class DefaultGenome(object):
 
     def connect_fs_neat(self, config):
         """ Randomly connect one input to all hidden and output nodes (FS-NEAT). """
-
-        # TODO: Factor out the gene creation.
         input_id = choice(self.inputs.keys())
         for output_id in list(self.hidden.keys()) + list(self.outputs.keys()):
             connection = self.create_connection(config, input_id, output_id)

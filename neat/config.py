@@ -71,10 +71,7 @@ class Config(object):
 
     __params = [ConfigParameter('pop_size', int),
                 ConfigParameter('max_fitness_threshold', float),
-                ConfigParameter('reset_on_extinction', bool),
-                ConfigParameter('collect_statistics', bool),
-                ConfigParameter('report', bool),
-                ConfigParameter('save_best', bool)]
+                ConfigParameter('reset_on_extinction', bool)]
 
     def __init__(self, genome_type, reproduction_type, stagnation_type, filename):
         # Check that the provided types have the required methods.
@@ -112,12 +109,6 @@ class Config(object):
 
         reproduction_dict = dict(parameters.items(reproduction_type.__name__))
         self.reproduction_config = reproduction_type.parse_config(reproduction_dict)
-
-        # Time in minutes between saving checkpoints, None for no timed checkpoints.
-        self.checkpoint_time_interval = None
-
-        # Time in generations between saving checkpoints, None for no generational checkpoints.
-        self.checkpoint_gen_interval = None
 
     def save(self, filename):
         with open(filename, 'w') as f:

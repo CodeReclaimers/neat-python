@@ -4,7 +4,6 @@ from neat.attributes import FloatAttribute, BoolAttribute, StringAttribute
 # TODO: There is probably a lot of room for simplification of these classes using metaprogramming.
 # TODO: Evaluate using __slots__ for performance/memory usage improvement.
 
-
 class BaseGene(object):
     def __init__(self, key):
         self.key = key
@@ -12,7 +11,7 @@ class BaseGene(object):
     def __str__(self):
         attrib = ['key'] + [a.name for a in self.__gene_attributes__]
         attrib = ['{0}={1}'.format(a, getattr(self, a)) for a in attrib]
-        return '{0}({1})'.format(__class__.__name__, "".join(attrib))
+        return '{0}({1})'.format(__class__.__name__, ", ".join(attrib))
 
     def __lt__(self, other):
         return self.key < other.key
@@ -62,6 +61,7 @@ class BaseGene(object):
 
 # TODO: Create some kind of aggregated config object that can replace
 # most of DefaultGeneConfig and genome.DefaultGenomeConfig?
+# TODO: Should these be in the nn module?  iznn and ctrnn can have additional attributes.
 
 class DefaultGeneConfig(object):
     def __init__(self, attribs, params):
@@ -88,8 +88,11 @@ class DefaultNodeGene(BaseGene):
     def parse_config(cls, config, param_dict):
         return DefaultGeneConfig(cls.__gene_attributes__, param_dict)
 
-    def distance(self, other):
-        raise NotImplementedError()
+    def distance(self, other, config):
+        d = abs(self.bias - other.bias) + abs(self.response - other.response)
+        if self.activation != other.activation:
+            d += 1.0
+        return d * config.weight_coefficient
 
 
 # TODO: Do an ablation study to determine whether the enabled setting is
@@ -103,5 +106,9 @@ class DefaultConnectionGene(BaseGene):
     def parse_config(cls, config, param_dict):
         return DefaultGeneConfig(cls.__gene_attributes__, param_dict)
 
-    def distance(self, other):
-        raise NotImplementedError()
+    def distance(self, other, config):
+        d = abs(self.weight - other.weight)
+        if self.enabled != other.enabled:
+            d += 1.0
+        return d * config.weight_coefficient
+

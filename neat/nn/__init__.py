@@ -44,9 +44,10 @@ def create_feed_forward_phenotype(genome, config):
             node_expr = []
             # TODO: This could be more efficient.
             for cg in itervalues(genome.connections):
-                if cg.output == node and cg.enabled:
-                    inputs.append((cg.input, cg.weight))
-                    node_expr.append("v[%d] * %f" % (cg.input, cg.weight))
+                input, output = cg.key
+                if output == node and cg.enabled:
+                    inputs.append((input, cg.weight))
+                    node_expr.append("v[%d] * %f" % (input, cg.weight))
 
             ng = genome.nodes[node]
             aggregation_function = config.genome_config.aggregation_function_defs[ng.aggregation]
