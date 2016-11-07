@@ -2,7 +2,7 @@ import math
 import random
 
 from neat.indexer import Indexer
-from neat.six_util import iteritems, itervalues
+from neat.six_util import iteritems, iterkeys, itervalues
 
 # TODO: Provide some sort of optional cross-species performance criteria, which
 # are then used to control stagnation and possibly the mutation rate configuration.
@@ -52,8 +52,8 @@ class DefaultReproduction(object):
         return new_genomes
 
     def reproduce(self, config, species, pop_size):
-        # TODO: I don't like this modification of the species object,
-        # because it requires internal knowledge of the object.
+        # TODO: I don't like this modification of the species and stagnation objects,
+        # because it requires internal knowledge of the objects.
 
         # Filter out stagnated species and collect the set of non-stagnated species members.
         num_remaining = 0
@@ -148,6 +148,11 @@ class DefaultReproduction(object):
                 new_population[gid] = child
                 self.ancestors[gid] = (parent1_id, parent2_id)
 
+        # Remove empty species from the stagnation tracking.
+        keys = list(iterkeys(self.stagnation.stagnant_counts))
+        for sid in keys:
+            if sid not in species.species:
+                self.stagnation.remove(sid)
 
         # Sort species by ID (purely for ease of reading the reported list).
         # TODO: This should probably be done by the species object.

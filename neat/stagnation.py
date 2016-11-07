@@ -10,7 +10,7 @@ class DefaultStagnation(object):
     @classmethod
     def parse_config(cls, param_dict):
         config = {'species_fitness_func': 'mean',
-                       'max_stagnation': 15}
+                  'max_stagnation': 15}
         config.update(param_dict)
 
         return config
@@ -53,10 +53,10 @@ class DefaultStagnation(object):
             prev_fitness = self.previous_fitnesses.get(sid, -sys.float_info.max)
             if fitness > prev_fitness:
                 scount = 0
+                self.previous_fitnesses[sid] = fitness
             else:
                 scount = self.stagnant_counts.get(sid, 0) + 1
 
-            self.previous_fitnesses[sid] = fitness
             self.stagnant_counts[sid] = scount
 
             is_stagnant = scount >= self.max_stagnation
