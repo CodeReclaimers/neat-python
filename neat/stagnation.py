@@ -4,6 +4,7 @@ from neat.species import Species
 from neat.six_util import iteritems
 
 # TODO: Add a method for the user to change the "is stagnant" computation.
+# TODO: Add a mechanism to prevent stagnation of the top N species.
 
 
 class DefaultStagnation(object):

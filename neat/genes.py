@@ -92,7 +92,7 @@ class DefaultNodeGene(BaseGene):
         d = abs(self.bias - other.bias) + abs(self.response - other.response)
         if self.activation != other.activation:
             d += 1.0
-        return d * config.weight_coefficient
+        return d * config.compatibility_weight_coefficient
 
 
 # TODO: Do an ablation study to determine whether the enabled setting is
@@ -110,5 +110,5 @@ class DefaultConnectionGene(BaseGene):
         d = abs(self.weight - other.weight)
         if self.enabled != other.enabled:
             d += 1.0
-        return d * config.weight_coefficient
+        return d * config.compatibility_weight_coefficient
 

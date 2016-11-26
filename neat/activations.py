@@ -3,27 +3,32 @@ import math
 
 
 def sigmoid_activation(z):
-    z = max(-60.0, min(60.0, z))
+    z = max(-60.0, min(60.0, 5.0 * z))
     return 1.0 / (1.0 + math.exp(-z))
 
 
 def tanh_activation(z):
-    z = max(-60.0, min(60.0, z))
+    z = max(-60.0, min(60.0, 2.5 * z))
     return math.tanh(z)
 
 
 def sin_activation(z):
-    z = max(-60.0, min(60.0, z))
+    z = max(-60.0, min(60.0, 5.0 * z))
     return math.sin(z)
 
 
 def gauss_activation(z):
-    z = max(-60.0, min(60.0, z))
-    return math.exp(-0.5 * z**2) / math.sqrt(2 * math.pi)
+    z = max(-3.4, min(3.4, z))
+    return math.exp(-5.0 * z**2)
 
 
 def relu_activation(z):
     return z if z > 0.0 else 0.0
+
+
+def softplus_activation(z):
+    z = max(-60.0, min(60.0, 5.0 * z))
+    return 0.2 * math.log(1 + math.exp(z))
 
 
 def identity_activation(z):
@@ -88,6 +93,7 @@ class ActivationFunctionSet(object):
         self.add('sin', sin_activation)
         self.add('gauss', gauss_activation)
         self.add('relu', relu_activation)
+        self.add('softplus', softplus_activation)
         self.add('identity', identity_activation)
         self.add('clamped', clamped_activation)
         self.add('inv', inv_activation)

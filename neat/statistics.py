@@ -31,8 +31,8 @@ class StatisticsReporter(BaseReporter):
         avg_fitness = []
         for stats in self.generation_statistics:
             scores = []
-            for fitness in stats.values():
-                scores.extend(fitness)
+            for species_stats in stats.values():
+                scores.extend(species_stats.values())
             avg_fitness.append(mean(scores))
 
         return avg_fitness

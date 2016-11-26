@@ -20,8 +20,8 @@ class DefaultGenomeConfig(object):
                 ConfigParameter('num_hidden', int),
                 ConfigParameter('feed_forward', bool),
                 ConfigParameter('compatibility_threshold', float),
-                ConfigParameter('disjoint_coefficient', float),
-                ConfigParameter('weight_coefficient', float),
+                ConfigParameter('compatibility_disjoint_coefficient', float),
+                ConfigParameter('compatibility_weight_coefficient', float),
                 ConfigParameter('conn_add_prob', float),
                 ConfigParameter('conn_delete_prob', float),
                 ConfigParameter('node_add_prob', float),
@@ -298,7 +298,7 @@ class DefaultGenome(object):
                     node_distance += n1.distance(n2, config)
 
             max_nodes = max(len(self.nodes), len(other.nodes))
-            node_distance = (node_distance + config.disjoint_coefficient * disjoint_nodes) / max_nodes
+            node_distance = (node_distance + config.compatibility_disjoint_coefficient * disjoint_nodes) / max_nodes
 
         # Compute connection gene differences.
         connection_distance = 0.0
@@ -317,7 +317,7 @@ class DefaultGenome(object):
                     connection_distance += c1.distance(c2, config)
 
             max_conn = max(len(self.connections), len(other.connections))
-            connection_distance = (connection_distance + config.disjoint_coefficient * disjoint_connections) / max_conn
+            connection_distance = (connection_distance + config.compatibility_disjoint_coefficient * disjoint_connections) / max_conn
 
         distance = node_distance + connection_distance
         compatible = distance < config.compatibility_threshold
