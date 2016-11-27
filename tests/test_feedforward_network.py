@@ -31,15 +31,15 @@ def test_basic():
 
     assert r.values[0] == 0.0
 
-    result = r.activate([1.0])
+    result = r.activate([0.2])
 
-    assert r.values[-1] == 1.0
+    assert r.values[-1] == 0.2
     assert_almost_equal(r.values[0], 0.731, 0.001)
     assert result[0] == r.values[0]
 
-    result = r.activate([2.0])
+    result = r.activate([0.4])
 
-    assert r.values[-1] == 2.0
+    assert r.values[-1] == 0.4
     assert_almost_equal(r.values[0], 0.881, 0.001)
     assert result[0] == r.values[0]
 
@@ -54,7 +54,7 @@ def test_basic():
 #         'compatibility_threshold':3.0,
 #         'excess_coefficient':1.0,
 #         'disjoint_coefficient':1.0,
-#         'weight_coefficient':1.0,
+#         'compatibility_weight_coefficient':1.0,
 #         'conn_add_prob':0.5,
 #         'conn_delete_prob':0.05,
 #         'node_add_prob':0.1,

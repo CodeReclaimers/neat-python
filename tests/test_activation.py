@@ -13,7 +13,7 @@ def assert_almost_equal(a, b):
         max_abs = max(abs(a), abs(b))
         abs_rel_err = abs(a - b) / max_abs
         if abs_rel_err > 1e-6:
-            raise NotAlmostEqualException()
+            raise NotAlmostEqualException("{0:.4f} !~= {1:.4f}".format(a, b))
 
 
 def test_sigmoid():
@@ -29,7 +29,7 @@ def test_sin():
 
 
 def test_gauss():
-    assert_almost_equal(activations.gauss_activation(0.0), 0.398942280401)
+    assert_almost_equal(activations.gauss_activation(0.0), 1.0)
     assert_almost_equal(activations.gauss_activation(-1.0),
                         activations.gauss_activation(1.0))
 
@@ -131,6 +131,7 @@ def test_function_set():
 
     assert not s.is_valid('foo')
 
+
 if __name__ == '__main__':
     test_sigmoid()
     test_tanh()
@@ -146,3 +147,4 @@ if __name__ == '__main__':
     test_hat()
     test_square()
     test_cube()
+

@@ -2,7 +2,7 @@ from __future__ import print_function
 import copy
 import csv
 
-from neat.math_util import mean
+from neat.math_util import mean, stdev
 from neat.six_util import iteritems
 from neat.reporting import BaseReporter
 
@@ -26,16 +26,23 @@ class StatisticsReporter(BaseReporter):
         self.generation_statistics.append(species_stats)
         self.generation_cross_validation_statistics.append(species_cross_validation_stats)
 
-    def get_average_fitness(self):
-        """Get the per-generation average fitness."""
-        avg_fitness = []
+    def get_fitness_stat(self, f):
+        stat = []
         for stats in self.generation_statistics:
             scores = []
             for species_stats in stats.values():
                 scores.extend(species_stats.values())
-            avg_fitness.append(mean(scores))
+            stat.append(f(scores))
 
-        return avg_fitness
+        return stat
+
+    def get_fitness_mean(self):
+        """Get the per-generation average fitness."""
+        return self.get_fitness_stat(mean)
+
+    def get_fitness_stdev(self):
+        """Get the per-generation standard deviation of the fitness."""
+        return self.get_fitness_stat(stdev)
 
     def get_average_cross_validation_fitness(self):
         """Get the per-generation average cross_validation fitness."""

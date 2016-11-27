@@ -39,21 +39,21 @@ def test_basic():
     assert len(r.values[0]) == 2
     assert len(r.values[1]) == 2
 
-    result = r.activate([1.0])
+    result = r.activate([0.2])
 
     assert r.active == 1
-    assert r.values[1][-1] == 1.0
+    assert r.values[1][-1] == 0.2
     assert_almost_equal(r.values[1][0], 0.731, 0.001)
     assert result[0] == r.values[1][0]
 
-    result = r.activate([2.0])
+    result = r.activate([0.4])
 
     assert r.active == 0
-    assert r.values[0][-1] == 2.0
+    assert r.values[0][-1] == 0.4
     assert_almost_equal(r.values[0][0], 0.881, 0.001)
     assert result[0] == r.values[0][0]
 
 
 if __name__ == '__main__':
-    test_basic()
     test_unconnected()
+    test_basic()
