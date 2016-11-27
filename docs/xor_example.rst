@@ -24,13 +24,13 @@ are not important, only their relative values.
 
 In this example, we create a feed-forward neural network based on the genome, and then for each case in the
 table above, we provide that network with the inputs, and compute the network's output.  The error for each genome
-is :math:`1 - \sum_i (e_i - a_i)^2` between the expected (:math:`e_i`) and actual (:math:`a_i`) outputs, so that if the network produces exactly
-the expected output, its fitness is 1, otherwise it is a value less than 1, with the fitness value decreasing the more
-incorrect the network responses are.
+is :math:`1 - \sum_i (e_i - a_i)^2` between the expected (:math:`e_i`) and actual (:math:`a_i`) outputs, so that if the
+network produces exactly the expected output, its fitness is 1, otherwise it is a value less than 1, with the fitness
+value decreasing the more incorrect the network responses are.
 
-This fitness computation is implemented in the ``eval_fitness`` function.  The single argument to this function is a list
-of genomes in the current population.  neat-python expects the fitness function to calculate a fitness for each
-genome and assign this value to the genome's ``fitness`` member.
+This fitness computation is implemented in the ``eval_genomes`` function.  This function takes two arguments: a list
+of genomes (the current population) and the active configuration.  neat-python expects the fitness function to calculate
+a fitness for each genome and assign this value to the genome's ``fitness`` member.
 
 Running NEAT
 ------------
