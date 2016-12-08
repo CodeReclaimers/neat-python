@@ -41,13 +41,15 @@ of `DefaultStagnation` and set the `stagnation_type` of your Config instance to 
 This is demonstrated in the `interactive 2D image
 <https://github.com/CodeReclaimers/neat-python/blob/master/examples/picture2d/interactive.py>`_ example.
 
+TODO: document stagnation interface
+
 Reproduction scheme
 -------------------
 
 The default reproduction scheme uses explicit fitness sharing and a fixed species stagnation limit.  This behavior
 is encapsulated in the DefaultReproduction class.
 
-TODO: document, include example
+TODO: document reproduction interface, include example
 
 EXAMPLE: ???
 
@@ -76,9 +78,9 @@ Using different genome types
 To use a different genome type, you can create a custom class whose interface matches that of
 `Genome` or `FFGenome`, and set the `genotype` member of your Config instance to this class.
 
-TODO: document, include example
+TODO: document genome interface, include example
 
-EXAMPLE: genome with an additional set of genes (used for?)
+EXAMPLE: PySpice circuit evolution
 
 Using a different gene type
 ---------------------------
@@ -100,3 +102,9 @@ Cross-validation
 ----------------
 
 EXAMPLE: ???
+
+Custom evaluators
+-----------------
+
+TODO: Include a couple of evaluators to take the place of a simple function: one that uses
+a thread pool, and another that farms out evaluation to clients that connect over the network.

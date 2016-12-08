@@ -3,9 +3,9 @@ Configuration file format
 =========================
 
 The configuration file is in the format described in the `Python ConfigParser documentation
-<https://docs.python.org/2/library/configparser.html>`_.  Currently, all values must be explicitly enumerated in the
-configuration file.  This makes it less likely that code changes will result in your project silently using different
-NEAT settings.
+<https://docs.python.org/2/library/configparser.html>`_.  All settings must be explicitly enumerated in the
+configuration file.  This makes it less likely that library code changes will result in your project silently
+using different NEAT settings.
 
 
 [phenotype] section
@@ -22,7 +22,7 @@ NEAT settings.
 
     * *unconnected* - No connection genes are initially present.
     * *fs_neat* - One connection gene from one input to all hidden and output genes. (This is the FS-NEAT scheme.)
-    * *fully_connected* - Each input gene is connected to all hidden and output genes, and each hidden gene is connected to all output genes.
+    * *full* - Each input gene is connected to all hidden and output genes, and each hidden gene is connected to all output genes.
 
 * *max_weight*, *min_weight*
     Connection weights (as well as node bias and response) will be limited to this range.
@@ -79,11 +79,9 @@ NEAT settings.
 --------------------------------
 * *compatibility_threshold*
     Individuals whose genomic distance is less than this threshold are considered to be in the same species.
-* *excess_coefficient*
-    The coefficient for the excess gene count's contribution to the genomic distance.
-* *disjoint_coefficient*
+* *compatibility_disjoint_coefficient*
     The coefficient for the disjoint gene count's contribution to the genomic distance.
-* *weight_coefficient*
+* *compatibility_weight_coefficient*
     The coefficient for the average weight difference's contribution to the genomic distance.
 
 [species] section

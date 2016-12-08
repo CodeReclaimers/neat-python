@@ -6,9 +6,10 @@ from neat.genes import DefaultConnectionGene, DefaultNodeGene
 from neat.six_util import iteritems, itervalues, iterkeys
 
 from neat.activations import ActivationFunctionSet
-from neat.nn import creates_cycle
+from neat.graphs import creates_cycle
 
 from random import choice, random, shuffle
+
 
 def product(x):
     return reduce(mul, x, 1.0)
@@ -66,6 +67,7 @@ class DefaultGenomeConfig(object):
         self.activation_defs.add(name, func)
 
     def save(self, f):
+        # TODO: Handle the initial_connection setting.
         # f.write('initial_connection      = {0}\n'.format(self.initial_connection))
         # Verify that initial connection type is valid.
         # self.initial_connection = params.get('', 'unconnected')
@@ -183,7 +185,7 @@ class DefaultGenome(object):
         parent1_set = parent1.nodes
         parent2_set = parent2.nodes
 
-        for key, ng1 in parent1_set.items():
+        for key, ng1 in iteritems(parent1_set):
             ng2 = parent2_set.get(key)
             assert key not in self.nodes
             if ng2 is None:
@@ -259,7 +261,7 @@ class DefaultGenome(object):
         del_key, del_node = choice(available_nodes)
 
         connections_to_delete = set()
-        for k, v in self.connections.items():
+        for k, v in iteritems(self.connections):
             if del_key in v.key:
                 connections_to_delete.add(v.key)
 

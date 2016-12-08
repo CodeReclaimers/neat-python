@@ -1,5 +1,5 @@
-from neat.graphs import creates_cycle, required_for_output, feed_forward_layers
-from neat.six_util import iterkeys, itervalues, iteritems
+from neat.graphs import required_for_output, feed_forward_layers
+from neat.six_util import itervalues, iteritems
 
 
 class FeedForwardNetwork(object):

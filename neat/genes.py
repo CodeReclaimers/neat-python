@@ -11,7 +11,7 @@ class BaseGene(object):
     def __str__(self):
         attrib = ['key'] + [a.name for a in self.__gene_attributes__]
         attrib = ['{0}={1}'.format(a, getattr(self, a)) for a in attrib]
-        return '{0}({1})'.format(__class__.__name__, ", ".join(attrib))
+        return '{0}({1})'.format(self.__class__.__name__, ", ".join(attrib))
 
     def __lt__(self, other):
         return self.key < other.key
