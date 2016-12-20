@@ -3,8 +3,8 @@
 # The `NEAT` section specifies parameters particular to the NEAT algorithm
 # or the experiment itself.  This is the only required section.
 [NEAT]
-max_fitness_threshold = 0.99
-pop_size              = 1000
+max_fitness_threshold = 0.9
+pop_size              = 150
 reset_on_extinction   = False
 
 [DefaultGenome]
@@ -53,13 +53,13 @@ num_inputs              = 2
 num_outputs             = 1
 
 # node response options
-response_init_mean      = 5.0
-response_init_stdev     = 0.1
+response_init_mean      = 1.0
+response_init_stdev     = 0.0
 response_max_value      = 30.0
 response_min_value      = -30.0
-response_mutate_power   = 0.1
-response_mutate_rate    = 0.2
-response_replace_rate   = 0.1
+response_mutate_power   = 0.0
+response_mutate_rate    = 0.0
+response_replace_rate   = 0.0
 
 # connection weight options
 weight_init_mean        = 0.0

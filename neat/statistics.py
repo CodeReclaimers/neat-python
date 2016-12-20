@@ -7,6 +7,9 @@ from neat.six_util import iteritems
 from neat.reporting import BaseReporter
 
 
+# TODO: Make a version of this reporter that doesn't continually increase memory usage.
+# (Maybe periodically write blocks of history to disk, or log stats in a database?)
+
 class StatisticsReporter(BaseReporter):
     def __init__(self):
         BaseReporter.__init__(self)
