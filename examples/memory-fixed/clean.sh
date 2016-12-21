@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-rm *.csv *.gv *.svg
+rm *.csv *.svg *.gv

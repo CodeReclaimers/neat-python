@@ -82,10 +82,7 @@ def run():
     # Note that we provide the custom stagnation class to the Config constructor.
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction, neat.DefaultStagnation, config_path)
 
-    config.pop_size = 100
-    config.max_fitness_threshold = 1e38
-
-    ne = NoveltyEvaluator(4, 'gray')
+    ne = NoveltyEvaluator(4, 'color')
     if ne.scheme == 'color':
         config.output_nodes = 3
     else:

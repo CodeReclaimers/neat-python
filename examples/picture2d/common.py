@@ -42,7 +42,7 @@ def eval_color_image(genome, config, width, height):
         row = []
         for c in range(width):
             x = -1.0 + 2.0 * c / (width - 1)
-            output = net.serial_activate([x, y])
+            output = net.activate([x, y])
             red = int(round((output[0] + 1.0) * 255 / 2.0))
             green = int(round((output[1] + 1.0) * 255 / 2.0))
             blue = int(round((output[2] + 1.0) * 255 / 2.0))

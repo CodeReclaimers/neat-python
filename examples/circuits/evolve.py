@@ -321,7 +321,18 @@ class CircuitGenome(object):
 
     @classmethod
     def create(cls, config, key):
-        return cls.create_unconnected(config, key)
+        c = cls(key, config)
+
+        # Create node genes for the output pins.
+        for node_key in config.output_keys:
+            c.nodes[node_key] = cls.create_node(config, node_key)
+
+        for input_id in config.input_keys:
+            for node_id in iterkeys(c.nodes):
+                connection = cls.create_connection(config, input_id, node_id)
+                c.connections[connection.key] = connection
+
+        return c
 
     @staticmethod
     def create_node(config, node_id):
@@ -334,17 +345,6 @@ class CircuitGenome(object):
         connection = CircuitConnectionGene((input_id, output_id))
         connection.init_attributes(config)
         return connection
-
-    @classmethod
-    def create_unconnected(cls, config, key):
-        '''Create a genome for a network with no hidden nodes and no connections.'''
-        c = cls(key, config)
-
-        # Create node genes for the output pins.
-        for node_key in config.output_keys:
-            c.nodes[node_key] = cls.create_node(config, node_key)
-
-        return c
 
 
 def get_pins(key):
@@ -366,8 +366,10 @@ def create_circuit(genome, config):
     circuit.include(spice_library['1N4148'])
 
     Vbase = circuit.V('base', 'input1', circuit.gnd, 2)
-    circuit.R('test1', 'node0', circuit.gnd, 1e6)
-    circuit.R('test2', 'node0', 'input1', 1e6)
+    Vcc = circuit.V('cc', 'input2', circuit.gnd, 5)
+    Vgnd = circuit.V('gnd', 'input3', circuit.gnd, 0)
+    #circuit.R('test1', 'node0', circuit.gnd, 1e6)
+    #circuit.R('test2', 'node0', 'input1', 1e6)
     ridx = 1
     xidx = 1
     for key, c in iteritems(genome.connections):
@@ -386,7 +388,8 @@ def create_circuit(genome, config):
 V_MAX = 2.0
 
 def get_expected(inputs):
-    return 0.5 * inputs + 0.15 * inputs ** 2
+    #return 0.5 * inputs - 0.15 * inputs ** 2
+    return 2.0 / (1.0 + np.exp(-2.5 * (inputs - 1.0)))
 
 
 def simulate(genome, config):
@@ -402,6 +405,7 @@ def simulate(genome, config):
         expected = get_expected(inputs)
 
         return -np.sum((expected - outputs) ** 2)
+        #return -np.max(np.abs(expected - outputs))
     except Exception as e:
         return -1000
 
@@ -426,7 +430,7 @@ def run(config_file):
     p.add_reporter(stats)
 
     # Run for up to 300 generations.
-    winner = p.run(eval_genomes, 100)
+    winner = p.run(eval_genomes, 1000)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
@@ -448,7 +452,7 @@ def run(config_file):
     plt.gca().set_aspect(1)
     plt.show()
 
-    visualize.plot_stats(stats, ylog=False, view=False)
+    visualize.plot_stats(stats, ylog=True, view=False)
     visualize.plot_species(stats, view=False)
 
 

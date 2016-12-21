@@ -92,7 +92,7 @@ class StatisticsReporter(BaseReporter):
             w = csv.writer(f, delimiter=delimiter)
 
             best_fitness = [c.fitness for c in self.most_fit_genomes]
-            avg_fitness = self.get_average_fitness()
+            avg_fitness = self.get_fitness_mean()
 
             if with_cross_validation:
                 cv_best_fitness = [c.cross_fitness for c in self.most_fit_genomes]

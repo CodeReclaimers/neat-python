@@ -1,9 +1,10 @@
+.. _activation-functions-label:
 
 Overview of builtin activation functions
 ========================================
 
-The implementation of these functions can be found in the `nn module
-<https://github.com/CodeReclaimers/neat-python/blob/master/neat/nn/__init__.py>`_.
+The implementation of these functions can be found in the `activations module
+<https://github.com/CodeReclaimers/neat-python/blob/master/neat/activations.py>`_.
 
 abs
 ---

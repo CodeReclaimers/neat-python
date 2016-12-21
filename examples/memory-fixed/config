@@ -1,26 +1,28 @@
+# NEAT configuration for the bit-sequence memory experiment.
+
 # The `NEAT` section specifies parameters particular to the NEAT algorithm
 # or the experiment itself.  This is the only required section.
 [NEAT]
-pop_size              = 0
-max_fitness_threshold = 1.01
-reset_on_extinction   = False
+pop_size              = 2000
+max_fitness_threshold = 0.95
+reset_on_extinction   = 0
 
 [DefaultGenome]
 num_inputs              = 2
-num_hidden              = 4
-num_outputs             = 3
+num_hidden              = 1
+num_outputs             = 1
 initial_connection      = partial 0.5
-feed_forward            = True
+feed_forward            = 0
 compatibility_threshold = 3.0
 compatibility_disjoint_coefficient = 1.0
-compatibility_weight_coefficient   = 0.8
-conn_add_prob           = 0.2
-conn_delete_prob        = 0.2
-node_add_prob           = 0.2
-node_delete_prob        = 0.2
-activation_default      = sigmoid
-activation_options      = abs clamped cube exp gauss hat identity inv log relu sigmoid sin softplus square tanh
-activation_mutate_rate  = 0.05
+compatibility_weight_coefficient   = 0.6
+conn_add_prob           = 0.1
+conn_delete_prob        = 0.1
+node_add_prob           = 0.1
+node_delete_prob        = 0.1
+activation_default      = my_sinc_function
+activation_options      = sigmoid my_sinc_function
+activation_mutate_rate  = 0.1
 aggregation_default     = sum
 aggregation_options     = sum
 aggregation_mutate_rate = 0.0
@@ -49,9 +51,11 @@ weight_mutate_power     = 0.5
 enabled_default         = True
 enabled_mutate_rate     = 0.01
 
-[InteractiveStagnation]
-max_stagnation       = 10
+[DefaultStagnation]
+species_fitness_func = max
+max_stagnation  = 20
 
 [DefaultReproduction]
-elitism            = 0
+elitism            = 2
 survival_threshold = 0.2
+

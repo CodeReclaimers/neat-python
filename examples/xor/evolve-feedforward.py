@@ -25,7 +25,6 @@ def run(config_file):
     # Load configuration.
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultStagnation, config_file)
-    config.save('test_save_config.txt')
 
     # Create the population, which is the top-level object for a NEAT run.
     p = neat.Population(config)
@@ -59,5 +58,5 @@ if __name__ == '__main__':
     # here so that the script will run successfully regardless of the
     # current working directory.
     local_dir = os.path.dirname(__file__)
-    config_path = os.path.join(local_dir, 'xor2_config')
+    config_path = os.path.join(local_dir, 'config-feedforward')
     run(config_path)

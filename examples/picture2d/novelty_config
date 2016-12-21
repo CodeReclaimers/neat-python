@@ -1,8 +1,8 @@
 # The `NEAT` section specifies parameters particular to the NEAT algorithm
 # or the experiment itself.  This is the only required section.
 [NEAT]
-pop_size              = 0
-max_fitness_threshold = 1.01
+pop_size              = 100
+max_fitness_threshold = 1e38
 reset_on_extinction   = False
 
 [DefaultGenome]
@@ -12,14 +12,14 @@ num_outputs             = 3
 initial_connection      = partial 0.5
 feed_forward            = True
 compatibility_threshold = 3.0
-compatibility_disjoint_coefficient    = 1.0
-compatibility_weight_coefficient      = 0.6
+compatibility_disjoint_coefficient = 1.0
+compatibility_weight_coefficient   = 0.8
 conn_add_prob           = 0.2
 conn_delete_prob        = 0.2
 node_add_prob           = 0.2
 node_delete_prob        = 0.2
 activation_default      = sigmoid
-activation_options      = abs clamped exp gauss hat identity inv log relu sigmoid sin tanh square cube
+activation_options      = abs clamped cube exp gauss hat identity inv log relu sigmoid sin softplus square tanh
 activation_mutate_rate  = 0.05
 aggregation_default     = sum
 aggregation_options     = sum

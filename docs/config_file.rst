@@ -64,7 +64,7 @@ required for your particular implementation.
     The probability that mutation will change the node's activation function. Valid values are on [0.0, 1.0].
 * *activation_options*
     A space-separated list of the activation functions that may be used in constructing networks.  The
-    set of available functions can be found here: .. _`activation`:
+    set of available functions can be found here: :ref:`activation-functions-label`
 
 * *aggregation_default*
     The default aggregation function assigned to new nodes.
