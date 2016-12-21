@@ -25,6 +25,7 @@ Contents:
    config_file
    xor_example
    customization
+   activation
 
 
 
