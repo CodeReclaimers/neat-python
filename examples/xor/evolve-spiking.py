@@ -83,7 +83,7 @@ def run():
     # Load the config file, which is assumed to live in
     # the same directory as this script.
     local_dir = os.path.dirname(__file__)
-    config = Config(os.path.join(local_dir, 'xor2_config'))
+    config = Config(os.path.join(local_dir, 'config-feedforward'))
 
     # For this network, we use two output neurons and use the difference between
     # the "time to first spike" to determine the network response.  There are

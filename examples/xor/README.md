@@ -13,11 +13,10 @@ directly related to the NEAT library usage.
 
 ## The examples ##
 
-* `evolve-feedforward.py` shows how to evolve a feed-forward neural network with sigmoidal neurons.  This is currently the behavior
-you get if you stick with the *neat-python* defaults.
+* `evolve-feedforward.py` shows how to evolve a feed-forward neural network with sigmoidal neurons. 
 
-* `evolve-feedforward-parallel.py` evolves the same type of network as `evolve-feedforward.py`, but this example shows how you can make use of 
-multiple processors to evaluate networks in parallel.  
+* `evolve-feedforward-parallel.py` evolves the same type of network as `evolve-feedforward.py`, but this example shows
+    how you can make use of multiple processors to evaluate networks in parallel.  
 
 * `evolve-spiking.py` evolves a network of spiking neurons, using Izhikevich's neuron model from ["Simple model of spiking 
 neurons"](http://www.dis.uniroma1.it/~gori/Sito_GG/Modellistica_files/2003%20Net.pdf) in 2003.

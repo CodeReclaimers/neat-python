@@ -6,6 +6,8 @@ directly related to the NEAT library usage.
 
 ## The examples ##
 
+* `xor` A "hello world" sample showing basic usage.
+
 * `circuits` Uses an external circuit simulator (PySpice) to create electronic circuits that reproduce an arbitrary function of the input voltage.
 
 * `memory-fixed` Reproduce a fixed-length sequence of binary inputs.    
