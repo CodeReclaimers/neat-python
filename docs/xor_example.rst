@@ -74,8 +74,8 @@ the `archived source for that release
 
 Here's the entire example:
 
-.. literalinclude:: ../examples/xor/xor2.py
+.. literalinclude:: ../examples/xor/evolve-feedforward.py
 
 and here is the associated config file:
 
-.. literalinclude:: ../examples/xor/xor2_config
+.. literalinclude:: ../examples/xor/config-feedforward

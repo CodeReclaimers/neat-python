@@ -10,6 +10,9 @@ All settings must be explicitly enumerated in the configuration file.  This make
 that library code changes will result in your project silently using different NEAT settings.  However,
 it is not necessary that they appear in any certain order.
 
+Note that the `Config` constructor also requires you to explicitly specify the types that will be used
+for the NEAT simulation.  This, again, is to help avoid silent changes in behavior.
+
 [NEAT] section
 --------------
 
@@ -81,7 +84,7 @@ required for your particular implementation.
 * *bias_max_value*
     The maximum allowed bias value.  Biases above this value will be clamped to this value.
 * *bias_min_value*
-    The minimum allowed bias value.  Biases blow this value will be clamped to this value.
+    The minimum allowed bias value.  Biases below this value will be clamped to this value.
 * *bias_mutate_power*
     The standard deviation of the zero-centered normal distribution from which a bias value mutation is drawn.
 * *bias_mutate_rate*
@@ -135,7 +138,7 @@ required for your particular implementation.
 * *response_max_value*
     The maximum allowed response value. Responses above this value will be clamped to this value.
 * *response_min_value*
-    The minimum allowed response value. Responses blow this value will be clamped to this value.
+    The minimum allowed response value. Responses below this value will be clamped to this value.
 * *response_mutate_power*
     The standard deviation of the zero-centered normal distribution from which a response value mutation is drawn.
 * *response_mutate_rate*
@@ -150,7 +153,7 @@ required for your particular implementation.
 * *weight_max_value*
     The maximum allowed weight value. Weights above this value will be clamped to this value.
 * *weight_min_value*
-    The minimum allowed weight value. Weights blow this value will be clamped to this value.
+    The minimum allowed weight value. Weights below this value will be clamped to this value.
 * *weight_mutate_power*
     The standard deviation of the zero-centered normal distribution from which a weight value mutation is drawn.
 * *weight_mutate_rate*

@@ -32,6 +32,8 @@ it with an object which implements the same interface as `BaseReporter`.
 <https://github.com/CodeReclaimers/neat-python/blob/master/neat/reporting.py#L56>`_ may be useful as examples of the
 behavior you can add using a reporter.
 
+TODO: document reporter interface
+
 Species stagnation scheme
 -------------------------
 
@@ -49,38 +51,31 @@ Reproduction scheme
 The default reproduction scheme uses explicit fitness sharing and a fixed species stagnation limit.  This behavior
 is encapsulated in the DefaultReproduction class.
 
-TODO: document reproduction interface, include example
+TODO: document reproduction interface
 
-EXAMPLE: ???
+TODO: include example
 
 Speciation
 ----------
 
-If you need to change the speciation scheme, you should subclass `Population` and override the `_speciate` method (or,
+If you need to change the speciation scheme, you may specify a  subclass `Population` and override the `_speciate` method (or,
 if you must, `monkey patch/duck punch
 <https://en.wikipedia.org/wiki/Monkey_patch>`_ it).
 
-EXAMPLE: ???
-
-Diversity
----------
-
-To use a different diversity scheme, you can create a custom class whose interface matches that of
-`ExplicitFitnessSharing` and set the `diversity_type` of your Config instance to this class.
-
-TODO: document, include example
-
-EXAMPLE: ???
+TODO: include example
 
 Using different genome types
 ----------------------------
 
 To use a different genome type, you can create a custom class whose interface matches that of
-`Genome` or `FFGenome`, and set the `genotype` member of your Config instance to this class.
+`DefaultGenome` and pass this as the first argument to the `Config` constructor (that is, the
+`genome_type` parameter).
 
-TODO: document genome interface, include example
+TODO: document genome interface
 
-EXAMPLE: PySpice circuit evolution
+This is demonstrated in the `circuit evolution
+<https://github.com/CodeReclaimers/neat-python/blob/master/examples/circuits/evolve.py>`_ example.
+
 
 Using a different gene type
 ---------------------------
@@ -89,22 +84,4 @@ To use a different gene type, you can create a custom class whose interface matc
 `NodeGene` or `ConnectionGene`, and set the `node_gene_type` or `conn_gene_type` member,
 respectively, of your Config instance to this class.
 
-TODO: document, include example
-
-EXAMPLE: ???  reference the IZNN genes?
-
-Using a different network type
-------------------------------
-
-EXAMPLE: ???
-
-Cross-validation
-----------------
-
-EXAMPLE: ???
-
-Custom evaluators
------------------
-
-TODO: Include a couple of evaluators to take the place of a simple function: one that uses
-a thread pool, and another that farms out evaluation to clients that connect over the network.
+TODO: include example
