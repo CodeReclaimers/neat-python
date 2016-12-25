@@ -3,7 +3,7 @@ from functools import reduce
 
 from neat.config import ConfigParameter, write_pretty_params
 from neat.genes import DefaultConnectionGene, DefaultNodeGene
-from neat.six_util import iteritems, itervalues, iterkeys
+from neat.six_util import iteritems, iterkeys
 
 from neat.activations import ActivationFunctionSet
 from neat.graphs import creates_cycle
@@ -20,7 +20,6 @@ class DefaultGenomeConfig(object):
                 ConfigParameter('num_outputs', int),
                 ConfigParameter('num_hidden', int),
                 ConfigParameter('feed_forward', bool),
-                ConfigParameter('compatibility_threshold', float),
                 ConfigParameter('compatibility_disjoint_coefficient', float),
                 ConfigParameter('compatibility_weight_coefficient', float),
                 ConfigParameter('conn_add_prob', float),
@@ -67,18 +66,17 @@ class DefaultGenomeConfig(object):
         self.activation_defs.add(name, func)
 
     def save(self, f):
-        # TODO: Handle the initial_connection setting.
-        # f.write('initial_connection      = {0}\n'.format(self.initial_connection))
+        f.write('initial_connection      = {0}\n'.format(self.initial_connection))
         # Verify that initial connection type is valid.
-        # self.initial_connection = params.get('', 'unconnected')
-        # if 'partial' in self.initial_connection:
-        #     c, p = self.initial_connection.split()
-        #     self.initial_connection = c
-        #     self.connection_fraction = float(p)
-        #     if not (0 <= self.connection_fraction <= 1):
-        #         raise Exception("'partial' connection value must be between 0.0 and 1.0, inclusive.")
-        #
-        # assert self.initial_connection in self.allowed_connectivity
+        if 'partial' in self.initial_connection:
+            c, p = self.initial_connection.split()
+            self.initial_connection = c
+            self.connection_fraction = float(p)
+            if not (0 <= self.connection_fraction <= 1):
+                raise Exception("'partial' connection value must be between 0.0 and 1.0, inclusive.")
+
+        assert self.initial_connection in self.allowed_connectivity
+
         write_pretty_params(f, self, self.__params)
 
 
@@ -322,9 +320,7 @@ class DefaultGenome(object):
             connection_distance = (connection_distance + config.compatibility_disjoint_coefficient * disjoint_connections) / max_conn
 
         distance = node_distance + connection_distance
-        compatible = distance < config.compatibility_threshold
-
-        return distance, compatible
+        return distance
 
     def size(self):
         '''Returns genome 'complexity', taken to be (number of nodes, number of enabled connections)'''
@@ -392,7 +388,7 @@ class DefaultGenome(object):
 
     def connect_fs_neat(self, config):
         """ Randomly connect one input to all hidden and output nodes (FS-NEAT). """
-        input_id = choice(self.inputs.keys())
+        input_id = choice(config.input_keys)
         for output_id in list(self.hidden.keys()) + list(self.outputs.keys()):
             connection = self.create_connection(config, input_id, output_id)
             self.connections[connection.key] = connection

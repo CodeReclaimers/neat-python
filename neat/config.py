@@ -73,15 +73,17 @@ class Config(object):
                 ConfigParameter('max_fitness_threshold', float),
                 ConfigParameter('reset_on_extinction', bool)]
 
-    def __init__(self, genome_type, reproduction_type, stagnation_type, filename):
+    def __init__(self, genome_type, reproduction_type, species_set_type, stagnation_type, filename):
         # Check that the provided types have the required methods.
         assert hasattr(genome_type, 'parse_config')
         assert hasattr(reproduction_type, 'parse_config')
+        assert hasattr(species_set_type, 'parse_config')
         assert hasattr(stagnation_type, 'parse_config')
 
         self.genome_type = genome_type
-        self.stagnation_type = stagnation_type
         self.reproduction_type = reproduction_type
+        self.species_set_type = species_set_type
+        self.stagnation_type = stagnation_type
 
         if not os.path.isfile(filename):
             raise Exception('No such config file: ' + os.path.abspath(filename))
@@ -103,6 +105,9 @@ class Config(object):
         # Parse type sections.
         genome_dict = dict(parameters.items(genome_type.__name__))
         self.genome_config = genome_type.parse_config(genome_dict)
+
+        species_set_dict = dict(parameters.items(species_set_type.__name__))
+        self.species_set_config = species_set_type.parse_config(species_set_dict)
 
         stagnation_dict = dict(parameters.items(stagnation_type.__name__))
         self.stagnation_config = stagnation_type.parse_config(stagnation_dict)

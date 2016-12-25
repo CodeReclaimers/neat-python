@@ -10,7 +10,7 @@ def creates_cycle(connections, test):
     if i == o:
         return True
 
-    visited = set([o])
+    visited = {o}
     while True:
         num_added = 0
         for a, b in connections:

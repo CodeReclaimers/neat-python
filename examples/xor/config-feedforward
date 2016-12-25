@@ -1,7 +1,5 @@
 #--- parameters for the XOR-2 experiment ---#
 
-# The `NEAT` section specifies parameters particular to the NEAT algorithm
-# or the experiment itself.  This is the only required section.
 [NEAT]
 max_fitness_threshold = 0.9
 pop_size              = 150
@@ -29,7 +27,6 @@ bias_replace_rate       = 0.1
 
 # genome compatibility options
 compatibility_disjoint_coefficient = 1.0
-compatibility_threshold            = 3.0
 compatibility_weight_coefficient   = 0.5
 
 # connection add/remove rates
@@ -69,6 +66,9 @@ weight_min_value        = -30
 weight_mutate_power     = 0.5
 weight_mutate_rate      = 0.8
 weight_replace_rate     = 0.1
+
+[DefaultSpeciesSet]
+compatibility_threshold = 3.0
 
 [DefaultStagnation]
 species_fitness_func = max

@@ -5,6 +5,7 @@ import time
 from neat.math_util import mean, stdev
 from neat.six_util import itervalues
 
+# TODO: Add a curses-based reporter.
 
 class ReporterSet(object):
     def __init__(self):
@@ -87,6 +88,7 @@ class StdOutReporter(BaseReporter):
     def __init__(self):
         self.generation = None
         self.generation_start_time = None
+        self.generation_times = []
 
     def start_generation(self, generation):
         self.generation = generation
@@ -94,7 +96,14 @@ class StdOutReporter(BaseReporter):
         self.generation_start_time = time.time()
 
     def end_generation(self):
-        print("Generation time: {0:.3f} sec".format(time.time() - self.generation_start_time))
+        elapsed = time.time() - self.generation_start_time
+        self.generation_times.append(elapsed)
+        self.generation_times = self.generation_times[-10:]
+        average = sum(self.generation_times) / len(self.generation_times)
+        if len(self.generation_times) > 1:
+            print("Generation time: {0:.3f} sec ({1:.3f} average)".format(elapsed, average))
+        else:
+            print("Generation time: {0:.3f} sec".format(elapsed))
 
     def loading_checkpoint(self, filename):
         print('Resuming from a previous point: ' + filename)

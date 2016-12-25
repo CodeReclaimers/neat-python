@@ -24,7 +24,8 @@ def eval_genomes(genomes, config):
 def run(config_file):
     # Load configuration.
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
-                         neat.DefaultStagnation, config_file)
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                         config_file)
 
     # Create the population, which is the top-level object for a NEAT run.
     p = neat.Population(config)

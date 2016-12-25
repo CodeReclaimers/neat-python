@@ -17,6 +17,7 @@ class DefaultReproduction(object):
     scheme: explicit fitness sharing with fixed-time species stagnation.
     """
 
+    # TODO: Create a separate configuration class instead of using a dict (for consistency with other types).
     @classmethod
     def parse_config(cls, param_dict):
         config = {'elitism': 1,

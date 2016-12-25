@@ -64,7 +64,7 @@ def run(config_file):
     p.add_reporter(stats)
 
     # Run for up to 300 generations.
-    pe = neat.parallel.ParallelEvaluator(4, eval_genome)
+    pe = neat.ParallelEvaluator(4, eval_genome)
     winner = p.run(pe.evaluate, 300)
 
     # Display the winning genome.

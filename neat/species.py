@@ -34,15 +34,25 @@ class Species(object):
         return fitnesses[len(fitnesses) // 2]
 
 
-class SpeciesSet(object):
-    """
-    Encapsulates the speciation scheme.
-    """
+class DefaultSpeciesSet(object):
+    """ Encapsulates the default speciation scheme. """
 
     def __init__(self, config):
         self.indexer = Indexer(1)
         self.species = {}
         self.to_species = {}
+
+    # TODO: Create a separate configuration class instead of using a dict (for consistency with other types).
+    @classmethod
+    def parse_config(cls, param_dict):
+        config = {'compatibility_threshold': float(param_dict['compatibility_threshold'])}
+
+        return config
+
+    @classmethod
+    def write_config(cls, f, param_dict):
+        compatibility_threshold = param_dict['compatibility_threshold']
+        f.write('compatibility_threshold = {}\n'.format(compatibility_threshold))
 
     def speciate(self, config, population):
         """
@@ -55,6 +65,8 @@ class SpeciesSet(object):
         the new behavior.
         """
         assert type(population) is dict
+
+        compatibility_threshold = config.species_set_config['compatibility_threshold']
 
         # Reset all species member lists.
         for s in itervalues(self.species):
@@ -69,7 +81,9 @@ class SpeciesSet(object):
             closest_species_id = None
             for sid, s in iteritems(self.species):
                 rep = s.representative
-                distance, compatible = individual.distance(rep, config.genome_config)
+                distance = individual.distance(rep, config.genome_config)
+                compatible = distance < compatibility_threshold
+
                 if compatible and distance < min_distance:
                     closest_species = s
                     closest_species_id = sid
