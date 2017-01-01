@@ -20,7 +20,6 @@ value_replace_rate       = 0.1
 
 # genome compatibility options
 compatibility_disjoint_coefficient = 1.0
-compatibility_threshold            = 2.5
 compatibility_weight_coefficient   = 1.0
 
 # connection add/remove rates
@@ -38,6 +37,9 @@ node_delete_prob        = 0.2
 # network parameters
 num_inputs              = 3
 num_outputs             = 1
+
+[DefaultSpeciesSet]
+compatibility_threshold = 3.0
 
 [DefaultStagnation]
 species_fitness_func = max

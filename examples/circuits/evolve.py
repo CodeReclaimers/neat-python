@@ -48,7 +48,6 @@ class CircuitConnectionGene(BaseGene):
 class CircuitGenomeConfig(object):
     __params = [ConfigParameter('num_inputs', int),
                 ConfigParameter('num_outputs', int),
-                ConfigParameter('compatibility_threshold', float),
                 ConfigParameter('compatibility_disjoint_coefficient', float),
                 ConfigParameter('compatibility_weight_coefficient', float),
                 ConfigParameter('conn_add_prob', float),
@@ -292,9 +291,8 @@ class CircuitGenome(object):
             connection_distance = (connection_distance + config.compatibility_disjoint_coefficient * disjoint_connections) / max_conn
 
         distance = node_distance + connection_distance
-        compatible = distance < config.compatibility_threshold
 
-        return distance, compatible
+        return distance
 
     def size(self):
         '''Returns genome 'complexity', taken to be (number of nodes, number of enabled connections)'''
@@ -418,7 +416,8 @@ def eval_genomes(genomes, config):
 def run(config_file):
     # Load configuration.
     config = neat.Config(CircuitGenome, neat.DefaultReproduction,
-                         neat.DefaultStagnation, config_file)
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                         config_file)
     #config.save('test_save_config.txt')
 
     # Create the population, which is the top-level object for a NEAT run.
