@@ -14,7 +14,11 @@ def make_movie(net, force_function, duration_seconds, output_filename):
 
     def make_frame(t):
         inputs = sim.get_scaled_state()
-        action = net.activate(inputs)
+        if hasattr(net, 'activate'):
+            action = net.activate(inputs)
+        else:
+            action = net.advance(inputs, sim.t + sim.time_step)
+
         sim.step(force_function(action))
 
         surface = gz.Surface(w, h, bg_color=(1, 1, 1))

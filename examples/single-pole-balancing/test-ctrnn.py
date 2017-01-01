@@ -1,5 +1,5 @@
 """
-Test the performance of the best genome produced by evolve-feedforward.py.
+Test the performance of the best genome produced by evolve-ctrnn.py.
 """
 
 from __future__ import print_function
@@ -14,7 +14,7 @@ import neat
 from neat import nn
 
 # load the winner
-with open('winner-feedforward', 'rb') as f:
+with open('winner-ctrnn', 'rb') as f:
     c = pickle.load(f)
 
 print('Loaded genome:')
@@ -23,12 +23,12 @@ print(c)
 # Load the config file, which is assumed to live in
 # the same directory as this script.
 local_dir = os.path.dirname(__file__)
-config_path = os.path.join(local_dir, 'config-feedforward')
+config_path = os.path.join(local_dir, 'config-ctrnn')
 config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                      neat.DefaultSpeciesSet, neat.DefaultStagnation,
                      config_path)
 
-net = neat.nn.FeedForwardNetwork.create(c, config)
+net = neat.ctrnn.CTRNN.create(c, config, 0.05)
 sim = CartPole()
 
 print()
@@ -43,7 +43,7 @@ print()
 balance_time = 0.0
 while sim.t < 120.0:
     inputs = sim.get_scaled_state()
-    action = net.activate(inputs)
+    action = net.advance(inputs, sim.t + sim.time_step)
 
     # Apply action to the simulated cart-pole
     force = discrete_actuator_force(action)
@@ -68,4 +68,4 @@ print("    theta = {0:.4f}".format(sim.theta))
 print("theta_dot = {0:.4f}".format(sim.dtheta))
 print()
 print("Making movie...")
-make_movie(net, discrete_actuator_force, 15.0, "feedforward-movie.mp4")
+make_movie(net, discrete_actuator_force, 15.0, "ctrnn-movie.mp4")

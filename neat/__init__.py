@@ -1,6 +1,5 @@
-from neat.sequential_static import SequentialStatic
-
 import neat.nn as nn
+import neat.ctrnn as ctrnn
 import neat.iznn as iznn
 
 from neat.config import Config

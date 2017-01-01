@@ -63,7 +63,8 @@ class CartPole(object):
         self.theta += dt * self.dtheta + 0.5 * tacc0 * dt ** 2
 
         # Compute new accelerations as given in "Correct equations for the dynamics of the cart-pole system"
-        # by Razvan V. Florian.
+        # by Razvan V. Florian (http://florian.io).
+        # http://coneural.org/florian/papers/05_cart_pole.pdf
         st = sin(self.theta)
         ct = cos(self.theta)
         tacc1 = (g * st + ct * (-force - mp * L * self.dtheta ** 2 * st) / mt) / (L * (4.0 / 3 - mp * ct ** 2 / mt))

@@ -2,11 +2,18 @@
 
 The scripts in this directory show how to evolve a network that balances a pole on top of a movable cart.  The network
 inputs are the cart position, pole angle, and the derivatives of cart position and pole angle.  The network output is 
-used to apply a constant-magnitude force to the cart in either the left or right direction.
+used to apply a force to the cart in either the left or right direction.
 
 Note that there is a significant amount of duplication between these scripts, and this is intentional.  The goal is to 
 make it easier to see what the example is doing, without making the user dig through a bunch of code that is not 
 directly related to the NEAT library usage.
+
+## Cart/pole system dynamics ##
+
+The system dynamics are taken from ["Correct equations for the dynamics of the cart-pole system"](http://coneural.org/florian/papers/05_cart_pole.pdf)
+by [Razvan V. Florian](http://florian.io).  Numerical integration is done by the [leapfrog method](https://en.wikipedia.org/wiki/Leapfrog_integration).
+       
+
 
 ## Running the examples ##
 
