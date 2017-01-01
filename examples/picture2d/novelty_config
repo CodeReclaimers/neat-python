@@ -11,7 +11,6 @@ num_hidden              = 4
 num_outputs             = 3
 initial_connection      = partial 0.5
 feed_forward            = True
-compatibility_threshold = 3.0
 compatibility_disjoint_coefficient = 1.0
 compatibility_weight_coefficient   = 0.8
 conn_add_prob           = 0.2
@@ -48,6 +47,9 @@ weight_replace_rate     = 0.1
 weight_mutate_power     = 0.5
 enabled_default         = True
 enabled_mutate_rate     = 0.01
+
+[DefaultSpeciesSet]
+compatibility_threshold = 3.0
 
 [DefaultStagnation]
 species_fitness_func = max

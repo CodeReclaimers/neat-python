@@ -43,9 +43,8 @@ class InteractiveStagnation(object):
         max_stagnation = config.get('max_stagnation', 15)
         f.write('max_stagnation       = {}\n'.format(max_stagnation))
 
-    def remove(self, species):
-        if species.key in self.stagnant_counts:
-            del self.stagnant_counts[species.key]
+    def remove(self, sid):
+        self.stagnant_counts.pop(sid, None)
 
     def update(self, species):
         result = []
@@ -83,6 +82,7 @@ class PictureBreeder(object):
         :param window_height: Height of the view window
         :param scheme: Image type to generate: mono, gray, or color
         """
+        self.generation = 0
         self.thumb_width = thumb_width
         self.thumb_height = thumb_height
         self.full_width = full_width
@@ -173,6 +173,7 @@ class PictureBreeder(object):
 
         pygame.init()
         screen = pygame.display.set_mode((self.window_width, self.window_height))
+        pygame.display.set_caption("Interactive NEAT-python generation {0}".format(self.generation))
 
         buttons = self.make_thumbnails(genomes, config)
 
@@ -221,7 +222,9 @@ def run():
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'interactive_config')
     # Note that we provide the custom stagnation class to the Config constructor.
-    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction, InteractiveStagnation, config_path)
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                         neat.DefaultSpeciesSet, InteractiveStagnation,
+                         config_path)
 
     # Make sure the network has the expected number of outputs.
     if pb.scheme == 'color':
@@ -238,6 +241,7 @@ def run():
     pop.add_reporter(stats)
 
     while 1:
+        pb.generation = pop.generation + 1
         pop.run(pb.eval_fitness, 1)
 
 if __name__ == '__main__':

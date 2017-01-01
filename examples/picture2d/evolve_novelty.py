@@ -80,7 +80,9 @@ def run():
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'novelty_config')
     # Note that we provide the custom stagnation class to the Config constructor.
-    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction, neat.DefaultStagnation, config_path)
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                         config_path)
 
     ne = NoveltyEvaluator(4, 'color')
     if ne.scheme == 'color':
