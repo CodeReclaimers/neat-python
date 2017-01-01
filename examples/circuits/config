@@ -1,0 +1,49 @@
+[NEAT]
+max_fitness_threshold = -0.01
+pop_size              = 350
+reset_on_extinction   = False
+
+[CircuitGenome]
+# component type options
+component_default      = resistor
+component_mutate_rate  = 0.2
+component_options      = resistor diode
+
+# component value options
+value_init_mean          = 3.0
+value_init_stdev         = 0.5
+value_max_value          = 6.0
+value_min_value          = 0.0
+value_mutate_power       = 0.5
+value_mutate_rate        = 0.8
+value_replace_rate       = 0.1
+
+# genome compatibility options
+compatibility_disjoint_coefficient = 1.0
+compatibility_threshold            = 2.5
+compatibility_weight_coefficient   = 1.0
+
+# connection add/remove rates
+conn_add_prob           = 0.5
+conn_delete_prob        = 0.5
+
+# connection enable options
+enabled_default         = True
+enabled_mutate_rate     = 0.05
+
+# node add/remove rates
+node_add_prob           = 0.2
+node_delete_prob        = 0.2
+
+# network parameters
+num_inputs              = 3
+num_outputs             = 1
+
+[DefaultStagnation]
+species_fitness_func = max
+max_stagnation       = 25
+
+[DefaultReproduction]
+elitism            = 2
+survival_threshold = 0.2
+

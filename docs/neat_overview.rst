@@ -6,8 +6,11 @@ detailed description of the algorithm, you should probably go read some of `Stan
 <http://www.cs.ucf.edu/~kstanley/#publications>`_ on his website.
 
 Even if you just want to get the gist of the algorithm, reading at least a couple of the early NEAT papers is a good
-idea.  Most of them are pretty short (8 pages or fewer), and do a good job of explaining concepts (or at least pointing
-you to other references that will).
+idea.  Most of them are pretty short, and do a good job of explaining concepts (or at least pointing
+you to other references that will).  `The initial NEAT paper
+<http://nn.cs.utexas.edu/downloads/papers/stanley.cec02.pdf>`_ is only 6 pages long, and Section II should be enough
+if you just want a high-level overview.
+
 
 In the current implementation of NEAT-Python, a population of individual genomes is maintained.  Each genome contains
 two sets of genes that describe how to build an artificial neural network:

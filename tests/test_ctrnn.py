@@ -109,3 +109,9 @@ def test_evolve():
     for g in winner.conn_genes:
         repr(g)
         str(g)
+
+
+if __name__ == '__main__':
+    test_basic()
+    test_evolve()
+    test_manual_network()

@@ -2,6 +2,7 @@ import math
 import random
 
 from neat.indexer import Indexer
+from neat.six_util import iteritems, iterkeys, itervalues
 
 # TODO: Provide some sort of optional cross-species performance criteria, which
 # are then used to control stagnation and possibly the mutation rate configuration.
@@ -15,51 +16,69 @@ class DefaultReproduction(object):
     reproduction from parents. Implements the default NEAT-python reproduction
     scheme: explicit fitness sharing with fixed-time species stagnation.
     """
-    def __init__(self, config, reporters):
-        self.config = config
-        params = config.get_type_config(self)
-        self.elitism = int(params.get('elitism'))
-        self.survival_threshold = float(params.get('survival_threshold'))
+
+    # TODO: Create a separate configuration class instead of using a dict (for consistency with other types).
+    @classmethod
+    def parse_config(cls, param_dict):
+        config = {'elitism': 1,
+                  'survival_threshold': 0.2}
+        config.update(param_dict)
+
+        return config
+
+    @classmethod
+    def write_config(cls, f, param_dict):
+        elitism = param_dict.get('elitism', 1)
+        f.write('elitism            = {}\n'.format(elitism))
+        survival_threshold = param_dict.get('survival_threshold', 0.2)
+        f.write('survival_threshold = {}\n'.format(survival_threshold))
+
+    def __init__(self, config, reporters, stagnation):
+        self.elitism = int(config.get('elitism'))
+        self.survival_threshold = float(config.get('survival_threshold'))
 
         self.reporters = reporters
         self.genome_indexer = Indexer(1)
-        self.stagnation = config.stagnation_type(config, reporters)
+        self.stagnation = stagnation
+        self.ancestors = {}
 
-    def create_new(self, num_genomes):
-        new_genomes = []
+    def create_new(self, genome_type, genome_config, num_genomes):
+        new_genomes = {}
         for i in range(num_genomes):
-            g = self.config.genotype.create(self.genome_indexer.get_next(), self.config)
-            new_genomes.append(g)
+            key = self.genome_indexer.get_next()
+            g = genome_type.create(genome_config, key)
+            new_genomes[key] = g
+            self.ancestors[key] = tuple()
 
         return new_genomes
 
-    def reproduce(self, species, pop_size):
-        # TODO: I don't like this modification of the species object,
-        # because it requires internal knowledge of the object.
+    def reproduce(self, config, species, pop_size):
+        # TODO: I don't like this modification of the species and stagnation objects,
+        # because it requires internal knowledge of the objects.
 
         # Filter out stagnated species and collect the set of non-stagnated species members.
-        remaining_species = {}
+        num_remaining = 0
         species_fitness = []
         avg_adjusted_fitness = 0.0
-        for s, stagnant in self.stagnation.update(species.species):
+        for sid, s, stagnant in self.stagnation.update(species.species):
             if stagnant:
-                self.reporters.species_stagnant(s)
+                self.reporters.species_stagnant(sid, s)
             else:
-                remaining_species[s.ID] = s
+                num_remaining += 1
 
                 # Compute adjusted fitness.
                 species_sum = 0.0
-                for m in s.members:
+                for m in itervalues(s.members):
                     af = m.fitness / len(s.members)
                     species_sum += af
 
                 sfitness = species_sum / len(s.members)
-                species_fitness.append((s, sfitness))
+                species_fitness.append((sid, s, sfitness))
                 avg_adjusted_fitness += sfitness
 
         # No species left.
-        if not remaining_species:
-            species.species = []
+        if 0 == num_remaining:
+            species.species = {}
             return []
 
         avg_adjusted_fitness /= len(species_fitness)
@@ -67,7 +86,7 @@ class DefaultReproduction(object):
 
         # Compute the number of new individuals to create for the new generation.
         spawn_amounts = []
-        for s, sfitness in species_fitness:
+        for sid, s, sfitness in species_fitness:
             spawn = len(s.members)
             if sfitness > avg_adjusted_fitness:
                 spawn *= 1.1
@@ -81,11 +100,11 @@ class DefaultReproduction(object):
         norm = pop_size / total_spawn
         spawn_amounts = [int(round(n * norm)) for n in spawn_amounts]
         self.reporters.info("Spawn amounts: {0}".format(spawn_amounts))
-        self.reporters.info('Species fitness  : {0!r}'.format([sfitness for s, sfitness in species_fitness]))
+        self.reporters.info('Species fitness  : {0!r}'.format([sfitness for sid, s, sfitness in species_fitness]))
 
-        new_population = []
-        species.species = []
-        for spawn, (s, sfitness) in zip(spawn_amounts, species_fitness):
+        new_population = {}
+        species.species = {}
+        for spawn, (sid, s, sfitness) in zip(spawn_amounts, species_fitness):
             # If elitism is enabled, each species always at least gets to retain its elites.
             spawn = max(spawn, self.elitism)
 
@@ -93,17 +112,18 @@ class DefaultReproduction(object):
                 continue
 
             # The species has at least one member for the next generation, so retain it.
-            old_members = s.members
-            s.members = []
-            species.species.append(s)
+            old_members = list(iteritems(s.members))
+            s.members = {}
+            species.species[sid] = s
 
             # Sort members in order of descending fitness.
-            old_members.sort(reverse=True)
+            old_members.sort(reverse=True, key=lambda x: x[1].fitness)
 
             # Transfer elites to new generation.
             if self.elitism > 0:
-                new_population.extend(old_members[:self.elitism])
-                spawn -= self.elitism
+                for i, m in old_members[:self.elitism]:
+                    new_population[i] = m
+                    spawn -= 1
 
             if spawn <= 0:
                 continue
@@ -118,16 +138,25 @@ class DefaultReproduction(object):
             while spawn > 0:
                 spawn -= 1
 
-                parent1 = random.choice(old_members)
-                parent2 = random.choice(old_members)
+                parent1_id, parent1 = random.choice(old_members)
+                parent2_id, parent2 = random.choice(old_members)
 
                 # Note that if the parents are not distinct, crossover will produce a
                 # genetically identical clone of the parent (but with a different ID).
-                child = parent1.crossover(parent2, self.genome_indexer.get_next())
-                new_population.append(child.mutate())
+                gid = self.genome_indexer.get_next()
+                child = parent1.crossover(parent2, gid, config.genome_config)
+                child.mutate(config.genome_config)
+                new_population[gid] = child
+                self.ancestors[gid] = (parent1_id, parent2_id)
+
+        # Remove empty species from the stagnation tracking.
+        keys = list(iterkeys(self.stagnation.stagnant_counts))
+        for sid in keys:
+            if sid not in species.species:
+                self.stagnation.remove(sid)
 
         # Sort species by ID (purely for ease of reading the reported list).
         # TODO: This should probably be done by the species object.
-        species.species.sort(key=lambda sp: sp.ID)
+        #species.species.sort(key=lambda sp: sp.ID)
 
         return new_population

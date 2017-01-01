@@ -2,24 +2,28 @@
 Customizing Behavior
 ====================
 
-NEAT-Python allows the user to provide drop-in replacements for some parts of the NEAT algorithm, and attempts
-to allow easily implementing common variations of the algorithm mentioned in the literature.  If
+NEAT-Python allows the user to provide drop-in replacements for some parts of the NEAT algorithm, which hopefully
+makes it easier to implement common variations of the algorithm as mentioned in the literature.  If
 you find that you'd like to be able to customize something not shown here, please submit an issue on GitHub.
 
-Adding new activation functions
--------------------------------
-To register a new activation function, you only need to call `neat.activation_functions.add` with your new
-function and the name by which you want to refer to it in the configuration file::
+New activation functions
+------------------------
+New activation functions are registered with your `Config` instance, prior to creation of the `Population` instance,
+as follows::
 
     def sinc(x):
         return 1.0 if x == 0 else sin(x) / x
 
-    neat.activation_functions.add('my_sinc_function', sinc)
+    config.genome_config.add_activation('my_sinc_function', sinc)
 
-Note that you must register the new function before you load the configuration file.
+The first argument to `add_activation` is the name by which this activation function will be referred to in the
+configuration settings file.
 
-This is demonstrated in the `memory
-<https://github.com/CodeReclaimers/neat-python/tree/master/examples/memory>`_ example.
+This is demonstrated in the `memory-fixed
+<https://github.com/CodeReclaimers/neat-python/tree/master/examples/memory-fixed>`_ example.
+
+NOTE: This method is only valid when using the `DefaultGenome` implementation--different genome implementations
+may require a different method of registration.
 
 Reporting/logging
 -----------------
@@ -32,52 +36,53 @@ it with an object which implements the same interface as `BaseReporter`.
 <https://github.com/CodeReclaimers/neat-python/blob/master/neat/reporting.py#L56>`_ may be useful as examples of the
 behavior you can add using a reporter.
 
-Species stagnation
-------------------
+TODO: document reporter interface
 
-To use a different species stagnation scheme, you must create and register a custom class whose interface matches that
-of `DefaultStagnation` and set the `stagnation_type` of your Config instance to this class.
+New genome types
+----------------
+
+To use a different genome type, you can create a custom class whose interface matches that of
+`DefaultGenome` and pass this as the `genome_type` argument to the `Config` constructor.
+
+This is demonstrated in the `circuit evolution
+<https://github.com/CodeReclaimers/neat-python/blob/master/examples/circuits/evolve.py>`_ example.
+
+TODO: document genome interface
+
+Speciation scheme
+-----------------
+
+To use a different speciation scheme, you can create a custom class whose interface matches that of
+`DefaultSpeciesSet` and pass this as the `species_set_type` argument to the `Config` constructor.
+
+TODO: document species set interface
+
+TODO: include example
+
+Species stagnation scheme
+-------------------------
+
+The default species stagnation scheme is a simple fixed stagnation limit--when a species exhibits
+no improvement for a fixed number of generations, all its members are removed from the simulation. This
+behavior is encapsulated in the `DefaultStagnation` class.
+
+To use a different species stagnation scheme, you must create a custom class whose interface matches that
+of `DefaultStagnation`, and provide it as the `stagnation_type` argument to the `Config` constructor.
 
 This is demonstrated in the `interactive 2D image
 <https://github.com/CodeReclaimers/neat-python/blob/master/examples/picture2d/interactive.py>`_ example.
 
+TODO: document stagnation interface
+
 Reproduction scheme
 -------------------
 
-The default reproduction scheme uses explicit fitness sharing and a fixed species stagnation limit.  This behavior
-is encapsulated in the DefaultReproduction class.
+The default reproduction scheme uses explicit fitness sharing.  This behavior is encapsulated in the
+`DefaultReproduction` class.
 
-TODO: document, include example
+To use a different reproduction scheme, you must create a custom class whose interface matches that
+of `DefaultReproduction`, and provide it as the `reproduction_type` argument to the `Config` constructor.
 
-Speciation
-----------
+TODO: document reproduction interface
 
-If you need to change the speciation scheme, you should subclass `Population` and override the `_speciate` method (or,
-if you must, `monkey patch/duck punch
-<https://en.wikipedia.org/wiki/Monkey_patch>`_ it).
-
-Diversity
----------
-
-To use a different diversity scheme, you can create a custom class whose interface matches that of
-`ExplicitFitnessSharing` and set the `diversity_type` of your Config instance to this class.
-
-TODO: document, include example
-
-Using different genome types
---------------------------
-
-To use a different genome type, you can create a custom class whose interface matches that of
-`Genome` or `FFGenome`, and set the `genotype` member of your Config instance to this class.
-
-TODO: document, include example
-
-Using a different gene type
------------------------------
-
-To use a different gene type, you can create a custom class whose interface matches that of
-`NodeGene` or `ConnectionGene`, and set the `node_gene_type` or `conn_gene_type` member,
-respectively, of your Config instance to this class.
-
-TODO: document, include example
-
+TODO: include example

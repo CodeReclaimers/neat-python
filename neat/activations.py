@@ -1,28 +1,34 @@
+import inspect
 import math
 
 
 def sigmoid_activation(z):
-    z = max(-60.0, min(60.0, z))
+    z = max(-60.0, min(60.0, 5.0 * z))
     return 1.0 / (1.0 + math.exp(-z))
 
 
 def tanh_activation(z):
-    z = max(-60.0, min(60.0, z))
+    z = max(-60.0, min(60.0, 2.5 * z))
     return math.tanh(z)
 
 
 def sin_activation(z):
-    z = max(-60.0, min(60.0, z))
+    z = max(-60.0, min(60.0, 5.0 * z))
     return math.sin(z)
 
 
 def gauss_activation(z):
-    z = max(-60.0, min(60.0, z))
-    return math.exp(-0.5 * z**2) / math.sqrt(2 * math.pi)
+    z = max(-3.4, min(3.4, z))
+    return math.exp(-5.0 * z**2)
 
 
 def relu_activation(z):
-    return z if z > 0.0 else 0
+    return z if z > 0.0 else 0.0
+
+
+def softplus_activation(z):
+    z = max(-60.0, min(60.0, 5.0 * z))
+    return 0.2 * math.log(1 + math.exp(z))
 
 
 def identity_activation(z):
@@ -70,22 +76,44 @@ class InvalidActivationFunction(Exception):
     pass
 
 
+def validate_activation(function):
+    if not inspect.isfunction(function):
+        raise InvalidActivationFunction("A function object is required.")
+
+    args = inspect.getargspec(function.__call__)
+    if len(args[0]) != 1:
+        raise InvalidActivationFunction("A single-argument function is required.")
+
+
 class ActivationFunctionSet(object):
     def __init__(self):
         self.functions = {}
+        self.add('sigmoid', sigmoid_activation)
+        self.add('tanh', tanh_activation)
+        self.add('sin', sin_activation)
+        self.add('gauss', gauss_activation)
+        self.add('relu', relu_activation)
+        self.add('softplus', softplus_activation)
+        self.add('identity', identity_activation)
+        self.add('clamped', clamped_activation)
+        self.add('inv', inv_activation)
+        self.add('log', log_activation)
+        self.add('exp', exp_activation)
+        self.add('abs', abs_activation)
+        self.add('hat', hat_activation)
+        self.add('square', square_activation)
+        self.add('cube', cube_activation)
 
-    def add(self, config_name, function):
-        # TODO: Verify that the given function has the correct signature.
-        self.functions[config_name] = function
+    def add(self, name, function):
+        validate_activation(function)
+        self.functions[name] = function
 
-    def get(self, config_name):
-        f = self.functions.get(config_name)
+    def get(self, name):
+        f = self.functions.get(name)
         if f is None:
-            raise InvalidActivationFunction("No such function: {0!r}".format(config_name))
+            raise InvalidActivationFunction("No such activation function: {0!r}".format(name))
 
         return f
 
-    def is_valid(self, config_name):
-        return config_name in self.functions
-
-
+    def is_valid(self, name):
+        return name in self.functions

@@ -18,6 +18,8 @@ RESONATOR_PARAMS              = {'a': 0.10, 'b': 0.25, 'c': -65.0, 'd': 2.00}
 LOW_THRESHOLD_SPIKING_PARAMS  = {'a': 0.02, 'b': 0.25, 'c': -65.0, 'd': 2.00}
 
 
+# TODO: Add mechanisms analogous to axon & dendrite propagation delay.
+
 class Neuron(object):
     def __init__(self, bias, a, b, c, d):
         """
