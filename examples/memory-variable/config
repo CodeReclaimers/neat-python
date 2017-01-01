@@ -3,30 +3,26 @@
 # The `NEAT` section specifies parameters particular to the NEAT algorithm
 # or the experiment itself.  This is the only required section.
 [NEAT]
-pop_size              = 150
-max_fitness_threshold = -0.05
+pop_size              = 2000
+max_fitness_threshold = 0.95
 reset_on_extinction   = 0
-collect_statistics = True
-report = True
-save_best = False
 
 [DefaultGenome]
-num_inputs              = 2
-num_hidden              = 0
+num_inputs              = 3
+num_hidden              = 1
 num_outputs             = 1
 initial_connection      = partial 0.5
 feed_forward            = 0
 compatibility_threshold = 3.0
-excess_coefficient      = 1.0
-disjoint_coefficient    = 1.0
-weight_coefficient      = 0.5
-conn_add_prob           = 0.5
-conn_delete_prob        = 0.25
-node_add_prob           = 0.5
-node_delete_prob        = 0.25
+compatibility_disjoint_coefficient    = 1.0
+compatibility_weight_coefficient      = 0.6
+conn_add_prob           = 0.2
+conn_delete_prob        = 0.2
+node_add_prob           = 0.2
+node_delete_prob        = 0.2
 activation_default      = sigmoid
-activation_options      = clamped sigmoid tanh my_sinc_function
-activation_mutate_rate  = 0.02
+activation_options      = sigmoid
+activation_mutate_rate  = 0.0
 aggregation_default     = sum
 aggregation_options     = sum
 aggregation_mutate_rate = 0.0
@@ -37,11 +33,11 @@ bias_mutate_rate        = 0.7
 bias_mutate_power       = 0.5
 bias_max_value          = 30.0
 bias_min_value          = -30.0
-response_init_mean      = 0.0
-response_init_stdev     = 1.0
+response_init_mean      = 1.0
+response_init_stdev     = 0.1
 response_replace_rate   = 0.1
-response_mutate_rate    = 0.7
-response_mutate_power   = 0.5
+response_mutate_rate    = 0.1
+response_mutate_power   = 0.1
 response_max_value      = 30.0
 response_min_value      = -30.0
 
@@ -56,8 +52,8 @@ enabled_default         = True
 enabled_mutate_rate     = 0.01
 
 [DefaultStagnation]
-species_fitness = median
-max_stagnation  = 10
+species_fitness_func = max
+max_stagnation  = 20
 
 [DefaultReproduction]
 elitism            = 2

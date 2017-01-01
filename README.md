@@ -4,13 +4,8 @@
 
 ## NOTES ##
 
-Some large-scale changes are in progress on the [refactor-and-simplify branch](https://github.com/CodeReclaimers/neat-python/tree/refactor-and-simplify). 
-Once these are more stable they will be released as version 0.9.
-
-
-The more complicated examples have been moved into a [separate repository](https://github.com/CodeReclaimers/neat-python-examples) 
-(and eventually a separate Python package on PyPI) from the NEAT library 
-itself.  
+Significant, wide-spread changes have been made recently to the design of the library. 
+Once these are more stable they will be released as version 0.9.  This should happen in the first week or two of 2017.
 
 ## About ##
 
