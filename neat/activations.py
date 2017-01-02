@@ -80,7 +80,7 @@ def validate_activation(function):
     if not inspect.isfunction(function):
         raise InvalidActivationFunction("A function object is required.")
 
-    args = inspect.getargspec(function.__call__)
+    args = inspect.getargspec(function)
     if len(args[0]) != 1:
         raise InvalidActivationFunction("A single-argument function is required.")
 
