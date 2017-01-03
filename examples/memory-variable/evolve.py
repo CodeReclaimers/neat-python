@@ -76,7 +76,9 @@ def run():
     # Determine path to configuration file.
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'config')
-    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction, neat.DefaultStagnation, config_path)
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                         config_path)
 
     pop = neat.Population(config)
     stats = neat.StatisticsReporter()

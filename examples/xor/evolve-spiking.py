@@ -2,16 +2,14 @@
 from __future__ import print_function
 
 import os
-
-from neat import population, iznn
-from neat.config import Config
+import neat
 
 # Network inputs and expected outputs.
 xor_inputs = ((0, 0), (0, 1), (1, 0), (1, 1))
 xor_outputs = (0, 1, 1, 0)
 
 # Use fast spiking neurons.
-neuron_params = iznn.FAST_SPIKING_PARAMS
+neuron_params = neat.iznn.FAST_SPIKING_PARAMS
 # Maximum amount of simulated time (in milliseconds) to wait for the network to produce an output.
 max_time = 50.0
 # Use a simulation time step of 0.25 millisecond.
@@ -34,7 +32,7 @@ def compute_output(t0, t1):
 
 def simulate(genome):
     # Create a network of "fast spiking" Izhikevich neurons.
-    net = iznn.create_phenotype(genome, **neuron_params)
+    net = neat.iznn.create_phenotype(genome, **neuron_params)
     sum_square_error = 0.0
     simulated = []
     for inputData, outputData in zip(xor_inputs, xor_outputs):
@@ -79,11 +77,12 @@ def eval_fitness(genomes):
         genome.fitness = 1 - sum_square_error
 
 
-def run():
+def run(config_path):
     # Load the config file, which is assumed to live in
     # the same directory as this script.
-    local_dir = os.path.dirname(__file__)
-    config = Config(os.path.join(local_dir, 'config-feedforward'))
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                         config_path)
 
     # For this network, we use two output neurons and use the difference between
     # the "time to first spike" to determine the network response.  There are
@@ -91,7 +90,7 @@ def run():
     # and this choice may not be the best for tackling a real problem.
     config.output_nodes = 2
 
-    pop = population.Population(config)
+    pop = neat.population.Population(config)
     pop.run(eval_fitness, 200)
 
     print('Number of evaluations: {0}'.format(pop.total_evaluations))
@@ -106,7 +105,7 @@ def run():
     print('\nBest network output:')
 
     # Create a network of "fast spiking" Izhikevich neurons, simulation time step 0.25 millisecond.
-    net = iznn.create_phenotype(winner, **neuron_params)
+    net = neat.iznn.create_phenotype(winner, **neuron_params)
     for inputData, outputData in zip(xor_inputs, xor_outputs):
         neuron_data = {}
         for i, n in net.neurons.items():
@@ -138,4 +137,6 @@ def run():
 
 
 if __name__ == '__main__':
-    run()
+    local_dir = os.path.dirname(__file__)
+    config_path = os.path.join(local_dir, 'config-feedforward')
+    run(config_path)
