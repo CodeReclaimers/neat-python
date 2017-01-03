@@ -66,14 +66,13 @@ class DefaultGenomeConfig(object):
         self.activation_defs.add(name, func)
 
     def save(self, f):
-        f.write('initial_connection      = {0}\n'.format(self.initial_connection))
-        # Verify that initial connection type is valid.
         if 'partial' in self.initial_connection:
-            c, p = self.initial_connection.split()
-            self.initial_connection = c
-            self.connection_fraction = float(p)
             if not (0 <= self.connection_fraction <= 1):
                 raise Exception("'partial' connection value must be between 0.0 and 1.0, inclusive.")
+            f.write('initial_connection      = {0} {1}\n'.format(self.initial_connection,
+                                                                 self.connection_fraction))
+        else:
+            f.write('initial_connection      = {0}\n'.format(self.initial_connection))
 
         assert self.initial_connection in self.allowed_connectivity
 

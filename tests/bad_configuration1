@@ -9,7 +9,7 @@ reproduction_type    = DefaultReproduction
 input_nodes          = 2
 hidden_nodes         = 0
 output_nodes         = 1
-initial_connection   = fully_connected
+initial_connection   = full
 max_weight           = 30
 min_weight           = -30
 feedforward          = 1
@@ -36,9 +36,8 @@ reset_on_extinction   = 1
 
 [genotype compatibility]
 compatibility_threshold = 3.0
-excess_coefficient      = 1.0
-disjoint_coefficient    = 1.0
-weight_coefficient      = 0.4
+compatibility_disjoint_coefficient    = 1.0
+compatibility_weight_coefficient      = 0.4
 
 [DefaultStagnation]
 species_fitness_func = mean

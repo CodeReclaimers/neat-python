@@ -38,9 +38,8 @@ reset_on_extinction     = 0
 
 [genotype compatibility]
 compatibility_threshold = 3.0
-excess_coefficient      = 1.0
-disjoint_coefficient    = 1.0
-weight_coefficient      = 0.5
+compatibility_disjoint_coefficient    = 1.0
+compatibility_weight_coefficient      = 0.5
 
 [DefaultStagnation]
 species_fitness_func = max

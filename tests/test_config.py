@@ -1,9 +1,5 @@
 import os
-
-from neat.config import Config
-from neat.genome import DefaultGenome
-from neat.reproduction import DefaultReproduction
-from neat.stagnation import DefaultStagnation
+import neat
 
 
 def test_nonexistent_config():
@@ -11,7 +7,9 @@ def test_nonexistent_config():
     an Exception with appropriate message."""
     passed = False
     try:
-        c = Config(DefaultGenome, DefaultReproduction, DefaultStagnation, 'wubba-lubba-dub-dub')
+        c = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                        neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                        'wubba-lubba-dub-dub')
     except Exception as e:
         passed = 'No such config file' in str(e)
     assert passed
