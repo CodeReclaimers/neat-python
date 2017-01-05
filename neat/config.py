@@ -36,12 +36,13 @@ class ConfigParameter(object):
         if int == self.value_type:
             return int(value)
         if bool == self.value_type:
-            if type(value) is str:
-                if "true" == value.lower():
-                    return True
-                if "false" == value.lower():
-                    return False
-            return bool(int(value))
+        if bool == self.value_type:
+            if "true" == value.lower():
+                return True
+            elif "false" == value.lower():
+                return False
+            else:
+                raise Exception(self.name + " Must be True or False")
         if float == self.value_type:
             return float(value)
         if list == self.value_type:
