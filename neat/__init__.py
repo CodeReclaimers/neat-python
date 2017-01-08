@@ -11,6 +11,4 @@ from neat.reporting import StdOutReporter
 from neat.species import DefaultSpeciesSet
 from neat.statistics import StatisticsReporter
 from neat.parallel import ParallelEvaluator
-
-
-
+from neat.checkpoint import Checkpointer

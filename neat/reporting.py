@@ -21,9 +21,9 @@ class ReporterSet(object):
         for r in self.reporters:
             r.start_generation(gen)
 
-    def end_generation(self):
+    def end_generation(self, config, population, species):
         for r in self.reporters:
-            r.end_generation()
+            r.end_generation(config, population, species)
 
     def post_evaluate(self, config, population, species, best_genome):
         for r in self.reporters:
@@ -51,7 +51,7 @@ class BaseReporter(object):
     def start_generation(self, generation):
         pass
 
-    def end_generation(self):
+    def end_generation(self, config, population, species):
         pass
 
     def post_evaluate(self, config, population, species, best_genome):
@@ -81,7 +81,7 @@ class StdOutReporter(BaseReporter):
         print('\n ****** Running generation {0} ****** \n'.format(generation))
         self.generation_start_time = time.time()
 
-    def end_generation(self):
+    def end_generation(self, config, population, species):
         elapsed = time.time() - self.generation_start_time
         self.generation_times.append(elapsed)
         self.generation_times = self.generation_times[-10:]

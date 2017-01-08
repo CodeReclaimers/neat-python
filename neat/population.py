@@ -97,6 +97,6 @@ class Population(object):
             # Divide the new population into species.
             self.species.speciate(self.config, self.population)
 
-            self.reporters.end_generation()
+            self.reporters.end_generation(self.config, self.population, self.species)
 
         return self.best_genome
