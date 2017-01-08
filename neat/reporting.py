@@ -25,14 +25,6 @@ class ReporterSet(object):
         for r in self.reporters:
             r.end_generation()
 
-    def loading_checkpoint(self, filename):
-        for r in self.reporters:
-            r.loading_checkpoint(filename)
-
-    def saving_checkpoint(self, checkpoint_type, filename):
-        for r in self.reporters:
-            r.saving_checkpoint(checkpoint_type, filename)
-
     def post_evaluate(self, config, population, species, best_genome):
         for r in self.reporters:
             r.post_evaluate(config, population, species, best_genome)
@@ -60,12 +52,6 @@ class BaseReporter(object):
         pass
 
     def end_generation(self):
-        pass
-
-    def loading_checkpoint(self, filename):
-        pass
-
-    def saving_checkpoint(self, checkpoint_type, filename):
         pass
 
     def post_evaluate(self, config, population, species, best_genome):
@@ -104,13 +90,6 @@ class StdOutReporter(BaseReporter):
             print("Generation time: {0:.3f} sec ({1:.3f} average)".format(elapsed, average))
         else:
             print("Generation time: {0:.3f} sec".format(elapsed))
-
-    def loading_checkpoint(self, filename):
-        print('Resuming from a previous point: ' + filename)
-
-    def saving_checkpoint(self, checkpoint_type, filename):
-        print('Creating {0} checkpoint file {1} at generation: {0}'.format(
-            checkpoint_type, filename, self.generation))
 
     def post_evaluate(self, config, population, species, best_genome):
         fitnesses = [c.fitness for c in itervalues(population)]

@@ -7,6 +7,8 @@
 Significant, wide-spread changes have been made recently to the design of the library. 
 Once these are more stable they will be released as version 0.9.  This should happen in the first week or two of 2017.
 
+Currently, Izhikevich (spiking) neurons are not working.  The checkpointing capability that was present in version 0.8 is not currently present, but will be reimplemented as a Reporter soon. 
+
 ## About ##
 
 NEAT (NeuroEvolution of Augmenting Topologies) is a method developed by Kenneth O. Stanley for evolving arbitrary neural 
