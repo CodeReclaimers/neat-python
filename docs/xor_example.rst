@@ -60,9 +60,10 @@ and the best N genomes (with or without duplicates).
 Visualizations
 --------------
 
-Functions are available in the `neat-python-examples
-<https://github.com/CodeReclaimers/neat-python-examples>`_ project to plot the best and average fitness vs. generation,
-plot the change in species vs. generation, and to show the structure of a network described by a genome.
+Functions are available in the `visualize module
+<https://github.com/CodeReclaimers/neat-python/blob/master/examples/xor/visualize.py>`_ to plot the best
+and average fitness vs. generation, plot the change in species vs. generation, and to show the structure
+of a network described by a genome.
 
 Example Source
 --------------
