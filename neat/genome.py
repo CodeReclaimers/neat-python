@@ -37,8 +37,10 @@ class DefaultGenomeConfig(object):
         self.aggregation_options = params.get('aggregation_options', 'sum').strip().split()
 
         # Gather configuration data from the gene classes.
-        self.__params += DefaultNodeGene.get_config_params()
-        self.__params += DefaultConnectionGene.get_config_params()
+        self.node_gene_type = params['node_gene_type']
+        self.__params += self.node_gene_type.get_config_params()
+        self.connection_gene_type = params['connection_gene_type']
+        self.__params += self.connection_gene_type.get_config_params()
 
         # Use the configuration data to interpret the supplied parameters.
         for p in self.__params:
@@ -86,8 +88,9 @@ class DefaultGenome(object):
     Terminology
         pin: Point at which the network is conceptually connected to the external world;
              pins are either input or output.
-        node:
-        connection:
+        node: Analog of a physical neuron.
+        connection: Connection between a pin/node output and a node's input, or between a node's
+             output and a pin/node input.
         key: Identifier for an object, unique within the set of similar objects.
 
     Design assumptions and conventions.
@@ -100,8 +103,10 @@ class DefaultGenome(object):
         4. The input values are applied to the input pins unmodified.
     """
 
-    @classmethod
-    def parse_config(cls, param_dict):
+    @staticmethod
+    def parse_config(param_dict):
+        param_dict['node_gene_type'] = DefaultNodeGene
+        param_dict['connection_gene_type'] = DefaultConnectionGene
         return DefaultGenomeConfig(param_dict)
 
     @classmethod
@@ -220,7 +225,7 @@ class DefaultGenome(object):
     def add_connection(self, config, input_key, output_key, weight, enabled):
         # TODO: Add validation of this connection addition.
         key = (input_key, output_key)
-        connection = DefaultConnectionGene(key)
+        connection = config.connection_gene_type(key)
         connection.init_attributes(config)
         connection.weight = weight
         connection.enabled = enabled
@@ -341,7 +346,7 @@ class DefaultGenome(object):
         for i in range(config.num_hidden):
             node_key = self.get_new_node_key()
             assert node_key not in self.nodes
-            node = self.__class__.create_node(config, node_key)
+            node = self.create_node(config, node_key)
             self.nodes[node_key] = node
 
     @classmethod
@@ -364,13 +369,13 @@ class DefaultGenome(object):
 
     @staticmethod
     def create_node(config, node_id):
-        node = DefaultNodeGene(node_id)
+        node = config.node_gene_type(node_id)
         node.init_attributes(config)
         return node
 
     @staticmethod
     def create_connection(config, input_id, output_id):
-        connection = DefaultConnectionGene((input_id, output_id))
+        connection = config.connection_gene_type((input_id, output_id))
         connection.init_attributes(config)
         return connection
 
