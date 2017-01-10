@@ -36,20 +36,32 @@ class CTRNN(object):
         self.active = 0
         self.time_seconds = 0.0
 
-    def get_time_step(self):
-        return 0.005
+    def set_node_value(self, node_key, value):
+        for v in self.values:
+            v[node_key] = value
 
-    def advance(self, inputs, final_time_seconds):
+    def get_max_time_step(self):
+        # TODO: Compute max time step that is known to be numerically stable for
+        # the current network configuration.
+        raise NotImplementedError()
+
+    def advance(self, inputs, advance_time, time_step=None):
         """
-        Advance the simulation to the given final time, assuming that inputs are
+        Advance the simulation by the given amount of time, assuming that inputs are
         constant at the given values during the simulated time.
         """
+        final_time_seconds = self.time_seconds + advance_time
 
-        time_step = self.get_time_step()
+        # Use half of the max allowed time step if none is given.
+        if time_step is None:
+            time_step = 0.5 * self.get_max_time_step()
+
         if len(self.input_nodes) != len(inputs):
             raise Exception("Expected {0} inputs, got {1}".format(len(self.input_nodes), len(inputs)))
 
         while self.time_seconds < final_time_seconds:
+            dt = min(time_step, final_time_seconds - self.time_seconds)
+
             ivalues = self.values[self.active]
             ovalues = self.values[1 - self.active]
             self.active = 1 - self.active
@@ -61,9 +73,10 @@ class CTRNN(object):
             for node_key, ne in iteritems(self.node_evals):
                 node_inputs = [ivalues[i] * w for i, w in ne.links]
                 s = ne.aggregation(node_inputs)
-                ovalues[node_key] = ne.activation(ne.bias + ne.response * s)
+                z = ne.activation(ne.bias + ne.response * s)
+                ovalues[node_key] += dt / ne.time_constant * (-ovalues[node_key] + z)
 
-            self.time_seconds += time_step
+            self.time_seconds += dt
 
         ovalues = self.values[1 - self.active]
         return [ovalues[i] for i in self.output_nodes]

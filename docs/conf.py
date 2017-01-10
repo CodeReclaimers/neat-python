@@ -49,7 +49,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'NEAT-Python'
-copyright = u'2015, CodeReclaimers, LLC'
+copyright = u'2015-2017, CodeReclaimers, LLC'
 author = u'CodeReclaimers, LLC'
 
 # The version info for the project you're documenting, acts as replacement for

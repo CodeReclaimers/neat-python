@@ -9,6 +9,18 @@ IEEE TRANSACTIONS ON NEURAL NETWORKS, VOL. 14, NO. 6, NOVEMBER 2003
 http://www.izhikevich.org/publications/spikes.pdf
 """
 
+from neat.attributes import FloatAttribute
+from neat.genes import BaseGene, DefaultGeneConfig, DefaultConnectionGene
+from neat.genome import DefaultGenomeConfig, DefaultGenome
+from neat.graphs import required_for_output
+from neat.six_util import itervalues, iteritems
+
+# a, b, c, d are the parameters of the Izhikevich model.
+# a: the time scale of the recovery variable
+# b: the sensitivity of the recovery variable
+# c: the after-spike reset value of the membrane potential
+# d: after-spike reset of the recovery variable
+# The following parameter sets produce some known spiking behaviors:
 REGULAR_SPIKING_PARAMS        = {'a': 0.02, 'b': 0.20, 'c': -65.0, 'd': 8.00}
 INTRINSICALLY_BURSTING_PARAMS = {'a': 0.02, 'b': 0.20, 'c': -55.0, 'd': 4.00}
 CHATTERING_PARAMS             = {'a': 0.02, 'b': 0.20, 'c': -50.0, 'd': 2.00}
@@ -20,29 +32,46 @@ LOW_THRESHOLD_SPIKING_PARAMS  = {'a': 0.02, 'b': 0.25, 'c': -65.0, 'd': 2.00}
 
 # TODO: Add mechanisms analogous to axon & dendrite propagation delay.
 
-class Neuron(object):
-    def __init__(self, bias, a, b, c, d):
-        """
-        a, b, c, d are the parameters of this model.
-        a: the time scale of the recovery variable.
-        b: the sensitivity of the recovery variable.
-        c: the after-spike reset value of the membrane potential.
-        d: after-spike reset of the recovery variable.
 
-        The following parameters produce some known spiking behaviors:
-            Regular spiking:        a = 0.02, b = 0.2,  c = -65.0, d = 8.0
-            Intrinsically bursting: a = 0.02, b = 0.2,  c = -55.0, d = 4.0
-            Chattering:             a = 0.02, b = 0.2,  c = -50.0, d = 2.0
-            Fast spiking:           a = 0.1,  b = 0.2,  c = -65.0, d = 2.0
-            Thalamo-cortical:       a = 0.02, b = 0.25, c = -65.0, d = 0.05
-            Resonator:              a = 0.1,  b = 0.25, c = -65.0, d = 2.0
-            Low-threshold spiking:  a = 0.02, b = 0.25, c = -65.0, d = 2.0
+class IZNodeGene(BaseGene):
+    __gene_attributes__ = [FloatAttribute('bias'),
+                           FloatAttribute('a'),
+                           FloatAttribute('b'),
+                           FloatAttribute('c'),
+                           FloatAttribute('d')]
+
+    @classmethod
+    def parse_config(cls, config, param_dict):
+        return DefaultGeneConfig(cls.__gene_attributes__, param_dict)
+
+    def distance(self, other, config):
+        s = abs(self.a - other.a) + abs(self.b - other.b) \
+            + abs(self.c - other.c) + abs(self.d - other.d)
+        return s * config.compatibility_weight_coefficient
+
+
+class IZGenome(DefaultGenome):
+    @staticmethod
+    def parse_config(param_dict):
+        param_dict['node_gene_type'] = IZNodeGene
+        param_dict['connection_gene_type'] = DefaultConnectionGene
+        return DefaultGenomeConfig(param_dict)
+
+
+
+
+class IZNeuron(object):
+    def __init__(self, bias, a, b, c, d, inputs):
+        """
+        a, b, c, d are the parameters of the Izhikevich model.
+        inputs: list of (input key, weight) pairs for incoming connections
         """
         self.a = a
         self.b = b
         self.c = c
         self.d = d
         self.bias = bias
+        self.inputs = inputs
 
         # Membrane potential (millivolts).
         self.v = self.c
@@ -91,69 +120,77 @@ class Neuron(object):
         self.current = self.bias
 
 
-class IzNetwork(object):
-    def __init__(self, neurons, inputs, outputs, connections):
+class IZNN(object):
+    def __init__(self, neurons, inputs, outputs):
         self.neurons = neurons
-        self.connections = []
-        all_nodes = inputs + outputs + list(self.neurons.keys())
-        for i, o, w in connections:
-            self.connections.append((neurons[i], o, w))
-            all_nodes += [i, o]
-
         self.inputs = inputs
         self.outputs = outputs
-        max_node = max(all_nodes)
-        self.currents = [0.0] * (1 + max_node)
+        self.input_values = {}
 
     def set_inputs(self, inputs):
-        """Assign input voltages and reset currents to zero."""
+        """Assign input voltages."""
         assert len(inputs) == len(self.inputs)
         for i, v in zip(self.inputs, inputs):
-            self.currents[i] = 0.0
-            self.neurons[i].current = 0.0
-            self.neurons[i].output = v
+            self.input_values[i] = v
 
     def reset(self):
         """Reset all neurons to their default state."""
         for i, n in self.neurons.items():
             n.reset()
 
+    def get_time_step_msec(self):
+        return 0.25
+
     def advance(self, dt_msec):
-        # Initialize all non-input neuron currents to the bias value.
-        for i, n in self.neurons.items():
-            if i not in self.inputs:
-                self.currents[i] = n.bias
+        for n in itervalues(self.neurons):
+            n.current = n.bias
+            for i, w in n.inputs:
+                ineuron = self.neurons.get(i)
+                if ineuron is not None:
+                    ivalue = ineuron.output
+                else:
+                    ivalue = self.input_values[i]
 
-        # Add weight-adjusted output currents.
-        for i, o, w in self.connections:
-            self.currents[o] += i.output * w
+                n.current += ivalue * w
 
-        for i, n in self.neurons.items():
-            if i not in self.inputs:
-                n.current = self.currents[i]
-                n.advance(dt_msec)
+        for n in itervalues(self.neurons):
+            n.advance(dt_msec)
 
         return [self.neurons[i].output for i in self.outputs]
 
+    @staticmethod
+    def create(genome, config):
+        """ Receives a genome and returns its phenotype (a neural network). """
+        genome_config = config.genome_config
+        required = required_for_output(genome_config.input_keys, genome_config.output_keys, genome.connections)
 
-def create_phenotype(genome, a, b, c, d):
-    """ Receives a genome and returns its phenotype (a neural network) """
+        # Gather inputs and expressed connections.
+        node_inputs = {}
+        for cg in itervalues(genome.connections):
+            if not cg.enabled:
+                continue
 
-    neurons = {}
-    inputs = []
-    outputs = []
-    for ng in genome.node_genes.values():
-        # TODO: It seems like we should have a separate node gene implementation
-        # that optionally encodes more (all?) of the Izhikevich model parameters.
-        neurons[ng.ID] = Neuron(ng.bias, a, b, c, d)
-        if ng.type == 'INPUT':
-            inputs.append(ng.ID)
-        elif ng.type == 'OUTPUT':
-            outputs.append(ng.ID)
+            i, o = cg.key
+            if o not in required and i not in required:
+                continue
 
-    connections = []
-    for cg in genome.conn_genes.values():
-        if cg.enabled:
-            connections.append((cg.in_node_id, cg.out_node_id, cg.weight))
+            if o not in node_inputs:
+                node_inputs[o] = [(i, cg.weight)]
+            else:
+                node_inputs[o].append((i, cg.weight))
 
-    return IzNetwork(neurons, inputs, outputs, connections)
+        neurons = {}
+        for node_key, inputs in iteritems(node_inputs):
+            ng = genome.nodes[node_key]
+            neurons[ng.key] = IZNeuron(ng.bias, ng.a, ng.b, ng.c, ng.d, inputs)
+
+        # connections = []
+        # for cg in genome.connections.values():
+        #     if cg.enabled:
+        #         inode, onode = cg.key
+        #         connections.append((inode, onode, cg.weight))
+
+
+
+        genome_config = config.genome_config
+        return IZNN(neurons, genome_config.input_keys, genome_config.output_keys)
