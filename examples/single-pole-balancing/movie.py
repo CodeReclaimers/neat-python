@@ -17,7 +17,7 @@ def make_movie(net, force_function, duration_seconds, output_filename):
         if hasattr(net, 'activate'):
             action = net.activate(inputs)
         else:
-            action = net.advance(inputs, sim.t + sim.time_step)
+            action = net.advance(inputs, sim.time_step, sim.time_step)
 
         sim.step(force_function(action))
 

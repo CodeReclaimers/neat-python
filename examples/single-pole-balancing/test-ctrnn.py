@@ -28,8 +28,9 @@ config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                      neat.DefaultSpeciesSet, neat.DefaultStagnation,
                      config_path)
 
-net = neat.ctrnn.CTRNN.create(c, config, 0.05)
 sim = CartPole()
+
+net = neat.ctrnn.CTRNN.create(c, config, sim.time_step)
 
 print()
 print("Initial conditions:")
@@ -43,7 +44,7 @@ print()
 balance_time = 0.0
 while sim.t < 120.0:
     inputs = sim.get_scaled_state()
-    action = net.advance(inputs, sim.t + sim.time_step)
+    action = net.advance(inputs, sim.time_step, sim.time_step)
 
     # Apply action to the simulated cart-pole
     force = discrete_actuator_force(action)
