@@ -17,6 +17,7 @@ and is in the process of being updated to provide more features and a (hopefully
 
 For further information regarding general concepts and theory, please see [Selected Publications](http://www.cs.ucf.edu/~kstanley/#publications) on Stanley's website.
 
+`neat-python` is licensed under the [3-clause BSD license](https://opensource.org/licenses/BSD-3-Clause).
 
 ## Getting Started ##
 
