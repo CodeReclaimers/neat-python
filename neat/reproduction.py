@@ -67,12 +67,7 @@ class DefaultReproduction(object):
                 num_remaining += 1
 
                 # Compute adjusted fitness.
-                species_sum = 0.0
-                for m in itervalues(s.members):
-                    af = m.fitness / len(s.members)
-                    species_sum += af
-
-                sfitness = species_sum / len(s.members)
+                sfitness = sum(m.fitness for m in itervalues(s.members)) / len(s.members)
                 species_fitness.append((sid, s, sfitness))
                 avg_adjusted_fitness += sfitness
 
