@@ -49,11 +49,10 @@ class Checkpointer(BaseReporter):
             pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     @staticmethod
-    def restore_checkpoint(self, filename):
+    def restore_checkpoint(filename):
         '''Resumes the simulation from a previous saved point.'''
-        self.reporters.loading_checkpoint(filename)
         with gzip.open(filename) as f:
-            config, population, species, generation, rndstate = pickle.load(f)
+            generation, config, population, species, rndstate = pickle.load(f)
             random.setstate(rndstate)
             return neat.Population(config, (population, species, generation))
 
