@@ -3,7 +3,7 @@ import neat.ctrnn as ctrnn
 import neat.iznn as iznn
 
 from neat.config import Config
-from neat.population import Population
+from neat.population import Population, CompleteExtinctionException
 from neat.genome import DefaultGenome
 from neat.reproduction import DefaultReproduction
 from neat.stagnation import DefaultStagnation

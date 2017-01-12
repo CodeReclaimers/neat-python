@@ -35,8 +35,11 @@ def test_xor_example():
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
 
-    # Run for up to 300 generations.
-    winner = p.run(eval_genomes, 300)
+    # Run for up to 300 generations, allowing extinction.
+    try:
+        winner = p.run(eval_genomes, 50)
+    except neat.CompleteExtinctionException as e:
+        pass
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))

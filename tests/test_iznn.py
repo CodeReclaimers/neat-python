@@ -2,13 +2,14 @@ import os
 import neat
 
 
-# def test_basic():
-#     n = iznn.Neuron(10, **iznn.REGULAR_SPIKING_PARAMS)
-#     spike_train = []
-#     for i in range(1000):
-#         spike_train.append(n.v)
-#         n.advance(0.25)
-#
+def test_basic():
+    p = neat.iznn.REGULAR_SPIKING_PARAMS
+    n = neat.iznn.IZNeuron(10, p['a'], p['b'], p['c'], p['d'], [])
+    spike_train = []
+    for i in range(1000):
+        spike_train.append(n.v)
+        n.advance(0.25)
+
 #
 # def test_network():
 #     neurons = {0: iznn.Neuron(0, **iznn.INTRINSICALLY_BURSTING_PARAMS),
@@ -136,6 +137,6 @@ import neat
 # #         str(g)
 #
 #
-# if __name__ == '__main__':
-#     test_basic()
-#     test_network()
+if __name__ == '__main__':
+    test_basic()
+    #test_network()
