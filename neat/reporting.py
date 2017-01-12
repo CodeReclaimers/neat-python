@@ -75,6 +75,7 @@ class StdOutReporter(BaseReporter):
         self.generation = None
         self.generation_start_time = None
         self.generation_times = []
+        self.num_extinctions = 0
 
     def start_generation(self, generation):
         self.generation = generation
@@ -86,6 +87,7 @@ class StdOutReporter(BaseReporter):
         self.generation_times.append(elapsed)
         self.generation_times = self.generation_times[-10:]
         average = sum(self.generation_times) / len(self.generation_times)
+        print('Total extinctions: {0:d}'.format(self.num_extinctions))
         if len(self.generation_times) > 1:
             print("Generation time: {0:.3f} sec ({1:.3f} average)".format(elapsed, average))
         else:
@@ -105,6 +107,7 @@ class StdOutReporter(BaseReporter):
         #print('Species age      : {0}'.format([s.age for s in species]))
 
     def complete_extinction(self):
+        self.num_extinctions += 1
         print('All species extinct.')
 
     def found_solution(self, config, generation, best):
