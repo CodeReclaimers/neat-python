@@ -180,17 +180,10 @@ class IZNN(object):
                 node_inputs[o].append((i, cg.weight))
 
         neurons = {}
-        for node_key, inputs in iteritems(node_inputs):
+        for node_key in required:
             ng = genome.nodes[node_key]
-            neurons[ng.key] = IZNeuron(ng.bias, ng.a, ng.b, ng.c, ng.d, inputs)
-
-        # connections = []
-        # for cg in genome.connections.values():
-        #     if cg.enabled:
-        #         inode, onode = cg.key
-        #         connections.append((inode, onode, cg.weight))
-
-
+            inputs = node_inputs.get(node_key, [])
+            neurons[node_key] = IZNeuron(ng.bias, ng.a, ng.b, ng.c, ng.d, inputs)
 
         genome_config = config.genome_config
         return IZNN(neurons, genome_config.input_keys, genome_config.output_keys)

@@ -57,15 +57,15 @@ def show(title, a, b, c, d):
 
     plot_spikes(spike_train, view=False, title=title)
 
-show('regular spiking', 0.02, 0.2, -65.0, 8.0)
+show('regular spiking', **neat.iznn.REGULAR_SPIKING_PARAMS)
 
-show('intrinsically bursting', 0.02, 0.2, -55.0, 4.0)
+show('intrinsically bursting', **neat.iznn.INTRINSICALLY_BURSTING_PARAMS)
 
-show('chattering', 0.02, 0.2, -50.0, 2.0)
+show('chattering', **neat.iznn.CHATTERING_PARAMS)
 
-show('fast spiking', 0.1, 0.2, -65.0, 2.0)
+show('fast spiking', **neat.iznn.FAST_SPIKING_PARAMS)
 
-show('low-threshold spiking', 0.02, 0.25, -65, 2.0)
+show('low-threshold spiking', **neat.iznn.LOW_THRESHOLD_SPIKING_PARAMS)
 
 show('thalamo-cortical', 0.02, 0.25, -65.0, 0.05)
 
