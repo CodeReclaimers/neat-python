@@ -2,7 +2,7 @@ import random
 import sys
 
 from neat.indexer import Indexer
-from neat.math_util import mean
+from neat.math_util import mean, stdev
 from neat.six_util import iteritems, itervalues
 
 
@@ -37,7 +37,8 @@ class Species(object):
 class DefaultSpeciesSet(object):
     """ Encapsulates the default speciation scheme. """
 
-    def __init__(self, config):
+    def __init__(self, config, reporters):
+        self.reporters = reporters
         self.indexer = Indexer(1)
         self.species = {}
         self.to_species = {}
@@ -74,6 +75,7 @@ class DefaultSpeciesSet(object):
         self.to_species.clear()
 
         # Partition population into species based on genetic similarity.
+        distances = []
         for key, individual in iteritems(population):
             # Find the species with the most similar representative.
             min_distance = sys.float_info.max
@@ -82,6 +84,7 @@ class DefaultSpeciesSet(object):
             for sid, s in iteritems(self.species):
                 rep = s.representative
                 distance = individual.distance(rep, config.genome_config)
+                distances.append(distance)
                 compatible = distance < compatibility_threshold
 
                 if compatible and distance < min_distance:
@@ -97,6 +100,9 @@ class DefaultSpeciesSet(object):
                 sid = self.indexer.get_next()
                 self.species[sid] = Species(sid, key, individual)
                 self.to_species[key] = sid
+
+        self.reporters.info('Mean genetic distance {0}, std dev {1}'.format(mean(distances),
+                                                                            stdev(distances)))
 
         # Only keep non-empty species.
         empty_species_ids = []

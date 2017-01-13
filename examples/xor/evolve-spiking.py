@@ -2,24 +2,24 @@
 from __future__ import print_function
 
 import os
+from matplotlib import pylab as plt
+from matplotlib import patches
 import neat
+
+import visualize
 
 # Network inputs and expected outputs.
 xor_inputs = ((0, 0), (0, 1), (1, 0), (1, 1))
 xor_outputs = (0, 1, 1, 0)
 
-# Use fast spiking neurons.
-neuron_params = neat.iznn.FAST_SPIKING_PARAMS
 # Maximum amount of simulated time (in milliseconds) to wait for the network to produce an output.
-max_time = 50.0
-# Use a simulation time step of 0.25 millisecond.
-dt = 0.25
+max_time_msec = 20.0
 
 
 def compute_output(t0, t1):
     '''Compute the network's output based on the "time to first spike" of the two output neurons.'''
     if t0 is None or t1 is None:
-        # If one of the output neurons failed to fire within the allotted time,
+        # If neither of the output neurons fired within the allotted time,
         # give a response which produces a large error.
         return -1.0
     else:
@@ -30,57 +30,67 @@ def compute_output(t0, t1):
         return max(0.0, min(1.0, response))
 
 
-def simulate(genome):
+def simulate(genome, config):
     # Create a network of "fast spiking" Izhikevich neurons.
-    net = neat.iznn.create_phenotype(genome, **neuron_params)
+    net = neat.iznn.IZNN.create(genome, config)
+    dt = net.get_time_step_msec()
     sum_square_error = 0.0
     simulated = []
-    for inputData, outputData in zip(xor_inputs, xor_outputs):
+    for idata, odata in zip(xor_inputs, xor_outputs):
         neuron_data = {}
         for i, n in net.neurons.items():
             neuron_data[i] = []
 
         # Reset the network, apply the XOR inputs, and run for the maximum allowed time.
         net.reset()
-        net.set_inputs(inputData)
+        net.set_inputs(idata)
         t0 = None
         t1 = None
         v0 = None
         v1 = None
-        num_steps = int(max_time / dt)
+        num_steps = int(max_time_msec / dt)
+        net.set_inputs(idata)
         for j in range(num_steps):
             t = dt * j
             output = net.advance(dt)
 
             # Capture the time and neuron membrane potential for later use if desired.
             for i, n in net.neurons.items():
-                neuron_data[i].append((t, n.v))
+                neuron_data[i].append((t, n.current, n.v, n.u, n.fired))
 
             # Remember time and value of the first output spikes from each neuron.
             if t0 is None and output[0] > 0:
-                t0, v0 = neuron_data[net.outputs[0]][-2]
+                t0, I0, v0, u0, f0 = neuron_data[net.outputs[0]][-2]
 
             if t1 is None and output[1] > 0:
-                t1, v1 = neuron_data[net.outputs[1]][-2]
+                t1, I1, v1, u1, f0 = neuron_data[net.outputs[1]][-2]
 
         response = compute_output(t0, t1)
-        sum_square_error += (response - outputData) ** 2
+        sum_square_error += (response - odata) ** 2
 
-        simulated.append((inputData, outputData, t0, t1, v0, v1, neuron_data))
+        #print(genome)
+        #visualize.plot_spikes(neuron_data[net.outputs[0]], False)
+        #visualize.plot_spikes(neuron_data[net.outputs[1]], True)
+
+        simulated.append((idata, odata, t0, t1, v0, v1, neuron_data))
 
     return sum_square_error, simulated
 
 
-def eval_fitness(genomes):
-    for genome in genomes:
-        sum_square_error, simulated = simulate(genome)
-        genome.fitness = 1 - sum_square_error
+def eval_genome(genome, config):
+    sum_square_error, simulated = simulate(genome, config)
+    return 1.0 - sum_square_error
+
+
+def eval_genomes(genomes, config):
+    for genome_id, genome in genomes:
+        genome.fitness = eval_genome(genome, config)
 
 
 def run(config_path):
     # Load the config file, which is assumed to live in
     # the same directory as this script.
-    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+    config = neat.Config(neat.iznn.IZGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_path)
 
@@ -91,52 +101,59 @@ def run(config_path):
     config.output_nodes = 2
 
     pop = neat.population.Population(config)
-    pop.run(eval_fitness, 200)
 
-    print('Number of evaluations: {0}'.format(pop.total_evaluations))
+    # Add a stdout reporter to show progress in the terminal.
+    pop.add_reporter(neat.StdOutReporter())
+    stats = neat.StatisticsReporter()
+    pop.add_reporter(stats)
+
+    if 0:
+        winner = pop.run(eval_genomes, 300)
+    else:
+        pe = neat.ParallelEvaluator(6, eval_genome)
+        winner = pop.run(pe.evaluate, 300)
 
     # Display the winning genome.
-    winner = pop.statistics.best_genome()
     print('\nBest genome:\n{!s}'.format(winner))
 
-    # Show output of the most fit genome against training data.
-    winner = pop.statistics.best_genome()
-    print('\nBest genome:\n{!s}'.format(winner))
+    node_names = {-1:'A', -2: 'B', 0:'A XOR B'}
+    visualize.draw_net(config, winner, True, node_names=node_names)
+    visualize.plot_stats(stats, ylog=False, view=True)
+    visualize.plot_species(stats, view=True)
+
+    # Show output of the most fit genome against training data, and create
+    # a plot of the traces out to the max time for each set of inputs.
     print('\nBest network output:')
-
-    # Create a network of "fast spiking" Izhikevich neurons, simulation time step 0.25 millisecond.
-    net = neat.iznn.create_phenotype(winner, **neuron_params)
-    for inputData, outputData in zip(xor_inputs, xor_outputs):
-        neuron_data = {}
-        for i, n in net.neurons.items():
-            neuron_data[i] = []
-
-        # Reset the network, apply the XOR inputs, and run for the maximum allowed time.
-        net.reset()
-        net.set_inputs(inputData)
-        t0 = None
-        t1 = None
-        num_steps = int(max_time / dt)
-        for j in range(num_steps):
-            t = dt * j
-            output = net.advance(dt)
-
-            # Capture the time and neuron membrane potential for later use if desired.
-            for i, n in net.neurons.items():
-                neuron_data[i].append((t, n.v))
-
-            # Remember time and value of the first output spikes from each neuron.
-            if t0 is None and output[0] > 0:
-                t0, v0 = neuron_data[net.outputs[0]][-2]
-
-            if t1 is None and output[1] > 0:
-                t1, v1 = neuron_data[net.outputs[1]][-2]
-
+    plt.figure(figsize=(12, 12))
+    sum_square_error, simulated = simulate(winner, config)
+    for r, (inputData, outputData, t0, t1, v0, v1, neuron_data) in enumerate(simulated):
         response = compute_output(t0, t1)
-        print(inputData, response)
+        print("{0!r} expected {1:.3f} got {2:.3f}".format(inputData, outputData, response))
+
+        axes = plt.subplot(4, 1, r + 1)
+        plt.title("Traces for XOR input {{{0:.1f}, {1:.1f}}}".format(*inputData), fontsize=12)
+        for i, s in neuron_data.items():
+            if i in [0, 1]:
+                t, I, v, u, fired = zip(*s)
+                plt.plot(t, v, "-", label="neuron {0:d}".format(i))
+
+        # Circle the first peak of each output.
+        circle0 = patches.Ellipse((t0, v0), 1.0, 10.0, color='r', fill=False)
+        circle1 = patches.Ellipse((t1, v1), 1.0, 10.0, color='r', fill=False)
+        axes.add_artist(circle0)
+        axes.add_artist(circle1)
+
+        plt.ylabel("Potential (mv)", fontsize=10)
+        plt.ylim(-100, 50)
+        plt.tick_params(labelsize=8)
+        plt.grid()
+
+    plt.xlabel("Time (in ms)", fontsize=10)
+    plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+    plt.savefig("traces.png", dpi=90)
+    plt.show()
 
 
 if __name__ == '__main__':
     local_dir = os.path.dirname(__file__)
-    config_path = os.path.join(local_dir, 'config-feedforward')
-    run(config_path)
+    run(os.path.join(local_dir, 'config-spiking'))

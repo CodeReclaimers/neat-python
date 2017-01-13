@@ -58,8 +58,6 @@ class IZGenome(DefaultGenome):
         return DefaultGenomeConfig(param_dict)
 
 
-
-
 class IZNeuron(object):
     def __init__(self, bias, a, b, c, d, inputs):
         """
@@ -79,7 +77,7 @@ class IZNeuron(object):
         # Membrane recovery variable.
         self.u = self.b * self.v
 
-        self.output = 0.0
+        self.fired = 0.0
         self.current = self.bias
 
     def advance(self, dt_msec):
@@ -105,10 +103,10 @@ class IZNeuron(object):
             self.v = self.c
             self.u = self.b * self.v
 
-        self.output = 0.0
+        self.fired = 0.0
         if self.v > 30.0:
             # Output spike and reset.
-            self.output = 1.0
+            self.fired = 1.0
             self.v = self.c
             self.u += self.d
 
@@ -116,7 +114,7 @@ class IZNeuron(object):
         """Resets all state variables."""
         self.v = self.c
         self.u = self.b * self.v
-        self.output = 0.0
+        self.fired = 0.0
         self.current = self.bias
 
 
@@ -139,7 +137,7 @@ class IZNN(object):
             n.reset()
 
     def get_time_step_msec(self):
-        return 0.25
+        return 0.05
 
     def advance(self, dt_msec):
         for n in itervalues(self.neurons):
@@ -147,7 +145,7 @@ class IZNN(object):
             for i, w in n.inputs:
                 ineuron = self.neurons.get(i)
                 if ineuron is not None:
-                    ivalue = ineuron.output
+                    ivalue = ineuron.fired
                 else:
                     ivalue = self.input_values[i]
 
@@ -156,7 +154,7 @@ class IZNN(object):
         for n in itervalues(self.neurons):
             n.advance(dt_msec)
 
-        return [self.neurons[i].output for i in self.outputs]
+        return [self.neurons[i].fired for i in self.outputs]
 
     @staticmethod
     def create(genome, config):

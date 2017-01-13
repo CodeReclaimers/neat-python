@@ -1,0 +1,94 @@
+#--- parameters for the XOR-2 experiment ---#
+
+[NEAT]
+max_fitness_threshold = 0.9
+pop_size              = 500
+reset_on_extinction   = False
+
+[IZGenome]
+# node bias options
+bias_init_mean          = 0.0
+bias_init_stdev         = 20.0
+bias_max_value          = 100.0
+bias_min_value          = -100.0
+bias_mutate_power       = 5.0
+bias_mutate_rate        = 0.7
+bias_replace_rate       = 0.1
+
+# genome compatibility options
+compatibility_disjoint_coefficient = 1.0
+compatibility_weight_coefficient   = 0.5
+
+# connection add/remove rates
+conn_add_prob           = 0.2
+conn_delete_prob        = 0.2
+
+# connection enable options
+enabled_default         = True
+enabled_mutate_rate     = 0.01
+
+feed_forward            = False
+initial_connection      = full
+
+# node add/remove rates
+node_add_prob           = 0.1
+node_delete_prob        = 0.1
+
+# network parameters
+num_hidden              = 0
+num_inputs              = 2
+num_outputs             = 2
+
+# node parameters for regular spiking
+a_init_mean      = 0.02
+a_init_stdev     = 0.0
+a_max_value      = 30.0
+a_min_value      = -30.0
+a_mutate_power   = 0.0
+a_mutate_rate    = 0.0
+a_replace_rate   = 0.0
+
+b_init_mean      = 0.2
+b_init_stdev     = 0.0
+b_max_value      = 30.0
+b_min_value      = -30.0
+b_mutate_power   = 0.0
+b_mutate_rate    = 0.0
+b_replace_rate   = 0.0
+
+c_init_mean      = -65.0
+c_init_stdev     = 0.0
+c_max_value      = 30.0
+c_min_value      = -30.0
+c_mutate_power   = 0.0
+c_mutate_rate    = 0.0
+c_replace_rate   = 0.0
+
+d_init_mean      = 8.0
+d_init_stdev     = 0.0
+d_max_value      = 30.0
+d_min_value      = -30.0
+d_mutate_power   = 0.0
+d_mutate_rate    = 0.0
+d_replace_rate   = 0.0
+
+# connection weight options
+weight_init_mean        = 0.0
+weight_init_stdev       = 10.0
+weight_max_value        = 30
+weight_min_value        = -30
+weight_mutate_power     = 5.0
+weight_mutate_rate      = 0.8
+weight_replace_rate     = 0.1
+
+[DefaultSpeciesSet]
+compatibility_threshold = 3.0
+
+[DefaultStagnation]
+species_fitness_func = mean
+max_stagnation       = 20
+
+[DefaultReproduction]
+elitism            = 2
+survival_threshold = 0.2
+
