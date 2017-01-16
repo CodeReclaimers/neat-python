@@ -4,46 +4,50 @@ import matplotlib.pyplot as plt
 import neat
 
 
-def plot_spikes(spikes, view=False, filename=None, title=None):
+def plot_spikes(spikes, title):
     """ Plots the trains for a single spiking neuron. """
-    t_values = [t for t, I, v, u in spikes]
-    v_values = [v for t, I, v, u in spikes]
-    u_values = [u for t, I, v, u in spikes]
-    I_values = [I for t, I, v, u in spikes]
+    t_values = [t for t, I, v, u, f in spikes]
+    v_values = [v for t, I, v, u, f in spikes]
+    u_values = [u for t, I, v, u, f in spikes]
+    I_values = [I for t, I, v, u, f in spikes]
+    f_values = [f for t, I, v, u, f in spikes]
 
     fig = plt.figure()
-    plt.subplot(3, 1, 1)
+    plt.subplot(4, 1, 1)
     plt.ylabel("Potential (mv)")
     plt.xlabel("Time (in ms)")
     plt.grid()
     plt.plot(t_values, v_values, "g-")
 
-    if title is None:
-        plt.title("Izhikevich's spiking neuron model")
-    else:
-        plt.title("Izhikevich's spiking neuron model ({0!s})".format(title))
+    plt.title("Izhikevich's spiking neuron model ({0!s})".format(title))
 
-    plt.subplot(3, 1, 2)
+    plt.subplot(4, 1, 2)
+    plt.ylabel("Fired")
+    plt.xlabel("Time (in ms)")
+    plt.grid()
+    plt.plot(t_values, f_values, "r-")
+
+    plt.subplot(4, 1, 3)
     plt.ylabel("Recovery (u)")
     plt.xlabel("Time (in ms)")
     plt.grid()
     plt.plot(t_values, u_values, "r-")
 
-    plt.subplot(3, 1, 3)
+    plt.subplot(4, 1, 4)
     plt.ylabel("Current (I)")
     plt.xlabel("Time (in ms)")
     plt.grid()
     plt.plot(t_values, I_values, "r-o")
 
-    if filename is not None:
-        plt.savefig(filename)
+    fig = plt.figure()
+    plt.title("Izhikevich's spiking neuron model u/v ({0!s})".format(title))
+    plt.xlabel("Recovery (u)")
+    plt.ylabel("Potential (mv)")
+    plt.grid()
+    plt.plot(u_values, v_values, 'r-')
 
-    if view:
-        plt.show()
-        plt.close()
-        fig = None
-
-    return fig
+    plt.show()
+    plt.close()
 
 
 def show(title, a, b, c, d):
@@ -51,11 +55,11 @@ def show(title, a, b, c, d):
     spike_train = []
     for i in range(1000):
         n.current = 0.0 if i < 100 or i > 800 else 10.0
-        spike_train.append((1.0 * i, n.current, n.v, n.u))
+        spike_train.append((1.0 * i, n.current, n.v, n.u, n.fired))
         print('{0:d}\t{1:f}\t{2:f}\t{3:f}'.format(i, n.current, n.v, n.u))
         n.advance(0.25)
 
-    plot_spikes(spike_train, view=False, title=title)
+    plot_spikes(spike_train, title)
 
 show('regular spiking', **neat.iznn.REGULAR_SPIKING_PARAMS)
 

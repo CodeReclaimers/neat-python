@@ -43,7 +43,7 @@ def eval_genome(genome, config):
     """
 
     net = neat.nn.FeedForwardNetwork.create(genome, config)
-    error = 1.0
+    error = 4.0
     for xi, xo in zip(xor_inputs, xor_outputs):
         output = net.activate(xi)
         error -= (output[0] - xo[0]) ** 2

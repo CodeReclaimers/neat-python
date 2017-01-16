@@ -79,7 +79,7 @@ def simulate(genome, config):
 
 def eval_genome(genome, config):
     sum_square_error, simulated = simulate(genome, config)
-    return 1.0 - sum_square_error
+    return 10.0 - sum_square_error
 
 
 def eval_genomes(genomes, config):
@@ -108,15 +108,15 @@ def run(config_path):
     pop.add_reporter(stats)
 
     if 0:
-        winner = pop.run(eval_genomes, 300)
+        winner = pop.run(eval_genomes, 3000)
     else:
         pe = neat.ParallelEvaluator(6, eval_genome)
-        winner = pop.run(pe.evaluate, 300)
+        winner = pop.run(pe.evaluate, 3000)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
 
-    node_names = {-1:'A', -2: 'B', 0:'A XOR B'}
+    node_names = {-1:'A', -2: 'B'}
     visualize.draw_net(config, winner, True, node_names=node_names)
     visualize.plot_stats(stats, ylog=False, view=True)
     visualize.plot_species(stats, view=True)

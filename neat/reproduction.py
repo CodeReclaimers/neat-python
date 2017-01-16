@@ -2,6 +2,7 @@ import math
 import random
 
 from neat.indexer import Indexer
+from neat.math_util import mean
 from neat.six_util import iteritems, iterkeys, itervalues
 
 # TODO: Provide some sort of optional cross-species performance criteria, which
@@ -56,7 +57,21 @@ class DefaultReproduction(object):
         # TODO: I don't like this modification of the species and stagnation objects,
         # because it requires internal knowledge of the objects.
 
-        # Filter out stagnated species and collect the set of non-stagnated species members.
+        # Find minimum/maximum fitness across the entire population, for use in
+        # species adjusted fitness computation.
+        all_fitnesses = []
+        for sid, s in iteritems(species.species):
+            all_fitnesses.extend(m.fitness for m in itervalues(s.members))
+        min_fitness = min(all_fitnesses)
+        max_fitness = max(all_fitnesses)
+        # Do not allow the fitness range to be zero, as we divide by it below.
+        fitness_range = max(1.0, max_fitness - min_fitness)
+
+        # Filter out stagnated species, collect the set of non-stagnated
+        # species members, and compute their average adjusted fitness.
+        # The average adjusted fitness scheme (normalized to the interval
+        # [0, 1]) allows the use of negative fitness values without
+        # interfering with the shared fitness scheme.
         num_remaining = 0
         species_fitness = []
         avg_adjusted_fitness = 0.0
@@ -67,7 +82,8 @@ class DefaultReproduction(object):
                 num_remaining += 1
 
                 # Compute adjusted fitness.
-                sfitness = sum(m.fitness for m in itervalues(s.members)) / len(s.members)
+                msf = mean([m.fitness for m in itervalues(s.members)])
+                sfitness = (msf - min_fitness) / fitness_range
                 species_fitness.append((sid, s, sfitness))
                 avg_adjusted_fitness += sfitness
 

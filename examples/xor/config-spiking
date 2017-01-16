@@ -1,8 +1,8 @@
 #--- parameters for the XOR-2 experiment ---#
 
 [NEAT]
-max_fitness_threshold = 0.9
-pop_size              = 500
+max_fitness_threshold = 9.9
+pop_size              = 2000
 reset_on_extinction   = False
 
 [IZGenome]
@@ -82,7 +82,7 @@ weight_mutate_rate      = 0.8
 weight_replace_rate     = 0.1
 
 [DefaultSpeciesSet]
-compatibility_threshold = 3.0
+compatibility_threshold = 4.0
 
 [DefaultStagnation]
 species_fitness_func = mean

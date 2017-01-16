@@ -52,7 +52,7 @@ def eval_genome(genome, config):
 
             error += (round(output[0]) - s) ** 2
 
-    return 1.0 - 4.0 * (error / (N * num_tests))
+    return 4.0 - 4.0 * (error / (N * num_tests))
 
 
 def eval_genomes(genomes, config):
@@ -71,7 +71,9 @@ def run():
     # Demonstration of saving a configuration back to a text file.
     config.save('test_save_config.txt')
 
-    # Add custom function.
+    # Demonstration of how to add your own custom activation function.
+    # This sinc function will be available if my_sinc_function is included in the
+    # config file activation_options option under the DefaultGenome section.
     config.genome_config.add_activation('my_sinc_function', sinc)
 
     pop = neat.Population(config)
@@ -79,7 +81,7 @@ def run():
     pop.add_reporter(stats)
     pop.add_reporter(neat.StdOutReporter())
 
-    if 0:
+    if 1:
         pe = neat.ParallelEvaluator(4, eval_genome)
         winner = pop.run(pe.evaluate, 1000)
     else:
