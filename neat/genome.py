@@ -393,7 +393,7 @@ class DefaultGenome(object):
     def connect_fs_neat(self, config):
         """ Randomly connect one input to all hidden and output nodes (FS-NEAT). """
         input_id = choice(config.input_keys)
-        for output_id in list(self.hidden.keys()) + list(self.outputs.keys()):
+        for output_id in list(self.connections.keys()):
             connection = self.create_connection(config, input_id, output_id)
             self.connections[connection.key] = connection
 
