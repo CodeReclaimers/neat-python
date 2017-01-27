@@ -62,7 +62,7 @@ class StatisticsReporter(BaseReporter):
         """Returns the most n fit genomes, with no duplication."""
         best_unique = {}
         for g in self.most_fit_genomes:
-            best_unique[g.ID] = g
+            best_unique[g.key] = g
         best_unique = list(best_unique.values())
 
         def key(genome):

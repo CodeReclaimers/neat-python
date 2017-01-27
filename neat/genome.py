@@ -359,7 +359,7 @@ class DefaultGenome(object):
 
         # Add connections based on initial connectivity type.
         if config.initial_connection == 'fs_neat':
-            g.connect_fs_neat()
+            g.connect_fs_neat(config)
         elif config.initial_connection == 'full':
             g.connect_full(config)
         elif config.initial_connection == 'partial':
