@@ -36,20 +36,22 @@ def test_xor_example():
     p.add_reporter(stats)
 
     # Run for up to 300 generations, allowing extinction.
+    winner = None
     try:
         winner = p.run(eval_genomes, 50)
     except neat.CompleteExtinctionException as e:
         pass
 
-    # Display the winning genome.
-    print('\nBest genome:\n{!s}'.format(winner))
+    if winner:
+        # Display the winning genome.
+        print('\nBest genome:\n{!s}'.format(winner))
 
-    # Show output of the most fit genome against training data.
-    print('\nOutput:')
-    winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
-    for xi, xo in zip(xor_inputs, xor_outputs):
-        output = winner_net.activate(xi)
-        print("input {!r}, expected output {!r}, got {!r}".format(xi, xo, output))
+        # Show output of the most fit genome against training data.
+        print('\nOutput:')
+        winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
+        for xi, xo in zip(xor_inputs, xor_outputs):
+            output = winner_net.activate(xi)
+            print("input {!r}, expected output {!r}, got {!r}".format(xi, xo, output))
 
 
 if __name__ == '__main__':
