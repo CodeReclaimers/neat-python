@@ -398,11 +398,20 @@ class DefaultGenome(object):
             self.connections[connection.key] = connection
 
     def compute_full_connections(self, config):
-        """ Compute connections for a fully-connected feed-forward genome (each input connected to all nodes). """
+        """
+        Compute connections for a fully-connected feed-forward genome--each
+        input connected to all hidden nodes, each hidden node connected to all
+        output nodes.
+        """
+        hidden = [i for i in iterkeys(self.nodes) if i not in config.output_keys]
         connections = []
         for input_id in config.input_keys:
+            for h in hidden:
+                connections.append((input_id, h))
+
+        for h in hidden:
             for node_id in iterkeys(self.nodes):
-                connections.append((input_id, node_id))
+                connections.append((h, node_id))
 
         return connections
 
