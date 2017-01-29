@@ -45,7 +45,7 @@ the following steps:
 * Call the ``run`` method on the ``Population`` object, giving it your fitness function and the maximum number of generations you want NEAT to run.
 
 After these three things are completed, NEAT will run until either you reach the specified number of generations, or
-at least one genome achieves the ``max_fitness_threshold`` value you specified in your config file.
+at least one genome achieves the ``fitness_threshold`` value you specified in your config file.
 
 Getting the results
 -------------------

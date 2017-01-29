@@ -1,10 +1,9 @@
 import sys
 
-from neat.species import Species
 from neat.six_util import iteritems
+from neat.math_util import stat_functions
 
 # TODO: Add a method for the user to change the "is stagnant" computation.
-# TODO: Add a mechanism to prevent stagnation of the top N species.
 
 
 class DefaultStagnation(object):
@@ -31,68 +30,48 @@ class DefaultStagnation(object):
         self.species_fitness = config.get('species_fitness_func')
         self.species_elitism = int(config.get('species_elitism'))
 
-        if self.species_fitness == 'max':
-            self.species_fitness_func = Species.max_fitness
-        elif self.species_fitness == 'min':
-            self.species_fitness_func = Species.min_fitness
-        elif self.species_fitness == 'mean':
-            self.species_fitness_func = Species.mean_fitness
-        elif self.species_fitness == 'median':
-            self.species_fitness_func = Species.median_fitness
-        else:
+        self.species_fitness_func = stat_functions.get(self.species_fitness)
+        if self.species_fitness_func is None:
             raise Exception("Unexpected species fitness: {0!r}".format(self.species_fitness))
 
         self.reporters = reporters
 
-        self.previous_fitnesses = {}
-        self.stagnant_counts = {}
-
-    def remove(self, sid):
-        self.previous_fitnesses.pop(sid, None)
-        self.stagnant_counts.pop(sid, None)
-
-    def update(self, species):
+    def update(self, species_set, generation):
         species_data = []
-        for sid, s in iteritems(species):
-            fitness = self.species_fitness_func(s)
-            prev_fitness = self.previous_fitnesses.get(sid, -sys.float_info.max)
-            if fitness > prev_fitness:
-                scount = 0
-                self.previous_fitnesses[sid] = fitness
+        for sid, s in iteritems(species_set.species):
+            if s.fitness_history:
+                prev_fitness = max(s.fitness_history)
             else:
-                scount = self.stagnant_counts.get(sid, 0) + 1
+                prev_fitness = -sys.float_info.max
 
-            self.stagnant_counts[sid] = scount
+            s.fitness = self.species_fitness_func(s.get_fitnesses())
+            s.fitness_history.append(s.fitness)
+            s.adjusted_fitness = None
+            if prev_fitness is None or s.fitness > prev_fitness:
+                s.last_improved = generation
 
-            is_stagnant = scount >= self.max_stagnation
-            species_data.append((sid, s, is_stagnant, fitness))
+            species_data.append((sid, s))
 
         # Sort in ascending fitness order.
-        species_data.sort(key=lambda x: x[3])
+        species_data.sort(key=lambda x: x[1].fitness)
 
         result = []
         species_fitnesses = []
-        for sid, s, is_stagnant, fitness in species_data:
+        num_non_stagnant = len(species_data)
+        for sid, s in species_data:
             # Override stagnant state if marking this species as stagnant would
             # result in the total number of species dropping below the limit.
             # Because species are in ascending fitness order, less fit species
             # will be marked as stagnant first.
-            if is_stagnant and len(self.stagnant_counts) <= self.species_elitism:
-                is_stagnant = False
+            stagnant_time = generation - s.last_improved
+            is_stagnant = False
+            if num_non_stagnant > self.species_elitism:
+                is_stagnant = stagnant_time >= self.max_stagnation
 
-            # Remove stagnant species tracking data.
             if is_stagnant:
-                self.remove(s)
+                num_non_stagnant -= 1
 
             result.append((sid, s, is_stagnant))
-            species_fitnesses.append(fitness)
-
-
-
-        self.reporters.info('Species fitness  : {0!r}'.format(species_fitnesses))
-
-        # TODO: shouldn't this information be a specific event type instead of just "info"?
-        # TODO: this should probably be reported higher up by the caller of update().
-        self.reporters.info('Species no improv: {0!r}'.format(self.stagnant_counts))
+            species_fitnesses.append(s.fitness)
 
         return result

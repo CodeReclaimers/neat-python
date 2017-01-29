@@ -53,7 +53,7 @@ class DefaultReproduction(object):
 
         return new_genomes
 
-    def reproduce(self, config, species, pop_size):
+    def reproduce(self, config, species, pop_size, generation):
         # TODO: I don't like this modification of the species and stagnation objects,
         # because it requires internal knowledge of the objects.
 
@@ -75,7 +75,7 @@ class DefaultReproduction(object):
         num_remaining = 0
         species_fitness = []
         avg_adjusted_fitness = 0.0
-        for sid, s, stagnant in self.stagnation.update(species.species):
+        for sid, s, stagnant in self.stagnation.update(species, generation):
             if stagnant:
                 self.reporters.species_stagnant(sid, s)
             else:
@@ -83,9 +83,9 @@ class DefaultReproduction(object):
 
                 # Compute adjusted fitness.
                 msf = mean([m.fitness for m in itervalues(s.members)])
-                sfitness = (msf - min_fitness) / fitness_range
-                species_fitness.append((sid, s, sfitness))
-                avg_adjusted_fitness += sfitness
+                s.adjusted_fitness = (msf - min_fitness) / fitness_range
+                species_fitness.append((sid, s, s.fitness))
+                avg_adjusted_fitness += s.adjusted_fitness
 
         # No species left.
         if 0 == num_remaining:
@@ -110,8 +110,8 @@ class DefaultReproduction(object):
         total_spawn = sum(spawn_amounts)
         norm = pop_size / total_spawn
         spawn_amounts = [int(round(n * norm)) for n in spawn_amounts]
-        self.reporters.info("Spawn amounts: {0}".format(spawn_amounts))
-        self.reporters.info('Species adjusted fitness  : {0!r}'.format([sfitness for sid, s, sfitness in species_fitness]))
+        #self.reporters.info("Spawn amounts: {0}".format(spawn_amounts))
+        #self.reporters.info('Species adjusted fitness  : {0!r}'.format([sfitness for sid, s, sfitness in species_fitness]))
 
         new_population = {}
         species.species = {}
@@ -159,15 +159,5 @@ class DefaultReproduction(object):
                 child.mutate(config.genome_config)
                 new_population[gid] = child
                 self.ancestors[gid] = (parent1_id, parent2_id)
-
-        # Remove empty species from the stagnation tracking.
-        keys = list(iterkeys(self.stagnation.stagnant_counts))
-        for sid in keys:
-            if sid not in species.species:
-                self.stagnation.remove(sid)
-
-        # Sort species by ID (purely for ease of reading the reported list).
-        # TODO: This should probably be done by the species object.
-        #species.species.sort(key=lambda sp: sp.ID)
 
         return new_population

@@ -19,13 +19,17 @@ for the NEAT simulation.  This, again, is to help avoid silent changes in behavi
 The `NEAT` section specifies parameters particular to the generic NEAT algorithm or the experiment
 itself.  This section is always required.
 
-* *max_fitness_threshold*
-    When at least one individual's measured fitness exceeds this threshold, the evolution process will terminate.
+* *fitness_criterion*
+    The function used to compute the termination criterion from the set of genome fitnesses.  Allowable
+    values are `min`, `max`, `mean`.
+* *fitness_threshold*
+    When the fitness criterion computed by `termination_function` meets or exceeds this threshold, the evolution process will terminate.
 * *pop_size*
     The number of individuals in each generation.
 * *reset_on_extinction*
     If this evalutes to **True**, when all species simultaneously become extinct due to stagnation, a new random
     population will be created. If **False**, a *CompleteExtinctionException* will be thrown.
+
 
 [DefaultStagnation] section
 ---------------------------
