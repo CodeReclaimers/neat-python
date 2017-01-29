@@ -100,9 +100,9 @@ class DefaultReproduction(object):
         for sid, s, sfitness in species_fitness:
             spawn = len(s.members)
             if sfitness > avg_adjusted_fitness:
-                spawn *= 1.1
+                spawn = max(spawn + 2, spawn * 1.1)
             else:
-                spawn *= 0.9
+                spawn = max(spawn * 0.9, 2)
             spawn_amounts.append(spawn)
 
         # Normalize the spawn amounts so that the next generation is roughly
@@ -111,7 +111,7 @@ class DefaultReproduction(object):
         norm = pop_size / total_spawn
         spawn_amounts = [int(round(n * norm)) for n in spawn_amounts]
         self.reporters.info("Spawn amounts: {0}".format(spawn_amounts))
-        self.reporters.info('Species fitness  : {0!r}'.format([sfitness for sid, s, sfitness in species_fitness]))
+        self.reporters.info('Species adjusted fitness  : {0!r}'.format([sfitness for sid, s, sfitness in species_fitness]))
 
         new_population = {}
         species.species = {}

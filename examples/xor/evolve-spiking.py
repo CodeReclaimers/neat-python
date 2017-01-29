@@ -103,7 +103,7 @@ def run(config_path):
     pop = neat.population.Population(config)
 
     # Add a stdout reporter to show progress in the terminal.
-    pop.add_reporter(neat.StdOutReporter())
+    pop.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     pop.add_reporter(stats)
 

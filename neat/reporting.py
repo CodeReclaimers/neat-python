@@ -71,7 +71,8 @@ class BaseReporter(object):
 
 
 class StdOutReporter(BaseReporter):
-    def __init__(self):
+    def __init__(self, show_species_detail):
+        self.show_species_detail = show_species_detail
         self.generation = None
         self.generation_start_time = None
         self.generation_times = []
@@ -115,7 +116,8 @@ class StdOutReporter(BaseReporter):
             self.generation, best.size()))
 
     def species_stagnant(self, sid, species):
-        print("\nSpecies {0} with {1} members is stagnated: removing it".format(sid, len(species.members)))
+        if self.show_species_detail:
+            print("\nSpecies {0} with {1} members is stagnated: removing it".format(sid, len(species.members)))
 
     def info(self, msg):
         print(msg)

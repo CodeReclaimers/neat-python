@@ -1,5 +1,6 @@
 [NEAT]
-max_fitness_threshold = 0.9
+fitness_criterion     = max
+fitness_threshold     = 0.9
 pop_size              = 150
 reset_on_extinction   = False
 

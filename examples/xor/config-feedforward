@@ -1,7 +1,8 @@
 #--- parameters for the XOR-2 experiment ---#
 
 [NEAT]
-max_fitness_threshold = 3.9
+fitness_criterion     = max
+fitness_threshold     = 3.9
 pop_size              = 150
 reset_on_extinction   = False
 
@@ -73,6 +74,7 @@ compatibility_threshold = 3.0
 [DefaultStagnation]
 species_fitness_func = max
 max_stagnation       = 20
+species_elitism      = 2
 
 [DefaultReproduction]
 elitism            = 2
