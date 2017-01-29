@@ -393,14 +393,14 @@ class DefaultGenome(object):
     def connect_fs_neat(self, config):
         """ Randomly connect one input to all hidden and output nodes (FS-NEAT). """
         input_id = choice(config.input_keys)
-        for output_id in list(self.connections.keys()):
+        for output_id in config.output_keys:
             connection = self.create_connection(config, input_id, output_id)
             self.connections[connection.key] = connection
 
     def compute_full_connections(self, config):
         """
         Compute connections for a fully-connected feed-forward genome--each
-        input connected to all hidden nodes, each hidden node connected to all
+        input connected to all nodes, each hidden node connected to all
         output nodes.
         """
         hidden = [i for i in iterkeys(self.nodes) if i not in config.output_keys]
@@ -408,6 +408,8 @@ class DefaultGenome(object):
         for input_id in config.input_keys:
             for h in hidden:
                 connections.append((input_id, h))
+            for node_id in iterkeys(self.nodes):
+                connections.append((input_id, node_id))
 
         for h in hidden:
             for node_id in iterkeys(self.nodes):

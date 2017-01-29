@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 from neat.reporting import ReporterSet
+from neat.math_util import mean
 from neat.six_util import iteritems, itervalues
 
 
@@ -16,6 +17,15 @@ class Population(object):
         self.config = config
         stagnation = config.stagnation_type(config.stagnation_config, self.reporters)
         self.reproduction = config.reproduction_type(config.reproduction_config, self.reporters, stagnation)
+        if config.fitness_criterion == 'max':
+            self.fitness_criterion = max
+        elif config.fitness_criterion == 'min':
+            self.fitness_criterion = min
+        elif config.fitness_criterion == 'mean':
+            self.fitness_criterion = mean
+        else:
+            raise Exception("Unexpected fitness_criterion: {0!r}".format(config.fitness_criterion))
+
 
         if initial_state is None:
             # Create a population from scratch, then partition into species.
@@ -71,7 +81,8 @@ class Population(object):
                 self.best_genome = best
 
             # End if the fitness threshold is reached.
-            if best.fitness >= self.config.max_fitness_threshold:
+            fv = self.fitness_criterion(g.fitness for g in itervalues(self.population))
+            if fv >= self.config.fitness_threshold:
                 self.reporters.found_solution(self.config, self.generation, best)
                 break
 

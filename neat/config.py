@@ -70,7 +70,8 @@ class Config(object):
     ''' A simple container for user-configurable parameters of NEAT. '''
 
     __params = [ConfigParameter('pop_size', int),
-                ConfigParameter('max_fitness_threshold', float),
+                ConfigParameter('fitness_criterion', str),
+                ConfigParameter('fitness_threshold', float),
                 ConfigParameter('reset_on_extinction', bool)]
 
     def __init__(self, genome_type, reproduction_type, species_set_type, stagnation_type, filename):
