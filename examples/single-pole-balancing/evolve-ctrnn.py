@@ -71,7 +71,7 @@ def run():
     pop = neat.Population(config)
     stats = neat.StatisticsReporter()
     pop.add_reporter(stats)
-    pop.add_reporter(neat.StdOutReporter())
+    pop.add_reporter(neat.StdOutReporter(True))
 
     if 0:
         winner = pop.run(eval_genomes, 2000)
