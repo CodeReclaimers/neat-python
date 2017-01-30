@@ -1,48 +1,79 @@
-# The `Types` section specifies which classes should be used for various
-# tasks in the NEAT algorithm.  If you use a non-default class here, you
-# must register it with your Config instance before loading the config file.
-[Types]
-stagnation_type      = DefaultStagnation
-reproduction_type    = DefaultReproduction
-
-[phenotype]
-input_nodes          = 2
-hidden_nodes         = 0
-output_nodes         = 1
-initial_connection   = full
-max_weight           = 30
-min_weight           = -30
-feedforward          = 1
-activation_functions = sigmoid squanchy
-weight_stdev         = 0.9
-
-[genetic]
+[NEAT]
+fitness_criterion     = max
+fitness_threshold     = 0.9
 pop_size              = 150
-max_fitness_threshold = 0.9
-prob_add_conn         = 0.05
-prob_add_node         = 0.03
-prob_delete_conn      = 0.01
-prob_delete_node      = 0.01
-prob_mutate_bias      = 0.5
-bias_mutation_power   = 0.5
-prob_mutate_response  = 0.5
-response_mutation_power = 0.5
-prob_mutate_weight    = 0.9
-prob_replace_weight   = 0.1
-weight_mutation_power = 1.5
-prob_mutate_activation = 0.01
-prob_toggle_link      = 0.01
-reset_on_extinction   = 1
+reset_on_extinction   = False
 
-[genotype compatibility]
+[DefaultGenome]
+# node activation options
+activation_default      = sigmoid
+activation_mutate_rate  = 0.0
+activation_options      = sigmoid squanchy
+
+# node aggregation options
+aggregation_default     = sum
+aggregation_mutate_rate = 0.0
+aggregation_options     = sum
+
+# node bias options
+bias_init_mean          = 0.0
+bias_init_stdev         = 1.0
+bias_max_value          = 30.0
+bias_min_value          = -30.0
+bias_mutate_power       = 0.5
+bias_mutate_rate        = 0.7
+bias_replace_rate       = 0.1
+
+# genome compatibility options
+compatibility_disjoint_coefficient = 1.0
+compatibility_weight_coefficient   = 0.5
+
+# connection add/remove rates
+conn_add_prob           = 0.5
+conn_delete_prob        = 0.5
+
+# connection enable options
+enabled_default         = True
+enabled_mutate_rate     = 0.01
+
+feed_forward            = True
+initial_connection      = full
+
+# node add/remove rates
+node_add_prob           = 0.2
+node_delete_prob        = 0.2
+
+# network parameters
+num_hidden              = 0
+num_inputs              = 2
+num_outputs             = 1
+
+# node response options
+response_init_mean      = 1.0
+response_init_stdev     = 0.0
+response_max_value      = 30.0
+response_min_value      = -30.0
+response_mutate_power   = 0.0
+response_mutate_rate    = 0.0
+response_replace_rate   = 0.0
+
+# connection weight options
+weight_init_mean        = 0.0
+weight_init_stdev       = 1.0
+weight_max_value        = 30
+weight_min_value        = -30
+weight_mutate_power     = 0.5
+weight_mutate_rate      = 0.8
+weight_replace_rate     = 0.1
+
+[DefaultSpeciesSet]
 compatibility_threshold = 3.0
-compatibility_disjoint_coefficient    = 1.0
-compatibility_weight_coefficient      = 0.4
 
 [DefaultStagnation]
-species_fitness_func = mean
-max_stagnation       = 15
+species_fitness_func = max
+max_stagnation       = 20
 
 [DefaultReproduction]
-elitism              = 1
-survival_threshold   = 0.2
+elitism            = 2
+survival_threshold = 0.2
+

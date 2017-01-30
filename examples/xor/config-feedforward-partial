@@ -1,6 +1,8 @@
+#--- parameters for the XOR-2 experiment ---#
+
 [NEAT]
 fitness_criterion     = max
-fitness_threshold     = 0.9
+fitness_threshold     = 3.9
 pop_size              = 150
 reset_on_extinction   = False
 
@@ -37,7 +39,8 @@ enabled_default         = True
 enabled_mutate_rate     = 0.01
 
 feed_forward            = True
-initial_connection      = full
+# Create 50% partially connected network
+initial_connection      = partial 0.5
 
 # node add/remove rates
 node_add_prob           = 0.2
@@ -76,4 +79,3 @@ max_stagnation       = 20
 [DefaultReproduction]
 elitism            = 2
 survival_threshold = 0.2
-

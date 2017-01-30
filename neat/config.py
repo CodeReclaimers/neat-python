@@ -36,12 +36,12 @@ class ConfigParameter(object):
         if int == self.value_type:
             return int(value)
         if bool == self.value_type:
-            if type(value) is str:
-                if "true" == value.lower():
-                    return True
-                if "false" == value.lower():
-                    return False
-            return bool(int(value))
+            if "true" == value.lower():
+                return True
+            elif "false" == value.lower():
+                return False
+            else:
+                raise Exception(self.name + " must be True or False")
         if float == self.value_type:
             return float(value)
         if list == self.value_type:
@@ -70,7 +70,8 @@ class Config(object):
     ''' A simple container for user-configurable parameters of NEAT. '''
 
     __params = [ConfigParameter('pop_size', int),
-                ConfigParameter('max_fitness_threshold', float),
+                ConfigParameter('fitness_criterion', str),
+                ConfigParameter('fitness_threshold', float),
                 ConfigParameter('reset_on_extinction', bool)]
 
     def __init__(self, genome_type, reproduction_type, species_set_type, stagnation_type, filename):

@@ -43,7 +43,7 @@ def eval_genome(genome, config):
     """
 
     net = neat.nn.FeedForwardNetwork.create(genome, config)
-    error = 1.0
+    error = 4.0
     for xi, xo in zip(xor_inputs, xor_outputs):
         output = net.activate(xi)
         error -= (output[0] - xo[0]) ** 2
@@ -60,7 +60,7 @@ def run(config_file):
     p = neat.Population(config)
 
     # Add a stdout reporter to show progress in the terminal.
-    p.add_reporter(neat.StdOutReporter())
+    p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
 

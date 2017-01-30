@@ -402,10 +402,10 @@ def simulate(genome, config):
         outputs = np.array(analysis.node0)
         expected = get_expected(inputs)
 
-        return -np.sum((expected - outputs) ** 2)
+        return 10.0 - np.sqrt(np.sum((expected - outputs) ** 2) / len(outputs))
         #return -np.max(np.abs(expected - outputs))
     except Exception as e:
-        return -1000
+        return 0.0
 
 
 def eval_genomes(genomes, config):
@@ -429,7 +429,9 @@ def run(config_file):
     p.add_reporter(stats)
 
     # Run for up to 300 generations.
-    winner = p.run(eval_genomes, 1000)
+    pe = neat.ParallelEvaluator(4, simulate)
+    #winner = p.run(eval_genomes, 1000)
+    winner = p.run(pe.evaluate, 1000)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))

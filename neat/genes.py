@@ -92,6 +92,8 @@ class DefaultNodeGene(BaseGene):
         d = abs(self.bias - other.bias) + abs(self.response - other.response)
         if self.activation != other.activation:
             d += 1.0
+        if self.aggregation != other.aggregation:
+            d += 1.0
         return d * config.compatibility_weight_coefficient
 
 

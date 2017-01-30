@@ -2,6 +2,7 @@ import math
 import random
 
 from neat.indexer import Indexer
+from neat.math_util import mean
 from neat.six_util import iteritems, iterkeys, itervalues
 
 # TODO: Provide some sort of optional cross-species performance criteria, which
@@ -52,29 +53,39 @@ class DefaultReproduction(object):
 
         return new_genomes
 
-    def reproduce(self, config, species, pop_size):
+    def reproduce(self, config, species, pop_size, generation):
         # TODO: I don't like this modification of the species and stagnation objects,
         # because it requires internal knowledge of the objects.
 
-        # Filter out stagnated species and collect the set of non-stagnated species members.
+        # Find minimum/maximum fitness across the entire population, for use in
+        # species adjusted fitness computation.
+        all_fitnesses = []
+        for sid, s in iteritems(species.species):
+            all_fitnesses.extend(m.fitness for m in itervalues(s.members))
+        min_fitness = min(all_fitnesses)
+        max_fitness = max(all_fitnesses)
+        # Do not allow the fitness range to be zero, as we divide by it below.
+        fitness_range = max(1.0, max_fitness - min_fitness)
+
+        # Filter out stagnated species, collect the set of non-stagnated
+        # species members, and compute their average adjusted fitness.
+        # The average adjusted fitness scheme (normalized to the interval
+        # [0, 1]) allows the use of negative fitness values without
+        # interfering with the shared fitness scheme.
         num_remaining = 0
         species_fitness = []
         avg_adjusted_fitness = 0.0
-        for sid, s, stagnant in self.stagnation.update(species.species):
+        for sid, s, stagnant in self.stagnation.update(species, generation):
             if stagnant:
                 self.reporters.species_stagnant(sid, s)
             else:
                 num_remaining += 1
 
                 # Compute adjusted fitness.
-                species_sum = 0.0
-                for m in itervalues(s.members):
-                    af = m.fitness / len(s.members)
-                    species_sum += af
-
-                sfitness = species_sum / len(s.members)
-                species_fitness.append((sid, s, sfitness))
-                avg_adjusted_fitness += sfitness
+                msf = mean([m.fitness for m in itervalues(s.members)])
+                s.adjusted_fitness = (msf - min_fitness) / fitness_range
+                species_fitness.append((sid, s, s.fitness))
+                avg_adjusted_fitness += s.adjusted_fitness
 
         # No species left.
         if 0 == num_remaining:
@@ -89,9 +100,9 @@ class DefaultReproduction(object):
         for sid, s, sfitness in species_fitness:
             spawn = len(s.members)
             if sfitness > avg_adjusted_fitness:
-                spawn *= 1.1
+                spawn = max(spawn + 2, spawn * 1.1)
             else:
-                spawn *= 0.9
+                spawn = max(spawn * 0.9, 2)
             spawn_amounts.append(spawn)
 
         # Normalize the spawn amounts so that the next generation is roughly
@@ -99,8 +110,8 @@ class DefaultReproduction(object):
         total_spawn = sum(spawn_amounts)
         norm = pop_size / total_spawn
         spawn_amounts = [int(round(n * norm)) for n in spawn_amounts]
-        self.reporters.info("Spawn amounts: {0}".format(spawn_amounts))
-        self.reporters.info('Species fitness  : {0!r}'.format([sfitness for sid, s, sfitness in species_fitness]))
+        #self.reporters.info("Spawn amounts: {0}".format(spawn_amounts))
+        #self.reporters.info('Species adjusted fitness  : {0!r}'.format([sfitness for sid, s, sfitness in species_fitness]))
 
         new_population = {}
         species.species = {}
@@ -148,15 +159,5 @@ class DefaultReproduction(object):
                 child.mutate(config.genome_config)
                 new_population[gid] = child
                 self.ancestors[gid] = (parent1_id, parent2_id)
-
-        # Remove empty species from the stagnation tracking.
-        keys = list(iterkeys(self.stagnation.stagnant_counts))
-        for sid in keys:
-            if sid not in species.species:
-                self.stagnation.remove(sid)
-
-        # Sort species by ID (purely for ease of reading the reported list).
-        # TODO: This should probably be done by the species object.
-        #species.species.sort(key=lambda sp: sp.ID)
 
         return new_population

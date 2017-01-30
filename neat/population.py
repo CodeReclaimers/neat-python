@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 from neat.reporting import ReporterSet
+from neat.math_util import mean
 from neat.six_util import iteritems, itervalues
 
 
@@ -9,20 +10,35 @@ class CompleteExtinctionException(Exception):
 
 
 class Population(object):
-    """ This class implements the core NEAT algorithm. """
+    """
+    This class implements the core evolution algorithm:
+        1. Evaluate fitness of all genomes.
+        2. Check to see if the termination criterion is satisfied; exit if it is.
+        3. Generate the next generation from the current population.
+        4. Partition the new generation into species based on genetic similarity.
+        5. Go to 1.
+    """
 
     def __init__(self, config, initial_state=None):
         self.reporters = ReporterSet()
         self.config = config
         stagnation = config.stagnation_type(config.stagnation_config, self.reporters)
         self.reproduction = config.reproduction_type(config.reproduction_config, self.reporters, stagnation)
+        if config.fitness_criterion == 'max':
+            self.fitness_criterion = max
+        elif config.fitness_criterion == 'min':
+            self.fitness_criterion = min
+        elif config.fitness_criterion == 'mean':
+            self.fitness_criterion = mean
+        else:
+            raise Exception("Unexpected fitness_criterion: {0!r}".format(config.fitness_criterion))
 
         if initial_state is None:
             # Create a population from scratch, then partition into species.
             self.population = self.reproduction.create_new(config.genome_type, config.genome_config, config.pop_size)
-            self.species = config.species_set_type(config)
-            self.species.speciate(config, self.population)
-            self.generation = -1
+            self.species = config.species_set_type(config, self.reporters)
+            self.generation = 0
+            self.species.speciate(config, self.population, self.generation)
         else:
             self.population, self.species, self.generation = initial_state
 
@@ -38,25 +54,24 @@ class Population(object):
         """
         Runs NEAT's genetic algorithm for at most n generations.
 
-        The user-provided fitness_function should take two arguments, a list of all genomes in the population,
-        and its return value is ignored.  This function is free to maintain external state, perform evaluations
-        in parallel, and probably any other thing you want.  Each individual genome's fitness member must be set
-        to a floating point value after this function returns.
+        The user-provided fitness_function must take only two arguments:
+            1. The population as a list of (genome id, genome) tuples.
+            2. The current configuration object.
 
-        It is assumed that fitness_function does not modify the list of genomes, the genomes themselves (apart
-        from updating the fitness member), or the configuration object.
+        The return value of the fitness function is ignored, but it must assign
+        a Python float to the `fitness` member of each genome.
+
+        The fitness function is free to maintain external state, perform
+        evaluations in parallel, etc.
+
+        It is assumed that fitness_function does not modify the list of genomes,
+        the genomes themselves (apart from updating the fitness member),
+        or the configuration object.
         """
         for g in range(n):
-            self.generation += 1
-
             self.reporters.start_generation(self.generation)
 
-            # Evaluate all individuals in the population using the user-provided function.
-            # TODO: Add an option to only evaluate each genome once, to reduce number of
-            # fitness evaluations in cases where the fitness is known to be the same if the
-            # genome doesn't change--in these cases, evaluating unmodified elites in each
-            # generation is a waste of time.  The user can always take care of this in their
-            # fitness function in the time being if they wish.
+            # Evaluate all genomes using the user-provided function.
             fitness_function(list(iteritems(self.population)), self.config)
 
             # Gather and report statistics.
@@ -71,12 +86,14 @@ class Population(object):
                 self.best_genome = best
 
             # End if the fitness threshold is reached.
-            if best.fitness >= self.config.max_fitness_threshold:
+            fv = self.fitness_criterion(g.fitness for g in itervalues(self.population))
+            if fv >= self.config.fitness_threshold:
                 self.reporters.found_solution(self.config, self.generation, best)
                 break
 
             # Create the next generation from the current generation.
-            self.population = self.reproduction.reproduce(self.config, self.species, self.config.pop_size)
+            self.population = self.reproduction.reproduce(self.config,
+                    self.species, self.config.pop_size, self.generation)
 
             # Check for complete extinction.
             if not self.species.species:
@@ -85,18 +102,17 @@ class Population(object):
                 # If requested by the user, create a completely new population,
                 # otherwise raise an exception.
                 if self.config.reset_on_extinction:
-                    self.population = self.reproduction.create_new(self.config.pop_size)
+                    self.population = self.reproduction.create_new(self.config.genome_type,
+                                                                   self.config.genome_config,
+                                                                   self.config.pop_size)
                 else:
                     raise CompleteExtinctionException()
 
-            # Update species age.
-            # TODO: Wouldn't it be easier to remember creation time?
-            for s in itervalues(self.species.species):
-                s.age += 1
-
             # Divide the new population into species.
-            self.species.speciate(self.config, self.population)
+            self.species.speciate(self.config, self.population, self.generation)
 
-            self.reporters.end_generation()
+            self.reporters.end_generation(self.config, self.population, self.species)
+
+            self.generation += 1
 
         return self.best_genome
