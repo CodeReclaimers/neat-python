@@ -3,6 +3,7 @@
 # The `NEAT` section specifies parameters particular to the NEAT algorithm
 # or the experiment itself.  This is the only required section.
 [NEAT]
+fitness_criterion     = max
 pop_size              = 2000
 max_fitness_threshold = 0.95
 reset_on_extinction   = 0
