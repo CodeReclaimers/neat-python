@@ -4,8 +4,8 @@
 # or the experiment itself.  This is the only required section.
 [NEAT]
 fitness_criterion     = max
-pop_size              = 500
 fitness_threshold     = 3.98
+pop_size              = 500
 reset_on_extinction   = 0
 
 [DefaultGenome]

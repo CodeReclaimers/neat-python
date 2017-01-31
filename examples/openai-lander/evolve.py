@@ -209,10 +209,10 @@ def run():
                     with open(name+'.pickle', 'wb') as f:
                         pickle.dump(g, f)
 
-                    visualize.draw_net(config, g, view=False, filename=name + "-net.gv")
-                    visualize.draw_net(config, g, view=False, filename="-net-enabled.gv",
+                    visualize.draw_net(config, g, view=False, filename=name+"-net.gv")
+                    visualize.draw_net(config, g, view=False, filename=name+"-net-enabled.gv",
                                        show_disabled=False)
-                    visualize.draw_net(config, g, view=False, filename="-net-enabled-pruned.gv",
+                    visualize.draw_net(config, g, view=False, filename=name+"-net-enabled-pruned.gv",
                                        show_disabled=False, prune_unused=True)
 
                 break
