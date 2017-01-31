@@ -43,6 +43,11 @@ required for your particular implementation.
     The function used to compute species fitness.  Allowed values are max, min, mean, median.
 * *max_stagnation*
     Species that have not shown improvement in more than this number of generations will be considered stagnant and removed.
+* *species_elitism*
+    The number of species that will be protected from stagnation; mainly intended to prevent
+total extinctions caused by all species becoming stagnant before new species arise.  For example,
+a species elitism setting of 3 will prevent the 3 species with the highest species fitness from
+being removed for stagnation regardless of the amount of time they have not shown improvement.
 
 [DefaultReproduction] section
 -----------------------------
