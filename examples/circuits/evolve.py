@@ -402,10 +402,9 @@ def simulate(genome, config):
         outputs = np.array(analysis.node0)
         expected = get_expected(inputs)
 
-        return 10.0 - np.sqrt(np.sum((expected - outputs) ** 2) / len(outputs))
-        #return -np.max(np.abs(expected - outputs))
+        return -np.sqrt(np.sum((expected - outputs) ** 2) / len(outputs))
     except Exception as e:
-        return 0.0
+        return -10.0
 
 
 def eval_genomes(genomes, config):
@@ -428,13 +427,16 @@ def run(config_file):
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
 
-    # Run for up to 300 generations.
+    # Run for up to 1000 generations.
     pe = neat.ParallelEvaluator(4, simulate)
-    #winner = p.run(eval_genomes, 1000)
-    winner = p.run(pe.evaluate, 1000)
+    p.run(pe.evaluate, 1000)
+
+    # Write run statistics to file.
+    stats.save()
 
     # Display the winning genome.
-    print('\nBest genome:\n{!s}'.format(winner))
+    winner = stats.best_genome()
+    print('\nBest genome:\nfitness {!s}\n{!s}'.format(winner.fitness, winner))
 
     winner_circuit = create_circuit(winner, config)
     print(winner_circuit)
@@ -453,7 +455,7 @@ def run(config_file):
     plt.gca().set_aspect(1)
     plt.show()
 
-    visualize.plot_stats(stats, ylog=True, view=False)
+    visualize.plot_stats(stats, ylog=False, view=True)
     visualize.plot_species(stats, view=False)
 
 
