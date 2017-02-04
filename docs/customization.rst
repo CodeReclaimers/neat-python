@@ -47,7 +47,7 @@ To use a different genome type, you can create a custom class whose interface ma
 This is demonstrated in the `circuit evolution
 <https://github.com/CodeReclaimers/neat-python/blob/master/examples/circuits/evolve.py>`_ example.
 
-TODO: document genome interface
+The minimum genome type interface is documented here: :ref:`genome-interface-label`
 
 Speciation scheme
 -----------------

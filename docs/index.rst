@@ -30,6 +30,7 @@ Contents:
    customization
    activation
    ctrnn
+   genome-interface
 
 Indices and tables
 ==================
