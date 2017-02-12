@@ -1,3 +1,4 @@
+import os
 import unittest
 
 import neat
@@ -6,9 +7,14 @@ from neat.six_util import iterkeys
 
 class TestCreateNew(unittest.TestCase):
     def setUp(self):
+        # Determine path to configuration file. This path manipulation is
+        # here so that the script will run successfully regardless of the
+        # current working directory.
+        local_dir = os.path.dirname(__file__)
+        config_path = os.path.join(local_dir, 'test_configuration')
         self.config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                                   neat.DefaultSpeciesSet, neat.DefaultStagnation,
-                                  'test_configuration')
+                                  config_path)
 
     def test_unconnected_no_hidden(self):
         gid = 42
