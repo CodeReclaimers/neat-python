@@ -3,7 +3,7 @@ import random
 
 from neat.indexer import Indexer
 from neat.math_util import mean
-from neat.six_util import iteritems, iterkeys, itervalues
+from neat.six_util import iteritems, itervalues
 
 # TODO: Provide some sort of optional cross-species performance criteria, which
 # are then used to control stagnation and possibly the mutation rate configuration.
@@ -111,8 +111,6 @@ class DefaultReproduction(object):
         total_spawn = sum(spawn_amounts)
         norm = pop_size / total_spawn
         spawn_amounts = [int(round(n * norm)) for n in spawn_amounts]
-        #self.reporters.info("Spawn amounts: {0}".format(spawn_amounts))
-        #self.reporters.info('Species adjusted fitness  : {0!r}'.format([sfitness for sid, s, sfitness in species_fitness]))
 
         new_population = {}
         species.species = {}

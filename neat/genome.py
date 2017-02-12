@@ -28,7 +28,7 @@ class DefaultGenomeConfig(object):
                 ConfigParameter('node_delete_prob', float)]
 
     allowed_connectivity = ['unconnected', 'fs_neat', 'full', 'partial']
-    aggregation_function_defs = {'sum': sum, 'max': max, 'min': min, 'product':product}
+    aggregation_function_defs = {'sum': sum, 'max': max, 'min': min, 'product': product}
 
     def __init__(self, params):
         # Create full set of available activation functions.
@@ -203,7 +203,6 @@ class DefaultGenome(object):
         for ng in self.nodes.values():
             ng.mutate(config)
 
-
     def get_new_node_key(self):
         new_id = 0
         while new_id in self.nodes:
@@ -328,7 +327,8 @@ class DefaultGenome(object):
                     connection_distance += c1.distance(c2, config)
 
             max_conn = max(len(self.connections), len(other.connections))
-            connection_distance = (connection_distance + config.compatibility_disjoint_coefficient * disjoint_connections) / max_conn
+            conn_sum = connection_distance + config.compatibility_disjoint_coefficient * disjoint_connections
+            connection_distance = conn_sum / max_conn
 
         distance = node_distance + connection_distance
         return distance

@@ -68,7 +68,7 @@ class Population(object):
         the genomes themselves (apart from updating the fitness member),
         or the configuration object.
         """
-        for g in range(n):
+        for gen in range(n):
             self.reporters.start_generation(self.generation)
 
             # Evaluate all genomes using the user-provided function.

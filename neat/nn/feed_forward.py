@@ -17,14 +17,11 @@ class FeedForwardNetwork(object):
             self.values[k] = v
 
         for node, act_func, agg_func, bias, response, links in self.node_evals:
-            #print(node, func, bias, response, links)
             node_inputs = []
             for i, w in links:
                 node_inputs.append(self.values[i] * w)
             s = agg_func(node_inputs)
             self.values[node] = act_func(bias + response * s)
-            #print("  v[{}] = {}({} + {} * {} = {}) = {}".format(node, act_func, bias, response, s, bias + response * s, self.values[node]))
-        #print(self.values)
 
         return [self.values[i] for i in self.output_nodes]
 
@@ -36,7 +33,6 @@ class FeedForwardNetwork(object):
         connections = [cg.key for cg in itervalues(genome.connections) if cg.enabled]
 
         layers = feed_forward_layers(config.genome_config.input_keys, config.genome_config.output_keys, connections)
-        #print(layers)
         node_evals = []
         for layer in layers:
             for node in layer:
@@ -44,17 +40,15 @@ class FeedForwardNetwork(object):
                 node_expr = []
                 # TODO: This could be more efficient.
                 for cg in itervalues(genome.connections):
-                    input, output = cg.key
-                    if output == node and cg.enabled:
-                        inputs.append((input, cg.weight))
-                        node_expr.append("v[{}] * {:.7e}".format(input, cg.weight))
+                    inode, onode = cg.key
+                    if onode == node and cg.enabled:
+                        inputs.append((inode, cg.weight))
+                        node_expr.append("v[{}] * {:.7e}".format(inode, cg.weight))
 
                 ng = genome.nodes[node]
                 aggregation_function = config.genome_config.aggregation_function_defs[ng.aggregation]
                 activation_function = config.genome_config.activation_defs.get(ng.activation)
                 node_evals.append((node, activation_function, aggregation_function, ng.bias, ng.response, inputs))
-
-                #print("  v[%d] = %s(%f + %f * %s(%s))" % (node, ng.activation, ng.bias, ng.response, ng.aggregation, ", ".join(node_expr)))
 
         return FeedForwardNetwork(config.genome_config.input_keys, config.genome_config.output_keys, node_evals)
 

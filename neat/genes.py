@@ -4,6 +4,7 @@ from neat.attributes import FloatAttribute, BoolAttribute, StringAttribute
 # TODO: There is probably a lot of room for simplification of these classes using metaprogramming.
 # TODO: Evaluate using __slots__ for performance/memory usage improvement.
 
+
 class BaseGene(object):
     def __init__(self, key):
         self.key = key

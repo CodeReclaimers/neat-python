@@ -1,6 +1,3 @@
-import random
-import sys
-
 from neat.indexer import Indexer
 from neat.math_util import mean, stdev
 from neat.six_util import iteritems, iterkeys, itervalues
@@ -83,7 +80,6 @@ class DefaultSpeciesSet(object):
 
         # Find the best representatives for each existing species.
         unspeciated = set(iterkeys(population))
-        #print(unspeciated)
         distances = GenomeDistanceCache(config.genome_config)
         new_representatives = {}
         new_members = {}
@@ -100,7 +96,6 @@ class DefaultSpeciesSet(object):
             new_representatives[sid] = new_rid
             new_members[sid] = [new_rid]
             unspeciated.remove(new_rid)
-            #print("Chose {0} as representative of species {1}".format(new_rid, sid))
 
         # Partition population into species based on genetic similarity.
         while unspeciated:
@@ -140,9 +135,9 @@ class DefaultSpeciesSet(object):
             member_dict = dict((gid, population[gid]) for gid in members)
             s.update(population[rid], member_dict)
 
-        # gdmean = mean(itervalues(distances))
-        # gdstdev = stdev(itervalues(distances))
-        # self.reporters.info('Mean genetic distance {0:.3f}, standard deviation {1:.3f}'.format(gdmean, gdstdev))
+        gdmean = mean(itervalues(distances.distances))
+        gdstdev = stdev(itervalues(distances.distances))
+        self.reporters.info('Mean genetic distance {0:.3f}, standard deviation {1:.3f}'.format(gdmean, gdstdev))
 
     def get_species_id(self, individual_id):
         return self.genome_to_species[individual_id]

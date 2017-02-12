@@ -7,6 +7,7 @@ from neat.six_util import itervalues, iterkeys
 
 # TODO: Add a curses-based reporter.
 
+
 class ReporterSet(object):
     def __init__(self):
         self.reporters = []

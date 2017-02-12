@@ -3,6 +3,7 @@ from neat.config import ConfigParameter
 
 # TODO: There is probably a lot of room for simplification of these classes using metaprogramming.
 
+
 class BaseAttribute(object):
     def __init__(self, name):
         self.name = name

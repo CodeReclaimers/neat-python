@@ -13,7 +13,7 @@ from neat.attributes import FloatAttribute
 from neat.genes import BaseGene, DefaultGeneConfig, DefaultConnectionGene
 from neat.genome import DefaultGenomeConfig, DefaultGenome
 from neat.graphs import required_for_output
-from neat.six_util import itervalues, iteritems
+from neat.six_util import itervalues
 
 # a, b, c, d are the parameters of the Izhikevich model.
 # a: the time scale of the recovery variable
@@ -137,6 +137,8 @@ class IZNN(object):
             n.reset()
 
     def get_time_step_msec(self):
+        # TODO: Investigate performance or numerical stability issues that may
+        # result from using this hard-coded time step.
         return 0.05
 
     def advance(self, dt_msec):
