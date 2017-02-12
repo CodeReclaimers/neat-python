@@ -26,24 +26,37 @@ print("observation space: {0!r}".format(env.observation_space))
 
 env = gym.wrappers.Monitor(env, 'results', force=True)
 
-discounted_reward = 0.9
-M = int(round(np.log(0.01) / np.log(discounted_reward)))
-discount_function = [discounted_reward ** (M - i) for i in range(M + 1)]
-print("Discount function window {0}".format(len(discount_function)))
 
-min_reward = -200
-max_reward = 200
+class LanderGenome(neat.DefaultGenome):
+    def __init__(self, key):
+        super().__init__(key)
+        self.discount = None
 
-score_range = []
+    def configure_new(self, config):
+        super().configure_new(config)
+        self.discount = 0.01 + 0.98 * random.random()
+
+    def configure_crossover(self, genome1, genome2, config):
+        super().configure_crossover(genome1, genome2, config)
+        self.discount = random.choice((genome1.discount, genome2.discount))
+
+    def mutate(self, config):
+        super().mutate(config)
+        self.discount += random.gauss(0.0, 0.05)
+        self.discount = max(0.01, min(0.99, self.discount))
+
+    def distance(self, other, config):
+        dist = super().distance(other, config)
+        disc_diff = abs(self.discount - other.discount)
+        return dist + disc_diff
 
 
-
-def compute_fitness(net, discounted_rewards, episodes):
+def compute_fitness(net, episodes):
     reward_error = []
-    for discount_reward, episode in zip(discounted_rewards, episodes):
-        for (observation, action, reward), dr in zip(episode, discount_reward):
-            output = net.activate(observation)
-            reward_error.append(float((output[action] - dr) ** 2))
+    for score, observations, acts, rewards in episodes:
+        for o, a, r in zip(observations, acts, rewards):
+            output = net.activate(o)
+            reward_error.append(float((output[a] - r) ** 2))
 
     return reward_error
 
@@ -52,6 +65,12 @@ class PooledErrorCompute(object):
     def __init__(self):
         self.pool = multiprocessing.Pool()
         self.test_episodes = []
+
+        self.min_reward = -200
+        self.max_reward = 200
+
+        self.episode_score = []
+        self.episode_length = []
 
     def evaluate_genomes(self, genomes, config):
         t0 = time.time()
@@ -66,55 +85,57 @@ class PooledErrorCompute(object):
         episodes = []
         for genome, net in nets:
             observation = env.reset()
-            episode_data = []
-            total_score = 0.0
+            step = 0
+            observations = []
+            actions = []
+            rewards = []
             while 1:
-                output = net.activate(observation)
-                action = np.argmax(output)
+                step += 1
+                if step < 200 and random.random() < 0.2:
+                    action = env.action_space.sample()
+                else:
+                    output = net.activate(observation)
+                    action = np.argmax(output)
+
                 observation, reward, done, info = env.step(action)
-                total_score += reward
-                episode_data.append((observation, action, reward))
+                observations.append(observation)
+                actions.append(action)
+                rewards.append(reward)
 
                 if done:
                     break
 
-            episodes.append((total_score, episode_data))
+            total_score = sum(rewards)
+            self.episode_score.append(total_score)
+            self.episode_length.append(step)
+
+            # Compute discounted rewards.
+            m = int(round(np.log(0.01) / np.log(genome.discount)))
+            discount_function = [genome.discount ** (m - i) for i in range(m + 1)]
+            #rewards = np.array([reward for observation, action, reward in episode])
+            disc_rewards = np.convolve(rewards, discount_function)[m:]
+
+            # Normalize discounted rewards.
+            normed_rewards = 2 * (disc_rewards - self.min_reward) / (self.max_reward - self.min_reward) - 1.0
+
+            episodes.append((total_score, observations, actions, normed_rewards))
             genome.fitness = total_score
 
         print("simulation run time {0}".format(time.time() - t0))
         t0 = time.time()
 
-        scores = [s for s, e in episodes]
-        score_range.append((min(scores), np.mean(scores), max(scores)))
-
-        # Compute discounted rewards.
-        discounted_rewards = []
-        for score, episode in episodes:
-            rewards = np.array([reward for observation, action, reward in episode])
-            discounted = np.convolve(rewards, discount_function)[M:]
-            discounted_rewards.append(discounted)
-
-        print(min(map(np.min, discounted_rewards)), max(map(np.max, discounted_rewards)))
-
-        # Normalize rewards
-        for i in range(len(discounted_rewards)):
-            discounted_rewards[i] = 2 * (discounted_rewards[i] - min_reward) / (max_reward - min_reward) - 1.0
-
-        print(min(map(np.min, discounted_rewards)), max(map(np.max, discounted_rewards)))
-
-        print("discounted & normalized reward compute time {0}".format(time.time() - t0))
-        t0 = time.time()
-
         # Randomly choose subset of episodes for evaluation of genome reward estimation.
-        self.test_episodes.extend(random.choice(episodes)[1] for _ in range(20))
-        self.test_episodes = [random.choice(self.test_episodes) for _ in range(100)]
-        eps = [random.choice(self.test_episodes) for _ in range(20)]
+        #self.test_episodes.extend(random.choice(episodes)[1] for _ in range(20))
+        self.test_episodes.extend(episodes)
+        #self.test_episodes = [random.choice(self.test_episodes) for _ in range(200)]
+        self.test_episodes = self.test_episodes[-1500:]
+        eps = [random.choice(self.test_episodes) for _ in range(50)]
 
         print("Evaluating {0} test episodes".format(len(eps)))
 
         jobs = []
         for genome, net in nets:
-            jobs.append(self.pool.apply_async(compute_fitness, (net, discounted_rewards, eps)))
+            jobs.append(self.pool.apply_async(compute_fitness, (net, eps)))
 
         # Assign a composite fitness to each genome; genomes can make progress either
         # by improving their total reward or by making more accurate reward estimates.
@@ -124,12 +145,13 @@ class PooledErrorCompute(object):
 
         print("final fitness compute time {0}\n".format(time.time() - t0))
 
+
 def run():
     # Load the config file, which is assumed to live in
     # the same directory as this script.
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'config')
-    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+    config = neat.Config(LanderGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_path)
 
@@ -149,13 +171,12 @@ def run():
 
             visualize.plot_stats(stats, ylog=False, view=False, filename="fitness.svg")
 
-            if score_range:
-                S = np.array(score_range).T
-                plt.plot(S[1], 'b-')
-                plt.plot(S[2], 'g-')
-                plt.grid()
-                plt.savefig("score-ranges.svg")
-                plt.close()
+            plt.plot(ec.episode_score, 'g-', label='score')
+            plt.plot(ec.episode_length, 'b-', label='length')
+            plt.grid()
+            plt.legend(loc='best')
+            plt.savefig("scores.svg")
+            plt.close()
 
             mfs = sum(stats.get_fitness_mean()[-5:]) / 5.0
             print("Average mean fitness over last 5 generations: {0}".format(mfs))
@@ -174,7 +195,9 @@ def run():
             for k in range(100):
                 observation = env.reset()
                 score = 0
+                step = 0
                 while 1:
+                    step += 1
                     # Use the total reward estimates from all five networks to
                     # determine the best action given the current state.
                     total_rewards = np.zeros((4,))
@@ -188,6 +211,9 @@ def run():
                     env.render()
                     if done:
                         break
+
+                ec.episode_score.append(score)
+                ec.episode_length.append(step)
 
                 best_scores.append(score)
                 avg_score = sum(best_scores) / len(best_scores)

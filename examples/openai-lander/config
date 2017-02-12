@@ -8,7 +8,7 @@ fitness_criterion     = max
 fitness_threshold     = 1000.0
 reset_on_extinction   = 0
 
-[DefaultGenome]
+[LanderGenome]
 num_inputs              = 8
 num_hidden              = 0
 num_outputs             = 4
