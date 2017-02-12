@@ -69,9 +69,9 @@ Example Source
 --------------
 
 NOTE: This page shows the source and configuration file for the current version of neat-python available on
-GitHub.  If you are using the version 0.9 installed from PyPI, make sure you get the script and config file from
+GitHub.  If you are using the version 0.91 installed from PyPI, make sure you get the script and config file from
 the `archived source for that release
-<https://github.com/CodeReclaimers/neat-python/releases/tag/v0.9>`_.
+<https://github.com/CodeReclaimers/neat-python/releases/tag/v0.91>`_.
 
 Here's the entire example:
 

@@ -15,28 +15,26 @@ of the library.
 `write_config(cls, f, config)` - Takes a file-like object and the configuration object created by parse_config.
 This method should write the configuration item definitions to the given file.
 
-`create(cls, config, key)` - Create and return a new genome instance with the given key, using the given configuration
-object.
+Initialization
+--------------
 
-Initializer
------------
-
-`__init__(self, key, config)` - Takes a unique genome instance identifier and the top-level Config object.  The
+`__init__(self, key)` - Takes a unique genome instance identifier and the top-level Config object.  The
 initializer should create the following members:
 
         * `key`
         * `connections` - (gene_key, gene) pairs for the connection gene set.
         * `nodes` - (gene_key, gene) pairs for the node gene set.
         * `fitness`
-        * `cross_fitness`
 
+`configure_new(self, config)` - Configure the genome as a new random genome based on the given configuration.
+
+`configure_crossover(self, genome1, genome2, config)` - Configure the genome as a child of the given parent
+genomes.
 
 Mutation/reproduction
 ---------------------
 
 `mutate(self, config)` - Apply mutation operations to the genome, using the given configuration.
-
-`crossover(self, other, key, config)` - Crosses over parents' genomes and returns a child.
 
 `distance(self, other, config)` - Returns the genetic distance between this genome and the other. This distance value
 is used to compute genome compatibility for speciation.
