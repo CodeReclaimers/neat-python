@@ -1,43 +1,32 @@
 from __future__ import print_function
 
-import os
-import pickle
-import random
-
 import neat
+from neat.activations import sigmoid_activation
 
-# def test_basic():
-#     # create two output neurons (they won't receive any external inputs)
-#     n1 = CTNeuron('OUTPUT', 1, -2.75, 1.0, 'sigmoid', 0.5)
-#     n1.set_integration_step(0.04)
-#     repr(n1)
-#     str(n1)
-#     n2 = CTNeuron('OUTPUT', 2, -1.75, 1.0, 'sigmoid', 0.5)
-#     n2.set_integration_step(0.04)
-#     repr(n2)
-#     str(n2)
-#     n1.set_init_state(-0.084000643)
-#     n2.set_init_state(-0.408035109)
-#
-#     neurons_list = [n1, n2]
-#     # create some synapses
-#     conn_list = [(1, 1, 4.5), (1, 2, -1.0), (2, 1, 1.0), (2, 2, 4.5)]
-#     # create the network
-#     net = Network(neurons_list, conn_list, 0)
-#     net.set_integration_step(0.03)
-#     repr(net)
-#     str(net)
-#     # activates the network
-#     print("{0:.7f} {1:.7f}".format(n1.output, n2.output))
-#     outputs = []
-#     for i in range(1000):
-#         output = net.parallel_activate()
-#         outputs.append(output)
-#         print("{0:.7f} {1:.7f}".format(output[0], output[1]))
-#
-#     for s in net.synapses:
-#         repr(s)
-#         str(s)
+
+def test_basic():
+    # Create a fully-connected network of two neurons with no external inputs.
+    node1_inputs = [(1, 0.9), (2, 0.2)]
+    node2_inputs = [(1, -0.2), (2, 0.9)]
+
+    node_evals = {1: neat.ctrnn.CTRNNNodeEval(0.01, sigmoid_activation, sum, -2.75 / 5.0, 1.0, node1_inputs),
+                  2: neat.ctrnn.CTRNNNodeEval(0.01, sigmoid_activation, sum, -1.75 / 5.0, 1.0, node2_inputs)}
+
+    net = neat.ctrnn.CTRNN([], [1, 2], node_evals)
+
+    init1 = 0.0
+    init2 = 0.0
+
+    net.set_node_value(1, init1)
+    net.set_node_value(2, init2)
+
+    times = [0.0]
+    outputs = [[init1, init2]]
+    for i in range(1250):
+        output = net.advance([], 0.002, 0.002)
+        times.append(net.time_seconds)
+        outputs.append(output)
+
 #
 #
 # def create_simple():
@@ -108,7 +97,7 @@ import neat
 #         str(g)
 #
 #
-# if __name__ == '__main__':
-#     test_basic()
+if __name__ == '__main__':
+    test_basic()
 #     test_evolve()
 #     test_manual_network()
