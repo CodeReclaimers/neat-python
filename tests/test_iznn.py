@@ -10,22 +10,21 @@ def test_basic():
         spike_train.append(n.v)
         n.advance(0.25)
 
-#
-# def test_network():
-#     neurons = {0: iznn.Neuron(0, **iznn.INTRINSICALLY_BURSTING_PARAMS),
-#                1: iznn.Neuron(0, **iznn.CHATTERING_PARAMS),
-#                2: iznn.Neuron(0, **iznn.FAST_SPIKING_PARAMS),
-#                3: iznn.Neuron(0, **iznn.LOW_THRESHOLD_SPIKING_PARAMS)}
-#     inputs = [0, 1]
-#     outputs = [2]
-#     connections = [(0, 2, 0.123), (1, 2, 0.234)]
-#
-#     net = iznn.IzNetwork(neurons, inputs, outputs, connections)
-#     net.set_inputs([1.0, 0.0])
-#     net.advance(0.25)
-#     net.advance(0.25)
-#
-#
+
+def test_network():
+    p = neat.iznn.INTRINSICALLY_BURSTING_PARAMS
+    neurons = {0: neat.iznn.IZNeuron(0, p['a'], p['b'], p['c'], p['d'], []),
+               1: neat.iznn.IZNeuron(0, p['a'], p['b'], p['c'], p['d'], []),
+               2: neat.iznn.IZNeuron(0, p['a'], p['b'], p['c'], p['d'], [(0, 0.123), (1, 0.234)]),
+               3: neat.iznn.IZNeuron(0, p['a'], p['b'], p['c'], p['d'], [])}
+    inputs = [0, 1]
+    outputs = [2]
+
+    net = neat.iznn.IZNN(neurons, inputs, outputs)
+    net.set_inputs([1.0, 0.0])
+    net.advance(0.25)
+    net.advance(0.25)
+
 # # TODO: Update this test to work with the current implementation.
 # # def test_iznn_evolve():
 # #     """This is a stripped-down copy of the XOR2 spiking example."""
@@ -139,4 +138,4 @@ def test_basic():
 #
 if __name__ == '__main__':
     test_basic()
-    #test_network()
+    test_network()
