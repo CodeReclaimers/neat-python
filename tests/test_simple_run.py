@@ -26,6 +26,7 @@ def test_serial():
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
+    p.add_reporter(neat.Checkpointer(1, 5))
 
     # Run for up to 300 generations.
     p.run(eval_dummy_genomes, 300)
