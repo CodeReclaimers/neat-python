@@ -92,8 +92,8 @@ class Population(object):
                 break
 
             # Create the next generation from the current generation.
-            self.population = self.reproduction.reproduce(self.config,
-                    self.species, self.config.pop_size, self.generation)
+            self.population = self.reproduction.reproduce(self.config, self.species,
+                                                          self.config.pop_size, self.generation)
 
             # Check for complete extinction.
             if not self.species.species:

@@ -103,8 +103,8 @@ class DefaultGenome(object):
         4. The input values are applied to the input pins unmodified.
     """
 
-    @staticmethod
-    def parse_config(param_dict):
+    @classmethod
+    def parse_config(cls, param_dict):
         param_dict['node_gene_type'] = DefaultNodeGene
         param_dict['connection_gene_type'] = DefaultConnectionGene
         return DefaultGenomeConfig(param_dict)
@@ -113,11 +113,8 @@ class DefaultGenome(object):
     def write_config(cls, f, config):
         config.save(f)
 
-    def __init__(self, key, config):
-        """
-        :param key: This genome's unique identifier.
-        :param config: A neat.config.Config instance.
-        """
+    def __init__(self, key):
+        # Unique identifier for a genome instance.
         self.key = key
 
         # (gene_key, gene) pairs for gene sets.
@@ -125,9 +122,61 @@ class DefaultGenome(object):
         self.nodes = {}
 
         # Fitness results.
-        # TODO: This should probably be stored elsewhere.
         self.fitness = None
-        self.cross_fitness = None
+
+    def configure_new(self, config):
+        """Configure a new genome based on the given configuration."""
+
+        # Create node genes for the output pins.
+        for node_key in config.output_keys:
+            self.nodes[node_key] = self.create_node(config, node_key)
+
+        # Add hidden nodes if requested.
+        if config.num_hidden > 0:
+            for i in range(config.num_hidden):
+                node_key = self.get_new_node_key()
+                assert node_key not in self.nodes
+                node = self.create_node(config, node_key)
+                self.nodes[node_key] = node
+
+        # Add connections based on initial connectivity type.
+        if config.initial_connection == 'fs_neat':
+            self.connect_fs_neat(config)
+        elif config.initial_connection == 'full':
+            self.connect_full(config)
+        elif config.initial_connection == 'partial':
+            self.connect_partial(config)
+
+    def configure_crossover(self, genome1, genome2, config):
+        """ Configure a new genome by crossover from two parent genomes. """
+        if genome1.fitness > genome2.fitness:
+            parent1, parent2 = genome1, genome2
+        else:
+            parent1, parent2 = genome2, genome1
+
+        # Inherit connection genes
+        for key, cg1 in iteritems(parent1.connections):
+            cg2 = parent2.connections.get(key)
+            if cg2 is None:
+                # Excess or disjoint gene: copy from the fittest parent.
+                self.connections[key] = cg1.copy()
+            else:
+                # Homologous gene: combine genes from both parents.
+                self.connections[key] = cg1.crossover(cg2)
+
+        # Inherit node genes
+        parent1_set = parent1.nodes
+        parent2_set = parent2.nodes
+
+        for key, ng1 in iteritems(parent1_set):
+            ng2 = parent2_set.get(key)
+            assert key not in self.nodes
+            if ng2 is None:
+                # Extra gene: copy from the fittest parent
+                self.nodes[key] = ng1.copy()
+            else:
+                # Homologous gene: combine genes from both parents.
+                self.nodes[key] = ng1.crossover(ng2)
 
     def mutate(self, config):
         """ Mutates this genome. """
@@ -154,48 +203,6 @@ class DefaultGenome(object):
         for ng in self.nodes.values():
             ng.mutate(config)
 
-    def crossover(self, other, key, config):
-        """ Crosses over parents' genomes and returns a child. """
-        if self.fitness > other.fitness:
-            parent1 = self
-            parent2 = other
-        else:
-            parent1 = other
-            parent2 = self
-
-        # creates a new child
-        child = DefaultGenome(key, config)
-        child.inherit_genes(parent1, parent2)
-
-        return child
-
-    def inherit_genes(self, parent1, parent2):
-        """ Applies the crossover operator. """
-        assert (parent1.fitness >= parent2.fitness)
-
-        # Inherit connection genes
-        for key, cg1 in iteritems(parent1.connections):
-            cg2 = parent2.connections.get(key)
-            if cg2 is None:
-                # Excess or disjoint gene: copy from the fittest parent.
-                self.connections[key] = cg1.copy()
-            else:
-                # Homologous gene: combine genes from both parents.
-                self.connections[key] = cg1.crossover(cg2)
-
-        # Inherit node genes
-        parent1_set = parent1.nodes
-        parent2_set = parent2.nodes
-
-        for key, ng1 in iteritems(parent1_set):
-            ng2 = parent2_set.get(key)
-            assert key not in self.nodes
-            if ng2 is None:
-                # Extra gene: copy from the fittest parent
-                self.nodes[key] = ng1.copy()
-            else:
-                # Homologous gene: combine genes from both parents.
-                self.nodes[key] = ng1.crossover(ng2)
 
     def get_new_node_key(self):
         new_id = 0
@@ -342,31 +349,6 @@ class DefaultGenome(object):
             s += "\n\t" + str(c)
         return s
 
-    def add_hidden_nodes(self, config):
-        for i in range(config.num_hidden):
-            node_key = self.get_new_node_key()
-            assert node_key not in self.nodes
-            node = self.create_node(config, node_key)
-            self.nodes[node_key] = node
-
-    @classmethod
-    def create(cls, config, key):
-        g = cls.create_unconnected(config, key)
-
-        # Add hidden nodes if requested.
-        if config.num_hidden > 0:
-            g.add_hidden_nodes(config)
-
-        # Add connections based on initial connectivity type.
-        if config.initial_connection == 'fs_neat':
-            g.connect_fs_neat(config)
-        elif config.initial_connection == 'full':
-            g.connect_full(config)
-        elif config.initial_connection == 'partial':
-            g.connect_partial(config)
-
-        return g
-
     @staticmethod
     def create_node(config, node_id):
         node = config.node_gene_type(node_id)
@@ -379,17 +361,6 @@ class DefaultGenome(object):
         connection.init_attributes(config)
         return connection
 
-    @classmethod
-    def create_unconnected(cls, config, key):
-        '''Create a genome for a network with no hidden nodes and no connections.'''
-        c = cls(key, config)
-
-        # Create node genes for the output pins.
-        for node_key in config.output_keys:
-            c.nodes[node_key] = cls.create_node(config, node_key)
-
-        return c
-
     def connect_fs_neat(self, config):
         """ Randomly connect one input to all hidden and output nodes (FS-NEAT). """
         input_id = choice(config.input_keys)
@@ -400,20 +371,23 @@ class DefaultGenome(object):
     def compute_full_connections(self, config):
         """
         Compute connections for a fully-connected feed-forward genome--each
-        input connected to all nodes, each hidden node connected to all
+        input connected to all hidden nodes, each hidden node connected to all
         output nodes.
         """
         hidden = [i for i in iterkeys(self.nodes) if i not in config.output_keys]
+        output = [i for i in iterkeys(self.nodes) if i in config.output_keys]
         connections = []
-        for input_id in config.input_keys:
+        if hidden:
+            for input_id in config.input_keys:
+                for h in hidden:
+                    connections.append((input_id, h))
             for h in hidden:
-                connections.append((input_id, h))
-            for node_id in iterkeys(self.nodes):
-                connections.append((input_id, node_id))
-
-        for h in hidden:
-            for node_id in iterkeys(self.nodes):
-                connections.append((h, node_id))
+                for output_id in output:
+                    connections.append((h, output_id))
+        else:
+            for input_id in config.input_keys:
+                for output_id in output:
+                    connections.append((input_id, output_id))
 
         return connections
 

@@ -51,8 +51,8 @@ class IZNodeGene(BaseGene):
 
 
 class IZGenome(DefaultGenome):
-    @staticmethod
-    def parse_config(param_dict):
+    @classmethod
+    def parse_config(cls, param_dict):
         param_dict['node_gene_type'] = IZNodeGene
         param_dict['connection_gene_type'] = DefaultConnectionGene
         return DefaultGenomeConfig(param_dict)
