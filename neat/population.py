@@ -50,9 +50,10 @@ class Population(object):
     def remove_reporter(self, reporter):
         self.reporters.remove(reporter)
 
-    def run(self, fitness_function, n):
+    def run(self, fitness_function, n=None):
         """
-        Runs NEAT's genetic algorithm for at most n generations.
+        Runs NEAT's genetic algorithm for at most n generations.  If n
+        is None, run until solution is found or extinction occurs.
 
         The user-provided fitness_function must take only two arguments:
             1. The population as a list of (genome id, genome) tuples.
@@ -68,7 +69,10 @@ class Population(object):
         the genomes themselves (apart from updating the fitness member),
         or the configuration object.
         """
-        for gen in range(n):
+        k = 0
+        while n is None or k < n:
+            k += 1
+
             self.reporters.start_generation(self.generation)
 
             # Evaluate all genomes using the user-provided function.

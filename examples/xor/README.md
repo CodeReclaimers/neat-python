@@ -13,7 +13,11 @@ directly related to the NEAT library usage.
 
 ## The examples ##
 
-* `evolve-feedforward.py` shows how to evolve a feed-forward neural network with sigmoidal neurons. 
+* `evolve-minimal.py` shows how to evolve a feed-forward neural network with sigmoidal neurons; this example has all 
+unnecessary complications removed. 
+
+* `evolve-feedforward.py` shows how to evolve a feed-forward neural network with sigmoidal neurons. This is
+essentially the evolve-minimal example with prettier output and better coding practices.  
 
 * `evolve-feedforward-parallel.py` evolves the same type of network as `evolve-feedforward.py`, but this example shows
     how you can make use of multiple processors to evaluate networks in parallel.  
