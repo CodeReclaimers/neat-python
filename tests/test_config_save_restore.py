@@ -15,7 +15,7 @@ def test_config_save_restore(config_filename_initial = 'test_configuration', con
                                  neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path_initial)
 
     # Save configuration to another file
-    config_initial.save(config_filename_save)
+    config_initial.save(config_path_save)
 
     # Obtain configuration from saved file
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
