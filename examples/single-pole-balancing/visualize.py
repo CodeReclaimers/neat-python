@@ -138,7 +138,6 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
 
     inputs = set()
     for k in config.genome_config.input_keys:
-        print("input %d" % k)
         inputs.add(k)
         name = node_names.get(k, str(k))
         input_attrs = {'style': 'filled',
@@ -148,7 +147,6 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
 
     outputs = set()
     for k in config.genome_config.output_keys:
-        print("output %d" % k)
         outputs.add(k)
         name = node_names.get(k, str(k))
         node_attrs = {'style': 'filled'}
@@ -165,7 +163,6 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
         used_nodes = copy.copy(outputs)
         pending = copy.copy(outputs)
         while pending:
-            #print(pending, used_nodes)
             new_pending = set()
             for a, b in connections:
                 if b in pending and a not in used_nodes:
@@ -178,8 +175,6 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
     for n in used_nodes:
         if n in inputs or n in outputs:
             continue
-
-        print("hidden %d" % n)
 
         attrs = {'style': 'filled'}
         attrs['fillcolor'] = node_colors.get(n, 'white')

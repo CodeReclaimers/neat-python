@@ -37,5 +37,12 @@ plt.grid()
 plt.plot(times, outputs[0], "g-", label="output 0")
 plt.plot(times, outputs[1], "r-", label="output 1")
 plt.legend(loc="best")
+
+plt.figure()
+plt.ylabel("Output 0")
+plt.xlabel("Output 1")
+plt.grid()
+plt.plot(outputs[0], outputs[1], "g-")
+
 plt.show()
 plt.close()

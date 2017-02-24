@@ -27,7 +27,7 @@ class FeedForwardNetwork(object):
 
     @staticmethod
     def create(genome, config):
-        """ Receives a genome and returns its phenotype (a neural network). """
+        """ Receives a genome and returns its phenotype (a FeedForwardNetwork). """
 
         # Gather expressed connections.
         connections = [cg.key for cg in itervalues(genome.connections) if cg.enabled]

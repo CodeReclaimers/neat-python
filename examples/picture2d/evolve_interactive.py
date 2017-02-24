@@ -14,6 +14,7 @@ import pygame
 
 from multiprocessing import Pool
 import neat
+from neat.six_util import itervalues
 
 from common import eval_mono_image, eval_gray_image, eval_color_image
 
@@ -46,9 +47,9 @@ class InteractiveStagnation(object):
     def remove(self, sid):
         self.stagnant_counts.pop(sid, None)
 
-    def update(self, species):
+    def update(self, species_set, generation):
         result = []
-        for s in species.values():
+        for s in itervalues(species_set.species):
             # If any member of the species is selected (i.e., has a fitness above zero), then we reset
             # the stagnation count.  Otherwise we increment the count.
             scount = self.stagnant_counts.get(s.key, 0) + 1
@@ -198,7 +199,7 @@ class PictureBreeder(object):
                         self.make_high_resolution(genomes[clicked_button], config)
 
             if running:
-                screen.fill((128,128,192))
+                screen.fill((128, 128, 192))
                 for n, button in enumerate(buttons):
                     screen.blit(button, rects[n])
                     if selected[n]:
@@ -213,6 +214,7 @@ class PictureBreeder(object):
                     pickle.dump(genome, f, 2)
             else:
                 genome.fitness = 0.0
+
 
 def run():
     # 128x128 thumbnails, 1500x1500 rendered images, 1100x810 viewer, grayscale images, 4 worker processes.
