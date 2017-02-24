@@ -1,26 +1,30 @@
 import neat
+import os
 
-def test_config_save_restore(config_filename_initial, config_filename_save):
+def test_config_save_restore(config_filename_initial = 'test_configuration', config_filename_save = 'save_configuration'):
     """Check if it is possible to restore saved config"""
     passed = False
-    try:
-        # Load initial configuration from file
-        config_initial = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
-                                     neat.DefaultSpeciesSet, neat.DefaultStagnation, config_filename_initial)
 
-        # Save configuration to another file
-        config_initial.save(config_filename_save)
+    # Get config path
+    local_dir = os.path.dirname(__file__)
+    config_path_initial = os.path.join(local_dir, config_filename_initial)
+    config_path_save = os.path.join(local_dir, config_filename_save)
 
-        # Obtain configuration from saved file
-        config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
-                             neat.DefaultSpeciesSet, neat.DefaultStagnation, config_filename_save)
+    # Load initial configuration from file
+    config_initial = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                                 neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path_initial)
 
-        # Test Passed
-        passed = True
-    except:
-        pass
+    # Save configuration to another file
+    config_initial.save(config_filename_save)
+
+    # Obtain configuration from saved file
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path_save)
+
+    # Test Passed
+    passed = True
 
     assert passed
 
 if __name__ == '__main__':
-    test_config_save_restore('test_configuration', 'save_configuration')
+    test_config_save_restore()
