@@ -155,5 +155,5 @@ def run(config_path):
 
 
 if __name__ == '__main__':
-    local_dir = os.path.dirname(__file__)
+    local_dir = os.path.dirname('__file__')
     run(os.path.join(local_dir, 'config-spiking'))
