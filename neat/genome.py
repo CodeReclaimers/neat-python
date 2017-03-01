@@ -389,6 +389,11 @@ class DefaultGenome(object):
                 for output_id in output:
                     connections.append((input_id, output_id))
 
+        # For recurrent genomes, include node self-connections.
+        if not config.feed_forward:
+            for i in iterkeys(self.nodes):
+                connections.append((i, i))
+
         return connections
 
     def connect_full(self, config):
