@@ -31,21 +31,25 @@ class ConfigParameter(object):
         if value is None:
             raise Exception('Missing configuration item: ' + self.name)
 
-        if str == self.value_type:
-            return str(value)
-        if int == self.value_type:
-            return int(value)
-        if bool == self.value_type:
-            if "true" == value.lower():
-                return True
-            elif "false" == value.lower():
-                return False
-            else:
-                raise Exception(self.name + " must be True or False")
-        if float == self.value_type:
-            return float(value)
-        if list == self.value_type:
-            return value.split(" ")
+        try:
+            if str == self.value_type:
+                return str(value)
+            if int == self.value_type:
+                return int(value)
+            if bool == self.value_type:
+                if "true" == value.lower():
+                    return True
+                elif "false" == value.lower():
+                    return False
+                else:
+                    raise Exception(self.name + " must be True or False")
+            if float == self.value_type:
+                return float(value)
+            if list == self.value_type:
+                return value.split(" ")
+        except Exception as e:
+            raise Exception("Error interpreting config item '{}' with value '{}' and type {}".format(
+                self.name, value, self.value_type))
 
         raise Exception("Unexpected configuration type: " + repr(self.value_type))
 
