@@ -82,7 +82,7 @@ Reproduction scheme
 -------------------
 
 The default reproduction scheme uses explicit fitness sharing.  This behavior is encapsulated in the
-`DefaultReproduction` class.
+`DefaultReproduction` class.  The minimum reproduction type interface is documented here: :ref:`reproduction-interface-label`
 
 To use a different reproduction scheme, you must create a custom class whose interface matches that
 of `DefaultReproduction`, and provide it as the `reproduction_type` argument to the `Config` constructor.
