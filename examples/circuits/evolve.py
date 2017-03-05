@@ -87,7 +87,7 @@ class CircuitGenome(object):
     def write_config(cls, f, config):
         config.save(f)
 
-    def __init__(self, key, config):
+    def __init__(self, key):
         self.key = key
 
         # (gene_key, gene) pairs for gene sets.
@@ -95,9 +95,7 @@ class CircuitGenome(object):
         self.nodes = {}
 
         # Fitness results.
-        # TODO: This should probably be stored elsewhere.
         self.fitness = None
-        self.cross_fitness = None
 
     def mutate(self, config):
         """ Mutates this genome. """
@@ -124,24 +122,12 @@ class CircuitGenome(object):
         for ng in self.nodes.values():
             ng.mutate(config)
 
-    def crossover(self, other, key, config):
-        """ Crosses over parents' genomes and returns a child. """
-        if self.fitness > other.fitness:
-            parent1 = self
-            parent2 = other
+    def configure_crossover(self, genome1, genome2, config):
+        """ Configure a new genome by crossover from two parent genomes. """
+        if genome1.fitness > genome2.fitness:
+            parent1, parent2 = genome1, genome2
         else:
-            parent1 = other
-            parent2 = self
-
-        # creates a new child
-        child = CircuitGenome(key, config)
-        child.inherit_genes(parent1, parent2)
-
-        return child
-
-    def inherit_genes(self, parent1, parent2):
-        """ Applies the crossover operator. """
-        assert (parent1.fitness >= parent2.fitness)
+            parent1, parent2 = genome2, genome1
 
         # Inherit connection genes
         for key, cg1 in iteritems(parent1.connections):
@@ -317,20 +303,15 @@ class CircuitGenome(object):
             node = self.__class__.create_node(config, node_key)
             self.nodes[node_key] = node
 
-    @classmethod
-    def create(cls, config, key):
-        c = cls(key, config)
-
+    def configure_new(self, config):
         # Create node genes for the output pins.
         for node_key in config.output_keys:
-            c.nodes[node_key] = cls.create_node(config, node_key)
+            self.nodes[node_key] = self.create_node(config, node_key)
 
         for input_id in config.input_keys:
-            for node_id in iterkeys(c.nodes):
-                connection = cls.create_connection(config, input_id, node_id)
-                c.connections[connection.key] = connection
-
-        return c
+            for node_id in iterkeys(self.nodes):
+                connection = self.create_connection(config, input_id, node_id)
+                self.connections[connection.key] = connection
 
     @staticmethod
     def create_node(config, node_id):
