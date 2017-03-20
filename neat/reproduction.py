@@ -22,7 +22,8 @@ class DefaultReproduction(object):
     @classmethod
     def parse_config(cls, param_dict):
         config = {'elitism': 1,
-                  'survival_threshold': 0.2}
+                  'survival_threshold': 0.2,
+                  'min_species_size': 2}
         config.update(param_dict)
 
         return config
@@ -54,6 +55,46 @@ class DefaultReproduction(object):
 
         return new_genomes
 
+    @staticmethod
+    def compute_spawn(adjusted_fitness, previous_sizes, pop_size, min_species_size):
+        avg_adjusted_fitness = mean(adjusted_fitness)
+        af_sum = sum(adjusted_fitness)
+
+        spawn_amounts = []
+        for af, ps in zip(adjusted_fitness, previous_sizes):
+            if af_sum > 0:
+                s = max(min_species_size, af / af_sum * pop_size)
+            else:
+                s = min_species_size
+
+            d = (s - ps) * 0.5
+            c = int(d)
+            spawn = ps
+            if abs(c) > 0:
+                spawn += d
+            elif d > 0:
+                spawn += 1
+            elif d < 0:
+                spawn -= 1
+
+            #elif d < 0:
+            #    spawn = ps - max(2, -d)
+
+            #spawn = ps
+            #if af > avg_adjusted_fitness:
+            #    spawn = max(spawn + 2, spawn * 1.1)
+            #else:
+            #    spawn = max(spawn * 0.9, min_species_size)
+            spawn_amounts.append(spawn)
+
+        # Normalize the spawn amounts so that the next generation is roughly
+        # the population size requested by the user.
+        total_spawn = sum(spawn_amounts)
+        norm = pop_size / total_spawn
+        spawn_amounts = [max(min_species_size, int(round(n * norm))) for n in spawn_amounts]
+
+        return spawn_amounts
+
     def reproduce(self, config, species, pop_size, generation):
         # TODO: I don't like this modification of the species and stagnation objects,
         # because it requires internal knowledge of the objects.
@@ -73,58 +114,44 @@ class DefaultReproduction(object):
         # The average adjusted fitness scheme (normalized to the interval
         # [0, 1]) allows the use of negative fitness values without
         # interfering with the shared fitness scheme.
-        num_remaining = 0
-        species_fitness = []
-        avg_adjusted_fitness = 0.0
+        remaining_species = []
         for sid, s, stagnant in self.stagnation.update(species, generation):
             if stagnant:
                 self.reporters.species_stagnant(sid, s)
             else:
-                num_remaining += 1
-
                 # Compute adjusted fitness.
                 msf = mean([m.fitness for m in itervalues(s.members)])
-                s.adjusted_fitness = (msf - min_fitness) / fitness_range
-                species_fitness.append((sid, s, s.fitness))
-                avg_adjusted_fitness += s.adjusted_fitness
+                af = (msf - min_fitness) / fitness_range
+                s.adjusted_fitness = af
+                remaining_species.append(s)
 
         # No species left.
-        if 0 == num_remaining:
+        if not remaining_species:
             species.species = {}
             return []
 
-        avg_adjusted_fitness /= len(species_fitness)
+        adjusted_fitnesses = [s.adjusted_fitness for s in remaining_species]
+        avg_adjusted_fitness = mean(adjusted_fitnesses)
         self.reporters.info("Average adjusted fitness: {:.3f}".format(avg_adjusted_fitness))
 
-        # Compute the number of new individuals to create for the new generation.
-        spawn_amounts = []
-        for sid, s, sfitness in species_fitness:
-            spawn = len(s.members)
-            if sfitness > avg_adjusted_fitness:
-                spawn = max(spawn + 2, spawn * 1.1)
-            else:
-                spawn = max(spawn * 0.9, 2)
-            spawn_amounts.append(spawn)
-
-        # Normalize the spawn amounts so that the next generation is roughly
-        # the population size requested by the user.
-        total_spawn = sum(spawn_amounts)
-        norm = pop_size / total_spawn
-        spawn_amounts = [int(round(n * norm)) for n in spawn_amounts]
+        # Compute the number of new memebers for each species in the new generation.
+        previous_sizes = [len(s.members) for s in remaining_species]
+        min_species_size = float(config.reproduction_config['min_species_size'])
+        spawn_amounts = self.compute_spawn(adjusted_fitnesses, previous_sizes,
+                                           pop_size, min_species_size)
 
         new_population = {}
         species.species = {}
-        for spawn, (sid, s, sfitness) in zip(spawn_amounts, species_fitness):
+        for spawn, s in zip(spawn_amounts, remaining_species):
             # If elitism is enabled, each species always at least gets to retain its elites.
             spawn = max(spawn, self.elitism)
 
-            if spawn <= 0:
-                continue
+            assert spawn > 0
 
             # The species has at least one member for the next generation, so retain it.
             old_members = list(iteritems(s.members))
             s.members = {}
-            species.species[sid] = s
+            species.species[s.key] = s
 
             # Sort members in order of descending fitness.
             old_members.sort(reverse=True, key=lambda x: x[1].fitness)
