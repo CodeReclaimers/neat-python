@@ -1,4 +1,6 @@
 '''Commonly used functions not available in the Python2 standard library.'''
+from __future__ import division
+
 from math import sqrt, exp
 
 

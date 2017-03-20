@@ -1,14 +1,14 @@
-from operator import mul
-from functools import reduce
+from __future__ import division
 
-from neat.config import ConfigParameter, write_pretty_params
-from neat.genes import DefaultConnectionGene, DefaultNodeGene
-from neat.six_util import iteritems, iterkeys
+from functools import reduce
+from operator import mul
+from random import choice, random, shuffle
 
 from neat.activations import ActivationFunctionSet
+from neat.config import ConfigParameter, write_pretty_params
+from neat.genes import DefaultConnectionGene, DefaultNodeGene
 from neat.graphs import creates_cycle
-
-from random import choice, random, shuffle
+from neat.six_util import iteritems, iterkeys
 
 
 def product(x):

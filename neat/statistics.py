@@ -1,10 +1,9 @@
-from __future__ import print_function
 import copy
 import csv
 
 from neat.math_util import mean, stdev
-from neat.six_util import iteritems
 from neat.reporting import BaseReporter
+from neat.six_util import iteritems
 
 
 # TODO: Make a version of this reporter that doesn't continually increase memory usage.
