@@ -59,7 +59,6 @@ class DefaultReproduction(object):
 
     @staticmethod
     def compute_spawn(adjusted_fitness, previous_sizes, pop_size, min_species_size):
-        avg_adjusted_fitness = mean(adjusted_fitness)
         af_sum = sum(adjusted_fitness)
 
         spawn_amounts = []
@@ -70,23 +69,15 @@ class DefaultReproduction(object):
                 s = min_species_size
 
             d = (s - ps) * 0.5
-            c = int(d)
+            c = int(round(d))
             spawn = ps
             if abs(c) > 0:
-                spawn += d
+                spawn += c
             elif d > 0:
                 spawn += 1
             elif d < 0:
                 spawn -= 1
 
-            #elif d < 0:
-            #    spawn = ps - max(2, -d)
-
-            #spawn = ps
-            #if af > avg_adjusted_fitness:
-            #    spawn = max(spawn + 2, spawn * 1.1)
-            #else:
-            #    spawn = max(spawn * 0.9, min_species_size)
             spawn_amounts.append(spawn)
 
         # Normalize the spawn amounts so that the next generation is roughly
