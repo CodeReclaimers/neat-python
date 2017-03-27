@@ -101,7 +101,7 @@ class StringAttribute(BaseAttribute):
     def init_value(self, config):
         default = getattr(config, self.default_name)
 
-        if default is None:
+        if default in (None, 'random'):
             options = getattr(config, self.options_name)
             return choice(options)
 

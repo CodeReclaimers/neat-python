@@ -28,9 +28,7 @@ class InteractiveStagnation(object):
     """
     def __init__(self, config, reporters):
         self.max_stagnation = int(config.get('max_stagnation'))
-
         self.reporters = reporters
-        self.stagnant_counts = {}
 
     @classmethod
     def parse_config(cls, param_dict):
@@ -41,32 +39,21 @@ class InteractiveStagnation(object):
 
     @classmethod
     def write_config(cls, f, config):
-        max_stagnation = config.get('max_stagnation', 15)
-        f.write('max_stagnation       = {}\n'.format(max_stagnation))
-
-    def remove(self, sid):
-        self.stagnant_counts.pop(sid, None)
+        f.write('max_stagnation       = {}\n'.format(config['max_stagnation']))
 
     def update(self, species_set, generation):
         result = []
         for s in itervalues(species_set.species):
-            # If any member of the species is selected (i.e., has a fitness above zero), then we reset
-            # the stagnation count.  Otherwise we increment the count.
-            scount = self.stagnant_counts.get(s.key, 0) + 1
+            # If any member of the species is selected (i.e., has a fitness above zero),
+            # mark the species as improved.
             for m in s.members.values():
                 if m.fitness > 0:
-                    scount = 0
+                    s.last_improved = generation
                     break
 
-            self.stagnant_counts[s.key] = scount
-
-            is_stagnant = scount >= self.max_stagnation
+            stagnant_time = generation - s.last_improved
+            is_stagnant = stagnant_time >= self.max_stagnation
             result.append((s.key, s, is_stagnant))
-
-            if is_stagnant:
-                self.remove(s)
-
-        self.reporters.info('Species no improv: {0!r}'.format(self.stagnant_counts))
 
         return result
 

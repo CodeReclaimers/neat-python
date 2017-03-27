@@ -23,7 +23,7 @@ class DefaultReproduction(object):
     # TODO: Create a separate configuration class instead of using a dict (for consistency with other types).
     @classmethod
     def parse_config(cls, param_dict):
-        config = {'elitism': 1,
+        config = {'elitism': 0,
                   'survival_threshold': 0.2,
                   'min_species_size': 2}
         config.update(param_dict)
@@ -32,9 +32,9 @@ class DefaultReproduction(object):
 
     @classmethod
     def write_config(cls, f, param_dict):
-        elitism = param_dict.get('elitism', 1)
+        elitism = param_dict['elitism']
         f.write('elitism            = {}\n'.format(elitism))
-        survival_threshold = param_dict.get('survival_threshold', 0.2)
+        survival_threshold = param_dict['survival_threshold']
         f.write('survival_threshold = {}\n'.format(survival_threshold))
 
     def __init__(self, config, reporters, stagnation):
