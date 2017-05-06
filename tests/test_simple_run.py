@@ -41,6 +41,8 @@ def test_serial():
     stats.best_genomes(5)
     stats.best_genome()
 
+    p.remove_reporter(stats)
+
 
 def test_parallel():
     # Load configuration.

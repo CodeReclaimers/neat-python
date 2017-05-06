@@ -1,7 +1,40 @@
 import os
-import tempfile
+import unittest
 
+import neat
 from neat.indexer import Indexer
+
+
+class PopulationTests(unittest.TestCase):
+    def test_valid_fitness_criterion(self):
+        for c in ('max', 'min', 'mean'):
+            # Load configuration.
+            local_dir = os.path.dirname(__file__)
+            config_path = os.path.join(local_dir, 'test_configuration')
+            config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                                 neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                                 config_path)
+            config.fitness_criterion = c
+
+            p = neat.Population(config)
+
+            def eval_genomes(genomes, config):
+                for genome_id, genome in genomes:
+                    genome.fitness = 1.0
+
+            p.run(eval_genomes, 10)
+
+    def test_invalid_fitness_criterion(self):
+        # Load configuration.
+        local_dir = os.path.dirname(__file__)
+        config_path = os.path.join(local_dir, 'test_configuration')
+        config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                             neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                             config_path)
+        config.fitness_criterion = 'szechaun sauce'
+
+        with self.assertRaises(Exception):
+            p = neat.Population(config)
 
 
 # def test_minimal():
