@@ -33,6 +33,13 @@ def test_serial():
     p.run(eval_dummy_genomes_nn, 300)
 
     stats.save()
+    #stats.save_genome_fitness(with_cross_validation=True)
+
+    stats.get_fitness_stdev()
+    #stats.get_average_cross_validation_fitness()
+    stats.best_unique_genomes(5)
+    stats.best_genomes(5)
+    stats.best_genome()
 
 
 def test_parallel():
