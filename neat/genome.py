@@ -16,17 +16,6 @@ def product(x):
 
 
 class DefaultGenomeConfig(object):
-    __params = [ConfigParameter('num_inputs', int),
-                ConfigParameter('num_outputs', int),
-                ConfigParameter('num_hidden', int),
-                ConfigParameter('feed_forward', bool),
-                ConfigParameter('compatibility_disjoint_coefficient', float),
-                ConfigParameter('compatibility_weight_coefficient', float),
-                ConfigParameter('conn_add_prob', float),
-                ConfigParameter('conn_delete_prob', float),
-                ConfigParameter('node_add_prob', float),
-                ConfigParameter('node_delete_prob', float)]
-
     allowed_connectivity = ['unconnected', 'fs_neat', 'full', 'partial']
     aggregation_function_defs = {'sum': sum, 'max': max, 'min': min, 'product': product}
 
@@ -36,14 +25,25 @@ class DefaultGenomeConfig(object):
         self.activation_options = params.get('activation_options', 'sigmoid').strip().split()
         self.aggregation_options = params.get('aggregation_options', 'sum').strip().split()
 
+        self._params = [ConfigParameter('num_inputs', int),
+                        ConfigParameter('num_outputs', int),
+                        ConfigParameter('num_hidden', int),
+                        ConfigParameter('feed_forward', bool),
+                        ConfigParameter('compatibility_disjoint_coefficient', float),
+                        ConfigParameter('compatibility_weight_coefficient', float),
+                        ConfigParameter('conn_add_prob', float),
+                        ConfigParameter('conn_delete_prob', float),
+                        ConfigParameter('node_add_prob', float),
+                        ConfigParameter('node_delete_prob', float)]
+
         # Gather configuration data from the gene classes.
         self.node_gene_type = params['node_gene_type']
-        self.__params += self.node_gene_type.get_config_params()
+        self._params += self.node_gene_type.get_config_params()
         self.connection_gene_type = params['connection_gene_type']
-        self.__params += self.connection_gene_type.get_config_params()
+        self._params += self.connection_gene_type.get_config_params()
 
         # Use the configuration data to interpret the supplied parameters.
-        for p in self.__params:
+        for p in self._params:
             setattr(self, p.name, p.interpret(params))
 
         # By convention, input pins have negative keys, and the output
@@ -78,7 +78,7 @@ class DefaultGenomeConfig(object):
 
         assert self.initial_connection in self.allowed_connectivity
 
-        write_pretty_params(f, self, self.__params)
+        write_pretty_params(f, self, self._params)
 
 
 class DefaultGenome(object):
