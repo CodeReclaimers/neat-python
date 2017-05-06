@@ -60,23 +60,7 @@ class BaseGene(object):
         return new_gene
 
 
-# TODO: Create some kind of aggregated config object that can replace
-# most of DefaultGeneConfig and genome.DefaultGenomeConfig?
 # TODO: Should these be in the nn module?  iznn and ctrnn can have additional attributes.
-
-class DefaultGeneConfig(object):
-    def __init__(self, attribs, params):
-        self.attribs = attribs
-        for a in attribs:
-            for n in a.config_item_names():
-                setattr(self, n, params.get(n))
-
-    def save(self, f):
-        for a in self.attribs:
-            for n in a.config_item_names():
-                v = getattr(self, n)
-                if v is not None:
-                    f.write('{0} = {1}\n'.format(n, v))
 
 
 class DefaultNodeGene(BaseGene):
@@ -84,10 +68,6 @@ class DefaultNodeGene(BaseGene):
                            FloatAttribute('response'),
                            StringAttribute('activation'),
                            StringAttribute('aggregation')]
-
-    @classmethod
-    def parse_config(cls, config, param_dict):
-        return DefaultGeneConfig(cls.__gene_attributes__, param_dict)
 
     def distance(self, other, config):
         d = abs(self.bias - other.bias) + abs(self.response - other.response)
@@ -104,10 +84,6 @@ class DefaultNodeGene(BaseGene):
 class DefaultConnectionGene(BaseGene):
     __gene_attributes__ = [FloatAttribute('weight'),
                            BoolAttribute('enabled')]
-
-    @classmethod
-    def parse_config(cls, config, param_dict):
-        return DefaultGeneConfig(cls.__gene_attributes__, param_dict)
 
     def distance(self, other, config):
         d = abs(self.weight - other.weight)

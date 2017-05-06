@@ -10,7 +10,7 @@ http://www.izhikevich.org/publications/spikes.pdf
 """
 
 from neat.attributes import FloatAttribute
-from neat.genes import BaseGene, DefaultGeneConfig, DefaultConnectionGene
+from neat.genes import BaseGene, DefaultConnectionGene
 from neat.genome import DefaultGenomeConfig, DefaultGenome
 from neat.graphs import required_for_output
 from neat.six_util import itervalues
@@ -39,10 +39,6 @@ class IZNodeGene(BaseGene):
                            FloatAttribute('b'),
                            FloatAttribute('c'),
                            FloatAttribute('d')]
-
-    @classmethod
-    def parse_config(cls, config, param_dict):
-        return DefaultGeneConfig(cls.__gene_attributes__, param_dict)
 
     def distance(self, other, config):
         s = abs(self.a - other.a) + abs(self.b - other.b) \

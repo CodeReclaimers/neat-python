@@ -11,17 +11,13 @@ import neat
 from neat.activations import ActivationFunctionSet
 from neat.attributes import FloatAttribute, BoolAttribute, StringAttribute
 from neat.config import ConfigParameter, write_pretty_params
-from neat.genes import BaseGene, DefaultGeneConfig
+from neat.genes import BaseGene
 from neat.six_util import iteritems, iterkeys
 
 import visualize
 
 class CircuitNodeGene(BaseGene):
     __gene_attributes__ = []
-
-    @classmethod
-    def parse_config(cls, config, param_dict):
-        return DefaultGeneConfig(cls.__gene_attributes__, param_dict)
 
     def distance(self, other, config):
         return 0.0
@@ -31,10 +27,6 @@ class CircuitConnectionGene(BaseGene):
     __gene_attributes__ = [StringAttribute('component'),
                            FloatAttribute('value'),
                            BoolAttribute('enabled')]
-
-    @classmethod
-    def parse_config(cls, config, param_dict):
-        return DefaultGeneConfig(cls.__gene_attributes__, param_dict)
 
     def distance(self, other, config):
         d = abs(self.value - other.value)
