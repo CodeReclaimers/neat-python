@@ -43,6 +43,8 @@ class Population(object):
             self.population, self.species, self.generation = initial_state
 
         self.best_genome = None
+        self.break_generation = None
+        self.max_generations = 1
 
     def add_reporter(self, reporter):
         self.reporters.add(reporter)
