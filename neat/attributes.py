@@ -48,7 +48,7 @@ class FloatAttribute(BaseAttribute):
             mutate_power = getattr(config, self.mutate_power_name)
             return self.clamp(value + gauss(0.0, mutate_power), config)
 
-        return self.clamp(value, config)
+        return value
 
     def validate(self, config):
         pass
