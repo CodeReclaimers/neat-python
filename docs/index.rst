@@ -1,7 +1,7 @@
 Welcome to NEAT-Python's documentation!
 =======================================
 
-NEAT (NeuroEvolution of Augmenting Topologies) is a method developed by Kenneth O. Stanley for evolving arbitrary neural
+:abbr:`NEAT (NeuroEvolution of Augmenting Topologies)` is a method developed by Kenneth O. Stanley for evolving arbitrary neural
 networks. NEAT-Python is a pure Python implementation of NEAT, with no dependencies other than the Python standard library.
 
 *Note*: Some of the sample code has other dependencies; please see each sample's README file for additional details
@@ -31,6 +31,8 @@ Contents:
    activation
    ctrnn
    genome-interface
+   reproduction-interface
+   glossary
 
 Indices and tables
 ==================

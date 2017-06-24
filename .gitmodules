@@ -1,0 +1,3 @@
+[submodule "neat-python-sphinx"]
+	path = docs/_build/html
+	url = https://github.com/drallensmith/drallensmith.github.io
