@@ -1,7 +1,7 @@
 NEAT Overview
 =============
 
-NEAT (NeuroEvolution of Augmenting Topologies) is an evolutionary algorithm that creates artificial networks. For a
+:dfn:`NEAT` (NeuroEvolution of Augmenting Topologies) is an evolutionary algorithm that creates artificial networks. For a
 detailed description of the algorithm, you should probably go read some of `Stanley's papers
 <http://www.cs.ucf.edu/~kstanley/#publications>`_ on his website.
 
@@ -15,8 +15,8 @@ if you just want a high-level overview.
 In the current implementation of NEAT-Python, a population of individual genomes is maintained.  Each genome contains
 two sets of genes that describe how to build an artificial neural network:
 
-    1. Node genes, each of which specifies a single neuron.
-    2. Connection genes, each of which specifies a single connection between neurons.
+    1. :term:`Node` genes, each of which specifies a single neuron.
+    2. :term:`Connection` genes, each of which specifies a single connection between neurons.
 
 To evolve a solution to a problem, the user must provide a fitness function which computes a single real number
 indicating the quality of an individual genome: better ability to solve the problem means a higher score.  The algorithm
