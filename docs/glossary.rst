@@ -9,7 +9,7 @@ Glossary
   bias
   response
     These are the attributes of a :term:`node`. They determine the output of a node as follows:
-    :math:`\begin{equation}\operatorname{activation_function}(bias + (response * \operatorname{aggregation_function}(input_connections)))\end{equation}`
+    :math:`\begin{equation}\operatorname{activation}(bias + (response * \operatorname{aggregation}(inputs)))\end{equation}`
     For available activation functions, see :ref:`activation-functions-label`
 
   node
@@ -24,7 +24,7 @@ Glossary
 
   hidden node
     These are the :term:`nodes <node>` other than :term:`input nodes <input node>` and :term:`output nodes <output node>`. In the original
-    :abbr:`NEAT (NeuroEvolution of Augmenting Topologies)` :doc:`algorithm <neat_overview>`, networks start with no hidden nodes, and evolve
+    NEAT (NeuroEvolution of Augmenting Topologies) :doc:`algorithm <neat_overview>`, networks start with no hidden nodes, and evolve
     more complexity as necessary - thus "Augmenting Topologies".
 
   output node
@@ -58,7 +58,7 @@ Glossary
   discrete-time
     A discrete-time neural network (which should be assumed unless specified otherwise) proceeds in time steps, with processing at one :term:`node`
     followed by going through :term:`connections <connection>` to other nodes followed by processing at those other nodes, eventually giving the output.
-    A continuous=time neural network, such as the :doc:`ctrnn <ctrnn>` (continuous-time :term:`recurrent` neural network) implemented in NEAT-Python,
+    A continuous-time neural network, such as the :doc:`ctrnn <ctrnn>` (continuous-time :term:`recurrent` neural network) implemented in NEAT-Python,
     simulates a continuous process via differential equations (or other methods).
 
   genome
