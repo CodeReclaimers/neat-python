@@ -1,9 +1,6 @@
 Glossary
 =========
 
-.. I will check into the possibility of using sphinx.ext.imgmath instead of sphinx.ext.mathjax - I use lynx to check for browser compatibility
-.. and HTML errors, and it does not do JavaScript, so I would greatly appreciate the substitution. - Allen (drallensmith)
-
 .. glossary::
   :sorted:
 
@@ -12,7 +9,7 @@ Glossary
   bias
   response
     These are the attributes of a :term:`node`. They determine the output of a node as follows:
-    (TODO: Replace with proper mathematical formatting) activation_function(bias + (response*aggregation_function(input_connections)))
+    :math:`\begin{equation}\operatorname{activation_function}(bias + (response * \operatorname{aggregation_function}(input_connections)))\end{equation}`
     For available activation functions, see :ref:`activation-functions-label`
 
   node
@@ -46,27 +43,36 @@ Glossary
     their :term:`weight` and whether or not they are :term:`enabled`; both are determined by their :term:`gene`.
 
   feedforward
+  feed-forward
     A neural network that is not :term:`recurrent` is feedforward - it has no loops. (Note that this means that it has no memory - no ability to take into account
     past events.) It can thus be described as a `DAG (Directed Acyclic Graph) <https://en.wikipedia.org/wiki/Directed_acyclic_graph>`_.
 
   recurrent
     A recurrent neural network has cycles in its topography. These may be a :term:`node` having a :term:`connection` back to itself, with (for a
-    :term:`discrete time` neural network) the prior time period's output being provided to the node as one of its inputs. They may also have longer cycles,
+    :term:`discrete-time` neural network) the prior time period's output being provided to the node as one of its inputs. They may also have longer cycles,
     such as with output from node A going into node B (via a connection) and an output from node B going (via another connection) into node A. (This
     gives it a possibly-useful memory - an ability to take into account past events - unlike a :term:`feedforward` neural network; however, it also makes it
-    harder to analyze.)
+    harder to work with in some respects.)
 
-  continuous time
-  discrete time
-    A discrete time neural network proceeds in time steps, with processing at one :term:`node` followed by going through :term:`connections <connection>`
-    to other nodes followed by processing at those other nodes. A continuous time neural network, such as the :doc:`ctrnn <ctrnn>` (continuous
-    time :term:`recurrent` neural network) implemented in NEAT-Python, simulates a continuous process via differential equations (or other methods).
+  continuous-time
+  discrete-time
+    A discrete-time neural network (which should be assumed unless specified otherwise) proceeds in time steps, with processing at one :term:`node`
+    followed by going through :term:`connections <connection>` to other nodes followed by processing at those other nodes, eventually giving the output.
+    A continuous=time neural network, such as the :doc:`ctrnn <ctrnn>` (continuous-time :term:`recurrent` neural network) implemented in NEAT-Python,
+    simulates a continuous process via differential equations (or other methods).
 
   genome
-    Blah [include program documentation links...]
+    The set of :term:`genes <gene>` that together code for a (neural network) phenotype. TODO: Add appropriate links.
 
   genomic distance
-    Blah [link!]
+    An approximate measure of the difference between :term:`genomes <genome>`, used in dividing the population into :term:`species`. TODO: Explain
+    further, put in links, etc...
 
   gene
-    Blah [link!]
+    The information coding (in the current implementation) for a particular aspect (:term:`node` or :term:`connection`) of a neural network phenotype.
+    TODO: Add links.
+
+  species
+    Subdivisions of the population into groups of similar (by the :term:`genomic distance` measure) individuals (:term:`genomes <genome>`),
+    which compete among themselves but share fitness relative to the rest of the population. This is, among other things, a mechanism to try to avoid the
+    quick elimination of high-potential topological mutants that have an initial poor fitness prior to smaller "tuning" changes. TODO: Add links.

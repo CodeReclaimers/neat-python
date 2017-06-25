@@ -6,13 +6,12 @@ The configuration file is in the format described in the `Python ConfigParser do
 <https://docs.python.org/2/library/configparser.html>`_ as "a basic configuration file parser language
 which provides a structure similar to what you would find on Microsoft Windows INI files."
 
-All settings must be explicitly enumerated in the configuration file.  This makes it less likely
-that library code changes will result in your project silently using different NEAT settings.  However,
+Most settings must be explicitly enumerated in the configuration file.  (This makes it less likely
+that library code changes will result in your project silently using different NEAT settings. There are some defaults, as noted below, and
+insofar as possible new configuration parameters will default to the existing behavior.)  However,
 it is not necessary that they appear in any certain order.
 
-.. Actually, there are some defaults built-in. I suggest being more explicit about them, and have been considering ways
-.. to make them more integrated with the configuration code. (Defaults are particularly needed on the introduction of
-.. new configuration parameters, which need to default to the prior behavior.) - Allen (drallensmith)
+.. I have been considering ways to make the existing defaults more integrated with the configuration code. - Allen (drallensmith)
 
 Note that the `Config` constructor also requires you to explicitly specify the types that will be used
 for the NEAT simulation.  This, again, is to help avoid silent changes in behavior.
@@ -24,8 +23,7 @@ The ``NEAT`` section specifies parameters particular to the generic NEAT algorit
 itself.  This section is always required.
 
 * *fitness_criterion*
-    The function used to compute the termination criterion from the set of genome fitnesses.  Allowable
-    values are: ``min``, ``max``, ``mean``
+    The function used to compute the termination criterion from the set of genome fitnesses.  Allowable values are: ``min``, ``max``, ``mean``
 * *fitness_threshold*
     When the fitness computed by ``fitness_criterion`` meets or exceeds this threshold, the evolution process will terminate.
 * *pop_size*
@@ -44,14 +42,16 @@ creating the `Config` instance; otherwise you need to include whatever configura
 required for your particular implementation.
 
 * *species_fitness_func*
-    The function used to compute species fitness.  Allowed values are: ``max``, ``min``, ``mean``, ``median``
+    The function used to compute species fitness.  **This defaults to ``mean``.** Allowed values are: ``max``, ``min``, ``mean``, ``median``
 * *max_stagnation*
-    Species that have not shown improvement in more than this number of generations will be considered stagnant and removed.
+    Species that have not shown improvement in more than this number of generations will be considered stagnant and removed. **This defaults to 15.**
 * *species_elitism*
     The number of species that will be protected from stagnation; mainly intended to prevent
     total extinctions caused by all species becoming stagnant before new species arise.  For example,
     a ``species_elitism`` setting of 3 will prevent the 3 species with the highest species fitness from
-    being removed for stagnation regardless of the amount of time they have not shown improvement.
+    being removed for stagnation regardless of the amount of time they have not shown improvement. **This defaults to 0.**
+
+.. write_config in stagnation.py uses a default of 15 for species_elitism, but the default by parse_config is 0.
 
 [DefaultReproduction] section
 -----------------------------
@@ -62,9 +62,11 @@ creating the `Config` instance; otherwise you need to include whatever configura
 required for your particular implementation.
 
 * *elitism*
-    The number of most-fit individuals in each species that will be preserved as-is from one generation to the next.
+    The number of most-fit individuals in each species that will be preserved as-is from one generation to the next. **This defaults to 0.**
 * *survival_threshold*
-    The fraction for each species allowed to reproduce each generation.
+    The fraction for each species allowed to reproduce each generation. **This defaults to 0.2.**
+
+.. There is also a "min_species_size" configuration parameter, defaulting to 2, although it is not written out by write_config in reproduction.py.
 
 [DefaultGenome] section
 -----------------------
@@ -74,22 +76,28 @@ This section is only necessary if you specify this class as the genome implement
 creating the `Config` instance; otherwise you need to include whatever configuration (if any) is
 required for your particular implementation.
 
+.. index:: activation function
+
 * *activation_default*
-    The default :term:`activation function` assigned to new :term:`nodes <node>`.
+    The default :term:`activation function` assigned to new :term:`nodes <node>`. **If none is given, or ``random`` is specified, one of the ``activation_options``
+    will be chosen at random.**
 * *activation_mutate_rate*
     The probability that mutation will replace the node's activation function with a randomly-determined member of the ``activation_options``.
     Valid values are in [0.0, 1.0].
 * *activation_options*
-    A space-separated list of the activation functions that may be used by nodes.  The
+    A space-separated list of the activation functions that may be used by nodes.  **This defaults to ``sigmoid``.** The
     available functions can be found here: :ref:`activation-functions-label`
 
+.. index:: aggregation function
+
 * *aggregation_default*
-    The default :term:`aggregation function` assigned to new nodes. The aggregation function combines the inputs.
+    The default :term:`aggregation function` assigned to new nodes. **If none is given, or ``random`` is specified, one of the ``aggregation_options``
+    will be chosen at random.**
 * *aggregation_mutate_rate*
     The probability that mutation will replace the node's aggregation function with a randomly-determined member of the ``aggregation_options``.
     Valid values are in [0.0, 1.0].
 * *aggregation_options*
-    A space-separated list of the aggregation functions that may be used by nodes.  The
+    A space-separated list of the aggregation functions that may be used by nodes.  **This defaults to ``sum``.** The
     available functions are: ``sum``, ``product``, ``min``, ``max``
 
 * *bias_init_mean*
@@ -108,7 +116,7 @@ required for your particular implementation.
     The probability that mutation will replace the bias of a node with a newly chosen random value (as if it were a new node).
 
 * *compatibility_threshold*
-    Individuals whose :term:`genomic distance` is less than this threshold are considered to be in the same species.
+    Individuals whose :term:`genomic distance` is less than this threshold are considered to be in the same :term:`species`.
 * *compatibility_disjoint_coefficient*
     The coefficient for the disjoint+excess :term:`gene` counts' contribution to the genomic distance.
 * *compatibility_weight_coefficient*
@@ -120,8 +128,11 @@ required for your particular implementation.
     The probability that mutation will delete an existing connection. Valid values are in [0.0, 1.0].
 
 * *enabled_default*
-    The default :term:`enabled` status of newly created connections (including in newly-created :term:`genomes <genome>`).  Valid values are `True`
-    and `False`.
+    The default :term:`enabled` status of newly created connections.  Valid values are `True` and `False`.
+
+.. note::
+   "Newly created connections" include ones in newly-created genomes, if those have initial connections.
+
 * *enabled_mutate_rate*
     The probability that mutation will replace (50/50 chance of `True` or `False`) the enabled status of a connection.
     Valid values are in [0.0, 1.0].
@@ -133,7 +144,7 @@ required for your particular implementation.
 * *initial_connection*
     Specifies the initial connectivity of newly-created genomes.  There are four allowed values:
 
-    * ``unconnected`` - No :term:`connections <connection>` are initially present.
+    * ``unconnected`` - No :term:`connections <connection>` are initially present. **This is the default.**
     * ``fs_neat`` - One randomly-chosen :term:`input node` has one connection to each :term:`hidden <hidden node>` and
       :term:`output node`. (This is the FS-NEAT scheme.)
     * ``full`` - Each :term:`input node` is connected to all :term:`hidden <hidden node>` and :term:`output nodes <output node>`,

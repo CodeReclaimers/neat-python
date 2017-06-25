@@ -23,7 +23,7 @@ Initialization
 `__init__(self, config, reporters, stagnation)` - Takes the top-level Config object, a ReporterSet instance,
 and a stagnation object instance.
 
-Ohter methods
+Other methods
 -------------
 
 `create_new(self, genome_type, genome_config, num_genomes):` - Create `num_genomes` new genomes of the given type
