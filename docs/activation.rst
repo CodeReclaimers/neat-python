@@ -3,7 +3,7 @@
 Overview of builtin activation functions
 ========================================
 
-Note that some of these functions are scaled differently from the canonical
+Note that some of these :index:`functions <activation function>` are scaled differently from the canonical
 versions you may be familiar with.  The intention of the scaling is to place
 more of the functions' "interesting" behavior in the region :math:`\left[-1, 1\right] \times \left[-1, 1\right]`.
 
