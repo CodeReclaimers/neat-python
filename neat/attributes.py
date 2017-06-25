@@ -46,9 +46,9 @@ class FloatAttribute(BaseAttribute):
         mutate_rate = getattr(config, self.mutate_rate_name)
         if r < replace_rate + mutate_rate:
             mutate_power = getattr(config, self.mutate_power_name)
-            return value + gauss(0.0, mutate_power)
+            return self.clamp(value + gauss(0.0, mutate_power), config)
 
-        return self.clamp(value, config)
+        return value
 
     def validate(self, config):
         pass
