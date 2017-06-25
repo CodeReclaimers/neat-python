@@ -2,6 +2,8 @@
 Module summaries
 ==================
 
+TODO: Finish putting in modules; add links; fix problem with width of displayed linked highlighted source code.
+
 .. py:module:: activations
    :synopsis: Has the built-in activation functions and code for using them and adding new user-defined ones.
 
@@ -9,9 +11,11 @@ activations
 ---------------
 
   .. py:exception:: InvalidActivationFunction(Exception)
+
                           Exception called if an activation function being added is invalid according to its `validate_activation` method.
 
   .. py:class:: ActivationFunctionSet
+
                Contains the list of current valid activation functions, including methods for adding and getting them.
 
 .. py:module:: attributes
@@ -23,15 +27,19 @@ attributes
   .. inheritance-diagram:: attributes
 
   .. py:class:: BaseAttribute(self, name)
+
                Superclass for the type-specialized attribute subclasses.
 
   .. py:class:: FloatAttribute(BaseAttribute)
+
                Class for numeric attributes; includes code for configuration, creation, and mutation.
 
   .. py:class:: BoolAttribute(BaseAttribute)
+
                Class for boolean attributes; includes code for configuration, creation, and mutation.
 
   .. py:class:: StringAttribute(BaseAttribute)
+
                Class for string attributes, which are selected from a list of options; includes code for configuration, creation, and mutation.
 
 .. py:module:: checkpoint
@@ -41,6 +49,7 @@ checkpoint
 ---------------
 
   .. py:class:: Checkpointer(self, generation_interval=100, time_interval_seconds=300)
+
                A reporter class that performs checkpointing using `pickle` to save and restore populations (and other aspects of the simulation state).
 
 .. py:module:: config
@@ -57,6 +66,7 @@ config
                :param str value_type: The type that the configuration parameter should be; must be one of `str`, `int`, `bool`, `float`, or `list`.
 
   .. py:class:: Config(self, genome_type, reproduction_type, species_set_type, stagnation_type, filename)
+
                A simple container for user-configurable parameters of NEAT. The four parameters ending in ``_type`` may be the defaults or user-provided objects, which must make available the methods `parse_config` and `write_config`, plus others depending on which object it is.
 
 .. py:module:: ctrnn
@@ -66,9 +76,11 @@ ctrnn
 -------
 
   .. py:class:: CTRNNNodeEval(self, time_constant, activation, aggregation, bias, response, links)
+
 		Sets up the basic ctrnn nodes.
 
   .. py:class:: CTRNN(self, inputs, outputs, node_evals)
+
                Sets up the ctrnn network itself.
 
 .. py:module:: genes
@@ -86,9 +98,11 @@ genes
                :param int key: The gene identifier. **For connection genes, genetic distances use the identifiers of the connected nodes, not the connection gene's identifier.**
 
   .. py:class:: DefaultNodeGene(BaseGene)
+
                Groups attributes specific to node genes (of the most frequently-used type) and calculates genetic distances between two homologous (not disjoint or excess) node genes.
 
   .. py:class:: DefaultConnectionGene(BaseGene)
+
                Groups attributes specific to connection genes and calculates genetic distances between two homologous (not disjoint or excess) connection genes.
 
 .. py:module:: genome
@@ -100,9 +114,11 @@ genome
   .. inheritance-diagram:: neat.genome iznn.IZGenome
 
   .. py:class:: DefaultGenomeConfig(self, params)
+
                Does the configuration for the DefaultGenome class.
 
   .. py:class:: DefaultGenome(self, key)
+
                The provided genome class.
 
 .. py:module:: graphs
@@ -112,6 +128,7 @@ graphs
 ---------
 
   .. py:function:: creates_cycle(connections, test)
+
                    Returns true if the addition of the "test" connection would create a cycle, assuming that no cycle already exists in the graph represented by "connections". Used to avoid recurrent networks when a pure feed-forward network is desired.
 
   .. py:function:: required_for_output(inputs, outputs, connections)
@@ -169,9 +186,11 @@ iznn
   .. inheritance-diagram:: iznn
 
   .. py:class:: IZNodeGene(BaseGene)
-                Contains attributes for the iznn node genes and determines genomic distance.
+
+                Contains attributes for the iznn node genes and determines genomic distances.
 
   .. py:class:: IZGenome(DefaultGenome)
+
                Contains the parse_config class method for iznn genome configuration.
 
   .. py:class:: IZNeuron(self, bias, a, b, c, d, inputs)
@@ -209,24 +228,29 @@ math_util
 -------------
 
   .. py:data:: stat_functions
+
                   Lookup table for commonly used ``{value} -> value`` functions; includes `max`, `min`, `mean`, and `median`.
 
   .. py:function:: mean(values)
+
                        Returns the arithmetic mean.
 
   .. py:function:: median(values)
+
                        Returns the median. (Note: Does not average between middle values.)
 
   .. py:function:: variance(values)
+
                        Returns the variance.
 
   .. py:function:: stdev(values)
+
                        Returns the standard deviation. *Note spelling.*
 
   .. py:function:: softmax(values)
-                        Compute the softmax (a differentiable/smooth maximum function) of the given value set.
 
-The softmax is computed as follows: :math:`\begin{equation}v_i = \exp(v_i) / s \text{where} s = \sum(\exp(v_0), \exp(v_1), \dotsc)\end{equation}`.
+                        Compute the softmax (a differentiable/smooth approximization of the maximum function) of the given value set.
+                        The softmax is defined as follows: :math:`\begin{equation}v_i = \exp(v_i) / s \text{, where } s = \sum(\exp(v_0), \exp(v_1), \dotsc)\end{equation}`.
 
 .. py:module:: nn.feed_forward
    :synopsis: A straightforward feed-forward neural network NEAT implementation.
@@ -246,6 +270,7 @@ nn.feed_forward
       :type node_evals: list(list(object))
 
       .. py:staticmethod:: create(genome, config)
+
                                   Receives a genome and returns its phenotype (a `FeedForwardNetwork`).
 
 .. py:module:: nn.recurrent
@@ -266,6 +291,7 @@ nn.recurrent
       :type node_evals: list(list(object))
 
       .. py:staticmethod:: create(genome, config)
+
                                   Receives a genome and returns its phenotype (a `RecurrentNetwork`).
 
 
@@ -280,9 +306,11 @@ reporting
   .. inheritance-diagram:: neat.reporting checkpoint.Checkpointer
 
   .. py:class:: ReporterSet
+
                     Keeps track of the set of reporters and gives functions to dispatch them at appropriate points.
 
   .. py:class:: BaseReporter
+
                     Definition of the reporter interface expected by ReporterSet. Inheriting from it will provide a set of `dummy` methods to be overridden as desired.
 
   .. py:class:: StdOutReporter(self, show_species_detail)
