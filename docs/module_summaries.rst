@@ -4,8 +4,7 @@ Module summaries
 
 .. todo::
 
-  Finish putting in modules; add links; fix problem with width of displayed linked highlighted source code (possibly done); go over parameters as used in code to make sure
-  are described correctly.
+  Finish putting in all needed material from modules; add links; go over parameters as used in code to make sure are described correctly.
 
 .. py:module:: activations
    :synopsis: Has the built-in activation functions and code for using them and adding new user-defined ones.
