@@ -253,6 +253,14 @@ class DefaultGenome(object):
         if key in self.connections:
             return
 
+        # Don't allow connections between two output nodes
+        if in_node in config.output_keys and out_node in config.output_keys:
+            return
+
+        # Don't allow connections between two input nodes
+        if in_node in config.input_keys and out_node in config.input_keys:
+            return
+
         # For feed-forward networks, avoid creating cycles.
         if config.feed_forward and creates_cycle(list(iterkeys(self.connections)), key):
             return

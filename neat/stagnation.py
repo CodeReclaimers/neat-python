@@ -58,7 +58,7 @@ class DefaultStagnation(object):
         result = []
         species_fitnesses = []
         num_non_stagnant = len(species_data)
-        for sid, s in species_data:
+        for idx, (sid, s) in enumerate(species_data):
             # Override stagnant state if marking this species as stagnant would
             # result in the total number of species dropping below the limit.
             # Because species are in ascending fitness order, less fit species
@@ -67,6 +67,9 @@ class DefaultStagnation(object):
             is_stagnant = False
             if num_non_stagnant > self.species_elitism:
                 is_stagnant = stagnant_time >= self.max_stagnation
+                
+            if (len(species_data) - idx) <= self.species_elitism:
+                is_stagnant = False
 
             if is_stagnant:
                 num_non_stagnant -= 1
