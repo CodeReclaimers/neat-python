@@ -1,26 +1,35 @@
+.. _configuration-file-description-label:
 
 Configuration file description
 ==============================
 
-The configuration file is in the format described in the `Python ConfigParser documentation
-<https://docs.python.org/2/library/configparser.html>`_ as "a basic configuration file parser language
-which provides a structure similar to what you would find on Microsoft Windows INI files."
+.. default-role:: any
+
+The configuration file is in the format described in the Python :py:mod:`configparser` documentation
+as "a basic configuration file parser language which provides a structure similar to what you would find on Microsoft Windows INI files."
 
 Most settings must be explicitly enumerated in the configuration file.  (This makes it less likely
 that library code changes will result in your project silently using different NEAT settings. There are some defaults, as noted below, and
-insofar as possible new configuration parameters will default to the existing behavior.)  However,
-it is not necessary that they appear in any certain order.
+insofar as possible new configuration parameters will default to the existing behavior.)
 
-.. I have been considering ways to make the existing defaults more integrated with the configuration code. - Allen (drallensmith)
+.. todo::
+
+  Work on ways to make the existing defaults more integrated with the configuration code. This may involve a third, optional (defaulting to ``None``)
+  parameter for `ConfigParameter`, giving a default. Such a mechanism will be needed to convert the configuration in `DefaultReproduction` and
+  `DefaultStagnation` to match that in other classes/modules. It would also be needed to add, for instance, an alternative uniform-distribution initialization
+  for various parameters such as weight and bias, without requiring all configuration files to be changed to specify the gaussian distribution currently in use.
 
 Note that the `Config` constructor also requires you to explicitly specify the types that will be used
 for the NEAT simulation.  This, again, is to help avoid silent changes in behavior.
+
+The configuration file is in several sections, of which at least one is required. However, there are no requirements for ordering within these sections, or for ordering of the sections themselves.
+
 
 [NEAT] section
 --------------
 
 The ``NEAT`` section specifies parameters particular to the generic NEAT algorithm or the experiment
-itself.  This section is always required.
+itself.  This section is always required, and is handled by the `Config` class itself.
 
 * *fitness_criterion*
     The function used to compute the termination criterion from the set of genome fitnesses.  Allowable values are: ``min``, ``max``, ``mean``
@@ -32,8 +41,8 @@ itself.  This section is always required.
 .. _reset-on-extinction-label:
 
 * *reset_on_extinction*
-    If this evaluates to `True`, when all species simultaneously become extinct due to stagnation, a new random
-    population will be created. If `False`, a `CompleteExtinctionException` will be thrown.
+    If this evaluates to ``True``, when all species simultaneously become extinct due to stagnation, a new random
+    population will be created. If ``False``, a `CompleteExtinctionException` will be thrown.
 
 
 [DefaultStagnation] section
@@ -54,7 +63,9 @@ required for your particular implementation.
     a ``species_elitism`` setting of 3 will prevent the 3 species with the highest species fitness from
     being removed for stagnation regardless of the amount of time they have not shown improvement. **This defaults to 0.**
 
-.. write_config in stagnation.py uses a default of 15 for species_elitism, but the default by parse_config is 0.
+.. todo::
+
+  `DefaultStagnation.write_config` uses a default of 15 for ``species_elitism``, but the default by `DefaultStagnation.parse_config` is 0, which will override.
 
 [DefaultReproduction] section
 -----------------------------
@@ -69,7 +80,9 @@ required for your particular implementation.
 * *survival_threshold*
     The fraction for each species allowed to reproduce each generation. **This defaults to 0.2.**
 
-.. There is also a "min_species_size" configuration parameter, defaulting to 2, although it is not written out by write_config in reproduction.py.
+.. todo::
+
+  There is also a ``min_species_size`` configuration parameter, defaulting to 2, although it is not written out by `DefaultReproduction.write_config`.
 
 [DefaultGenome] section
 -----------------------
@@ -79,7 +92,7 @@ This section is only necessary if you specify this class as the genome implement
 creating the `Config` instance; otherwise you need to include whatever configuration (if any) is
 required for your particular implementation.
 
-.. index:: activation function
+.. index:: ! activation function
 
 * *activation_default*
     The default :term:`activation function` assigned to new :term:`nodes <node>`. **If none is given, or ``random`` is specified, one of the ``activation_options``
@@ -91,7 +104,7 @@ required for your particular implementation.
     A space-separated list of the activation functions that may be used by nodes.  **This defaults to ``sigmoid``.** The
     available functions can be found here: :ref:`activation-functions-label`
 
-.. index:: aggregation function
+.. index:: ! aggregation function
 
 * *aggregation_default*
     The default :term:`aggregation function` assigned to new nodes. **If none is given, or ``random`` is specified, one of the ``aggregation_options``
@@ -102,6 +115,8 @@ required for your particular implementation.
 * *aggregation_options*
     A space-separated list of the aggregation functions that may be used by nodes.  **This defaults to ``sum``.** The
     available functions are: ``sum``, ``product``, ``min``, ``max``
+
+.. index:: ! bias
 
 * *bias_init_mean*
     The mean of the normal distribution used to select :term:`bias` values for new nodes.
@@ -118,6 +133,8 @@ required for your particular implementation.
 * *bias_replace_rate*
     The probability that mutation will replace the bias of a node with a newly chosen random value (as if it were a new node).
 
+.. index:: ! genomic distance
+
 * *compatibility_threshold*
     Individuals whose :term:`genomic distance` is less than this threshold are considered to be in the same :term:`species`.
 * *compatibility_disjoint_coefficient*
@@ -131,17 +148,17 @@ required for your particular implementation.
     The probability that mutation will delete an existing connection. Valid values are in [0.0, 1.0].
 
 * *enabled_default*
-    The default :term:`enabled` status of newly created connections.  Valid values are `True` and `False`.
+    The default :term:`enabled` status of newly created connections.  Valid values are ``True`` and ``False``.
 
 .. note::
    "Newly created connections" include ones in newly-created genomes, if those have initial connections.
 
 * *enabled_mutate_rate*
-    The probability that mutation will replace (50/50 chance of `True` or `False`) the enabled status of a connection.
+    The probability that mutation will replace (50/50 chance of ``True`` or ``False``) the enabled status of a connection.
     Valid values are in [0.0, 1.0].
 
 * *feed_forward*
-    If this evaluates to `True`, generated networks will not be allowed to have :term:`recurrent` connections (they will be :term:`feedforward`).
+    If this evaluates to ``True``, generated networks will not be allowed to have :term:`recurrent` connections (they will be :term:`feedforward`).
     Otherwise they may be (but are not forced to be) recurrent.
 
 * *initial_connection*
@@ -167,6 +184,8 @@ required for your particular implementation.
 * *num_outputs*
     The number of :term:`output nodes <output node>`, to which the network delivers outputs.
 
+.. index:: ! response
+
 * *response_init_mean*
     The mean of the normal distribution used to select :term:`response` multipliers for new nodes.
 * *response_init_stdev*
@@ -181,6 +200,8 @@ required for your particular implementation.
     The probability that mutation will change the response multiplier of a node by adding a random value.
 * *response_replace_rate*
     The probability that mutation will replace the response multiplier of a node with a newly chosen random value (as if it were a new node).
+
+.. index:: ! weight
 
 * *weight_init_mean*
     The mean of the normal distribution used to select :term:`weight` values for new connections.
