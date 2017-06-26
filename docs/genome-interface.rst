@@ -3,7 +3,9 @@
 Genome Interface
 ================
 
-TODO: I will be coming back to this after I go through the module summaries; it is currently in a partially-revised state.
+.. todo::
+
+  I will be coming back to this after I go through the module summaries; it is currently in a partially-revised state.
 
 This is an outline of the minimal interface that is expected to be present on genome objects.
 

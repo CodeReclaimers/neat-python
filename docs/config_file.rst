@@ -28,6 +28,9 @@ itself.  This section is always required.
     When the fitness computed by ``fitness_criterion`` meets or exceeds this threshold, the evolution process will terminate.
 * *pop_size*
     The number of individuals in each generation.
+
+.. _reset-on-extinction-label:
+
 * *reset_on_extinction*
     If this evaluates to `True`, when all species simultaneously become extinct due to stagnation, a new random
     population will be created. If `False`, a `CompleteExtinctionException` will be thrown.

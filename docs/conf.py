@@ -37,6 +37,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.graphviz',
     'sphinx.ext.inheritance_diagram',
+    'sphinx.ext.todo',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -112,7 +113,10 @@ pygments_style = 'sphinx'
 #keep_warnings = False
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
-todo_include_todos = False
+if tags.has('draft'):
+    todo_include_todos = True
+else:
+    todo_include_todos = False
 
 
 # -- Options for HTML output ----------------------------------------------
@@ -124,7 +128,9 @@ todo_include_todos = False
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+html_theme_options = {
+    'page_width': 'auto', # getting cutoff of included source code
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
