@@ -38,6 +38,7 @@ extensions = [
     'sphinx.ext.graphviz',
     'sphinx.ext.inheritance_diagram',
     'sphinx.ext.todo',
+    'sphinx.ext.intersphinx',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -118,6 +119,8 @@ if tags.has('draft'):
 else:
     todo_include_todos = False
 
+# Provide links to python3.5 documentation
+intersphinx_mapping = {'python': ('https://docs.python.org/3.5', None)}
 
 # -- Options for HTML output ----------------------------------------------
 
