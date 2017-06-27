@@ -26,8 +26,10 @@ configuration settings file.
 This is demonstrated in the `memory-fixed
 <https://github.com/CodeReclaimers/neat-python/tree/master/examples/memory-fixed>`_ example.
 
-NOTE: This method is only valid when using the :py:class:`DefaultGenome <genome.DefaultGenome>` implementation--different genome implementations
-may require a different method of registration.
+.. note::
+
+  This method is only valid when using the :py:class:`DefaultGenome <genome.DefaultGenome>` implementation; different genome implementations
+  may require a different method of registration.
 
 .. index:: ! reporting
 
@@ -40,7 +42,9 @@ it with an object which implements the same interface as `BaseReporter` (in :py:
 
 :py:class:`StdOutReporter <reporting.StdOutReporter>`, :py:class:`StatisticsReporter <statistics.StatisticsReporter>`, and :py:class:`Checkpointer <checkpoint.Checkpointer>` may be useful as examples of the behavior you can add using a reporter.
 
-TODO: document reporter interface
+.. todo::
+
+  Document reporter interface
 
 .. index:: ! genome
 
@@ -48,8 +52,7 @@ New genome types
 ----------------
 
 To use a different genome type, you can create a custom class whose interface matches that of
-`DefaultGenome` (the minimum genome type interface is documented here: :ref:`genome-interface-label`)
-and pass this as the ``genome_type`` argument to the `Config` constructor.
+`DefaultGenome` and pass this as the ``genome_type`` argument to the `Config` constructor. The minimum genome type interface is documented here: :ref:`genome-interface-label`.
 
 This is demonstrated in the `circuit evolution
 <https://github.com/CodeReclaimers/neat-python/blob/master/examples/circuits/evolve.py>`_ example.
@@ -65,11 +68,15 @@ Speciation scheme
 -----------------
 
 To use a different speciation scheme, you can create a custom class whose interface matches that of
-`DefaultSpeciesSet` and pass this as the ``species_set_type`` argument to the `Config` constructor.
+:py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>` and pass this as the ``species_set_type`` argument to the `Config` constructor.
 
-TODO: document species set interface
+.. todo::
 
-TODO: include example
+  Further document species set interface (some done in module_summaries)
+
+.. todo::
+
+  Include example
 
 .. index:: ! stagnation
 
@@ -86,7 +93,9 @@ of `DefaultStagnation`, and provide it as the ``stagnation_type`` argument to th
 This is demonstrated in the `interactive 2D image
 <https://github.com/CodeReclaimers/neat-python/blob/master/examples/picture2d/interactive.py>`_ example.
 
-TODO: document stagnation interface
+.. todo::
+
+  Document stagnation interface
 
 .. index:: ! DefaultReproduction
 
@@ -99,4 +108,6 @@ The default reproduction scheme uses explicit fitness sharing.  This behavior is
 To use a different reproduction scheme, you must create a custom class whose interface matches that
 of `DefaultReproduction`, and provide it as the ``reproduction_type`` argument to the `Config` constructor.
 
-TODO: include example
+.. todo::
+
+  Include example

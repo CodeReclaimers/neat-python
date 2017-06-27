@@ -83,3 +83,5 @@ Glossary
     Subdivisions of the population into groups of similar (by the :term:`genomic distance` measure) individuals (:term:`genomes <genome>`),
     which compete among themselves but share fitness relative to the rest of the population. This is, among other things, a mechanism to try to avoid the
     quick elimination of high-potential topological mutants that have an initial poor fitness prior to smaller "tuning" changes. TODO: Add links.
+
+:ref:`Table of Contents <toc-label>`

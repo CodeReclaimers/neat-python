@@ -10,9 +10,9 @@ Welcome to NEAT-Python's documentation!
 networks. NEAT-Python is a pure Python implementation of NEAT, with no dependencies other than the Python standard library.
 
 .. note::
-   Some of the example code has other dependencies; please see each sample's README file for additional details and installation/setup instructions.
-   In addition to dependencies varying depending on the example, visualization of the results (via ``visualize.py`` modules) frequently requires ``graphviz``
-   and/or ``matplotlib``.
+  Some of the example code has other dependencies; please see each sample's README file for additional details and installation/setup instructions.
+  In addition to dependencies varying depending on the example, visualization of the results (via ``visualize.py`` modules) frequently requires
+  `graphviz <https://pypi.python.org/pypi/graphviz>`_ and/or `matplotlib <https://matplotlib.org/users/installing.html>`_.
 
 Support for HyperNEAT and other extensions to NEAT is planned once the fundamental NEAT implementation is
 more complete and stable.
@@ -24,6 +24,7 @@ For further information regarding general concepts and theory, please see `Selec
 If you encounter any confusing or incorrect information in this documentation, please open an issue in the `GitHub project
 <https://github.com/CodeReclaimers/neat-python>`_.
 
+.. _toc-label:
 
 Contents:
 
