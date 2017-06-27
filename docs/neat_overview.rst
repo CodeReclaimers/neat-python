@@ -29,3 +29,7 @@ The reproduction and mutation operations may add nodes and/or connections to gen
 genomes (and the neural networks they produce) may become more and more complex.  When the preset number of generations
 is reached, or when at least one individual exceeds the user-specified :ref:`fitness threshold <fitness-threshold-label>`, the algorithm terminates.
 
+.. todo::
+
+  Explain speciation (including genetic distance determination).
+

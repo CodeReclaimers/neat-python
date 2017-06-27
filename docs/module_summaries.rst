@@ -137,6 +137,8 @@ ctrnn
 
     Sets up the ctrnn network itself.
 
+.. index:: ! genomic distance
+
 .. py:module:: genes
    :synopsis: Handles node and connection genes.
 
@@ -166,7 +168,8 @@ genes
 
     .. py:method:: distance(other, config)
 
-      Determines weight of differences between node genes using their 4 :term:`attributes`; the final result is multiplied by the configured ``compatibility_weight_coefficient``.
+      Determines weight of differences between node genes using their 4 :term:`attributes`;
+      the final result is multiplied by the configured :ref:`compatibility_weight_coefficient <compatibility-weight-coefficient-label>`.
 
       :param object other: The other ``DefaultNodeGene``.
       :param object config: The genome configuration object.
@@ -181,7 +184,7 @@ genes
     .. py:method:: distance(other, config)
 
       Determines weight of differences between connection genes using their 2 :term:`attributes`;
-      the final result is multiplied by the configured ``compatibility_weight_coefficient``.
+      the final result is multiplied by the configured :ref:`compatibility_weight_coefficient <compatibility-weight-coefficient-label>`.
 
       :param object other: The other ``DefaultConnectionGene``.
       :param object config: The genome configuration object.
@@ -191,6 +194,8 @@ genes
 .. todo::
 
    Explain more regarding parameters, required functions of the below; put in links referencing genome-interface.
+
+.. index:: ! genomic distance
 
 .. py:module:: genome
    :synopsis: Handles genomes (individuals in the population).
@@ -240,8 +245,8 @@ genome
     .. py:method:: distance(other, config)
 
       Required interface method. Returns the :term:`genomic distance` between this genome and the other. This distance value is used to compute
-      genome compatibility for speciation. Uses the :py:meth:`DefaultNodeGene.distance` and :py:meth:`DefaultConnectionGene.distance` methods for
-      :term:`homologous` pairs, and the configured ``compatibility_disjoint_coefficient`` for disjoint/excess genes.
+      genome compatibility for :py:mod:`speciation <species>`. Uses the :py:meth:`DefaultNodeGene.distance` and :py:meth:`DefaultConnectionGene.distance` methods for
+      :term:`homologous` pairs, and the configured :ref:`compatibility_disjoint_coefficient <compatibility-disjoint-coefficient-label>` for disjoint/excess genes.
 
       :param object other: The other DefaultGenome instance (genome) to be compared to.
       :param object config: The genome configuration object.
@@ -316,7 +321,8 @@ indexer
 
       :param result: Returned unmodified unless `None`.
       :type result: int or None
-      :return int: Identifier/key to use.
+      :return: Identifier/key to use.
+      :rtype: int
 
 .. py:module:: iznn
    :synopsis: Implements a spiking neural network (closer to in vivo neural networks) based on Izhikevich's 2003 model.
@@ -530,6 +536,10 @@ reporting
 
     :param bool show_species_detail: Whether or not to show additional details about each species in the population.
 
+.. todo::
+
+  Add links to configuration file.
+
 .. py:module:: reproduction
    :synopsis: Handles creation of genomes, either from scratch or by sexual or asexual reproduction from parents.
 
@@ -549,7 +559,7 @@ reproduction
 
       Required interface method. Provides defaults for ``elitism``, ``survival_threshold``, and ``min_species_size`` parameters and updates them from the configuration file.
 
-      :params dict param_dict: Dictionary of parameters from configuration file.
+      :param dict param_dict: Dictionary of parameters from configuration file.
       :return: Configuration object; considered opaque by rest of code, so current type returned is not required for interface.
       :rtype: dict
 
@@ -557,8 +567,8 @@ reproduction
 
       Required interface method. Saves ``elitism`` and ``survival_threshold`` (but not ``min_species_size``) parameters to new config file.
 
-      :params file f: File to write to.
-      :params dict param_dict: Dictionary of current parameters in this implementation; more generally, reproduction config object.
+      :param file f: File to write to.
+      :param dict param_dict: Dictionary of current parameters in this implementation; more generally, reproduction config object.
 
     .. py:method:: create_new(genome_type, genome_config, num_genomes)
 
@@ -572,12 +582,12 @@ reproduction
 
     .. py:method:: reproduce(config, species, pop_size, generation)
 
-      Creates the population to be used in the next generation from the given configuration instance, SpeciesSet instance, desired size of the population, and
-      current generation number.  This method is called after all genomes have been evaluated and their ``fitness`` member assigned.  This method
+      Required interface method. Creates the population to be used in the next generation from the given configuration instance, SpeciesSet instance, desired size of the
+      population, and current generation number.  This method is called after all genomes have been evaluated and their ``fitness`` member assigned.  This method
       should use the stagnation instance given to the initializer to remove species deemed to have stagnated.
 
       :param object config: A :py:class:`Config` instance.
-      :param object species: A :py:class:`SpeciesSet` instance. As well as depending on some of the :py:class:`DefaultStagnation` internals, this method also depends on some of those of the species object.
+      :param object species: A :py:class:`SpeciesSet` instance. As well as depending on some of the :py:class:`DefaultStagnation` internals, this method also depends on some of those of the ``SpeciesSet`` and its referenced species objects.
       :param int pop_size: Population desired.
       :param int generation: Generation count.
       :return: New population, as a dict of unique genome ID/key vs genome.
@@ -615,9 +625,7 @@ This Python 2/3 portability code was copied from the `six module <https://python
 .. Internally, the above are using ``**kw`` as a PARAMETER for keys/items/values/iterkeys/iteritems/itervalues. ??? Is this in case someone puts in
 .. a set of key/value pairs instead of a dictionary? The `six` documentation just states that this parameter is "passed to the underlying method", which is not helpful.
 
-.. todo::
-
-   Add at least some methods to the below for DefaultSpeciesSet; try to figure out which ones are required interface methods.
+.. index:: ! genomic distance
 
 .. py:module:: species
    :synopsis: Divides the population into genome-based species.
@@ -627,22 +635,70 @@ species
 
   .. py:class:: Species(key, generation)
 
-    Represents a species and contains data about it such as members, fitness, and time stagnating.
+    Represents a :term:`species` and contains data about it such as members, fitness, and time stagnating (note: :py:class::`DefaultStagnation` manipulates many of these).
 
     :param int key: Identifier
     :param int generation: Initial generation of appearance
 
   .. py:class:: GenomeDistanceCache(config)
 
-    Caches genomic distance information to avoid repeated lookups. Called as a method with a pair of genomes to retrieve the distance.
+    Caches :term:`genomic distance` information to avoid repeated lookups (the :py:meth:`distance function <genome.DefaultGenome.distance>` is among the most
+    time-consuming parts of the library, although most fitness functions are likely to far outweigh this). Called as a method with a pair of genomes to retrieve the distance.
 
   .. py:class:: DefaultSpeciesSet(config, reporters)
 
     Encapsulates the default speciation scheme by configuring it and performing the speciation function (placing genomes into species by genetic similarity).
+    :py:class:`DefaultReproduction` currently depends on this having a ``species`` attribute consisting of a dictionary of species keys to species.
+
+    :param object config: A configuration object (currently unused).
+    :param object reporters: A :py:class:`ReporterSet` instance giving reporters to be notified about :term:`genomic distance` statistics.
+
+    .. py:classmethod:: parse_config(param_dict)
+
+      Required interface method. Currently, the only configuration parameter is the :ref:`compatibility_threshold <compatibility-threshold-label>`.
+
+      :param param_dict: Dictionary of parameters from configuration file.
+      :type param_dict: dict(str, str)
+      :return: Configuration object; considered opaque by rest of code, so current type returned is not required for interface.
+      :rtype: dict
+
+    .. py:classmethod:: write_config(f, param_dict)
+
+      Required interface method. Writes parameter(s) to new config file.
+
+      :param file f: File to write to.
+      :param dict param_dict: Dictionary of current parameters in this implementation; more generally, stagnation config object.
+
+    .. py:method:: speciate(config, population, generation)
+
+      Required interface method. Place genomes into species by genetic similarity (:term:`genomic distance`). (The current code has a `docstring` stating that there may
+      be a problem if all old species representatives are not dropped for each generation; it is not clear how this is consistent with the code
+      in :py:meth:`DefaultReproduction.reproduce`, such as for ``elitism``.)
+
+      :param object config: :py:class:`DefaultConfig` object.
+      :param population: Population as per the output of :py:meth:`DefaultReproduction.reproduce`.
+      :type population: dict(int, object)
+      :param int generation: Current generation number.
+
+    .. py:method:: get_species_id(individual_id)
+
+      Required interface method (used by :py:class:`StdOutReporter`). Retrieves species id for a given genome id.
+
+      :param int individual_id: Genome id/key.
+      :return: Species id/key.
+      :rtype: int
+
+    .. py:method:: get_species(individual_id)
+
+      Retrieves species object for a given genome id.
+
+      :param int individual_id: Genome id/key.
+      :return: :py:class:`Species` containing the genome corresponding to the id/key.
+      :rtype: object
 
 .. todo::
 
-   Add more methods to the below for DefaultStagnation; try to figure out which ones are required interface methods.
+   Add more methods to the below for DefaultStagnation; try to figure out which ones are required interface methods; links re config file.
 
 .. py:module:: stagnation
    :synopsis: Keeps track of whether species are making progress and removes ones that are not (for a configurable number of generations).
@@ -662,7 +718,8 @@ stagnation
       Required interface method. Provides defaults for ``species_fitness_func``, ``max_stagnation``, and ``species_elitism`` parameters and updates them from the
       configuration file.
 
-      :params dict param_dict: Dictionary of parameters from configuration file.
+      :param param_dict: Dictionary of parameters from configuration file.
+      :type param_dict: dict(str, str)
       :return: Configuration object; considered opaque by rest of code, so current type returned is not required for interface.
       :rtype: dict
 
@@ -670,8 +727,8 @@ stagnation
 
       Required interface method. Saves parameters to new config file. **Has a default of 15 for species_elitism, but will be overridden by the default of 0 in parse_config.**
 
-      :params file f: File to write to.
-      :params dict param_dict: Dictionary of current parameters in this implementation; more generally, stagnation config object.
+      :param file f: File to write to.
+      :param dict param_dict: Dictionary of current parameters in this implementation; more generally, stagnation config object.
 
 .. py:module:: statistics
    :synopsis: Gathers and provides (to callers and/or to a file) information on genome and species fitness, which are the most-fit genomes, and similar.

@@ -47,7 +47,8 @@ itself.  This section is always required, and is handled by the `Config` class i
     If this evaluates to ``True``, when all species simultaneously become extinct due to stagnation, a new random
     population will be created. If ``False``, a `CompleteExtinctionException` will be thrown.
 
-.. index:: ! stagnation DefaultStagnation
+.. index:: ! stagnation
+.. index:: ! DefaultStagnation
 
 [DefaultStagnation] section
 ---------------------------
@@ -71,7 +72,8 @@ required for your particular implementation.
 
   `DefaultStagnation.write_config` uses a default of 15 for ``species_elitism``, but the default by `DefaultStagnation.parse_config` is 0, which will override.
 
-.. index:: ! reproduction DefaultReproduction
+.. index:: ! reproduction
+.. index:: ! DefaultReproduction
 
 [DefaultReproduction] section
 -----------------------------
@@ -90,7 +92,8 @@ required for your particular implementation.
 
   There is also a ``min_species_size`` configuration parameter, defaulting to 2, although it is not written out by `DefaultReproduction.write_config`.
 
-.. index:: ! genome DefaultGenome
+.. index:: ! genome
+.. index:: ! DefaultGenome
 
 [DefaultGenome] section
 -----------------------
@@ -141,12 +144,20 @@ required for your particular implementation.
 * *bias_replace_rate*
     The probability that mutation will replace the bias of a node with a newly chosen random value (as if it were a new node).
 
+.. _compatibility-threshold-label:
+
 .. index:: ! genomic distance
 
 * *compatibility_threshold*
     Individuals whose :term:`genomic distance` is less than this threshold are considered to be in the same :term:`species`.
+
+.. _compatibility-disjoint-coefficient-label:
+
 * *compatibility_disjoint_coefficient*
     The coefficient for the disjoint+excess :term:`gene` counts' contribution to the genomic distance.
+
+.. _compatibility-weight-coefficient-label:
+
 * *compatibility_weight_coefficient*
     The coefficient for each :term:`weight`, :term:`bias`, or :term:`response` multiplier difference's contribution to the genomic distance.
 
