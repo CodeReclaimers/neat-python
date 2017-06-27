@@ -33,6 +33,9 @@ itself.  This section is always required, and is handled by the `Config` class i
 
 * *fitness_criterion*
     The function used to compute the termination criterion from the set of genome fitnesses.  Allowable values are: ``min``, ``max``, ``mean``
+
+.. _fitness-threshold-label:
+
 * *fitness_threshold*
     When the fitness computed by ``fitness_criterion`` meets or exceeds this threshold, the evolution process will terminate.
 * *pop_size*
@@ -44,6 +47,7 @@ itself.  This section is always required, and is handled by the `Config` class i
     If this evaluates to ``True``, when all species simultaneously become extinct due to stagnation, a new random
     population will be created. If ``False``, a `CompleteExtinctionException` will be thrown.
 
+.. index:: ! stagnation DefaultStagnation
 
 [DefaultStagnation] section
 ---------------------------
@@ -67,6 +71,8 @@ required for your particular implementation.
 
   `DefaultStagnation.write_config` uses a default of 15 for ``species_elitism``, but the default by `DefaultStagnation.parse_config` is 0, which will override.
 
+.. index:: ! reproduction DefaultReproduction
+
 [DefaultReproduction] section
 -----------------------------
 
@@ -83,6 +89,8 @@ required for your particular implementation.
 .. todo::
 
   There is also a ``min_species_size`` configuration parameter, defaulting to 2, although it is not written out by `DefaultReproduction.write_config`.
+
+.. index:: ! genome DefaultGenome
 
 [DefaultGenome] section
 -----------------------
@@ -156,6 +164,8 @@ required for your particular implementation.
 * *enabled_mutate_rate*
     The probability that mutation will replace (50/50 chance of ``True`` or ``False``) the enabled status of a connection.
     Valid values are in [0.0, 1.0].
+
+.. _feed-forward-config-label:
 
 * *feed_forward*
     If this evaluates to ``True``, generated networks will not be allowed to have :term:`recurrent` connections (they will be :term:`feedforward`).

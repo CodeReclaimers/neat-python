@@ -4,8 +4,7 @@ Continuous-time recurrent neural network implementation
 .. index:: continuous-time
 
 The default :term:`continuous-time` :term:`recurrent` neural network (CTRNN) implementation in neat-python
-is modeled as a system of ordinary differential equations, with neuron potentials as the
-dependent variables.
+is modeled as a system of ordinary differential equations, with neuron potentials as the dependent variables.
 
 :math:`\tau_i \frac{d y_i}{dt} = -y_i + f_i\left(\beta_i + \sum\limits_{j \in A_i} w_{ij} y_j\right)`
 
