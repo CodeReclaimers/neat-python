@@ -4,11 +4,15 @@ Glossary
 .. glossary::
   :sorted:
 
+  attributes
+    These are the properties of a :term:`node` (such as its :term:`activation function`) or :term:`connection` (such as whether it is :term:`enabled` or not)
+    determined by its associated :term:`gene` (in the default implementation, in the :py:mod:`attributes` module).
+
   activation function
   aggregation function
   bias
   response
-    These are the attributes of a :term:`node`. They determine the output of a node as follows:
+    These are the :term:`attributes` of a :term:`node`. They determine the output of a node as follows:
     :math:`\begin{equation}\operatorname{activation}(bias + (response * \operatorname{aggregation}(inputs)))\end{equation}`
     For available activation functions, see :ref:`activation-functions-label`
 
@@ -27,13 +31,16 @@ Glossary
     NEAT (NeuroEvolution of Augmenting Topologies) :doc:`algorithm <neat_overview>`, networks start with no hidden nodes, and evolve
     more complexity as necessary - thus "Augmenting Topologies".
 
+  homologous
+    Descended from a common ancestor; two genes in NEAT from different genomes are either homologous or disjoint/excess. TODO: Explain further.
+
   output node
     These are the :term:`nodes <node>` to which the network delivers outputs. They cannot be deleted (although connections to them can be) but
     can otherwise be altered normally.
 
   weight
   enabled
-    These are the attributes of a :term:`connection`. If a connection is enabled, then the input to it (from a :term:`node`) is
+    These are the :term:`attributes` of a :term:`connection`. If a connection is enabled, then the input to it (from a :term:`node`) is
     multiplied by the weight then sent to the output (to a node - possibly the same node, for a :term:`recurrent` neural network).
     If a connection is not enabled, then the output is 0; genes for such connections are the equivalent of `pseudogenes
     <http://pseudogene.org/background.php>`_ that, as in `in vivo <https://en.wikipedia.org/wiki/In_vivo>`_ evolution, can be reactivated at a later time.

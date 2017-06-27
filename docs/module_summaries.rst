@@ -30,7 +30,7 @@ activations
     Contains the list of current valid activation functions, including methods for adding and getting them.
 
 .. py:module:: attributes
-   :synopsis: Deals with attributes used by genes.
+   :synopsis: Deals with :term:`attributes` used by genes.
 
 attributes
 -------------
@@ -39,19 +39,20 @@ attributes
 
   .. py:class:: BaseAttribute(name)
 
-    Superclass for the type-specialized attribute subclasses.
+    Superclass for the type-specialized attribute subclasses, used by genes (such as via the :py:class:`DefaultGene` implementation).
 
   .. py:class:: FloatAttribute(BaseAttribute)
 
-    Class for numeric attributes; includes code for configuration, creation, and mutation.
+    Class for numeric :term:`attributes` such as the :term:`response` of a :term:`node`; includes code for configuration, creation, and mutation.
 
   .. py:class:: BoolAttribute(BaseAttribute)
 
-    Class for boolean attributes; includes code for configuration, creation, and mutation.
+    Class for boolean :term:`attributes` such as whether a :term:`connection` is :term:`enabled` or not; includes code for configuration, creation, and mutation.
 
   .. py:class:: StringAttribute(BaseAttribute)
 
-    Class for string attributes, which are selected from a list of options; includes code for configuration, creation, and mutation.
+    Class for string attributes such as the :term:`aggregation function` of a :term:`node`, which are selected from a list of options;
+    includes code for configuration, creation, and mutation.
 
 .. py:module:: checkpoint
    :synopsis: Uses :py:mod:`pickle` to save and restore populations (and other aspects of the simulation state).
@@ -61,9 +62,29 @@ checkpoint
 
   .. py:class:: Checkpointer(generation_interval=100, time_interval_seconds=300)
 
-    A reporter class that performs checkpointing using :py:mod:`pickle` to save and restore populations (and other aspects of the simulation state).
+    A reporter class that performs checkpointing using :py:mod:`pickle` to save and restore populations (and other aspects of the simulation state). It saves the
+    current state every ``generation_interval`` generations or ``time_interval_seconds`` seconds, whichever happens first. Subclasses :py:class:`BaseReporter`.
+    (The potential save point is at the end of a generation.)
 
-.. todo:: Put in links to the config_file and customization pages.
+    :param generation_interval: If not None, maximum number of generations between checkpoints.
+    :type generation_interval: int or None
+    :param time_interval_seconds: If not None, maximum number of seconds between checkpoints.
+    :type time_interval_seconds: float or None
+
+    .. py:staticmethod:: save_checkpoint(config, population, species, generation)
+
+      Saves the current simulation (including randomization) state to :file:`neat-checkpoint-{generation}`, with ``generation`` being the generation number.
+
+    .. py:staticmethod:: restore_checkpoint(filename)
+
+      Resumes the simulation from a previous saved point. Loads the specified file, sets the randomization state, and returns a :py:class:`Population` object
+      set up with the rest of the previous state.
+
+      :param str filename: The file to be restored from.
+      :return: Object that can be used with :py:meth:`Population.run <population.Population.run>` to restart the simulation.
+      :rtype: :py:class:`Population <population.Population>` object.
+
+.. todo:: Put in links to the customization page.
 
 .. py:module:: config
    :synopsis: Does general configuration parsing; used by other classes for their configuration.
@@ -130,21 +151,42 @@ genes
 
     :param int key: The gene identifier. **For connection genes, genetic distances use the identifiers of the connected nodes, not the connection gene's identifier.**
 
-    .. py:classmethod:: parse_config(cls, config, param_dict)
+    .. py:classmethod:: parse_config(config, param_dict)
 
       Placeholder; parameters are entirely in gene attributes.
 
-    .. py:classmethod:: get_config_params(cls)
+    .. py:classmethod:: get_config_params()
 
       Fetches configuration parameters from gene attributes.
 
   .. py:class:: DefaultNodeGene(BaseGene)
 
-    Groups attributes specific to node genes (of the usually-used type) and calculates genetic distances between two homologous (not disjoint or excess) node genes.
+    Groups :py:mod:`attributes` specific to :term:`node` genes (of the usually-used type) and calculates genetic distances between two
+    :term:`homologous` (not disjoint or excess) node genes.
+
+    .. py:method:: distance(other, config)
+
+      Determines weight of differences between node genes using their 4 :term:`attributes`; the final result is multiplied by the configured ``compatibility_weight_coefficient``.
+
+      :param object other: The other ``DefaultNodeGene``.
+      :param object config: The genome configuration object.
+      :return: The contribution of this pair to the :term:`genomic distance` between the source genomes.
+      :rtype: float
 
   .. py:class:: DefaultConnectionGene(BaseGene)
 
-    Groups attributes specific to connection genes and calculates genetic distances between two homologous (not disjoint or excess) connection genes.
+    Groups :py:mod:`attributes` specific to :term:`connection` genes and calculates genetic distances between two
+    :term:`homologous` (not disjoint or excess) connection genes.
+
+    .. py:method:: distance(other, config)
+
+      Determines weight of differences between connection genes using their 2 :term:`attributes`;
+      the final result is multiplied by the configured ``compatibility_weight_coefficient``.
+
+      :param object other: The other ``DefaultConnectionGene``.
+      :param object config: The genome configuration object.
+      :return: The contribution of this pair to the :term:`genomic distance` between the source genomes.
+      :rtype: float
 
 .. todo::
 
@@ -197,17 +239,19 @@ genome
 
     .. py:method:: distance(other, config)
 
-      Required interface method. Returns the genetic distance between this genome and the other. This distance value is used to compute
-      genome compatibility for speciation.
+      Required interface method. Returns the :term:`genomic distance` between this genome and the other. This distance value is used to compute
+      genome compatibility for speciation. Uses the :py:meth:`DefaultNodeGene.distance` and :py:meth:`DefaultConnectionGene.distance` methods for
+      :term:`homologous` pairs, and the configured ``compatibility_disjoint_coefficient`` for disjoint/excess genes.
+
+      :param object other: The other DefaultGenome instance (genome) to be compared to.
+      :param object config: The genome configuration object.
+      :return: The genomic distance.
+      :rtype: float
 
     .. py:method:: size()
 
       Required interface method. Returns genome ``complexity``, taken to be (number of nodes, number of enabled connections); currently only used
       for reporters - they are given this information for the highest-fitness genome at the end of each generation.
-
-.. todo::
-
-  Link to feed_forward in config file, appropriate in glossary.
 
 .. py:module:: graphs
    :synopsis: Directed graph algorithm implementations.
@@ -217,8 +261,16 @@ graphs
 
   .. py:function:: creates_cycle(connections, test)
 
-    Returns true if the addition of the ``test`` connection would create a cycle, assuming that no cycle already exists in the graph represented by ``connections``.
-    Used to avoid recurrent networks when a pure feed-forward network is desired.
+    Returns true if the addition of the ``test`` :term:`connection` would create a cycle, assuming that no cycle already exists in the graph represented by ``connections``.
+    Used to avoid :term:`recurrent` networks when a purely :term:`feed-forward` network is desired (e.g., as determined by the ``feed_forward`` setting in the
+    :ref:`configuration file <feed-forward-config-label>`.
+
+    :param connections: The current network, as a list of (input, output) connections.
+    :type connections: list(tuple(int, int))
+    :param test: Possible connection to be checked for causing a cycle.
+    :type test: tuple(int, int)
+    :return: True if a cycle would be created; false if not.
+    :rtype: bool
 
   .. py:function:: required_for_output(inputs, outputs, connections)
 
@@ -229,20 +281,20 @@ graphs
     :param outputs: the output node identifiers; by convention, the output node ids are always the same as the output index.
     :type outputs: list(int)
     :param connections: list of (input, output) connections in the network; should only include enabled ones.
-    :type connections: list(list(int, int))
+    :type connections: list(tuple(int, int))
     :return: A list of layers, with each layer consisting of a set of node identifiers.
     :rtype: list(set(int))
 
   .. py:function:: feed_forward_layers(inputs, outputs, connections)
 
-    Collect the layers whose members can be evaluated in parallel in a feed-forward network.
+    Collect the layers whose members can be evaluated in parallel in a :term:`feed-forward` network.
 
     :param inputs: the network input nodes.
     :type inputs: list(int)
     :param outputs: the output node identifiers.
     :type outputs: list(int)
     :param connections: list of (input, output) connections in the network; should only include enabled ones.
-    :type connections: list(list(int, int))
+    :type connections: list(tuple(int, int))
     :return: A list of layers, with each layer consisting of a set of identifiers; only includes nodes returned by required_for_output.
     :rtype: list(set(int))
 
@@ -292,7 +344,7 @@ iznn
     :param float c: The after-spike reset value of the membrane potential.
     :param float d: The after-spike reset of the recovery variable.
     :param inputs: A list of (input key, weight) pairs for incoming connections.
-    :type inputs: list(list(int, float))
+    :type inputs: list(tuple(int, float))
 
   .. py:class:: IZNN(neurons, inputs, outputs)
 
@@ -326,15 +378,15 @@ math_util
 
   .. py:function:: median(values)
 
-    Returns the median. (Note: Does not average between middle values.)
+    Returns the median. (Note: For even numbers of values, does not take the mean between the two middle values.)
 
   .. py:function:: variance(values)
 
-    Returns the variance.
+    Returns the (population) variance.
 
   .. py:function:: stdev(values)
 
-    Returns the standard deviation. *Note spelling.*
+    Returns the (population) standard deviation. *Note spelling.*
 
   .. py:function:: softmax(values)
 
@@ -400,7 +452,9 @@ parallel
 
 .. todo::
 
-  Put in more about calls to rest of program, ``run`` method.
+  Put in more about calls to rest of program?
+
+.. index:: fitness function
 
 .. py:module:: population
    :synopsis: Implements the core evolution algorithm.
@@ -420,6 +474,35 @@ population
     3. Generate the next generation from the current population.
     4. Partition the new generation into species based on genetic similarity.
     5. Go to 1.
+
+    :param object config: The :py:class:`Config` configuration object.
+    :param initial_state: If supplied (such as by a method of the :py:class:`Checkpointer` class), a tuple of (``Population``, ``Species``, generation number)
+    :type initial_state: None or tuple(object, object, int)
+
+    .. py:method:: run(fitness_function, n=None)
+
+      Runs NEAT's genetic algorithm for at most n generations.  If n
+      is ``None``, run until solution is found or extinction occurs.
+
+      The user-provided fitness_function must take only two arguments:
+      1. The population as a list of (genome id, genome) tuples.
+      2. The current configuration object.
+
+      The return value of the fitness function is ignored, but it must assign
+      a Python `float` to the ``fitness`` member of each genome.
+
+      The fitness function is free to maintain external state, perform
+      evaluations in :py:mod::`parallel`, etc.
+
+      It is assumed that the fitness function does not modify the list of genomes,
+      the genomes themselves (apart from updating the fitness member),
+      or the configuration object.
+
+      :param object fitness_function: The fitness function to use, with arguments specified above.
+      :param n: The maximum number of generations to run (unlimited if ``None``).
+      :type n: int or None
+      :return: The best genome seen.
+      :rtype: object
 
 .. todo::
 
@@ -529,12 +612,12 @@ This Python 2/3 portability code was copied from the `six module <https://python
     :param dict d: Dictionary to iterate over
     :param kw: The function of this parameter is unclear.
 
-.. Internally, the above are using **kw as a PARAMETER for keys/items/values/iterkeys/iteritems/itervalues. ??? Is this in case someone puts in
+.. Internally, the above are using ``**kw`` as a PARAMETER for keys/items/values/iterkeys/iteritems/itervalues. ??? Is this in case someone puts in
 .. a set of key/value pairs instead of a dictionary? The `six` documentation just states that this parameter is "passed to the underlying method", which is not helpful.
 
 .. todo::
 
-   Add at least some methods to the below for DefaultSpeciesSet.
+   Add at least some methods to the below for DefaultSpeciesSet; try to figure out which ones are required interface methods.
 
 .. py:module:: species
    :synopsis: Divides the population into genome-based species.
@@ -559,7 +642,7 @@ species
 
 .. todo::
 
-   Add at least some methods to the below for DefaultStagnation.
+   Add more methods to the below for DefaultStagnation; try to figure out which ones are required interface methods.
 
 .. py:module:: stagnation
    :synopsis: Keeps track of whether species are making progress and removes ones that are not (for a configurable number of generations).
@@ -572,7 +655,7 @@ stagnation
     Keeps track of whether species are making progress and helps remove ones that, for a configurable number of generations, are not.
 
     :param object config: Configuration object; in this implementation, a `dict`, but should be treated as opaque outside this class.
-    :param class reporters: A :py:class:`ReporterSet` with reporters that may need activating; not currently in use.
+    :param class reporters: A :py:class:`ReporterSet` with reporters that may need activating; not currently used.
 
     .. py:classmethod:: parse_config(param_dict)
 

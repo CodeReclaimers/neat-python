@@ -12,11 +12,13 @@ you to other references that will).  `The initial NEAT paper
 if you just want a high-level overview.
 
 
-In the current implementation of NEAT-Python, a population of individual genomes is maintained.  Each genome contains
-two sets of genes that describe how to build an artificial neural network:
+In the current implementation of NEAT-Python, a population of individual :term:`genomes <genome>` is maintained.  Each genome contains
+two sets of :term:`genes <gene>` that describe how to build an artificial neural network:
 
     1. :term:`Node` genes, each of which specifies a single neuron.
     2. :term:`Connection` genes, each of which specifies a single connection between neurons.
+
+.. index:: fitness function
 
 To evolve a solution to a problem, the user must provide a fitness function which computes a single real number
 indicating the quality of an individual genome: better ability to solve the problem means a higher score.  The algorithm
@@ -25,5 +27,5 @@ sexual or asexual) and mutation of the most fit individuals of the previous gene
 
 The reproduction and mutation operations may add nodes and/or connections to genomes, so as the algorithm proceeds
 genomes (and the neural networks they produce) may become more and more complex.  When the preset number of generations
-is reached, or when at least one individual exceeds the user-specified fitness threshold, the algorithm terminates.
+is reached, or when at least one individual exceeds the user-specified :ref:`fitness threshold <fitness-threshold-label>`, the algorithm terminates.
 
