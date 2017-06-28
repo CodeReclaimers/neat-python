@@ -148,14 +148,14 @@ ctrnn
 
       Resets the time and all node activations to 0 (necessary due to otherwise retaining state via recurrent connections).
 
-    ..py:method:: advance(inputs, advance_time, time_step=None)
+    .. py:method:: advance(inputs, advance_time, time_step=None)
 
       Advance the simulation by the given amount of time, assuming that inputs are
       constant at the given values during the simulated time.
 
       :param list inputs: The values for the :term:`input nodes <input node>`.
       :param float advance_time: How much time to advance the network before returning the resulting outputs.
-      :param float time_step: How much time per step to advance the network; the default of `None` will currently result in an error, but it is planned to determine it automatically.
+      :param float time_step: How much time per step to advance the network; the default of ``None`` will currently result in an error, but it is planned to determine it automatically.
       :return: The values for the :term:`output nodes <output node>`.
       :rtype: list
 
@@ -220,7 +220,7 @@ genes
 
 .. todo::
 
-   Explain more regarding parameters, required functions of the below; put in links referencing genome-interface.
+   Explain more regarding parameters, required functions of the below.
 
 .. py:module:: genome
    :synopsis: Handles genomes (individuals in the population).
@@ -383,7 +383,7 @@ See http://www.izhikevich.org/publications/spikes.pdf.
 
   .. py:class:: IZNeuron(bias, a, b, c, d, inputs)
 
-    Sets up and simulates the iznn nodes (neurons).
+    Sets up and simulates the iznn :term:`nodes <node>` (neurons).
 
     :param float bias: The bias of the neuron.
     :param float a: The time scale of the recovery variable.
@@ -401,13 +401,13 @@ See http://www.izhikevich.org/publications/spikes.pdf.
 
     .. py:method:: reset()
 
-      Rests all state variables.
+      Resets all state variables.
 
   .. py:class:: IZNN(neurons, inputs, outputs)
 
     Sets up the network itself and simulates it using the connections and neurons.
 
-    :param list neurons: The IZNeuron instances needed.
+    :param list neurons: The :py:class:`IZNeuron` instances needed.
     :param inputs: The :term:`input node` keys.
     :type inputs: list(int)
     :param outputs: The :term:`output node` keys.
@@ -422,7 +422,7 @@ See http://www.izhikevich.org/publications/spikes.pdf.
 
     .. py:method:: reset()
 
-      Reset all neurons to their default state.
+      Resets all neurons to their default state.
 
     .. py:method:: get_time_step_msec()
 
@@ -598,7 +598,7 @@ population
       a Python `float` to the ``fitness`` member of each genome.
 
       The fitness function is free to maintain external state, perform
-      evaluations in :py:mod::`parallel`, etc.
+      evaluations in :py:mod:`parallel`, etc.
 
       It is assumed that the fitness function does not modify the list of genomes,
       the genomes themselves (apart from updating the fitness member),
@@ -649,7 +649,7 @@ reporting
       :param population: Current population, as a dict of unique genome ID/key vs genome.
       :type population: dict(int, object)
       :param object species: Current species set object, such as a :py:class:`DefaultSpeciesSet`.
-      :param object best_genome: The currently highest-fitness :term:`genome`. Ties are resolved pseudorandomly (by `dict` ordering).
+      :param object best_genome: The currently highest-fitness :term:`genome`. Ties are resolved pseudorandomly (by `dictionary <dict>` ordering).
 
     .. py:method:: post_reproduction(config, population, species)
 
@@ -668,7 +668,7 @@ reporting
 
       :param object config: :py:class:`Config` configuration object.
       :param int generation: Generation number.
-      :param object best: The currently highest-fitness :term:`genome`. Ties are resolved pseudorandomly (by `dict` ordering).
+      :param object best: The currently highest-fitness :term:`genome`. Ties are resolved pseudorandomly (by `dictionary <dict>` ordering).
 
     .. py:method:: species_stagnant(sid, species)
 
@@ -692,6 +692,8 @@ reporting
 .. todo::
 
   Add links to configuration file.
+
+.. index:: fitness function
 
 .. py:module:: reproduction
    :synopsis: Handles creation of genomes, either from scratch or by sexual or asexual reproduction from parents.
@@ -737,7 +739,7 @@ reproduction
 
       Apportions desired number of members per species according to fitness (adjusted by :py:meth:`reproduce` to a 0-1 scale) from out of the desired population size.
 
-      :param adjusted_fitness: Mean fitness for species members, adjusted to 0-1 scale.
+      :param adjusted_fitness: Mean fitness for species members, adjusted to 0-1 scale (see below).
       :type adjusted_fitness: list(float)
       :param previous_sizes: Number of members of species in population prior to reproduction.
       :type previous_sizes: list(int)
@@ -748,7 +750,9 @@ reproduction
 
       Required interface method. Creates the population to be used in the next generation from the given configuration instance, SpeciesSet instance, desired size of the
       population, and current generation number.  This method is called after all genomes have been evaluated and their ``fitness`` member assigned.  This method
-      should use the stagnation instance given to the initializer to remove species deemed to have stagnated.
+      should use the stagnation instance given to the initializer to remove species deemed to have stagnated. Note: Determines relative fitnesses by transforming into
+      (ideally) a 0-1 scale; however, if the top and bottom fitnesses are not at least 1 apart, the range may be less than 0-1, as a check against dividing by a too-small
+      number. TODO: Make minimum difference configurable (defaulting to 1 to preserve compatibility).
 
       :param object config: A :py:class:`Config` instance.
       :param object species: A :py:class:`SpeciesSet` instance. As well as depending on some of the :py:class:`DefaultStagnation` internals, this method also depends on some of those of the ``SpeciesSet`` and its referenced species objects.
@@ -799,7 +803,7 @@ species
 
   .. py:class:: Species(key, generation)
 
-    Represents a :term:`species` and contains data about it such as members, fitness, and time stagnating (note: :py:class::`DefaultStagnation` manipulates many of these).
+    Represents a :term:`species` and contains data about it such as members, fitness, and time stagnating (note: :py:class:`DefaultStagnation` manipulates many of these).
 
     :param int key: Identifier
     :param int generation: Initial generation of appearance
@@ -894,9 +898,7 @@ stagnation
       :param file f: File object to write to.
       :param dict param_dict: Dictionary of current parameters in this implementation; more generally, stagnation config object.
 
-.. todo::
-
-  Give more information about what is available from the below.
+.. Note: The notes below are not meant to be critical; I can see why the design decisions were made, for at least this iteration of the library.
 
 .. py:module:: statistics
    :synopsis: Gathers and provides (to callers and/or to a file) information on genome and species fitness, which are the most-fit genomes, and similar.
@@ -904,7 +906,108 @@ stagnation
 statistics
 -------------
 
+.. note::
+    * The most-fit genomes are based on the highest-fitness member of each generation; other genomes are not saved by this module, and it is assumed that fitnesses (as given by the :index:`fitness function <single: fitness function>`) are not relative to others in the generation (also assumed by the use of the :ref:`fitness threshold <fitness-threshold-label>` as a signal for exiting.
+    * Currently keeps accumulating information in memory, which may be a problem in long runs.
+    * Generally reports or records a per-generation list of values; the numeric position in the list may not correspond to the generation number if there has been a restart, such as via the :py:mod:`checkpoint` module.
+
   .. py:class:: StatisticsReporter(BaseReporter)
 
-    Gathers (via the reporting interface) and provides (to callers and/or to a file) information on genome and species fitness, which are the most-fit genomes, etc.
-    Note: Keeps accumulating information in memory currently, which may be a problem in long runs.
+    Gathers (via the reporting interface) and provides (to callers and/or to a file) the most-fit genomes and information on genome and species fitness and species sizes. 
+
+    .. py:method:: post_evaluate(config, population, species, best_genome)
+
+      Called as part of the :py:class:`BaseReporter` interface after the evaluation at the start of each generation; see :py:meth:`BaseReporter.post_evaluate`.
+      Information gathered includes a copy of the best genome in each generation and the fitnesses of each member of each species.
+
+    .. py:method:: get_fitness_stat(f)
+
+      Calls the given function on the genome fitness data from each recorded generation and returns the resulting list.
+
+      :param function f: A function that takes a list of scores and returns a summary statistic (or, by returning a list or tuple, multiple statistics) such as ``mean`` or ``stdev``.
+      :return: A list of the results from function f for each generation.
+      :rtype: list
+
+    .. py:method:: get_fitness_mean()
+
+      Gets the per-generation average fitness. A wrapper for :py:meth:`get_fitness_stat` with the function being ``mean``.
+
+      :return: List of mean genome fitnesses for each generation.
+      :rtype: list(float)
+
+    .. py:method:: get_fitness_stdev()
+
+      Gets the per-generation standard deviation of the fitness. A wrapper for :py:meth:`get_fitness_stat` with the function being ``stdev``.
+
+      :return: List of standard deviations of genome fitnesses for each generation.
+      :rtype: list(float)
+
+    .. py:method:: best_unique_genomes(n)
+
+      Returns the ``n`` most-fit genomes, with no duplication (due to the most-fit genome passing unaltered to the next generation), sorted in decreasing fitness order.
+
+      :param int n: Number of most-fit genomes to return.
+      :return: List of ``n`` most-fit genomes (as genome objects).
+      :rtype: list(object)
+
+    .. py:method:: best_genomes(n)
+
+      Returns the ``n`` most-fit genomes, possibly with duplicates, sorted in decreasing fitness order.
+
+      :param int n: Number of most-fit genomes to return.
+      :return: List of ``n`` most-fit genomes (as genome objects).
+      :rtype: list(object)
+
+    .. py:method:: best_genome()
+
+      Returns the most-fit genome ever seen. A wrapper around :py:meth:`best_genomes`.
+
+      :return: The most-fit genome.
+      :rtype: object
+
+    .. py:method:: get_species_sizes()
+
+      Returns a by-generation list of lists of species sizes. Note that some values may be 0, if a species has either not yet been seen or has been removed due
+      to :py:mod:`stagnation`; species without generational overlap may be more similar in :term:`genomic distance` than the configured
+      :ref:`compatibility_threshold <compatibility-threshold-label>` would otherwise allow.
+
+      :return: List of lists of species sizes.
+      :rtype: list(list(int))
+
+    .. py:method:: get_species_fitness(null_value='')
+
+      Returns a by-generation list of lists of species fitnesses; the fitness of a species is determined by the ``mean`` fitness of the genomes in the species, as with
+      the reproduction distribution by :py:class:`DefaultReproduction`. The ``null_value`` parameter is used for species not present in a particular generation (see above).
+
+      :param str null_value: What to put in the list if the species is not present in a particular generation.
+      :return: List of lists of species fitnesses.
+      :rtype: list(list(float or str))
+
+    .. py:method:: save_genome_fitness(delimiter=' ', filename='fitness_history.csv', with_cross_validation=False)
+
+      Saves the population's best and mean fitness (using the `csv` package). At some point in the future, cross-validation fitness may be usable (via, for instance, the
+      fitness function using alternative test situations/opponents and recording this in a ``cross_fitness`` attribute; this can be used for, e.g., preventing overfitting);
+      currently, ``with_cross_validation`` should always be left at its ``False`` default.
+
+      :param str delimiter: Delimiter between columns in the file; note that the default is not ',' as may be otherwise implied by the ``csv`` file extension (which refers to the package used).
+      :param str filename: The filename to open (for writing, not appending) and write to.
+      :param bool with_cross_validation: For future use; currently, leave at its ``False`` default.
+
+    .. py:method:: save_species_count(delimiter=' ', filename='speciation.csv')
+
+      Logs speciation throughout evolution, by tracking the number of genomes in each species. Uses :py:meth:`get_species_sizes`; see that method for more information.
+
+      :param str delimiter: Delimiter between columns in the file; note that the default is not ',' as may be otherwise implied by the ``csv`` file extension (which refers to the package used).
+      :param str filename: The filename to open (for writing, not appending) and write to.
+
+    .. py:method:: save_species_fitness(delimiter=' ', null_value='NA', filename='species_fitness.csv')
+
+      Logs species' mean fitness throughout evolution. Uses :py:meth:`get_species_fitness`; see that method for more information on, for instance, ``null_value``.
+
+      :param str delimiter: Delimiter between columns in the file; note that the default is not ',' as may be otherwise implied by the ``csv`` file extension (which refers to the package used).
+      :param str null_value: See :py:meth:`get_species_fitness`.
+      :param str filename: The filename to open (for writing, not appending) and write to.
+
+    .. py:method:: save()
+
+      A wrapper for :py:meth:`save_genome_fitness`, :py:meth:`save_species_count`, and :py:meth:`save_species_fitness`; uses the default values for all three.

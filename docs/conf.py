@@ -37,7 +37,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.todo',
     'sphinx.ext.intersphinx',
-    'sphinx.ext.inheritance_diagram', # note: does not actually require at least the Python graphviz module/package to be installed
+    'sphinx.ext.inheritance_diagram', # note: does not actually require at least the Python graphviz package to be installed
 ]
 
 # Add any paths that contain templates here, relative to this directory.
