@@ -20,7 +20,7 @@ activations
 
   .. py:function:: validate_activation(function)
 
-    Checks to make sure its parameter is a function that takes a single argument.
+    Checks to make sure its parameter is a function that takes a single argument. TODO: Currently raises a deprecation warning due to changes in `inspect`.
 
     :param object function: Object to be checked.
     :raises InvalidActivationFunction: If the object does not pass the tests.
@@ -28,6 +28,9 @@ activations
   .. py:class:: ActivationFunctionSet
 
     Contains the list of current valid activation functions, including methods for adding and getting them.
+
+.. Suggested simplification for the below: Make __config_items__ a list of lists/tuples, with the latter containing (name, value_type, default) - no default if the last is None.
+.. This would also allow moving get_config_params into the BaseAttribute class, although config_item_names may require some modifications.
 
 .. py:module:: attributes
    :synopsis: Deals with :term:`attributes` used by genes.
@@ -101,7 +104,7 @@ config
 
   .. py:function:: write_pretty_params(f, config, params)
 
-    Prints configuration parameters to `file` f.
+    Prints configuration parameters to `file` object f.
 
   .. py:class:: Config(genome_type, reproduction_type, species_set_type, stagnation_type, filename)
 
@@ -113,7 +116,7 @@ config
     :param object reproduction_type: Specifies the reproduction class used, such as :py:class:`DefaultReproduction`. See :ref:`reproduction-interface-label` for the needed interface.
     :param object species_set_type: Specifies the species set class used, such as :py:class:`DefaultSpeciesSet`.
     :param object stagnation_type: Specifies the stagnation class used, such as :py:class:`DefaultStagnation`.
-    :param str filename: Configuration file to be opened, read, processed by a parser from the :py:mod:`configparser` module, the ``NEAT`` section handled by ``Config``, and then other sections passed to the ``parse_config`` methods of the appropriate classes.
+    :param str filename: Pathname for configuration file to be opened, read, processed by a parser from the :py:mod:`configparser` module, the ``NEAT`` section handled by ``Config``, and then other sections passed to the ``parse_config`` methods of the appropriate classes.
     :raises AssertionError: If any of the objects lack a ``parse_config`` method.
 
     .. py:method:: save(filename)
@@ -123,6 +126,10 @@ config
 
       :param str filename: The configuration file to be written.
 
+.. todo::
+
+  Give more information about parameters for ctrnn.
+
 .. py:module:: ctrnn
    :synopsis: Handles the continuous-time recurrent neural network implementation.
 
@@ -131,13 +138,33 @@ ctrnn
 
   .. py:class:: CTRNNNodeEval(time_constant, activation, aggregation, bias, response, links)
 
-    Sets up the basic ctrnn nodes.
+    Sets up the basic :doc:`ctrnn` nodes.
 
   .. py:class:: CTRNN(inputs, outputs, node_evals)
 
-    Sets up the ctrnn network itself.
+    Sets up the :doc:`ctrnn` network itself.
+
+    .. py:method:: reset()
+
+      Resets the time and all node activations to 0 (necessary due to otherwise retaining state via recurrent connections).
+
+    ..py:method:: advance(inputs, advance_time, time_step=None)
+
+      Advance the simulation by the given amount of time, assuming that inputs are
+      constant at the given values during the simulated time.
+
+      :param list inputs: The values for the :term:`input nodes <input node>`.
+      :param float advance_time: How much time to advance the network before returning the resulting outputs.
+      :param float time_step: How much time per step to advance the network; the default of `None` will currently result in an error, but it is planned to determine it automatically.
+      :return: The values for the :term:`output nodes <output node>`.
+      :rtype: list
+
+    .. py:staticmethod:: create(genome, config, time_constant)
+
+      Receives a genome and returns its phenotype (a :py:class:`CTRNN`). The ``time_constant`` is used for the :py:class:`CTRNNNodeEval` initializations.
 
 .. index:: ! genomic distance
+.. index:: ! gene
 
 .. py:module:: genes
    :synopsis: Handles node and connection genes.
@@ -149,9 +176,9 @@ genes
 
   .. py:class:: BaseGene(key)
 
-    Handles functions shared by multiple types of genes (both node and connection), including crossover and calling mutation methods.
+    Handles functions shared by multiple types of genes (both :term:`node` and :term:`connection`), including crossover and calling mutation methods.
 
-    :param int key: The gene identifier. **For connection genes, genetic distances use the identifiers of the connected nodes, not the connection gene's identifier.**
+    :param int key: The gene identifier. **For connection genes, determining whether they are homologous (for genomic distance determination) uses the identifiers of the connected nodes, not the connection gene's identifier.**
 
     .. py:classmethod:: parse_config(config, param_dict)
 
@@ -195,8 +222,6 @@ genes
 
    Explain more regarding parameters, required functions of the below; put in links referencing genome-interface.
 
-.. index:: ! genomic distance
-
 .. py:module:: genome
    :synopsis: Handles genomes (individuals in the population).
 
@@ -230,13 +255,16 @@ genome
 
       Required interface method. Saves configuration using `DefaultGenomeConfig`.
 
+      :param file f: File object to write to.
+      :param object config: Configuration object (here, a `DefaultGenomeConfig` instance).
+
     .. py:method:: configure_new(config)
 
-      Required interface method. Configure a new genome based on the given configuration.
+      Required interface method. Configures a new genome (itself) based on the given configuration object.
 
     .. py:method:: configure_crossover(genome1, genome2, config)
 
-      Required interface method. Configure a new genome by crossover from two parent genomes.
+      Required interface method. Configures a new genome (itself) by crossover from two parent genomes.
 
     .. py:method:: mutate(config)
 
@@ -244,8 +272,9 @@ genome
 
     .. py:method:: distance(other, config)
 
-      Required interface method. Returns the :term:`genomic distance` between this genome and the other. This distance value is used to compute
-      genome compatibility for :py:mod:`speciation <species>`. Uses the :py:meth:`DefaultNodeGene.distance` and :py:meth:`DefaultConnectionGene.distance` methods for
+      Required interface method. Returns the :term:`genomic distance` between this genome and the other. This :index:`distance <single: genomic distance>`
+      value is used to compute genome compatibility for :py:mod:`speciation <species>`. Uses the
+      :py:meth:`DefaultNodeGene.distance` and :py:meth:`DefaultConnectionGene.distance` methods for
       :term:`homologous` pairs, and the configured :ref:`compatibility_disjoint_coefficient <compatibility-disjoint-coefficient-label>` for disjoint/excess genes.
 
       :param object other: The other DefaultGenome instance (genome) to be compared to.
@@ -324,11 +353,23 @@ indexer
       :return: Identifier/key to use.
       :rtype: int
 
+.. todo::
+
+  Add methods for the below.
+
 .. py:module:: iznn
    :synopsis: Implements a spiking neural network (closer to in vivo neural networks) based on Izhikevich's 2003 model.
 
 iznn
 ------
+
+This module implements a spiking neural network. Neurons are based on the model described by::
+
+  Izhikevich, E. M.
+  Simple Model of Spiking Neurons
+  IEEE TRANSACTIONS ON NEURAL NETWORKS, VOL. 14, NO. 6, NOVEMBER 2003
+
+See http://www.izhikevich.org/publications/spikes.pdf.
 
   .. inheritance-diagram:: iznn
 
@@ -342,7 +383,7 @@ iznn
 
   .. py:class:: IZNeuron(bias, a, b, c, d, inputs)
 
-    Sets up and simulates the iznn nodes (neurons). TODO: Currently has some numerical stability problems; the time-step should be adjustable.
+    Sets up and simulates the iznn nodes (neurons).
 
     :param float bias: The bias of the neuron.
     :param float a: The time scale of the recovery variable.
@@ -352,21 +393,60 @@ iznn
     :param inputs: A list of (input key, weight) pairs for incoming connections.
     :type inputs: list(tuple(int, float))
 
+    .. py:method:: advance(dt_msec)
+
+      Advances simulation time for the neuron by the given time step in milliseconds. TODO: Currently has some numerical stability problems.
+
+      :param float dt_msec: Time step in milliseconds.
+
+    .. py:method:: reset()
+
+      Rests all state variables.
+
   .. py:class:: IZNN(neurons, inputs, outputs)
 
     Sets up the network itself and simulates it using the connections and neurons.
 
     :param list neurons: The IZNeuron instances needed.
-    :param inputs: The input keys.
+    :param inputs: The :term:`input node` keys.
     :type inputs: list(int)
-    :param outputs: The output keys.
+    :param outputs: The :term:`output node` keys.
     :type outputs: list(int)
+
+    .. py:method:: set_inputs(inputs)
+
+      Assigns input voltages.
+
+      :param inputs: The input voltages for the :term:`input nodes <input node>`.
+      :type inputs: list(float)
+
+    .. py:method:: reset()
+
+      Reset all neurons to their default state.
+
+    .. py:method:: get_time_step_msec()
+
+      Returns a suggested time step; currently hardwired to 0.05 - investigation of this (particularly effects on numerical stability issues) is planned.
+
+      :return: Suggested time step in milliseconds.
+      :rtype: float
+
+    .. py:method:: advance(dt_msec)
+
+      Advances simulation time for all neurons in the network by the input number of milliseconds.
+
+      :param float dt_msec: How many milliseconds to advance the network.
+      :return: The values for the :term:`output nodes <output node>`.
+      :rtype: list(float)
 
     .. py:staticmethod:: create(genome, config)
 
       Receives a genome and returns its phenotype (a neural network).
 
-      :returns object: An IZNN instance.
+      :param object genome: An IZGenome instance.
+      :param object config: Configuration object.
+      :return: An IZNN instance.
+      :rtype: object
 
 .. py:module:: math_util
    :synopsis: Contains some mathematical functions not found in the Python2 standard library, plus a mechanism for looking up some commonly used functions by name.
@@ -407,7 +487,7 @@ nn.feed_forward
 
   .. py:class:: FeedForwardNetwork(inputs, outputs, node_evals)
 
-    A straightforward (no pun intended) feed-forward neural network NEAT implementation.
+    A straightforward (no pun intended) :term:`feed-forward` neural network NEAT implementation.
 
     :param inputs: The input keys (IDs).
     :type inputs: list(int)
@@ -415,6 +495,14 @@ nn.feed_forward
     :type outputs: list(int)
     :param node_evals: A list of node descriptions, with each node represented by a list.
     :type node_evals: list(list(object))
+
+    .. py:method:: activate(inputs)
+
+      Feeds the inputs into the network and returns the resulting outputs.
+
+      :param list inputs: The values for the :term:`input nodes <input node>`.
+      :return: The values for the :term:`output nodes <output node>`.
+      :rtype: list
 
     .. py:staticmethod:: create(genome, config)
 
@@ -428,7 +516,7 @@ nn.recurrent
 
   .. py:class:: RecurrentNetwork(inputs, outputs, node_evals)
 
-    A recurrent (but otherwise straightforward) neural network NEAT implementation.
+    A :term:`recurrent` (but otherwise straightforward) neural network NEAT implementation.
 
     :param inputs: The input keys (IDs).
     :type inputs: list(int)
@@ -436,6 +524,18 @@ nn.recurrent
     :type outputs: list(int)
     :param node_evals: A list of node descriptions, with each node represented by a list.
     :type node_evals: list(list(object))
+
+    .. py:method:: reset()
+
+      Resets all node activations to 0 (necessary due to otherwise retaining state via recurrent connections).
+
+    .. py:method:: activate(inputs)
+
+      Feeds the inputs into the network and returns the resulting outputs.
+
+      :param list inputs: The values for the :term:`input nodes <input node>`.
+      :return: The values for the :term:`output nodes <output node>`.
+      :rtype: list
 
     .. py:staticmethod:: create(genome, config)
 
@@ -510,10 +610,6 @@ population
       :return: The best genome seen.
       :rtype: object
 
-.. todo::
-
-  Put in reporter interface, clarify when called (e.g., ``found_solution`` is not called on reaching the max generation, only on satisfaction of the fitness criterion).
-
 .. py:module:: reporting
    :synopsis: Makes possible reporter classes, which are triggered on particular events and may provide information to the user, may do something else such as checkpointing, or may do both.
 
@@ -528,7 +624,64 @@ reporting
 
   .. py:class:: BaseReporter
 
-    Definition of the reporter interface expected by ReporterSet. Inheriting from it will provide a set of ``dummy`` methods to be overridden as desired.
+    Definition of the reporter interface expected by ReporterSet. Inheriting from it will provide a set of ``dummy`` methods to be overridden as desired, as follows.
+
+    .. py:method:: start_generation(generation)
+
+      Called (by :py:meth:`Population.run`) at the start of each generation, prior to the invocation of the fitness function.
+
+      :param int generation: The generation number.
+
+    .. py:method:: end_generation(config, population, species)
+
+      Called (by :py:meth:`Population.run`) at the end of each generation, after reproduction and speciation.
+
+      :param object config: :py:class:`Config` configuration object.
+      :param population: Current population, as a dict of unique genome ID/key vs genome.
+      :type population: dict(int, object)
+      :param object species: Current species set object, such as a :py:class:`DefaultSpeciesSet`.
+
+    .. py:method:: post_evaluate(config, population, species, best_genome)
+
+      Called (by :py:meth:`Population.run`) after the fitness function is finished.
+
+      :param object config: :py:class:`Config` configuration object.
+      :param population: Current population, as a dict of unique genome ID/key vs genome.
+      :type population: dict(int, object)
+      :param object species: Current species set object, such as a :py:class:`DefaultSpeciesSet`.
+      :param object best_genome: The currently highest-fitness :term:`genome`. Ties are resolved pseudorandomly (by `dict` ordering).
+
+    .. py:method:: post_reproduction(config, population, species)
+
+      Not currently called, either by :py:meth:`Population.run` or by :py:class:`DefaultReproduction`. Note: New members of the population likely will not have a set species.
+
+    .. py:method:: complete_extinction()
+
+      Called (by :py:meth:`Population.run`) if complete extinction (due to stagnation) occurs, prior to
+      (depending on the :ref:`reset_on_extinction <reset-on-extinction-label>` configuration setting)
+      a new population being created or a :py:exc:`CompleteExtinctionException` being raised.
+
+    .. py:method:: found_solution(config, generation, best)
+
+      Called (by :py:meth:`Population.run`) prior to exiting if the configured :ref:`fitness threshold <fitness-threshold-label>` is met.
+      (Note: Not called upon reaching the generation maximum and exiting for this reason.)
+
+      :param object config: :py:class:`Config` configuration object.
+      :param int generation: Generation number.
+      :param object best: The currently highest-fitness :term:`genome`. Ties are resolved pseudorandomly (by `dict` ordering).
+
+    .. py:method:: species_stagnant(sid, species)
+
+      Called (by py:meth:`DefaultReproduction.reproduce`) for each species considered stagnant by the stagnation class (such as :py:class:`DefaultStagnation`).
+
+      :param int sid: The species id/key.
+      :param object species: The :py:class:`Species` object.
+
+    .. py:method:: info(msg)
+
+      Miscellaneous informational messages, from multiple parts of the library.
+
+      :param str msg: Message to be handled.
 
   .. py:class:: StdOutReporter(show_species_detail)
 
@@ -551,7 +704,7 @@ reproduction
     Handles creation of genomes, either from scratch or by sexual or asexual reproduction from parents. Implements the default NEAT-python reproduction
     scheme: explicit fitness sharing with fixed-time species stagnation. For class requirements, see :ref:`reproduction-interface-label`.
 
-    :param dict config: Configuration object, in this case a dictionary.
+    :param dict config: Configuration object, in this implementation a dictionary.
     :param object reporters: A :py:class:`ReporterSet` object.
     :param object stagnation: A :py:class:`DefaultStagnation` object - current code partially depends on internals of this class (a TODO is noted to correct this)
 
@@ -567,7 +720,7 @@ reproduction
 
       Required interface method. Saves ``elitism`` and ``survival_threshold`` (but not ``min_species_size``) parameters to new config file.
 
-      :param file f: File to write to.
+      :param file f: File object to write to.
       :param dict param_dict: Dictionary of current parameters in this implementation; more generally, reproduction config object.
 
     .. py:method:: create_new(genome_type, genome_config, num_genomes)
@@ -580,6 +733,17 @@ reproduction
       :return: A dictionary (with the unique genome identifier as the key) of the genomes created.
       :rtype: dict(int, object)
 
+    .. py:staticmethod:: compute_spawn(adjusted_fitness, previous_sizes, pop_size, min_species_size)
+
+      Apportions desired number of members per species according to fitness (adjusted by :py:meth:`reproduce` to a 0-1 scale) from out of the desired population size.
+
+      :param adjusted_fitness: Mean fitness for species members, adjusted to 0-1 scale.
+      :type adjusted_fitness: list(float)
+      :param previous_sizes: Number of members of species in population prior to reproduction.
+      :type previous_sizes: list(int)
+      :param int pop_size: Desired population size, as input to :py:meth:`reproduce`.
+      :param int min_species_size: Minimum number of members per species; can result in population size being above ``pop_size``.
+
     .. py:method:: reproduce(config, species, pop_size, generation)
 
       Required interface method. Creates the population to be used in the next generation from the given configuration instance, SpeciesSet instance, desired size of the
@@ -588,10 +752,10 @@ reproduction
 
       :param object config: A :py:class:`Config` instance.
       :param object species: A :py:class:`SpeciesSet` instance. As well as depending on some of the :py:class:`DefaultStagnation` internals, this method also depends on some of those of the ``SpeciesSet`` and its referenced species objects.
-      :param int pop_size: Population desired.
+      :param int pop_size: Population size desired.
       :param int generation: Generation count.
       :return: New population, as a dict of unique genome ID/key vs genome.
-      :rtype: dict
+      :rtype: dict(int, object)
 
 .. py:module:: six_util
    :synopsis: Provides Python 2/3 portability with three dictionary iterators; copied from the `six` module.
@@ -666,7 +830,7 @@ species
 
       Required interface method. Writes parameter(s) to new config file.
 
-      :param file f: File to write to.
+      :param file f: File object to write to.
       :param dict param_dict: Dictionary of current parameters in this implementation; more generally, stagnation config object.
 
     .. py:method:: speciate(config, population, generation)
@@ -690,7 +854,7 @@ species
 
     .. py:method:: get_species(individual_id)
 
-      Retrieves species object for a given genome id.
+      Retrieves species object for a given genome id. May become a required interface method, and useful for some fitness functions already.
 
       :param int individual_id: Genome id/key.
       :return: :py:class:`Species` containing the genome corresponding to the id/key.
@@ -710,7 +874,7 @@ stagnation
 
     Keeps track of whether species are making progress and helps remove ones that, for a configurable number of generations, are not.
 
-    :param object config: Configuration object; in this implementation, a `dict`, but should be treated as opaque outside this class.
+    :param object config: Configuration object; in this implementation, a `dictionary <dict>`, but should be treated as opaque outside this class.
     :param class reporters: A :py:class:`ReporterSet` with reporters that may need activating; not currently used.
 
     .. py:classmethod:: parse_config(param_dict)
@@ -727,8 +891,12 @@ stagnation
 
       Required interface method. Saves parameters to new config file. **Has a default of 15 for species_elitism, but will be overridden by the default of 0 in parse_config.**
 
-      :param file f: File to write to.
+      :param file f: File object to write to.
       :param dict param_dict: Dictionary of current parameters in this implementation; more generally, stagnation config object.
+
+.. todo::
+
+  Give more information about what is available from the below.
 
 .. py:module:: statistics
    :synopsis: Gathers and provides (to callers and/or to a file) information on genome and species fitness, which are the most-fit genomes, and similar.

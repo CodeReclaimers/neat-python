@@ -31,4 +31,5 @@ is reached, or when at least one individual exceeds the user-specified :ref:`fit
 
 .. todo::
 
-  Explain speciation (including genetic distance determination).
+  Explain speciation (including genetic distance determination). Also explain disjoint+excess vs homologous for not only distance but crossover.
+
