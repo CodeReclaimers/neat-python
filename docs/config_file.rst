@@ -35,17 +35,38 @@ The configuration file is in several sections, of which at least one is required
 The ``NEAT`` section specifies parameters particular to the generic NEAT algorithm or the experiment
 itself.  This section is always required, and is handled by the `Config` class itself.
 
+.. _fitness-criterion-label:
+
+.. index:: fitness_criterion
+
 * *fitness_criterion*
     The function used to compute the termination criterion from the set of genome fitnesses.  Allowable values are: ``min``, ``max``, ``mean``
 
 .. _fitness-threshold-label:
 
+.. index:: fitness_threshold
+.. index:: ! found_solution()
+
 * *fitness_threshold*
-    When the fitness computed by ``fitness_criterion`` meets or exceeds this threshold, the evolution process will terminate.
+    When the fitness computed by ``fitness_criterion`` meets or exceeds this threshold, the evolution process will terminate, with a call to
+    any registered reporting class' :py:meth:`found_solution <reporting.BaseReporter.found_solution>` method.
+
+.. note::
+  The ``found_solution`` method is **not** called if the maximum number of generations is reached without the above threshold being passed.
+  TODO: Allow the above to be ``None``, provided a maximum number of generations is passed to :py:meth:`population.Population.run`, and
+  if so call ``found_solution`` upon termination by a maximum number of generations. Alternatively, this could be done by allowing ``fitness_criterion``
+  to be ``None``, or a new configuration parameter introduced.
+
+.. _pop-size-label:
+
+.. index:: pop_size
+
 * *pop_size*
     The number of individuals in each generation.
 
 .. _reset-on-extinction-label:
+
+.. index:: reset_on_extinction
 
 * *reset_on_extinction*
     If this evaluates to ``True``, when all species simultaneously become extinct due to stagnation, a new random
@@ -62,6 +83,10 @@ This section is only necessary if you specify this class as the stagnation imple
 creating the `Config` instance; otherwise you need to include whatever configuration (if any) is
 required for your particular implementation.
 
+.. _species-fitness-func-label:
+
+.. index:: species_fitness_func
+
 * *species_fitness_func*
     The function used to compute species fitness.  **This defaults to ``mean``.** Allowed values are: ``max``, ``min``, ``mean``, ``median``
 
@@ -69,8 +94,13 @@ required for your particular implementation.
 
   This is **not** used for calculating species fitness for apportioning reproduction (which always uses ``mean``).
 
+.. index:: max_stagnation
+
 * *max_stagnation*
     Species that have not shown improvement in more than this number of generations will be considered stagnant and removed. **This defaults to 15.**
+
+.. index:: species_elitism
+
 * *species_elitism*
     The number of species that will be protected from stagnation; mainly intended to prevent
     total extinctions caused by all species becoming stagnant before new species arise.  For example,
@@ -95,14 +125,20 @@ This section is only necessary if you specify this class as the reproduction imp
 creating the `Config` instance; otherwise you need to include whatever configuration (if any) is
 required for your particular implementation.
 
+.. index:: elitism
+
 * *elitism*
     The number of most-fit individuals in each species that will be preserved as-is from one generation to the next. **This defaults to 0.**
+
+.. index:: survival_threshold
+
 * *survival_threshold*
     The fraction for each species allowed to reproduce each generation. **This defaults to 0.2.**
 
 .. note::
 
-  TODO: There is also a ``min_species_size`` configuration parameter, defaulting to 2, although it is not written out by `DefaultReproduction.write_config`.
+  TODO: There is also a :index:`min_species_size` configuration parameter, defaulting to 2, although it is not written out by
+  `DefaultReproduction.write_config`.
 
 .. index:: ! genome
 .. index:: ! DefaultGenome
@@ -161,16 +197,21 @@ required for your particular implementation.
 .. _compatibility-threshold-label:
 
 .. index:: ! genomic distance
+.. index:: compatibility_threshold
 
 * *compatibility_threshold*
     Individuals whose :term:`genomic distance` is less than this threshold are considered to be in the same :term:`species`.
 
 .. _compatibility-disjoint-coefficient-label:
 
+.. index:: compatibility_disjoint_coefficient
+
 * *compatibility_disjoint_coefficient*
     The coefficient for the :term:`disjoint` and :term:`excess` :term:`gene` counts' contribution to the :term:`genomic distance`.
 
 .. _compatibility-weight-coefficient-label:
+
+.. index:: compatibility_weight_coefficient
 
 * *compatibility_weight_coefficient*
     The coefficient for each :term:`weight`, :term:`bias`, or :term:`response` multiplier difference's contribution to the :term:`genomic distance`
@@ -186,6 +227,12 @@ required for your particular implementation.
 * *conn_delete_prob*
     The probability that mutation will delete an existing connection. Valid values are in [0.0, 1.0].
 
+.. _enabled-default-label:
+
+.. index:: ! enabled
+.. index:: enabled_default
+.. index:: ! initial_connection
+
 * *enabled_default*
     The default :term:`enabled` status of newly created connections.  Valid values are ``True`` and ``False``.
 
@@ -199,14 +246,21 @@ required for your particular implementation.
 
 .. _feed-forward-config-label:
 
+.. index:: feed_forward
+.. index:: ! feedforward
+
 * *feed_forward*
     If this evaluates to ``True``, generated networks will not be allowed to have :term:`recurrent` connections (they will be :term:`feedforward`).
     Otherwise they may be (but are not forced to be) recurrent.
 
 .. _initial-connection-config-label:
 
+.. index:: initial_connection
+.. index:: ! enabled_default
+
 * *initial_connection*
-    Specifies the initial connectivity of newly-created genomes.  There are four allowed values:
+    Specifies the initial connectivity of newly-created genomes.  (Note the effects on settings other than ``unconnected`` of the
+    :ref:`enabled_default <enabled-default-label>` setting.) There are four allowed values:
 
     * ``unconnected`` - No :term:`connections <connection>` are initially present. **This is the default.**
     * ``fs_neat`` - One randomly-chosen :term:`input node` has one connection to each :term:`hidden <hidden node>` and
