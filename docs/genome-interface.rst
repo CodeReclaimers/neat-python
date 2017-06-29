@@ -3,10 +3,6 @@
 Genome Interface
 ================
 
-.. todo::
-
-  I will be coming back to this after I go through the module summaries; it is currently in a partially-revised state.
-
 .. index:: genome
 
 .. py:currentmodule:: genome

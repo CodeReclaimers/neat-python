@@ -12,17 +12,19 @@ Most settings must be explicitly enumerated in the configuration file.  (This ma
 that library code changes will result in your project silently using different NEAT settings. There are some defaults, as noted below, and
 insofar as possible new configuration parameters will default to the existing behavior.)
 
-.. todo::
+.. note::
 
-  Work on ways to make the existing defaults more integrated with the configuration code. This may involve a third, optional (defaulting to ``None``)
+  TODO: Work on ways to make the existing defaults more integrated with the configuration code. This may involve a third, optional (defaulting to ``None``)
   parameter for `ConfigParameter`, giving a default. Such a mechanism will be needed to convert the configuration in `DefaultReproduction` and
   `DefaultStagnation` to match that in other classes/modules. It would also be needed to add, for instance, an alternative uniform-distribution initialization
   for various parameters such as weight and bias, without requiring all configuration files to be changed to specify the gaussian distribution currently in
-  use. Another example would be for a configuration file variable for whether more than one addition/connection mutation would take place at a time,
+  use. Another example would be for a configuration file variable for whether more than one addition/connection mutation can take place at a time,
   as mentioned in genome.py.
 
 Note that the `Config` constructor also requires you to explicitly specify the types that will be used
 for the NEAT simulation.  This, again, is to help avoid silent changes in behavior.
+
+.. _configuration-file-sections-label:
 
 The configuration file is in several sections, of which at least one is required. However, there are no requirements for ordering within these sections, or for ordering of the sections themselves.
 
@@ -75,12 +77,15 @@ required for your particular implementation.
     a ``species_elitism`` setting of 3 will prevent the 3 species with the highest species fitness from
     being removed for stagnation regardless of the amount of time they have not shown improvement. **This defaults to 0.**
 
-.. todo::
+.. note::
 
-  `DefaultStagnation.write_config` uses a default of 15 for ``species_elitism``, but the default by `DefaultStagnation.parse_config` is 0, which will override.
+  TODO: `DefaultStagnation.write_config` uses a default of 15 for ``species_elitism``, but the default by `DefaultStagnation.parse_config` is 0,
+  which will override.
 
 .. index:: ! reproduction
 .. index:: ! DefaultReproduction
+
+.. _reproduction-config-label:
 
 [DefaultReproduction] section
 -----------------------------
@@ -95,9 +100,9 @@ required for your particular implementation.
 * *survival_threshold*
     The fraction for each species allowed to reproduce each generation. **This defaults to 0.2.**
 
-.. todo::
+.. note::
 
-  There is also a ``min_species_size`` configuration parameter, defaulting to 2, although it is not written out by `DefaultReproduction.write_config`.
+  TODO: There is also a ``min_species_size`` configuration parameter, defaulting to 2, although it is not written out by `DefaultReproduction.write_config`.
 
 .. index:: ! genome
 .. index:: ! DefaultGenome
@@ -112,6 +117,8 @@ required for your particular implementation.
 
 .. index:: ! activation function
 
+.. _activation-function-config-label:
+
 * *activation_default*
     The default :term:`activation function` assigned to new :term:`nodes <node>`. **If none is given, or ``random`` is specified, one of the ``activation_options``
     will be chosen at random.**
@@ -120,7 +127,7 @@ required for your particular implementation.
     Valid values are in [0.0, 1.0].
 * *activation_options*
     A space-separated list of the activation functions that may be used by nodes.  **This defaults to ``sigmoid``.** The
-    available functions can be found here: :ref:`activation-functions-label`
+    built-in available functions can be found in :ref:`activation-functions-label`; more can be added as described in :ref:`customization-label`.
 
 .. index:: ! aggregation function
 
@@ -132,7 +139,7 @@ required for your particular implementation.
     Valid values are in [0.0, 1.0].
 * *aggregation_options*
     A space-separated list of the aggregation functions that may be used by nodes.  **This defaults to ``sum``.** The
-    available functions are: ``sum``, ``product``, ``min``, ``max``
+    available functions (defined in `DefaultGenomeConfig`) are: ``sum``, ``product``, ``min``, ``max``
 
 .. index:: ! bias
 
@@ -188,6 +195,8 @@ required for your particular implementation.
 * *feed_forward*
     If this evaluates to ``True``, generated networks will not be allowed to have :term:`recurrent` connections (they will be :term:`feedforward`).
     Otherwise they may be (but are not forced to be) recurrent.
+
+.. _initial-connection-config-label:
 
 * *initial_connection*
     Specifies the initial connectivity of newly-created genomes.  There are four allowed values:

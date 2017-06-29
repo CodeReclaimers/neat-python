@@ -1,3 +1,4 @@
+.. _customization-label:
 
 Customizing Behavior
 ====================
@@ -20,15 +21,15 @@ New :term:`activation functions <activation function>` are registered with your 
 
     config.genome_config.add_activation('my_sinc_function', sinc)
 
-The first argument to ``add_activation`` is the name by which this activation function will be referred to in the
-configuration settings file.
+The first argument to :py:meth:`add_activation <config.DefaultGenomeConfig.add_activation>` is the name by which this activation function will be referred to in the configuration settings file.
 
 This is demonstrated in the `memory-fixed
 <https://github.com/CodeReclaimers/neat-python/tree/master/examples/memory-fixed>`_ example.
 
 .. note::
 
-  This method is only valid when using the :py:class:`DefaultGenome <genome.DefaultGenome>` implementation; different genome implementations
+  This method is only valid when using the :py:class:`DefaultGenome <genome.DefaultGenome>` implementation, with the method being found in
+  the :py:class:`DefaultGenomeConfig <genome.DefaultGenomeConfig>` implementation; different genome implementations
   may require a different method of registration.
 
 .. index:: ! reporting
@@ -41,10 +42,6 @@ process.  The user can add a custom reporter to this collection by calling Popul
 it with an object which implements the same interface as `BaseReporter` (in :py:mod:`reporting.py <reporting>`), probably partially by subclassing it.
 
 :py:class:`StdOutReporter <reporting.StdOutReporter>`, :py:class:`StatisticsReporter <statistics.StatisticsReporter>`, and :py:class:`Checkpointer <checkpoint.Checkpointer>` may be useful as examples of the behavior you can add using a reporter.
-
-.. todo::
-
-  Document reporter interface
 
 .. index:: ! genome
 
@@ -70,13 +67,13 @@ Speciation scheme
 To use a different speciation scheme, you can create a custom class whose interface matches that of
 :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>` and pass this as the ``species_set_type`` argument to the `Config` constructor.
 
-.. todo::
+.. note::
 
-  Further document species set interface (some done in module_summaries)
+  TODO: Further document species set interface (some done in module_summaries)
 
-.. todo::
+.. note::
 
-  Include example
+  TODO: Include example
 
 .. index:: ! stagnation
 
@@ -108,6 +105,6 @@ The default reproduction scheme uses explicit fitness sharing.  This behavior is
 To use a different reproduction scheme, you must create a custom class whose interface matches that
 of `DefaultReproduction`, and provide it as the ``reproduction_type`` argument to the `Config` constructor.
 
-.. todo:: 
+.. note:: 
 
-  Include example
+  TODO: Include example
