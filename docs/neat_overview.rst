@@ -11,7 +11,6 @@ you to other references that will).  `The initial NEAT paper
 <http://nn.cs.utexas.edu/downloads/papers/stanley.cec02.pdf>`_ is only 6 pages long, and Section II should be enough
 if you just want a high-level overview.
 
-
 In the current implementation of NEAT-Python, a population of individual :term:`genomes <genome>` is maintained.  Each genome contains
 two sets of :term:`genes <gene>` that describe how to build an artificial neural network:
 
@@ -31,5 +30,5 @@ is reached, or when at least one individual exceeds the user-specified :ref:`fit
 
 .. todo::
 
-  Explain speciation (including genetic distance determination). Also explain disjoint+excess vs homologous for not only distance but crossover.
+  Explain speciation (including :term:`genetic distance` determination). Also explain disjoint+excess vs homologous for not only distance but crossover.
 
