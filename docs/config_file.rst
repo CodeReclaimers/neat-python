@@ -168,12 +168,18 @@ required for your particular implementation.
 .. _compatibility-disjoint-coefficient-label:
 
 * *compatibility_disjoint_coefficient*
-    The coefficient for the disjoint+excess :term:`gene` counts' contribution to the genomic distance.
+    The coefficient for the :term:`disjoint` and :term:`excess` :term:`gene` counts' contribution to the :term:`genomic distance`.
 
 .. _compatibility-weight-coefficient-label:
 
 * *compatibility_weight_coefficient*
-    The coefficient for each :term:`weight`, :term:`bias`, or :term:`response` multiplier difference's contribution to the genomic distance.
+    The coefficient for each :term:`weight`, :term:`bias`, or :term:`response` multiplier difference's contribution to the :term:`genomic distance`
+    (for :term:`homologous` :term:`nodes <node>` or :term:`connections <connection>`). This is also used as the value to add for differences
+    in :term:`activation functions <activation function>`, :term:`aggregation functions <aggregation function>`, or :term:`enabled`/disabled status.
+
+.. note::
+  It is currently possible for two :term:`homologous` nodes or connections to have a higher contribution to the :term:`genomic distance` than a
+  disjoint or excess :term:`node` or :term:`connection`, depending on their :term:`attributes` and the settings of the above parameters.
 
 * *conn_add_prob*
     The probability that mutation will add a :term:`connection` between existing :term:`nodes <node>`. Valid values are in [0.0, 1.0].
@@ -184,7 +190,8 @@ required for your particular implementation.
     The default :term:`enabled` status of newly created connections.  Valid values are ``True`` and ``False``.
 
 .. note::
-   "Newly created connections" include ones in newly-created genomes, if those have initial connections.
+  "Newly created connections" include ones in newly-created genomes, if those have initial connections
+  (from the setting of the :ref:`initial_connection <initial-connection-config-label>` variable).
 
 * *enabled_mutate_rate*
     The probability that mutation will replace (50/50 chance of ``True`` or ``False``) the enabled status of a connection.

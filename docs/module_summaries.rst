@@ -29,8 +29,12 @@ activations
 
     Contains the list of current valid activation functions, including methods for adding and getting them.
 
-.. Suggested simplification for the below: Make __config_items__ a list of lists/tuples, with the latter containing (name, value_type, default) - no default if the last is None.
-.. This would also allow moving get_config_params into the BaseAttribute class, although config_item_names may require some modifications.
+.. todo::
+  Document current attribute methods!
+
+.. note::
+  TODO: Suggested simplification for the below: Make __config_items__ a list of lists/tuples, with the latter containing (name, value_type, default) - no default if the last is None.
+  This would also allow moving get_config_params into the BaseAttribute class, although config_item_names may require some modifications.
 
 .. py:module:: attributes
    :synopsis: Deals with attributes used by genes.
@@ -42,7 +46,7 @@ attributes
 
   .. py:class:: BaseAttribute(name)
 
-    Superclass for the type-specialized attribute subclasses, used by genes (such as via the :py:class:`DefaultGene` implementation).
+    Superclass for the type-specialized attribute subclasses, used by genes (such as via the :py:class:`genes.BaseGene` implementation).
 
   .. py:class:: FloatAttribute(BaseAttribute)
 
@@ -66,7 +70,7 @@ checkpoint
   .. py:class:: Checkpointer(generation_interval=100, time_interval_seconds=300)
 
     A reporter class that performs checkpointing using :py:mod:`pickle` to save and restore populations (and other aspects of the simulation state). It saves the
-    current state every ``generation_interval`` generations or ``time_interval_seconds`` seconds, whichever happens first. Subclasses :py:class:`BaseReporter`.
+    current state every ``generation_interval`` generations or ``time_interval_seconds`` seconds, whichever happens first. Subclasses :py:class:`reporting.BaseReporter`.
     (The potential save point is at the end of a generation.)
 
     :param generation_interval: If not None, maximum number of generations between checkpoints.
@@ -80,7 +84,7 @@ checkpoint
 
     .. py:staticmethod:: restore_checkpoint(filename)
 
-      Resumes the simulation from a previous saved point. Loads the specified file, sets the randomization state, and returns a :py:class:`Population` object
+      Resumes the simulation from a previous saved point. Loads the specified file, sets the randomization state, and returns a :py:class:`population.Population` object
       set up with the rest of the previous state.
 
       :param str filename: The file to be restored from.
@@ -138,7 +142,8 @@ config
 
     Prints configuration parameters, with justification based on the longest configuration parameter name.
 
-    :param file f: `File <file>` object to be written to.
+    :param f: `File object <file>` to be written to.
+    :type f: `file`
     :param object config: Configuration object from which parameter values are to be fetched (using `getattr`).
     :param list params: List of :py:class:`ConfigParameter` instances giving the names of interest and the types of parameters.
 
@@ -149,10 +154,10 @@ config
     see below and :ref:`customization-label`.) ``Config`` itself takes care of the ``NEAT`` parameters. For a description of the configuration file,
     see :ref:`configuration-file-description-label`.
 
-    :param object genome_type: Specifies the genome class used, such as :py:class:`DefaultGenome` or :py:class:`iznn.IZGenome`. See :ref:`genome-interface-label` for the needed interface.
-    :param object reproduction_type: Specifies the reproduction class used, such as :py:class:`DefaultReproduction`. See :ref:`reproduction-interface-label` for the needed interface.
-    :param object species_set_type: Specifies the species set class used, such as :py:class:`DefaultSpeciesSet`.
-    :param object stagnation_type: Specifies the stagnation class used, such as :py:class:`DefaultStagnation`.
+    :param object genome_type: Specifies the genome class used, such as :py:class:`genome.DefaultGenome` or :py:class:`iznn.IZGenome`. See :ref:`genome-interface-label` for the needed interface.
+    :param object reproduction_type: Specifies the reproduction class used, such as :py:class:`reproduction.DefaultReproduction`. See :ref:`reproduction-interface-label` for the needed interface.
+    :param object species_set_type: Specifies the species set class used, such as :py:class:`species.DefaultSpeciesSet`.
+    :param object stagnation_type: Specifies the stagnation class used, such as :py:class:`stagnation.DefaultStagnation`.
     :param str filename: Pathname for configuration file to be opened, read, processed by a parser from the :py:class:`configparser.ConfigParser` class (or, for 2.7, the `ConfigParser.SafeConfigParser class <https://docs.python.org/2.7/library/configparser.html#ConfigParser.SafeConfigParser>`_), the ``NEAT`` section handled by ``Config``, and then other sections passed to the ``parse_config`` methods of the appropriate classes.
     :raises AssertionError: If any of the objects lack a ``parse_config`` method.
 
@@ -200,6 +205,9 @@ ctrnn
 
       Receives a genome and returns its phenotype (a :py:class:`CTRNN`). The ``time_constant`` is used for the :py:class:`CTRNNNodeEval` initializations.
 
+.. todo::
+  Put in the rest of the methods for BaseGene.
+
 .. index:: ! genomic distance
 .. index:: ! gene
 
@@ -223,7 +231,10 @@ genes
 
     .. py:classmethod:: get_config_params()
 
-      Fetches configuration parameters from gene attributes.
+      Fetches configuration parameters from gene attributes. Used by :py:class:`genome.DefaultGenomeConfig` to include gene parameters in its configuration parameters.
+
+      :return: List of configuration parameters (as :py:class:`config.ConfigParameter` instances) for the gene attributes.
+      :rtype: list(object)
 
   .. py:class:: DefaultNodeGene(BaseGene)
 
@@ -288,13 +299,15 @@ genome
       Adds a new :term:`activation function`, as described in :ref:`customization-label`. Uses :py:class:`ActivationFunctionSet <activations.ActivationFunctionSet>`.
 
       :param str name: The name by which the function is to be known in the :ref:`configuration file <activation-function-config-label>`.
-      :param function func: A function meeting the requirements of :py:func:`activations.validate_function`.
+      :param func: A function meeting the requirements of :py:func:`activations.validate_activation`.
+      :type func: `function`
 
     .. py:method:: save(f)
 
       Saves the :ref:`initial_connection <initial-connection-config-label>` configuration and uses :py:func:`config.write_pretty_params` to write out the other parameters.
 
-      :param file f: The `File <file>` object to be written to.
+      :param f: The `File object <file>` to be written to.
+      :type f: `file`
 
   .. py:class:: DefaultGenome(key)
 
@@ -315,7 +328,8 @@ genome
 
       Required interface method. Saves configuration using :py:meth:`DefaultGenomeConfig.save`.
 
-      :param file f: `File <file>` object to write to.
+      :param f: `File object <file>` to write to.
+      :type f: `file`
       :param object config: Configuration object (here, a `DefaultGenomeConfig` instance).
 
     .. py:method:: configure_new(config)
@@ -324,7 +338,7 @@ genome
 
     .. py:method:: configure_crossover(genome1, genome2, config)
 
-      Required interface method. Configures a new genome (itself) by crossover from two parent genomes.
+      Required interface method. Configures a new genome (itself) by :term:`crossover` from two parent genomes.
 
     .. py:method:: mutate(config)
 
@@ -334,7 +348,7 @@ genome
 
       Required interface method. Returns the :term:`genomic distance` between this genome and the other. This :index:`distance <single: genomic distance>`
       value is used to compute genome compatibility for :py:mod:`speciation <species>`. Uses the
-      :py:meth:`DefaultNodeGene.distance` and :py:meth:`DefaultConnectionGene.distance` methods for
+      :py:meth:`genes.DefaultNodeGene.distance` and :py:meth:`genes.DefaultConnectionGene.distance` methods for
       :term:`homologous` pairs, and the configured :ref:`compatibility_disjoint_coefficient <compatibility-disjoint-coefficient-label>` for disjoint/excess genes.
       (Note that this is one of the most time-consuming portions of the library; optimization - such as using `cython <http://cython.org>`_ may be needed if using an
       using an unusually fast fitness function and/or an unusually large population.)
@@ -609,8 +623,9 @@ parallel
 
     Runs evaluation functions in parallel subprocesses in order to evaluate multiple genomes at once.
 
-    :param int num_workers: How many workers to have in the :py:class:`Pool`.
-    :param function eval_function: eval_function should take one argument (a genome object) and return a single float (the genome's fitness)
+    :param int num_workers: How many workers to have in the `Pool <python:multiprocessing.pool.Pool>`.
+    :param eval_function: eval_function should take one argument (a genome object) and return a single float (the genome's fitness) Note that this is not the same as how a fitness function is called by :py:meth:`Population.run <population.Population.run>`.
+    :type eval_function: `function`
     :param timeout: How long (in seconds) each subprocess will be given before an exception is raised (unlimited if `None`).
     :type timeout: int or None
 
@@ -639,8 +654,8 @@ population
     4. Partition the new generation into species based on genetic similarity.
     5. Go to 1.
 
-    :param object config: The :py:class:`Config` configuration object.
-    :param initial_state: If supplied (such as by a method of the :py:class:`Checkpointer` class), a tuple of (``Population``, ``Species``, generation number)
+    :param object config: The :py:class:`Config <config.Config>` configuration object.
+    :param initial_state: If supplied (such as by a method of the :py:class:`Checkpointer <checkpoint.Checkpointer>` class), a tuple of (``Population``, ``Species``, generation number)
     :type initial_state: None or tuple(object, object, int)
 
     .. py:method:: run(fitness_function, n=None)
@@ -686,54 +701,56 @@ reporting
 
     .. py:method:: start_generation(generation)
 
-      Called (by :py:meth:`Population.run`) at the start of each generation, prior to the invocation of the fitness function.
+      Called (by :py:meth:`population.Population.run`) at the start of each generation, prior to the invocation of the fitness function.
 
       :param int generation: The generation number.
 
     .. py:method:: end_generation(config, population, species)
 
-      Called (by :py:meth:`Population.run`) at the end of each generation, after reproduction and speciation.
+      Called (by :py:meth:`population.Population.run`) at the end of each generation, after reproduction and speciation.
 
-      :param object config: :py:class:`Config` configuration object.
+      :param object config: :py:class:`Config <config.Config>` configuration object.
       :param population: Current population, as a dict of unique genome ID/key vs genome.
       :type population: dict(int, object)
-      :param object species: Current species set object, such as a :py:class:`DefaultSpeciesSet`.
+      :param object species: Current species set object, such as a :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>`.
 
     .. py:method:: post_evaluate(config, population, species, best_genome)
 
-      Called (by :py:meth:`Population.run`) after the fitness function is finished.
+      Called (by :py:meth:`population.Population.run`) after the fitness function is finished.
 
-      :param object config: :py:class:`Config` configuration object.
+      :param object config: :py:class:`Config <config.Config>` configuration object.
       :param population: Current population, as a dict of unique genome ID/key vs genome.
       :type population: dict(int, object)
-      :param object species: Current species set object, such as a :py:class:`DefaultSpeciesSet`.
+      :param object species: Current species set object, such as a :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>`.
       :param object best_genome: The currently highest-fitness :term:`genome`. Ties are resolved pseudorandomly (by `dictionary <dict>` ordering).
 
     .. py:method:: post_reproduction(config, population, species)
 
-      Not currently called, either by :py:meth:`Population.run` or by :py:class:`DefaultReproduction`. Note: New members of the population likely will not have a set species.
+      Not currently called, either by :py:meth:`population.Population.run` or by :py:class:`reproduction.DefaultReproduction`.
+      Note: New members of the population likely will not have a set species.
 
     .. py:method:: complete_extinction()
 
-      Called (by :py:meth:`Population.run`) if complete extinction (due to stagnation) occurs, prior to
+      Called (by :py:meth:`population.Population.run`) if complete extinction (due to stagnation) occurs, prior to
       (depending on the :ref:`reset_on_extinction <reset-on-extinction-label>` configuration setting)
-      a new population being created or a :py:exc:`CompleteExtinctionException` being raised.
+      a new population being created or a :py:exc:`population.CompleteExtinctionException` being raised.
 
     .. py:method:: found_solution(config, generation, best)
 
-      Called (by :py:meth:`Population.run`) prior to exiting if the configured :ref:`fitness threshold <fitness-threshold-label>` is met.
+      Called (by :py:meth:`population.Population.run`) prior to exiting if the configured :ref:`fitness threshold <fitness-threshold-label>` is met.
       (Note: Not called upon reaching the generation maximum and exiting for this reason.)
 
-      :param object config: :py:class:`Config` configuration object.
+      :param object config: :py:class:`Config <config.Config>` configuration object.
       :param int generation: Generation number.
       :param object best: The currently highest-fitness :term:`genome`. Ties are resolved pseudorandomly (by `dictionary <dict>` ordering).
 
     .. py:method:: species_stagnant(sid, species)
 
-      Called (by py:meth:`DefaultReproduction.reproduce`) for each species considered stagnant by the stagnation class (such as :py:class:`DefaultStagnation`).
+      Called (by py:meth:`reproduction.DefaultReproduction.reproduce`) for each species considered stagnant by the stagnation class
+      (such as :py:class:`stagnation.DefaultStagnation`).
 
       :param int sid: The species id/key.
-      :param object species: The :py:class:`Species` object.
+      :param object species: The :py:class:`Species <species.Species>` object.
 
     .. py:method:: info(msg)
 
@@ -761,8 +778,8 @@ reproduction
     scheme: explicit fitness sharing with fixed-time species stagnation. For class requirements, see :ref:`reproduction-interface-label`.
 
     :param dict config: Configuration object, in this implementation a dictionary.
-    :param object reporters: A :py:class:`ReporterSet` object.
-    :param object stagnation: A :py:class:`DefaultStagnation` object - current code partially depends on internals of this class (a TODO is noted to correct this)
+    :param object reporters: A :py:class:`ReporterSet <reporting.ReporterSet>` object.
+    :param object stagnation: A :py:class:`DefaultStagnation <stagnation.DefaultStagnation>` object - current code partially depends on internals of this class (a TODO is noted to correct this)
 
     .. py:classmethod:: parse_config(param_dict)
 
@@ -777,14 +794,16 @@ reproduction
 
       Required interface method. Saves ``elitism`` and ``survival_threshold`` (but not ``min_species_size``) parameters to new config file.
 
-      :param file f: `File <file>` object to write to.
+      :param f: `File object <file>` to write to.
+      :type f: `file`
       :param dict param_dict: Dictionary of current parameters in this implementation; more generally, reproduction config object.
 
     .. py:method:: create_new(genome_type, genome_config, num_genomes)
 
       Required interface method. Creates ``num_genomes`` new genomes of the given type using the given configuration. Also initializes ancestry information (empty tuple).
 
-      :param class genome_type: Genome class (such as :py:class:`DefaultGenome` or :py:class:`IZGenome`) to create instances of.
+      :param genome_type: Genome class (such as :py:class:`DefaultGenome <genome.DefaultGenome>` or :py:class:`iznn.IZGenome`) to create instances of.
+      :type genome_type: `class`
       :param object genome_config: Opaque genome configuration object.
       :param int num_genomes: How many new genomes to create.
       :return: A dictionary (with the unique genome identifier as the key) of the genomes created.
@@ -809,8 +828,8 @@ reproduction
       (ideally) a 0-1 scale; however, if the top and bottom fitnesses are not at least 1 apart, the range may be less than 0-1, as a check against dividing by a too-small
       number. TODO: Make minimum difference configurable (defaulting to 1 to preserve compatibility).
 
-      :param object config: A :py:class:`Config` instance.
-      :param object species: A :py:class:`SpeciesSet` instance. As well as depending on some of the :py:class:`DefaultStagnation` internals, this method also depends on some of those of the ``SpeciesSet`` and its referenced species objects.
+      :param object config: A :py:class:`Config <config.Config>` instance.
+      :param object species: A :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>` instance. As well as depending on some of the :py:class:`DefaultStagnation <stagnation.DefaultStagnation>` internals, this method also depends on some of those of the ``DefaultSpeciesSet`` and its referenced species objects.
       :param int pop_size: Population size desired.
       :param int generation: Generation count.
       :return: New population, as a dict of unique genome ID/key vs genome.
@@ -860,7 +879,8 @@ species
 
   .. py:class:: Species(key, generation)
 
-    Represents a :term:`species` and contains data about it such as members, fitness, and time stagnating (note: :py:class:`DefaultStagnation` manipulates many of these).
+    Represents a :term:`species` and contains data about it such as members, fitness, and time stagnating.
+    Note: :py:class:`stagnation.DefaultStagnation` manipulates many of these.
 
     :param int key: Identifier
     :param int generation: Initial generation of appearance
@@ -874,10 +894,10 @@ species
   .. py:class:: DefaultSpeciesSet(config, reporters)
 
     Encapsulates the default speciation scheme by configuring it and performing the speciation function (placing genomes into species by genetic similarity).
-    :py:class:`DefaultReproduction` currently depends on this having a ``species`` attribute consisting of a dictionary of species keys to species.
+    :py:class:`reproduction.DefaultReproduction` currently depends on this having a ``species`` attribute consisting of a dictionary of species keys to species.
 
     :param object config: A configuration object (currently unused).
-    :param object reporters: A :py:class:`ReporterSet` instance giving reporters to be notified about :term:`genomic distance` statistics.
+    :param object reporters: A :py:class:`ReporterSet <reporting.ReporterSet>` instance giving reporters to be notified about :term:`genomic distance` statistics.
 
     .. py:classmethod:: parse_config(param_dict)
 
@@ -892,24 +912,25 @@ species
 
       Required interface method. Writes parameter(s) to new config file.
 
-      :param file f: `File <file>` object to write to.
+      :param f: `File object <file>` to write to.
+      :type f: `file`
       :param dict param_dict: Dictionary of current parameters in this implementation; more generally, stagnation config object.
 
     .. py:method:: speciate(config, population, generation)
 
       Required interface method. Place genomes into species by genetic similarity (:term:`genomic distance`). (The current code has a `docstring` stating that there may
       be a problem if all old species representatives are not dropped for each generation; it is not clear how this is consistent with the code
-      in :py:meth:`DefaultReproduction.reproduce`, such as for ``elitism``. Also note that this is one of the most time-consuming portions of the library; optimization -
-      such as using `cython <http://cython.org>`_ may be needed if using an using an unusually fast fitness function and/or an unusually large population.)
+      in :py:meth:`reproduction.DefaultReproduction.reproduce`, such as for ``elitism``. Also note that this is one of the most time-consuming portions of the library;
+      optimization - such as using `cython <http://cython.org>`_ may be needed if using an using an unusually fast fitness function and/or an unusually large population.)
 
-      :param object config: :py:class:`DefaultConfig` object.
-      :param population: Population as per the output of :py:meth:`DefaultReproduction.reproduce`.
+      :param object config: :py:class:`Config <config.Config>` object.
+      :param population: Population as per the output of :py:meth:`DefaultReproduction.reproduce <reproduction.DefaultReproduction.reproduce>`.
       :type population: dict(int, object)
       :param int generation: Current generation number.
 
     .. py:method:: get_species_id(individual_id)
 
-      Required interface method (used by :py:class:`StdOutReporter`). Retrieves species id for a given genome id.
+      Required interface method (used by :py:class:`reporting.StdOutReporter`). Retrieves species id for a given genome id.
 
       :param int individual_id: Genome id/key.
       :return: Species id/key.
@@ -920,7 +941,7 @@ species
       Retrieves species object for a given genome id. May become a required interface method, and useful for some fitness functions already.
 
       :param int individual_id: Genome id/key.
-      :return: :py:class:`Species` containing the genome corresponding to the id/key.
+      :return: :py:class:`Species <species.Species>` containing the genome corresponding to the id/key.
       :rtype: object
 
 .. todo::
@@ -938,7 +959,8 @@ stagnation
     Keeps track of whether species are making progress and helps remove ones that, for a configurable number of generations, are not.
 
     :param object config: Configuration object; in this implementation, a `dictionary <dict>`, but should be treated as opaque outside this class.
-    :param class reporters: A :py:class:`ReporterSet` with reporters that may need activating; not currently used.
+    :param reporters: A :py:class:`ReporterSet <reporting.ReporterSet>` with reporters that may need activating; not currently used.
+    :type reporters: `class`
 
     .. py:classmethod:: parse_config(param_dict)
 
@@ -954,7 +976,8 @@ stagnation
 
       Required interface method. Saves parameters to new config file. **Has a default of 15 for species_elitism, but will be overridden by the default of 0 in parse_config.**
 
-      :param file f: `File <file>` object to write to.
+      :param f: `File object <file>` to write to.
+      :type f: `file`
       :param dict param_dict: Dictionary of current parameters in this implementation; more generally, stagnation config object.
 
 .. py:module:: statistics
@@ -976,14 +999,16 @@ statistics
 
     .. py:method:: post_evaluate(config, population, species, best_genome)
 
-      Called as part of the :py:class:`BaseReporter` interface after the evaluation at the start of each generation; see :py:meth:`BaseReporter.post_evaluate`.
+      Called as part of the :py:class:`reporting.BaseReporter` interface after the evaluation at the start of each generation;
+      see :py:meth:`BaseReporter.post_evaluate <reporting.BaseReporter.post_evaluate>`.
       Information gathered includes a copy of the best genome in each generation and the fitnesses of each member of each species.
 
     .. py:method:: get_fitness_stat(f)
 
       Calls the given function on the genome fitness data from each recorded generation and returns the resulting list.
 
-      :param function f: A function that takes a list of scores and returns a summary statistic (or, by returning a list or tuple, multiple statistics) such as ``mean`` or ``stdev``.
+      :param f: A function that takes a list of scores and returns a summary statistic (or, by returning a list or tuple, multiple statistics) such as ``mean`` or ``stdev``.
+      :type f: `function`
       :return: A list of the results from function f for each generation.
       :rtype: list
 
@@ -1036,7 +1061,8 @@ statistics
     .. py:method:: get_species_fitness(null_value='')
 
       Returns a by-generation list of lists of species fitnesses; the fitness of a species is determined by the ``mean`` fitness of the genomes in the species, as with
-      the reproduction distribution by :py:class:`DefaultReproduction`. The ``null_value`` parameter is used for species not present in a particular generation (see above).
+      the reproduction distribution by :py:class:`reproduction.DefaultReproduction`. The ``null_value`` parameter is used for species not present in a particular
+      generation (see :py:meth:`above <get_species_sizes>`).
 
       :param str null_value: What to put in the list if the species is not present in a particular generation.
       :return: List of lists of species fitnesses.
