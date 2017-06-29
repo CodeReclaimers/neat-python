@@ -3,6 +3,8 @@ Continuous-time recurrent neural network implementation
 
 .. index:: continuous-time
 
+.. index:: ! recurrent
+
 .. index:: ctrnn
 
 The default :term:`continuous-time` :term:`recurrent` neural network (CTRNN) :py:mod:`implementation <ctrnn>` in neat-python

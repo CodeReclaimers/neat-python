@@ -9,7 +9,7 @@ Module summaries
   Finish putting in all needed material from modules; add links; go over parameters as used in code to make sure are described correctly.
 
 .. py:module:: activations
-   :synopsis: Has the built-in activation functions (see :ref:`activation-functions-label`) and code for using them and adding new user-defined ones.
+   :synopsis: Has the built-in activation functions and code for using them and adding new user-defined ones.
 
 activations
 ---------------
@@ -33,7 +33,7 @@ activations
 .. This would also allow moving get_config_params into the BaseAttribute class, although config_item_names may require some modifications.
 
 .. py:module:: attributes
-   :synopsis: Deals with :term:`attributes` used by genes.
+   :synopsis: Deals with attributes used by genes.
 
 attributes
 -------------
@@ -58,7 +58,7 @@ attributes
     includes code for configuration, creation, and mutation.
 
 .. py:module:: checkpoint
-   :synopsis: Uses :py:mod:`pickle` to save and restore populations (and other aspects of the simulation state).
+   :synopsis: Uses `pickle` to save and restore populations (and other aspects of the simulation state).
 
 checkpoint
 ---------------
@@ -87,8 +87,6 @@ checkpoint
       :return: Object that can be used with :py:meth:`Population.run <population.Population.run>` to restart the simulation.
       :rtype: :py:class:`Population <population.Population>` object.
 
-.. todo:: Put in links to the customization page.
-
 .. py:module:: config
    :synopsis: Does general configuration parsing; used by other classes for their configuration.
 
@@ -100,23 +98,62 @@ config
     Does initial handling of a particular configuration parameter.
 
     :param str name: The name of the configuration parameter.
-    :param str value_type: The type that the configuration parameter should be; must be one of `str`, `int`, `bool`, `float`, or `list`.
+    :param str value_type: The type that the configuration parameter should be; must be one of ``str``, ``int``, ``bool``, ``float``, or ``list``.
+
+    .. py:method:: __repr__()
+
+      Returns a representation of the class suitable for use in code for initialization.
+
+      :return: Representation as for `repr`.
+      :rtype: str
+
+    .. py:method:: parse(section, config_parser)
+
+      Uses the supplied configuration parser (either from the :py:class:`configparser.ConfigParser` class, or - for 2.7 - the
+      `ConfigParser.SafeConfigParser class <https://docs.python.org/2.7/library/configparser.html#ConfigParser.SafeConfigParser>`_) to gather the configuration parameter from
+      the appropriate configuration file :ref:`section <configuration-file-sections-label>`. Parsing varies depending on the type.
+
+      :param str section: The section name, taken from the `__name__` attribute of the class to be configured (or ``NEAT`` for those parameters).
+      :param object config_parser: The configuration parser to be used.
+      :return: The configuration parameter value, in stringified form unless a list.
+      :rtype: str or list
+
+    .. py:method:: interpret(config_dict)
+
+      Takes a `dictionary <dict>` of configuration parameters, as output by the configuration parser called in :py:meth:`parse`, and interprets them into the proper type,
+      with some error-checking.
+
+      :param dict config_dict: Configuration parameters as output by the configuration parser.
+      :return: The configuration parameter value
+      :rtype: str or int or bool or float or list
+
+    .. py:method:: format(value)
+
+      Depending on the type of configuration parameter, returns either a space-separated list version, for ``list``  parameters, or the stringified version (using `str`), of ``value``.
+
+      :param value: Configuration parameter value to be formatted.
+      :type value: str or int or bool or float or list
 
   .. py:function:: write_pretty_params(f, config, params)
 
-    Prints configuration parameters to `file` object f.
+    Prints configuration parameters, with justification based on the longest configuration parameter name.
+
+    :param file f: `File <file>` object to be written to.
+    :param object config: Configuration object from which parameter values are to be fetched (using `getattr`).
+    :param list params: List of :py:class:`ConfigParameter` instances giving the names of interest and the types of parameters.
 
   .. py:class:: Config(genome_type, reproduction_type, species_set_type, stagnation_type, filename)
 
     A simple container for user-configurable parameters of NEAT. The four parameters ending in ``_type`` may be the built-in ones or user-provided objects, which
-    must make available the methods ``parse_config`` and ``write_config``, plus others depending on which object it is.
-    ``Config`` itself takes care of the ``NEAT`` parameters. For a description of the configuration file, see :ref:`configuration-file-description-label`.
+    must make available the methods ``parse_config`` and ``write_config``, plus others depending on which object it is. (For more information on the objects,
+    see below and :ref:`customization-label`.) ``Config`` itself takes care of the ``NEAT`` parameters. For a description of the configuration file,
+    see :ref:`configuration-file-description-label`.
 
     :param object genome_type: Specifies the genome class used, such as :py:class:`DefaultGenome` or :py:class:`iznn.IZGenome`. See :ref:`genome-interface-label` for the needed interface.
     :param object reproduction_type: Specifies the reproduction class used, such as :py:class:`DefaultReproduction`. See :ref:`reproduction-interface-label` for the needed interface.
     :param object species_set_type: Specifies the species set class used, such as :py:class:`DefaultSpeciesSet`.
     :param object stagnation_type: Specifies the stagnation class used, such as :py:class:`DefaultStagnation`.
-    :param str filename: Pathname for configuration file to be opened, read, processed by a parser from the :py:mod:`configparser` module, the ``NEAT`` section handled by ``Config``, and then other sections passed to the ``parse_config`` methods of the appropriate classes.
+    :param str filename: Pathname for configuration file to be opened, read, processed by a parser from the :py:class:`configparser.ConfigParser` class (or, for 2.7, the `ConfigParser.SafeConfigParser class <https://docs.python.org/2.7/library/configparser.html#ConfigParser.SafeConfigParser>`_), the ``NEAT`` section handled by ``Config``, and then other sections passed to the ``parse_config`` methods of the appropriate classes.
     :raises AssertionError: If any of the objects lack a ``parse_config`` method.
 
     .. py:method:: save(filename)
@@ -220,7 +257,7 @@ genes
 
 .. todo::
 
-   Explain more regarding parameters, required functions of the below.
+   Explain more regarding parameters of the below.
 
 .. py:module:: genome
    :synopsis: Handles genomes (individuals in the population).
@@ -230,11 +267,34 @@ genome
 
   .. inheritance-diagram:: neat.genome iznn.IZGenome
 
+  .. py:function:: product(x)
+
+    Used to implement a product (:math:`\[\prod x\]`) :term:`aggregation function`.
+
+    :param x: The inputs to be multiplied together.
+    :type x: list(float)
+
   .. py:class:: DefaultGenomeConfig(params)
 
-    Does the configuration for the DefaultGenome class.
+    Does the configuration for the DefaultGenome class. Has the `dictionary <dict>` ``aggregation_function_defs``, which defines the available
+    :term:`aggregation functions <aggregation function>`, and the `list <list>` ``allowed_connectivity``, which defines the available values for
+    :ref:`initial_connection <initial-connection-config-label>`. Includes parameters taken from the configured gene classes, such as :py:class:`genes.DefaultNodeGene`,
+    :py:class:`genes.DefaultConnectionGene`, and :py:class:`iznn.IZNodeGene`.
 
     :param dict params: Parameters from configuration file and DefaultGenome initialization (by parse_config).
+
+    .. py:method:: add_activation(name, func)
+
+      Adds a new :term:`activation function`, as described in :ref:`customization-label`. Uses :py:class:`ActivationFunctionSet <activations.ActivationFunctionSet>`.
+
+      :param str name: The name by which the function is to be known in the :ref:`configuration file <activation-function-config-label>`.
+      :param function func: A function meeting the requirements of :py:func:`activations.validate_function`.
+
+    .. py:method:: save(f)
+
+      Saves the :ref:`initial_connection <initial-connection-config-label>` configuration and uses :py:func:`config.write_pretty_params` to write out the other parameters.
+
+      :param file f: The `File <file>` object to be written to.
 
   .. py:class:: DefaultGenome(key)
 
@@ -253,9 +313,9 @@ genome
 
     .. py:classmethod:: write_config(f, config)
 
-      Required interface method. Saves configuration using `DefaultGenomeConfig`.
+      Required interface method. Saves configuration using :py:meth:`DefaultGenomeConfig.save`.
 
-      :param file f: File object to write to.
+      :param file f: `File <file>` object to write to.
       :param object config: Configuration object (here, a `DefaultGenomeConfig` instance).
 
     .. py:method:: configure_new(config)
@@ -276,6 +336,8 @@ genome
       value is used to compute genome compatibility for :py:mod:`speciation <species>`. Uses the
       :py:meth:`DefaultNodeGene.distance` and :py:meth:`DefaultConnectionGene.distance` methods for
       :term:`homologous` pairs, and the configured :ref:`compatibility_disjoint_coefficient <compatibility-disjoint-coefficient-label>` for disjoint/excess genes.
+      (Note that this is one of the most time-consuming portions of the library; optimization - such as using `cython <http://cython.org>`_ may be needed if using an
+      using an unusually fast fitness function and/or an unusually large population.)
 
       :param object other: The other DefaultGenome instance (genome) to be compared to.
       :param object config: The genome configuration object.
@@ -352,10 +414,6 @@ indexer
       :type result: int or None
       :return: Identifier/key to use.
       :rtype: int
-
-.. todo::
-
-  Add methods for the below.
 
 .. py:module:: iznn
    :synopsis: Implements a spiking neural network (closer to in vivo neural networks) based on Izhikevich's 2003 model.
@@ -689,10 +747,6 @@ reporting
 
     :param bool show_species_detail: Whether or not to show additional details about each species in the population.
 
-.. todo::
-
-  Add links to configuration file.
-
 .. index:: fitness function
 
 .. py:module:: reproduction
@@ -712,7 +766,8 @@ reproduction
 
     .. py:classmethod:: parse_config(param_dict)
 
-      Required interface method. Provides defaults for ``elitism``, ``survival_threshold``, and ``min_species_size`` parameters and updates them from the configuration file.
+      Required interface method. Provides defaults for ``elitism``, ``survival_threshold``, and ``min_species_size`` parameters and updates them from the
+      :ref:`configuration file <reproduction-config-label>`.
 
       :param dict param_dict: Dictionary of parameters from configuration file.
       :return: Configuration object; considered opaque by rest of code, so current type returned is not required for interface.
@@ -722,7 +777,7 @@ reproduction
 
       Required interface method. Saves ``elitism`` and ``survival_threshold`` (but not ``min_species_size``) parameters to new config file.
 
-      :param file f: File object to write to.
+      :param file f: `File <file>` object to write to.
       :param dict param_dict: Dictionary of current parameters in this implementation; more generally, reproduction config object.
 
     .. py:method:: create_new(genome_type, genome_config, num_genomes)
@@ -761,6 +816,11 @@ reproduction
       :return: New population, as a dict of unique genome ID/key vs genome.
       :rtype: dict(int, object)
 
+.. todo::
+  Better documentation for the ``kw`` parameter in the below. Internally, these are using ``**kw`` as a **parameter** for keys/items/values/iterkeys/iteritems/itervalues!
+  Is this in case someone puts in a set of key/value pairs instead of a dictionary? The `six documentation <https://pythonhosted.org/six/>`_ just states that this parameter is
+  "passed to the underlying method", which is not helpful.
+
 .. py:module:: six_util
    :synopsis: Provides Python 2/3 portability with three dictionary iterators; copied from the `six` module.
 
@@ -790,9 +850,6 @@ This Python 2/3 portability code was copied from the `six module <https://python
     :param dict d: Dictionary to iterate over
     :param kw: The function of this parameter is unclear.
 
-.. Internally, the above are using ``**kw`` as a PARAMETER for keys/items/values/iterkeys/iteritems/itervalues. ??? Is this in case someone puts in
-.. a set of key/value pairs instead of a dictionary? The `six` documentation just states that this parameter is "passed to the underlying method", which is not helpful.
-
 .. index:: ! genomic distance
 
 .. py:module:: species
@@ -811,7 +868,8 @@ species
   .. py:class:: GenomeDistanceCache(config)
 
     Caches :term:`genomic distance` information to avoid repeated lookups (the :py:meth:`distance function <genome.DefaultGenome.distance>` is among the most
-    time-consuming parts of the library, although most fitness functions are likely to far outweigh this). Called as a method with a pair of genomes to retrieve the distance.
+    time-consuming parts of the library, although most fitness functions are likely to far outweigh this for moderate-size populations). Called as a method with a pair of
+    genomes to retrieve the distance.
 
   .. py:class:: DefaultSpeciesSet(config, reporters)
 
@@ -834,14 +892,15 @@ species
 
       Required interface method. Writes parameter(s) to new config file.
 
-      :param file f: File object to write to.
+      :param file f: `File <file>` object to write to.
       :param dict param_dict: Dictionary of current parameters in this implementation; more generally, stagnation config object.
 
     .. py:method:: speciate(config, population, generation)
 
       Required interface method. Place genomes into species by genetic similarity (:term:`genomic distance`). (The current code has a `docstring` stating that there may
       be a problem if all old species representatives are not dropped for each generation; it is not clear how this is consistent with the code
-      in :py:meth:`DefaultReproduction.reproduce`, such as for ``elitism``.)
+      in :py:meth:`DefaultReproduction.reproduce`, such as for ``elitism``. Also note that this is one of the most time-consuming portions of the library; optimization -
+      such as using `cython <http://cython.org>`_ may be needed if using an using an unusually fast fitness function and/or an unusually large population.)
 
       :param object config: :py:class:`DefaultConfig` object.
       :param population: Population as per the output of :py:meth:`DefaultReproduction.reproduce`.
@@ -895,10 +954,8 @@ stagnation
 
       Required interface method. Saves parameters to new config file. **Has a default of 15 for species_elitism, but will be overridden by the default of 0 in parse_config.**
 
-      :param file f: File object to write to.
+      :param file f: `File <file>` object to write to.
       :param dict param_dict: Dictionary of current parameters in this implementation; more generally, stagnation config object.
-
-.. Note: The notes below are not meant to be critical; I can see why the design decisions were made, for at least this iteration of the library.
 
 .. py:module:: statistics
    :synopsis: Gathers and provides (to callers and/or to a file) information on genome and species fitness, which are the most-fit genomes, and similar.
@@ -907,9 +964,11 @@ statistics
 -------------
 
 .. note::
-    * The most-fit genomes are based on the highest-fitness member of each generation; other genomes are not saved by this module, and it is assumed that fitnesses (as given by the :index:`fitness function <single: fitness function>`) are not relative to others in the generation (also assumed by the use of the :ref:`fitness threshold <fitness-threshold-label>` as a signal for exiting.
-    * Currently keeps accumulating information in memory, which may be a problem in long runs.
+    There are two design decisions to be aware of:
+    * The most-fit genomes are based on the highest-fitness member of each generation; other genomes are not saved by this module, and it is assumed that fitnesses (as given by the :index:`fitness function <single: fitness function>`) are not relative to others in the generation (also assumed by the use of the :ref:`fitness threshold <fitness-threshold-label>` as a signal for exiting).
     * Generally reports or records a per-generation list of values; the numeric position in the list may not correspond to the generation number if there has been a restart, such as via the :py:mod:`checkpoint` module.
+    There is also a TODO item: Currently keeps accumulating information in memory, which may be a problem in long runs.
+
 
   .. py:class:: StatisticsReporter(BaseReporter)
 
