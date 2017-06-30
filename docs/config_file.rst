@@ -290,16 +290,21 @@ required for your particular implementation.
 
 * *initial_connection*
     Specifies the initial connectivity of newly-created genomes.  (Note the effects on settings other than ``unconnected`` of the
-    :ref:`enabled_default <enabled-default-label>` parameter.) There are four allowed values:
+    :ref:`enabled_default <enabled-default-label>` parameter.) There are seven allowed values:
 
     * ``unconnected`` - No :term:`connections <connection>` are initially present. **This is the default.**
     * ``fs_neat_nohidden`` - One randomly-chosen :term:`input node` has one connection to each :term:`output node`. (This is one version of the
       FS-NEAT scheme.)
     * ``fs_neat_hidden`` - One randomly-chosen :term:`input node` has one connection to each :term:`hidden <hidden node>` and
       :term:`output node`. (This is another version of the FS-NEAT scheme. If there are no hidden nodes, it is the same as ``fs_neat_nohidden``.)
-    * ``full`` - Each :term:`input node` is connected to all :term:`hidden <hidden node>` and :term:`output nodes <output node>`,
-      and each hidden node is connected to all output nodes. (Note: This does not include :term:`recurrent` connections.)
-    * ``partial #`` - As for ``full``, but each connection has a probability of being present determined by the number (valid values are in [0.0, 1.0]).
+    * ``full_nodirect`` - Each :term:`input node` is connected to all :term:`hidden <hidden node>` nodes, if there are any, and each hidden node is
+      connected to all :term:`output nodes <output node>`; otherwise, each input node is connected to all :term:`output nodes <output node>`.
+    * ``full_direct`` - Each :term:`input node` is connected to all :term:`hidden <hidden node>` and :term:`output nodes <output node>`,
+      and each hidden node is connected to all output nodes.
+    * ``partial_nodirect #`` - As for ``full_nodirect``, but each connection has a probability of being present determined by the number
+      (valid values are in [0.0, 1.0]).
+    * ``partial_direct #`` - as for ``full_direct``, but each connection has a probability of being present determined by the number
+      (valid values are in [0.0, 1.0]).
 
 .. index:: ! mutation
 .. index:: ! node
