@@ -122,10 +122,15 @@ class TestCreateNew(unittest.TestCase):
         for i in config.input_keys:
             assert((i, 0) in g.connections)
 
+<<<<<<< HEAD
     def test_fully_connected_hidden_nodirect_old(self):
+=======
+
+    def test_fully_connected_hidden_nodirect(self):
+>>>>>>> Fix original docs vs code conflict for full, partial initial_connectivity
         gid = 42
         config = self.config.genome_config
-        config.initial_connection = 'full'
+        config.initial_connection = 'full_nodirect'
         config.num_hidden = 2
 
         g = neat.DefaultGenome(gid)
@@ -219,10 +224,14 @@ class TestCreateNew(unittest.TestCase):
         self.assertEqual(set(iterkeys(g.nodes)), {0})
         self.assertLess(len(g.connections), 2)
 
+<<<<<<< HEAD
     def test_partially_connected_hidden_nodirect_old(self):
+=======
+    def test_partially_connected_hidden_nodirect(self):
+>>>>>>> Fix original docs vs code conflict for full, partial initial_connectivity
         gid = 42
         config = self.config.genome_config
-        config.initial_connection = 'partial'
+        config.initial_connection = 'partial_nodirect'
         config.connection_fraction = 0.5
         config.num_hidden = 2
 
