@@ -63,10 +63,10 @@ class TestCreateNew(unittest.TestCase):
             assert((i, 0) in g.connections)
 
 
-    def test_fully_connected_hidden(self):
+    def test_fully_connected_hidden_nodirect(self):
         gid = 42
         config = self.config.genome_config
-        config.initial_connection = 'full'
+        config.initial_connection = 'full_nodirect'
         config.num_hidden = 2
 
         g = neat.DefaultGenome(gid)
@@ -86,9 +86,36 @@ class TestCreateNew(unittest.TestCase):
         for h in (1, 2):
             assert((h, 0) in g.connections)
 
-        # Check that inputs are not directly connected to outputs
+        # Check that inputs are not directly connected to the output
         for i in config.input_keys:
             assert((i, 0) not in g.connections)
+
+    def test_fully_connected_hidden_direct(self):
+        gid = 42
+        config = self.config.genome_config
+        config.initial_connection = 'full_direct'
+        config.num_hidden = 2
+
+        g = neat.DefaultGenome(gid)
+        self.assertEqual(gid, g.key)
+        g.configure_new(config)
+
+        print(g)
+        self.assertEqual(set(iterkeys(g.nodes)), {0, 1, 2})
+        self.assertEqual(len(g.connections), 8)
+
+        # Check that each input is connected to each hidden node.
+        for i in config.input_keys:
+            for h in (1, 2):
+                assert((i, h) in g.connections)
+
+        # Check that each hidden node is connected to the output.
+        for h in (1, 2):
+            assert((h, 0) in g.connections)
+
+        # Check that inputs are directly connected to the output
+        for i in config.input_keys:
+            assert((i, 0) in g.connections)
 
     def test_partially_connected_no_hidden(self):
         gid = 42
@@ -105,10 +132,10 @@ class TestCreateNew(unittest.TestCase):
         self.assertEqual(set(iterkeys(g.nodes)), {0})
         self.assertLess(len(g.connections), 2)
 
-    def test_partially_connected_hidden(self):
+    def test_partially_connected_hidden_nodirect(self):
         gid = 42
         config = self.config.genome_config
-        config.initial_connection = 'partial'
+        config.initial_connection = 'partial_nodirect'
         config.connection_fraction = 0.5
         config.num_hidden = 2
 
@@ -120,6 +147,20 @@ class TestCreateNew(unittest.TestCase):
         self.assertEqual(set(iterkeys(g.nodes)), {0, 1, 2})
         self.assertLess(len(g.connections), 6)
 
+    def test_partially_connected_hidden_direct(self):
+        gid = 42
+        config = self.config.genome_config
+        config.initial_connection = 'partial_direct'
+        config.connection_fraction = 0.5
+        config.num_hidden = 2
+
+        g = neat.DefaultGenome(gid)
+        self.assertEqual(gid, g.key)
+        g.configure_new(config)
+
+        print(g)
+        self.assertEqual(set(iterkeys(g.nodes)), {0, 1, 2})
+        self.assertLess(len(g.connections), 8)
 
 if __name__ == '__main__':
     unittest.main()

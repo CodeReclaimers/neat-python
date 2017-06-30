@@ -18,7 +18,9 @@ def product(x):
 
 
 class DefaultGenomeConfig(object):
-    allowed_connectivity = ['unconnected', 'fs_neat_nohidden', 'fs_neat', 'fs_neat_hidden', 'full', 'partial']
+    allowed_connectivity = ['unconnected', 'fs_neat_nohidden', 'fs_neat', 'fs_neat_hidden',
+                            'full_nodirect', 'full', 'full_direct',
+                            'partial_nodirect', 'partial', 'partial_direct']
     aggregation_function_defs = {'sum': sum, 'max': max, 'min': min, 'product': product}
 
     def __init__(self, params):
@@ -165,9 +167,27 @@ class DefaultGenome(object):
         elif config.initial_connection == 'fs_neat_hidden':
             self.connect_fs_neat_hidden(config)
         elif config.initial_connection == 'full':
-            self.connect_full(config)
+            if config.num_hidden > 0:
+                print("Warning: initial_connection = full will not connect input nodes directly to output nodes;",
+                      "\tif this is desired, set initial_connection = full_nodirect;",
+                      "\tif not, set initial_connection = full_direct",
+                      sep='\n', file=stderr);
+            self.connect_full_nodirect(config)
+        elif config.initial_connection == 'full_nodirect':
+            self.connect_full_nodirect(config)
+        elif config.initial_connection == 'full_direct':
+            self.connect_full_direct(config)
         elif config.initial_connection == 'partial':
-            self.connect_partial(config)
+            if config.num_hidden > 0: # partial num!
+                print("Warning: initial_connection = partial will not connect input nodes directly to output nodes;",
+                      "\tif this is desired, set initial_connection = partial_nodirect {0};".format(self.connection_fraction),
+                      "\tif not, set initial_connection = partial_direct {0}".format(self.connection_fraction),
+                      sep='\n', file=stderr);
+            self.connect_partial_nodirect(config)
+        elif config.initial_connection == 'partial_nodirect':
+            self.connect_partial_nodirect(config)
+        elif config.initial_connection == 'partial_direct':
+            self.connect_partial_direct(config)
 
     def configure_crossover(self, genome1, genome2, config):
         """ Configure a new genome by crossover from two parent genomes. """
@@ -403,7 +423,7 @@ class DefaultGenome(object):
             connection = self.create_connection(config, input_id, output_id)
             self.connections[connection.key] = connection
 
-    def compute_full_connections(self, config):
+    def compute_full_connections_nodirect(self, config):
         """
         Compute connections for a fully-connected feed-forward genome--each
         input connected to all hidden nodes, each hidden node connected to all
@@ -431,15 +451,59 @@ class DefaultGenome(object):
 
         return connections
 
-    def connect_full(self, config):
-        """ Create a fully-connected genome. """
-        for input_id, output_id in self.compute_full_connections(config):
+    def compute_full_connections_direct(self, config):
+        """
+        Compute connections for a fully-connected feed-forward genome--each
+        input connected to all hidden and output nodes, each hidden node connected to all
+        output nodes. (Recurrent genomes will also include node self-connections.)
+        """
+        hidden = [i for i in iterkeys(self.nodes) if i not in config.output_keys]
+        output = [i for i in iterkeys(self.nodes) if i in config.output_keys]
+        connections = []
+        if hidden:
+            for input_id in config.input_keys:
+                for h in hidden:
+                    connections.append((input_id, h))
+            for h in hidden:
+                for output_id in output:
+                    connections.append((h, output_id))
+        for input_id in config.input_keys:
+            for output_id in output:
+                connections.append((input_id, output_id))
+
+        # For recurrent genomes, include node self-connections.
+        if not config.feed_forward:
+            for i in iterkeys(self.nodes):
+                connections.append((i, i))
+
+        return connections
+
+    def connect_full_nodirect(self, config):
+        """ Create a fully-connected genome (except without direct input-output unless no hidden nodes). """
+        for input_id, output_id in self.compute_full_connections_nodirect(config):
             connection = self.create_connection(config, input_id, output_id)
             self.connections[connection.key] = connection
 
-    def connect_partial(self, config):
+    def connect_full_direct(self, config):
+        """ Create a fully-connected genome, including direct input-output connections. """
+        for input_id, output_id in self.compute_full_connections_direct(config):
+            connection = self.create_connection(config, input_id, output_id)
+            self.connections[connection.key] = connection
+
+    def connect_partial_nodirect(self, config):
+        """ Create a partially-connected genome, with (unless no hidden nodes) no direct input-output connections. """
         assert 0 <= config.connection_fraction <= 1
-        all_connections = self.compute_full_connections(config)
+        all_connections = self.compute_full_connections_nodirect(config)
+        shuffle(all_connections)
+        num_to_add = int(round(len(all_connections) * config.connection_fraction))
+        for input_id, output_id in all_connections[:num_to_add]:
+            connection = self.create_connection(config, input_id, output_id)
+            self.connections[connection.key] = connection
+
+    def connect_partial_direct(self, config):
+        """ Create a partially-connected genome, including (possibly) direct input-output connections. """
+        assert 0 <= config.connection_fraction <= 1
+        all_connections = self.compute_full_connections_direct(config)
         shuffle(all_connections)
         num_to_add = int(round(len(all_connections) * config.connection_fraction))
         for input_id, output_id in all_connections[:num_to_add]:
