@@ -213,12 +213,6 @@ class DefaultGenome(object):
         for ng in self.nodes.values():
             ng.mutate(config)
 
-##    def get_new_node_key(self):
-##        new_id = 0
-##        while new_id in self.nodes:
-##            new_id += 1
-##        return new_id
-
     def mutate_add_node(self, config):
         if not self.connections:
             return None, None
