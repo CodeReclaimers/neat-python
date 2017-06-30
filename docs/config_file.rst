@@ -37,15 +37,15 @@ itself.  This section is always required, and is handled by the `Config` class i
 
 .. _fitness-criterion-label:
 
-.. index:: fitness_criterion
+.. index:: ! fitness_criterion
 
 * *fitness_criterion*
     The function used to compute the termination criterion from the set of genome fitnesses.  Allowable values are: ``min``, ``max``, and ``mean``
 
 .. _fitness-threshold-label:
 
-.. index:: fitness_threshold
-.. index:: ! found_solution()
+.. index:: ! fitness_threshold
+.. index:: found_solution()
 
 * *fitness_threshold*
     When the fitness computed by ``fitness_criterion`` meets or exceeds this threshold, the evolution process will terminate, with a call to
@@ -59,21 +59,21 @@ itself.  This section is always required, and is handled by the `Config` class i
 
 .. _pop-size-label:
 
-.. index:: pop_size
+.. index:: ! pop_size
 
 * *pop_size*
     The number of individuals in each generation.
 
 .. _reset-on-extinction-label:
 
-.. index:: reset_on_extinction
+.. index:: ! reset_on_extinction
 
 * *reset_on_extinction*
     If this evaluates to ``True``, when all species simultaneously become extinct due to stagnation, a new random
     population will be created. If ``False``, a `CompleteExtinctionException` will be thrown.
 
-.. index:: ! stagnation
-.. index:: ! DefaultStagnation
+.. index:: stagnation
+.. index:: DefaultStagnation
 
 [DefaultStagnation] section
 ---------------------------
@@ -85,7 +85,7 @@ required for your particular implementation.
 
 .. _species-fitness-func-label:
 
-.. index:: species_fitness_func
+.. index:: ! species_fitness_func
 
 * *species_fitness_func*
     The function used to compute species fitness.  **This defaults to ``mean``.** Allowed values are: ``max``, ``min``, ``mean``, and
@@ -95,12 +95,12 @@ required for your particular implementation.
 
   This is **not** used for calculating species fitness for apportioning reproduction (which always uses ``mean``).
 
-.. index:: max_stagnation
+.. index:: ! max_stagnation
 
 * *max_stagnation*
     Species that have not shown improvement in more than this number of generations will be considered stagnant and removed. **This defaults to 15.**
 
-.. index:: species_elitism
+.. index:: ! species_elitism
 
 * *species_elitism*
     The number of species that will be protected from stagnation; mainly intended to prevent
@@ -113,8 +113,8 @@ required for your particular implementation.
   TODO: `DefaultStagnation.write_config` uses a default of 15 for ``species_elitism``, but the default by `DefaultStagnation.parse_config` is 0,
   which will override.
 
-.. index:: ! reproduction
-.. index:: ! DefaultReproduction
+.. index:: reproduction
+.. index:: DefaultReproduction
 
 .. _reproduction-config-label:
 
@@ -126,12 +126,12 @@ This section is only necessary if you specify this class as the reproduction imp
 creating the `Config` instance; otherwise you need to include whatever configuration (if any) is
 required for your particular implementation.
 
-.. index:: elitism
+.. index:: ! elitism
 
 * *elitism*
     The number of most-fit individuals in each species that will be preserved as-is from one generation to the next. **This defaults to 0.**
 
-.. index:: survival_threshold
+.. index:: ! survival_threshold
 
 * *survival_threshold*
     The fraction for each species allowed to reproduce each generation. **This defaults to 0.2.**
@@ -141,8 +141,8 @@ required for your particular implementation.
   TODO: There is also a :index:`min_species_size` configuration parameter, defaulting to 2, although it is not written out by
   `DefaultReproduction.write_config`.
 
-.. index:: ! genome
-.. index:: ! DefaultGenome
+.. index:: genome
+.. index:: DefaultGenome
 
 [DefaultGenome] section
 -----------------------
@@ -152,10 +152,10 @@ This section is only necessary if you specify this class as the genome implement
 creating the `Config` instance; otherwise you need to include whatever configuration (if any) is
 required for your particular implementation.
 
-.. index:: ! activation function
-.. index:: ! mutation
-.. index:: ! node
-.. index:: ! attributes
+.. index:: activation function
+.. index:: mutation
+.. index:: node
+.. index:: attributes
 
 .. _activation-function-config-label:
 
@@ -171,10 +171,10 @@ required for your particular implementation.
     A space-separated list of the activation functions that may be used by nodes.  **This defaults to :ref:`sigmoid <sigmoid-label>`.** The
     built-in available functions can be found in :ref:`activation-functions-label`; more can be added as described in :ref:`customization-label`.
 
-.. index:: ! aggregation function
-.. index:: ! mutation
-.. index:: ! node
-.. index:: ! attributes
+.. index:: aggregation function
+.. index:: mutation
+.. index:: node
+.. index:: attributes
 
 * *aggregation_default*
     The default :term:`aggregation function` :term:`attribute <attributes>` :py:meth:`assigned <attributes.StringAttribute.init_value>` to new
@@ -188,10 +188,10 @@ required for your particular implementation.
     A space-separated list of the aggregation functions that may be used by nodes.  **This defaults to ``sum``.** The
     available functions (defined in `genome.DefaultGenomeConfig`) are: ``sum``, :py:func:`product <genome.product>`, ``min``, and ``max``
 
-.. index:: ! bias
-.. index:: ! mutation
-.. index:: ! node
-.. index:: ! attributes
+.. index:: bias
+.. index:: mutation
+.. index:: node
+.. index:: attributes
 
 * *bias_init_mean*
     The mean of the normal/gaussian distribution used to :py:meth:`select <attributes.FloatAttribute.init_value>` :term:`bias`
@@ -212,26 +212,26 @@ required for your particular implementation.
 
 .. _compatibility-threshold-label:
 
-.. index:: ! genomic distance
-.. index:: compatibility_threshold
-.. index:: ! species
+.. index:: genomic distance
+.. index:: ! compatibility_threshold
+.. index:: species
 
 * *compatibility_threshold*
     Individuals whose :term:`genomic distance` is less than this threshold are considered to be in the same :term:`species`.
 
 .. _compatibility-disjoint-coefficient-label:
 
-.. index:: compatibility_disjoint_coefficient
-.. index:: ! disjoint
+.. index:: ! compatibility_disjoint_coefficient
+.. index:: disjoint
 
 * *compatibility_disjoint_coefficient*
     The coefficient for the :term:`disjoint` and :term:`excess` :term:`gene` counts' contribution to the :term:`genomic distance`.
 
 .. _compatibility-weight-coefficient-label:
 
-.. index:: compatibility_weight_coefficient
-.. index:: ! attributes
-.. index:: ! homologous
+.. index:: ! compatibility_weight_coefficient
+.. index:: attributes
+.. index:: homologous
 
 * *compatibility_weight_coefficient*
     The coefficient for each :term:`weight`, :term:`bias`, or :term:`response` multiplier difference's contribution to the :term:`genomic distance`
@@ -242,8 +242,8 @@ required for your particular implementation.
   It is currently possible for two :term:`homologous` nodes or connections to have a higher contribution to the :term:`genomic distance` than a
   disjoint or excess :term:`node` or :term:`connection`, depending on their :term:`attributes` and the settings of the above parameters.
 
-.. index:: ! mutation
-.. index:: ! connection
+.. index:: mutation
+.. index:: connection
 
 .. _conn-add-prob-label:
 
@@ -254,11 +254,11 @@ required for your particular implementation.
 
 .. _enabled-default-label:
 
-.. index:: ! enabled
-.. index:: enabled_default
-.. index:: ! initial_connection
-.. index:: ! connection
-.. index:: ! attributes
+.. index:: enabled
+.. index:: ! enabled_default
+.. index:: initial_connection
+.. index:: connection
+.. index:: attributes
 
 * *enabled_default*
     The default :term:`enabled` :term:`attribute <attributes>` of newly created connections.  Valid values are ``True`` and ``False``.
@@ -267,7 +267,7 @@ required for your particular implementation.
   "Newly created connections" include ones in newly-created genomes, if those have initial connections
   (from the setting of the :ref:`initial_connection <initial-connection-config-label>` variable).
 
-.. index:: ! mutation
+.. index:: mutation
 
 * *enabled_mutate_rate*
     The probability that :term:`mutation` will :py:func:`replace <attributes.BoolAttribute.mutate_value>` (50/50 chance of ``True`` or ``False``)
@@ -275,8 +275,8 @@ required for your particular implementation.
 
 .. _feed-forward-config-label:
 
-.. index:: feed_forward
-.. index:: ! feedforward
+.. index:: ! feed_forward
+.. index:: feedforward
 
 * *feed_forward*
     If this evaluates to ``True``, generated networks will not be allowed to have :term:`recurrent` :term:`connections <connection>`
@@ -284,9 +284,9 @@ required for your particular implementation.
 
 .. _initial-connection-config-label:
 
-.. index:: initial_connection
-.. index:: ! enabled_default
-.. index:: ! connection
+.. index:: ! initial_connection
+.. index:: enabled_default
+.. index:: connection
 
 * *initial_connection*
     Specifies the initial connectivity of newly-created genomes.  (Note the effects on settings other than ``unconnected`` of the
@@ -299,15 +299,18 @@ required for your particular implementation.
       :term:`output node`. (This is another version of the FS-NEAT scheme. If there are no hidden nodes, it is the same as ``fs_neat_nohidden``.)
     * ``full_nodirect`` - Each :term:`input node` is connected to all :term:`hidden <hidden node>` nodes, if there are any, and each hidden node is
       connected to all :term:`output nodes <output node>`; otherwise, each input node is connected to all :term:`output nodes <output node>`.
+      Genomes with :ref:`feed_forward <feed-forward-config-label>` set to ``False`` will also have :term:`recurrent` (loopback, in this case)
+      connections from each hidden or output node to itself.
     * ``full_direct`` - Each :term:`input node` is connected to all :term:`hidden <hidden node>` and :term:`output nodes <output node>`,
-      and each hidden node is connected to all output nodes.
+      and each hidden node is connected to all output nodes. Genomes with :ref:`feed_forward <feed-forward-config-label>` set to ``False`` will also
+      have :term:`recurrent` (loopback, in this case) connections from each hidden or output node to itself.
     * ``partial_nodirect #`` - As for ``full_nodirect``, but each connection has a probability of being present determined by the number
       (valid values are in [0.0, 1.0]).
     * ``partial_direct #`` - as for ``full_direct``, but each connection has a probability of being present determined by the number
       (valid values are in [0.0, 1.0]).
 
-.. index:: ! mutation
-.. index:: ! node
+.. index:: mutation
+.. index:: node
 
 .. _node-add-prob-label:
 
@@ -319,25 +322,25 @@ required for your particular implementation.
 
 .. _num-nodes-config-label:
 
-.. index:: ! hidden node
+.. index:: hidden node
 
 * *num_hidden*
     The number of :term:`hidden nodes <hidden node>` to add to each genome in the initial population.
 
-.. index:: ! input node
+.. index:: input node
 
 * *num_inputs*
     The number of :term:`input nodes <input node>`, through which the network receives inputs.
 
-.. index:: ! output node
+.. index:: output node
 
 * *num_outputs*
     The number of :term:`output nodes <output node>`, to which the network delivers outputs.
 
-.. index:: ! response
-.. index:: ! mutation
-.. index:: ! node
-.. index:: ! attributes
+.. index:: response
+.. index:: mutation
+.. index:: node
+.. index:: attributes
 
 * *response_init_mean*
     The mean of the normal/gaussian distribution used to :py:meth:`select <attributes.FloatAttribute.init_value>` :term:`response` multiplier
@@ -356,10 +359,10 @@ required for your particular implementation.
     The probability that :term:`mutation` will replace the response multiplier of a node with a newly :py:meth::`chosen <attributes.FloatAttribute.mutate_value>` 
     random value (as if it were a new node).
 
-.. index:: ! weight
-.. index:: ! mutation
-.. index:: ! connection
-.. index:: ! attributes
+.. index:: weight
+.. index:: mutation
+.. index:: connection
+.. index:: attributes
 
 * *weight_init_mean*
     The mean of the normal/gaussian distribution used to :py:meth:`select <attributes.FloatAttribute.init_value>` :term:`weight`

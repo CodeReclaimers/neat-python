@@ -3,7 +3,8 @@
 Genome Interface
 ================
 
-.. index:: genome
+.. index:: ! genome
+.. index:: DefaultGenome
 
 .. py:currentmodule:: genome
 
@@ -47,7 +48,7 @@ Crossover/Mutation
 
   Apply mutation operations to the genome, using the given configuration.
 
-.. index:: genomic distance
+.. index:: ! genomic distance
 
 Speciation/Misc
 ------------------------

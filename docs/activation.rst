@@ -3,7 +3,7 @@
 Overview of builtin activation functions
 ========================================
 
-.. index:: activation function
+.. index:: ! activation function
 
 Note that some of these :term:`functions <activation function>` are scaled differently from the canonical
 versions you may be familiar with.  The intention of the scaling is to place
