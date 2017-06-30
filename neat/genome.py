@@ -1,8 +1,9 @@
-from __future__ import division
+from __future__ import division, print_function
 
 from functools import reduce
 from operator import mul
 from random import choice, random, shuffle
+from sys import stderr
 
 from neat.activations import ActivationFunctionSet
 from neat.config import ConfigParameter, write_pretty_params
@@ -17,7 +18,7 @@ def product(x):
 
 
 class DefaultGenomeConfig(object):
-    allowed_connectivity = ['unconnected', 'fs_neat', 'full', 'partial']
+    allowed_connectivity = ['unconnected', 'fs_neat_nohidden', 'fs_neat', 'fs_neat_hidden', 'full', 'partial']
     aggregation_function_defs = {'sum': sum, 'max': max, 'min': min, 'product': product}
 
     def __init__(self, params):
@@ -65,6 +66,8 @@ class DefaultGenomeConfig(object):
 
         assert self.initial_connection in self.allowed_connectivity
 
+        self.node_indexer = None
+
     def add_activation(self, name, func):
         self.activation_defs.add(name, func)
 
@@ -82,7 +85,7 @@ class DefaultGenomeConfig(object):
         write_pretty_params(f, self, self._params)
 
     def get_new_node_key(self, node_dict):
-        if not hasattr(self, 'node_indexer'):
+        if self.node_indexer == None:
             self.node_indexer = Indexer(max(list(iterkeys(node_dict)))+1)
 
         new_id = self.node_indexer.get_next()
@@ -151,7 +154,16 @@ class DefaultGenome(object):
 
         # Add connections based on initial connectivity type.
         if config.initial_connection == 'fs_neat':
-            self.connect_fs_neat(config)
+            if config.num_hidden > 0:
+                print("Warning: initial_connection = fs_neat will not connect to hidden nodes;",
+                      "\tif this is desired, set initial_connection = fs_neat_nohidden;",
+                      "\tif not, set initial_connection = fs_neat_hidden",
+                      sep='\n', file=stderr);
+            self.connect_fs_neat_nohidden(config)
+        elif config.initial_connection == 'fs_neat_nohidden':
+            self.connect_fs_neat_nohidden(config)
+        elif config.initial_connection == 'fs_neat_hidden':
+            self.connect_fs_neat_hidden(config)
         elif config.initial_connection == 'full':
             self.connect_full(config)
         elif config.initial_connection == 'partial':
@@ -373,10 +385,21 @@ class DefaultGenome(object):
         connection.init_attributes(config)
         return connection
 
-    def connect_fs_neat(self, config):
-        """ Randomly connect one input to all hidden and output nodes (FS-NEAT). """
+    def connect_fs_neat_nohidden(self, config):
+        """
+        Randomly connect one input to all output nodes (FS-NEAT without connections to hidden, if any).
+        Originally connect_fs_neat.
+        """
         input_id = choice(config.input_keys)
         for output_id in config.output_keys:
+            connection = self.create_connection(config, input_id, output_id)
+            self.connections[connection.key] = connection
+
+    def connect_fs_neat_hidden(self, config):
+        """ Randomly connect one input to all hidden and output nodes (FS-NEAT with connections to hidden, if any). """
+        input_id = choice(config.input_keys)
+        others = [i for i in iterkeys(self.nodes) if i not in config.input_keys]
+        for output_id in others:
             connection = self.create_connection(config, input_id, output_id)
             self.connections[connection.key] = connection
 
@@ -384,7 +407,7 @@ class DefaultGenome(object):
         """
         Compute connections for a fully-connected feed-forward genome--each
         input connected to all hidden nodes, each hidden node connected to all
-        output nodes.
+        output nodes. (Recurrent genomes will also include node self-connections.)
         """
         hidden = [i for i in iterkeys(self.nodes) if i not in config.output_keys]
         output = [i for i in iterkeys(self.nodes) if i in config.output_keys]
