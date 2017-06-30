@@ -8,6 +8,8 @@ Module summaries
 
   Finish putting in all needed material from modules; add links; go over parameters as used in code to make sure are described correctly.
 
+.. index:: ! activation function
+
 .. py:module:: activations
    :synopsis: Has the built-in activation functions and code for using them and adding new user-defined ones.
 
@@ -53,11 +55,8 @@ activations
       :return: Whether or not the function is known.
       :rtype: bool
 
-.. todo::
-  Document current attribute methods!
-
 .. note::
-  TODO: Suggested simplification for the below: Make __config_items__ a list of lists/tuples, with the latter containing (name, value_type, default) -
+  TODO: Suggested simplification for the below: Make ``__config_items__`` a list of lists/tuples, with the latter containing (name, value_type, default) -
   no default if the last is None. This would also allow moving get_config_params into the BaseAttribute class, although config_item_names may require
   some modifications. (A default capability will be needed for future expansions of the attributes, such as different types of initializations.)
 
@@ -111,12 +110,14 @@ attributes
       :return: The new value.
       :rtype: float
 
+    .. index:: mutation
+
     .. py:method:: mutate_value(value, config)
 
-      May replace (as if reinitializing, using `init_value`), mutate (using a 0-mean gaussian distribution with a configured standard deviation from
-      ``mutate_power``), or leave alone the input value, depending on the configuration settings (of ``replace_rate`` and ``mutate_rate``).
+      May replace (as if reinitializing, using `init_value`), mutate (using a 0-mean gaussian distribution with a configured standard
+      deviation from ``mutate_power``), or leave alone the input value, depending on the configuration settings (of ``replace_rate`` and ``mutate_rate``).
       TODO: Why check vs `random` if the ``replace_rate`` and ``mutate_rate`` are 0? Also note that the ``replace_rate`` is likely to be lower, so should
-      be put second.
+      be checked second.
 
       :param float value: The current value of the attribute.
       :param object config: The configuration object from which the parameters are to be extracted.
@@ -143,11 +144,13 @@ attributes
       :return: The new value.
       :rtype: bool
 
+    .. index:: mutation
+
     .. py:method:: mutate_value(value, config)
 
-      With a frequency determined by the ``mutate_rate`` (which is more precisely a ``replace_rate``) configuration parameter, replaces the value with a
-      50/50 chance of ``True`` or ``False``; note that this has a 50% chance of leaving the value unchanged. TODO: Have different chances possible of
-      mutation in each direction. Also, do not check vs `random` if the ``mutate_rate`` is 0.
+      With a frequency determined by the ``mutate_rate`` (which is more precisely a ``replace_rate``) configuration parameter, replaces
+      the value with a 50/50 chance of ``True`` or ``False``; note that this has a 50% chance of leaving the value unchanged. TODO: Have different
+      chances possible of :term:`mutation` in each direction. Also, do not check vs `random` if the ``mutate_rate`` is 0.
 
       :param bool value: The current value of the attribute.
       :param object config: The configuration object from which the ``mutate_rate`` parameter is to be extracted.
@@ -176,14 +179,16 @@ attributes
       :return: The new value.
       :rtype: str
 
+    .. index:: mutation
+
     .. py:method:: mutate_value(value, config)
 
-      With a frequency determined by the ``mutate_rate`` (which is more precisely a ``replace_rate``) configuration parameter, replaces the value with an
-      one of the ``options``, with each having an equal chance; note that this can be the same value as before. (It is possible to crudely alter the chances
-      of what is chosen by listing a given option more than once, although this is inefficient given the use of the `random.choice` function.) TODO: Add
-      configurable probabilities of which option is used; eventually, as with the improved version of RBF-NEAT, separate genes for the likelihoods of each
-      (but always doing some change, to prevent overly-conservative evolution due to its inherent short-sightedness), allowing the genomes to control
-      the distribution of options, will be desirable.
+      With a frequency determined by the ``mutate_rate`` (which is more precisely a ``replace_rate``) configuration parameter, replaces
+      the value with an one of the ``options``, with each having an equal chance; note that this can be the same value as before. (It is possible to crudely
+      alter the chances of what is chosen by listing a given option more than once, although this is inefficient given the use of the `random.choice` function.)
+      TODO: Do not check vs `random` if the ``mutate_rate`` is 0. (Longer-term, add configurable probabilities of which option is used; eventually, as with the
+      improved version of RBF-NEAT, separate genes for the likelihoods of each (but always doing some change, to prevent overly-conservative evolution
+      due to its inherent short-sightedness), allowing the genomes to control the distribution of options, will be desirable.)
 
 .. py:module:: checkpoint
    :synopsis: Uses `pickle` to save and restore populations (and other aspects of the simulation state).
@@ -216,6 +221,9 @@ checkpoint
       :rtype: :py:class:`Population <population.Population>` object.
 
 .. index:: ! fitness_criterion
+.. index:: ! fitness_threshold
+.. index:: ! pop_size
+.. index:: ! reset_on_extinction
 
 .. py:module:: config
    :synopsis: Does general configuration parsing; used by other classes for their configuration.
@@ -332,13 +340,6 @@ ctrnn
 
       Receives a genome and returns its phenotype (a :py:class:`CTRNN`). The ``time_constant`` is used for the :py:class:`CTRNNNodeEval` initializations.
 
-.. todo::
-  Put in the rest of the methods for BaseGene.
-
-.. index:: ! genomic distance
-.. index:: ! gene
-.. index:: ! compatibility_weight_coefficient
-
 .. py:module:: genes
    :synopsis: Handles node and connection genes.
 
@@ -347,32 +348,98 @@ genes
 
   .. inheritance-diagram:: genes iznn.IZNodeGene
 
+  .. index:: ! key
+  .. index:: gene
+
   .. py:class:: BaseGene(key)
 
-    Handles functions shared by multiple types of genes (both :term:`node` and :term:`connection`), including crossover and calling mutation methods.
+    Handles functions shared by multiple types of genes (both :term:`node` and :term:`connection`), including :term:`crossover` and
+    calling :term:`mutation` methods.
 
-    :param int key: The gene identifier. **For connection genes, determining whether they are homologous (for genomic distance determination) uses the identifiers of the connected nodes, not the connection gene's identifier.**
+    :param int key: The gene :term:`identifier <key>`. Note: For connection genes, determining whether they are :term:`homologous` (for :term:`genomic distance` and :term:`crossover` determination) uses the identifiers of the connected nodes, not the connection gene's identifier.
+
+    .. py:method:: __str__()
+
+      Converts gene attributes into a printable format.
+
+      :return: Stringified gene instance.
+      :rtype: str
+
+    .. py:method:: __lt__(other)
+
+      Allows sorting genes by :term:`keys <key>`.
+
+      :param object other: The other `BaseGene` object.
+      :return: Whether the calling instance's key is less than that of the ``other`` instance.
+      :rtype: bool
 
     .. py:classmethod:: parse_config(config, param_dict)
 
-      Placeholder; parameters are entirely in gene attributes.
+      Placeholder; parameters are entirely in gene :term:`attributes`.
 
     .. py:classmethod:: get_config_params()
 
-      Fetches configuration parameters from gene attributes. Used by :py:class:`genome.DefaultGenomeConfig` to include gene parameters in its
-      configuration parameters.
+      Fetches configuration parameters from each gene class' ``__gene_attributes__`` list (using
+      :py:meth:`FloatAttribute.get_config_params <attributes.FloatAttribute.get_config_params>`,
+      :py:meth:`BoolAttribute.get_config_params <attributes.BoolAttribute.get_config_params>`,
+      or :py:meth:`StringAttribute.get_config_params <attributes.StringAttribute.get_config_params>` as appropriate for each listed attribute).
+      Used by :py:class:`genome.DefaultGenomeConfig` to include gene parameters in its configuration parameters.
 
       :return: List of configuration parameters (as :py:class:`config.ConfigParameter` instances) for the gene attributes.
       :rtype: list(object)
 
+    .. py:method:: init_attributes(config)
+
+      Initializes its gene attributes using the supplied configuration object and :py:meth:`FloatAttribute.init_value <attributes.FloatAttribute.init_value>`,
+      :py:meth:`BoolAttribute.init_value <attributes.BoolAttribute.init_value>`, or
+      :py:meth:`StringAttribute.init_value <attributes.StringAttribute.init_value>` as appropriate.
+
+      :param object config: Configuration object to be used by the appropriate :py:mod:`attributes` class.
+
+    .. index::
+      see: mutate; mutation
+    .. index:: mutation
+
+    .. py:method:: mutate(config)
+
+      :term:`Mutates <mutation>` (possibly) its gene attributes using the supplied configuration object and
+      :py:meth:`FloatAttribute.init_value <attributes.FloatAttribute.mutate_value>`,
+      :py:meth:`BoolAttribute.init_value <attributes.BoolAttribute.mutate_value>`, or
+      :py:meth:`StringAttribute.init_value <attributes.StringAttribute.mutate_value>` as appropriate.
+
+      :param object config: Configuration object to be used by the appropriate :py:mod:`attributes` class.
+
+    .. py:method:: copy()
+
+      Makes a copy of itself, including its subclass, :term:`key`, and all gene attributes.
+
+      :return: A copied gene
+      :rtype: object
+
+    .. index:: crossover
+
+    .. py:method:: crossover(gene2)
+
+      Creates a new gene via :term:`crossover` - randomly inheriting attributes from its parents. The two genes must be :term:`homologous`, having
+      the same :term:`key`/id.
+
+      :param object gene2: The other gene.
+      :return: A new gene, with the same key/id, with other attributes being copied randomly (50/50 chance) from each parent gene.
+      :rtype: object
+
+  .. index:: ! node
+  .. index:: genetic distance
+  .. index:: ! genomic distance
+  .. index:: compatibility_weight_coefficient
+
   .. py:class:: DefaultNodeGene(BaseGene)
 
-    Groups :py:mod:`attributes` specific to :term:`node` genes (of the usually-used type) and calculates genetic distances between two
-    :term:`homologous` (not disjoint or excess) node genes.
+    Groups :py:mod:`attributes` specific to :term:`node` genes - such as :term:`bias` - and calculates
+    genetic distances between two :term:`homologous` (not :term:`disjoint` or excess) node genes.
 
     .. py:method:: distance(other, config)
 
-      Determines weight of differences between node genes using their 4 :term:`attributes`;
+      Determines the degree of differences between node genes using their 4 :term:`attributes`;
       the final result is multiplied by the configured :ref:`compatibility_weight_coefficient <compatibility-weight-coefficient-label>`.
 
       :param object other: The other ``DefaultNodeGene``.
@@ -380,14 +447,19 @@ genes
       :return: The contribution of this pair to the :term:`genomic distance` between the source genomes.
       :rtype: float
 
+  .. index:: ! connection
+  .. index:: genetic distance
+  .. index:: ! genomic distance
+  .. index:: compatibility_weight_coefficient
+
   .. py:class:: DefaultConnectionGene(BaseGene)
 
-    Groups :py:mod:`attributes` specific to :term:`connection` genes and calculates genetic distances between two
-    :term:`homologous` (not disjoint or excess) connection genes.
+    Groups :py:mod:`attributes` specific to :term:`connection` genes - such as :term:`weight` - and calculates
+    genetic distances between two :term:`homologous` (not :term:`disjoint` or excess) connection genes.
 
     .. py:method:: distance(other, config)
 
-      Determines weight of differences between connection genes using their 2 :term:`attributes`;
+      Determines the degree of differences between connection genes using their 2 :term:`attributes`;
       the final result is multiplied by the configured :ref:`compatibility_weight_coefficient <compatibility-weight-coefficient-label>`.
 
       :param object other: The other ``DefaultConnectionGene``.
@@ -398,11 +470,6 @@ genes
 .. todo::
 
    Explain more regarding parameters of the below; add all methods!
-
-.. index:: ! compatibility_disjoint_coefficient
-.. index:: ! initial_connection
-.. index:: ! aggregation function
-.. index:: ! activation function
 
 .. py:module:: genome
    :synopsis: Handles genomes (individuals in the population).
@@ -419,18 +486,24 @@ genome
     :param x: The inputs to be multiplied together.
     :type x: list(float)
 
+  .. index:: aggregation function
+  .. index:: ! initial_connection
+
   .. py:class:: DefaultGenomeConfig(params)
 
-    Does the configuration for the DefaultGenome class. Has the `dictionary <dict>` ``aggregation_function_defs``, which defines the available
-    :term:`aggregation functions <aggregation function>`, and the `list <list>` ``allowed_connectivity``, which defines the available values for
-    :ref:`initial_connection <initial-connection-config-label>`. Includes parameters taken from the configured gene classes, such as :py:class:`genes.DefaultNodeGene`,
-    :py:class:`genes.DefaultConnectionGene`, or :py:class:`iznn.IZNodeGene`.
+    Does the configuration for the DefaultGenome class. Has the `dictionary <dict>` ``aggregation_function_defs``, which
+    defines the available :term:`aggregation functions <aggregation function>`, and the `list <list>` ``allowed_connectivity``, which defines the available
+    values for :ref:`initial_connection <initial-connection-config-label>`. Includes parameters taken from the configured gene classes, such
+    as :py:class:`genes.DefaultNodeGene`, :py:class:`genes.DefaultConnectionGene`, or :py:class:`iznn.IZNodeGene`.
 
     :param dict params: Parameters from configuration file and DefaultGenome initialization (by parse_config).
 
+    .. index:: activation function
+
     .. py:method:: add_activation(name, func)
 
-      Adds a new :term:`activation function`, as described in :ref:`customization-label`. Uses :py:meth:`ActivationFunctionSet.add <activations.ActivationFunctionSet.add>`.
+      Adds a new :term:`activation function`, as described in :ref:`customization-label`.
+      Uses :py:meth:`ActivationFunctionSet.add <activations.ActivationFunctionSet.add>`.
 
       :param str name: The name by which the function is to be known in the :ref:`configuration file <activation-function-config-label>`.
       :param func: A function meeting the requirements of :py:func:`activations.validate_activation`.
@@ -444,16 +517,28 @@ genome
       :param f: The `File object <file>` to be written to.
       :type f: `file`
 
+  .. index:: key
+
   .. py:class:: DefaultGenome(key)
 
-    The provided genome class. For class requirements, see :ref:`genome-interface-label`.
+    A :term:`genome` for generalized neural networks. For class requirements, see :ref:`genome-interface-label`.
+    Terminology:
+    pin - Point at which the network is conceptually connected to the external world; pins are either input or output.
+    node - Analog of a physical neuron.
+    connection - Connection between a pin/node output and a node's input, or between a node's output and a pin/node input.
+    key - Identifier for an object, unique within the set of similar objects.
+    Design assumptions and conventions.
+    1. Each output pin is connected only to the output of its own unique neuron by an implicit connection with weight one. This connection is permanently enabled.
+    2. The output pin's key is always the same as the key for its associated neuron.
+    3. Output neurons can be modified but not deleted.
+    4. The input values are applied to the input pins unmodified.
 
-    :param int key: Identifier for this individual/genome.
+    :param int key: :term:`Identifier <key>` for this individual/genome.
 
     .. py:classmethod:: parse_config(param_dict)
 
-      Required interface method. Provides default :term:`node` and :term:`connection` :term:`gene` specifications (from :py:mod:`genes`) and uses `DefaultGenomeConfig` to
-      do the rest of the configuration.
+      Required interface method. Provides default :term:`node` and :term:`connection` :term:`gene` specifications (from :py:mod:`genes`) and
+      uses `DefaultGenomeConfig` to do the rest of the configuration.
 
       :param dict param_dict: Dictionary of parameters from configuration file.
       :return: Configuration object; considered opaque by rest of code, so type may vary by implementation (here, a `DefaultGenomeConfig` instance).
@@ -467,22 +552,63 @@ genome
       :type f: `file`
       :param object config: Configuration object (here, a `DefaultGenomeConfig` instance).
 
+    .. index:: initial_connection
+    .. index:: ! hidden node
+    .. index:: ! input node
+    .. index:: ! output node
+
     .. py:method:: configure_new(config)
 
-      Required interface method. Configures a new genome (itself) based on the given configuration object.
+      Required interface method. Configures a new genome (itself) based on the given
+      configuration object, including genes for :term:`connectivity <connection>` (based on :ref:`initial_connection <initial-connection-config-label>`) and
+      starting :term:`nodes <node>` (as defined by :term:`num_hidden <hidden node>`, :term:`num_inputs <input node>`, and
+      :term:`num_outputs <output node>` in the :ref:`configuration file <num-nodes-config-label>`.
+
+      :param object config: Genome configuration object.
+
+    .. index:: crossover
 
     .. py:method:: configure_crossover(genome1, genome2, config)
 
-      Required interface method. Configures a new genome (itself) by :term:`crossover` from two parent genomes.
+      Required interface method. Configures a new genome (itself) by :term:`crossover` from two parent genomes. :term:`disjoint`
+      or :term:`excess` genes are inherited from the fitter of the two parents, while :term:`homologous` genes use the gene class' crossover function
+      (e.g., :py:meth:`genes.BaseGene.crossover`).
+
+      :param object genome1: The first parent genome.
+      :param object genome2: The second parent genome.
+      :param object config: Genome configuration object.
+
+    .. index:: mutation
 
     .. py:method:: mutate(config)
 
-      Required interface method. Mutates this genome.
+      Required interface method. :term:`Mutates <mutation>` this genome. What mutations take place are determined by configuration file settings, such
+      as :ref:`node_add_prob <node-add-prob-label>` and ``node_delete_prob`` for the likelihood of adding or removing a :term:`node` and
+      :ref:`conn_add_prob <conn-add-prob-label>` and ``conn_delete_prob`` for the likelihood of adding or removing a :term:`connection`. (Currently,
+      more than one of these can happen with a call to ``mutate``; a TODO is to add a configuration item to choose whether or not multiple mutations
+      can happen simultaneously.) Non-structural mutations (to gene :term:`attributes`) are performed by calling the appropriate ``mutate`` method(s) for
+      connection and node genes (generally :py:meth:`genes.BaseGene.mutate`).
+
+      :param object config: Genome configuration object.
+
+    .. index:: key
+
+    .. py:method:: get_new_node_key()
+
+      Finds a currently-unused node :term:`key`. TODO: How in the world does the way it is set up prevent having duplicate non-:term:`homologous` node
+      keys?
+
+      :return: A currently-unused node key.
+      :rtype: int
+
+    .. index:: compatibility_disjoint_coefficient
+    .. index:: genomic distance
+    .. index:: ! genetic distance
 
     .. py:method:: distance(other, config)
 
-      Required interface method. Returns the :term:`genomic distance` between this genome and the other. This :index:`distance <single: genomic distance>`
-      value is used to compute genome compatibility for :py:mod:`speciation <species>`. Uses the
+      Required interface method. Returns the :term:`genomic distance` between this genome and the other.
+      This distance value is used to compute genome compatibility for :py:mod:`speciation <species>`. Uses (by default) the
       :py:meth:`genes.DefaultNodeGene.distance` and :py:meth:`genes.DefaultConnectionGene.distance` methods for
       :term:`homologous` pairs, and the configured :ref:`compatibility_disjoint_coefficient <compatibility-disjoint-coefficient-label>` for disjoint/excess genes.
       (Note that this is one of the most time-consuming portions of the library; optimization - such as using `cython <http://cython.org>`_ may be
@@ -496,13 +622,14 @@ genome
     .. py:method:: size()
 
       Required interface method. Returns genome ``complexity``, taken to be (number of nodes, number of enabled connections); currently only used
-      for reporters - they are given this information for the highest-fitness genome at the end of each generation.
+      for reporters - some retrieve this information for the highest-fitness genome at the end of each generation.
 
 .. index:: ! feed_forward
 .. index:: ! feedforward
 .. index::
   see: feed-forward; feedforward
 .. index:: ! recurrent
+.. index:: ! key
 
 .. py:module:: graphs
    :synopsis: Directed graph algorithm implementations.
@@ -516,7 +643,7 @@ graphs
     by ``connections``. Used to avoid :term:`recurrent` networks when a purely :term:`feed-forward` network is desired (e.g., as determined by the
     ``feed_forward`` setting in the :ref:`configuration file <feed-forward-config-label>`.
 
-    :param connections: The current network, as a list of (input, output) connections.
+    :param connections: The current network, as a list of (input, output) connection :term:`identifiers <key>`.
     :type connections: list(tuple(int, int))
     :param test: Possible connection to be checked for causing a cycle.
     :type test: tuple(int, int)
@@ -525,11 +652,11 @@ graphs
 
   .. py:function:: required_for_output(inputs, outputs, connections)
 
-    Collect the nodes whose state is required to compute the final network output(s).
+    Collect the :term:`nodes <node>` whose state is required to compute the final network output(s).
 
-    :param inputs: the input identifiers; **it is assumed that the input identifier set and the node identifier set are disjoint.**
+    :param inputs: the :term:`input node` :term`identifiers <key>`; **it is assumed that the input identifier set and the node identifier set are disjoint.**
     :type inputs: list(int)
-    :param outputs: the output node identifiers; by convention, the output node ids are always the same as the output index.
+    :param outputs: the :term:`output node` identifiers; by convention, the output node :term:`ids <key>` are always the same as the output index.
     :type outputs: list(int)
     :param connections: list of (input, output) connections in the network; should only include enabled ones.
     :type connections: list(tuple(int, int))
@@ -540,17 +667,21 @@ graphs
 
     Collect the layers whose members can be evaluated in parallel in a :term:`feed-forward` network.
 
-    :param inputs: the network input nodes.
+    :param inputs: the network :term:`input node` :term:`identifiers <key>`.
     :type inputs: list(int)
-    :param outputs: the output node identifiers.
+    :param outputs: the :term:`output node` :term:`identifiers <key>`.
     :type outputs: list(int)
     :param connections: list of (input, output) connections in the network; should only include enabled ones.
     :type connections: list(tuple(int, int))
-    :return: A list of layers, with each layer consisting of a set of identifiers; only includes nodes returned by required_for_output.
+    :return: A list of layers, with each layer consisting of a set of :term:`identifiers <key>`; only includes nodes returned by required_for_output.
     :rtype: list(set(int))
 
 .. py:module:: indexer
    :synopsis: Contains the Indexer class, to help with creating new identifiers/keys.
+
+.. index:: ! key
+.. index::
+  see: id; key
 
 indexer
 ----------
@@ -559,7 +690,7 @@ indexer
 
     Initializes an Indexer instance with the internal ID counter set to ``first``. This class functions to help with creating new (unique) identifiers/keys.
 
-    :param int first: The initial identifier (key) to be used.
+    :param int first: The initial identifier (:term:`key`) to be used.
 
     .. py:method:: get_next(result=None)
 
@@ -567,7 +698,7 @@ indexer
 
       :param result: Returned unmodified unless `None`.
       :type result: int or None
-      :return: Identifier/key to use.
+      :return: Identifier/:term:`key` to use.
       :rtype: int
 
 .. py:module:: iznn
@@ -586,9 +717,14 @@ See http://www.izhikevich.org/publications/spikes.pdf.
 
   .. inheritance-diagram:: iznn
 
+  .. index:: ! node
+  .. index:: ! gene
+
   .. py:class:: IZNodeGene(BaseGene)
 
-    Contains attributes for the iznn node genes and determines genomic distances.
+    Contains attributes for the iznn :term:`node` genes and determines :term:`genomic distances <genomic distance>`.
+
+  .. index:: ! genome
 
   .. py:class:: IZGenome(DefaultGenome)
 
@@ -702,11 +838,11 @@ nn.feed_forward
 
     A straightforward (no pun intended) :term:`feed-forward` neural network NEAT implementation.
 
-    :param inputs: The input keys (IDs).
+    :param inputs: The input :term:`keys <key>` (IDs).
     :type inputs: list(int)
     :param outputs: The output keys.
     :type outputs: list(int)
-    :param node_evals: A list of node descriptions, with each node represented by a list.
+    :param node_evals: A list of :term:`node` descriptions, with each node represented by a list.
     :type node_evals: list(list(object))
 
     .. py:method:: activate(inputs)
@@ -731,7 +867,7 @@ nn.recurrent
 
     A :term:`recurrent` (but otherwise straightforward) neural network NEAT implementation.
 
-    :param inputs: The input keys (IDs).
+    :param inputs: The input :term:`keys <key>` (IDs).
     :type inputs: list(int)
     :param outputs: The output keys.
     :type outputs: list(int)
@@ -774,20 +910,26 @@ parallel
 
   Put in more about calls to rest of program?
 
-.. index:: fitness function
-.. index:: ! reset_on_extinction
-.. index:: ! fitness_criterion
-.. index:: ! fitness_threshold
-
 .. py:module:: population
    :synopsis: Implements the core evolution algorithm.
 
 population
 --------------
 
+  .. index:: ! reset_on_extinction
+
   .. py:exception:: CompleteExtinctionException
 
     Raised on complete extinction (all species removed due to stagnation) unless :ref:`reset_on_extinction <reset-on-extinction-label>` is set.
+
+  .. index:: fitness function
+  .. index:: ! fitness_criterion
+  .. index:: ! fitness_threshold
+  .. index:: ! start_generation()
+  .. index:: ! end_generation()
+  .. index:: ! post_evaluate()
+  .. index:: ! complete_extinction()
+  .. index:: ! found_solution()
 
   .. py:class:: Population(config, initial_state=None)
 
@@ -827,8 +969,8 @@ population
       :return: The best genome seen.
       :rtype: object
 
-.. index:: ! fitness_threshold
-.. index:: found_solution()
+.. todo::
+  Add methods under ReporterSet.
 
 .. py:module:: reporting
    :synopsis: Makes possible reporter classes, which are triggered on particular events and may provide information to the user, may do something else such as checkpointing, or may do both.
@@ -840,7 +982,7 @@ reporting
 
   .. py:class:: ReporterSet
 
-    Keeps track of the set of reporters and gives functions to dispatch them at appropriate points.
+    Keeps track of the set of reporters and gives methods to dispatch them at appropriate points.
 
   .. py:class:: BaseReporter
 
@@ -853,12 +995,14 @@ reporting
 
       :param int generation: The generation number.
 
+    .. index:: ! key
+
     .. py:method:: end_generation(config, population, species)
 
       Called (by :py:meth:`population.Population.run`) at the end of each generation, after reproduction and speciation.
 
       :param object config: :py:class:`Config <config.Config>` configuration object.
-      :param population: Current population, as a dict of unique genome ID/key vs genome.
+      :param population: Current population, as a dict of unique genome :term:`ID/key <key>` vs genome.
       :type population: dict(int, object)
       :param object species: Current species set object, such as a :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>`.
 
@@ -867,10 +1011,10 @@ reporting
       Called (by :py:meth:`population.Population.run`) after the fitness function is finished.
 
       :param object config: :py:class:`Config <config.Config>` configuration object.
-      :param population: Current population, as a dict of unique genome ID/key vs genome.
+      :param population: Current population, as a dict of unique genome :term:`ID/key <key>` vs genome.
       :type population: dict(int, object)
       :param object species: Current species set object, such as a :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>`.
-      :param object best_genome: The currently highest-fitness :term:`genome`. Ties are resolved pseudorandomly (by `dictionary <dict>` ordering).
+      :param object best_genome: The currently highest-fitness :term:`genome`. (Ties are resolved pseudorandomly, by `dictionary <dict>` ordering.)
 
     .. py:method:: post_reproduction(config, population, species)
 
@@ -883,6 +1027,9 @@ reporting
       (depending on the :ref:`reset_on_extinction <reset-on-extinction-label>` configuration setting)
       a new population being created or a :py:exc:`population.CompleteExtinctionException` being raised.
 
+    .. index:: found_solution()
+    .. index:: ! fitness_threshold
+
     .. py:method:: found_solution(config, generation, best)
 
       Called (by :py:meth:`population.Population.run`) prior to exiting if the configured :ref:`fitness threshold <fitness-threshold-label>` is met.
@@ -890,14 +1037,14 @@ reporting
 
       :param object config: :py:class:`Config <config.Config>` configuration object.
       :param int generation: Generation number.
-      :param object best: The currently highest-fitness :term:`genome`. Ties are resolved pseudorandomly (by `dictionary <dict>` ordering).
+      :param object best: The currently highest-fitness :term:`genome`. (Ties are resolved pseudorandomly by `dictionary <dict>` ordering.)
 
     .. py:method:: species_stagnant(sid, species)
 
       Called (by py:meth:`reproduction.DefaultReproduction.reproduce`) for each species considered stagnant by the stagnation class
       (such as :py:class:`stagnation.DefaultStagnation`).
 
-      :param int sid: The species id/key.
+      :param int sid: The species :term:`id/key <key>`.
       :param object species: The :py:class:`Species <species.Species>` object.
 
     .. py:method:: info(msg)
@@ -911,8 +1058,6 @@ reporting
     Uses print to output information about the run; an example reporter class.
 
     :param bool show_species_detail: Whether or not to show additional details about each species in the population.
-
-.. index:: fitness function
 
 .. py:module:: reproduction
    :synopsis: Handles creation of genomes, either from scratch or by sexual or asexual reproduction from parents.
@@ -946,12 +1091,14 @@ reproduction
       :type f: `file`
       :param dict param_dict: Dictionary of current parameters in this implementation; more generally, reproduction config object.
 
+    .. index:: ! genome
+
     .. py:method:: create_new(genome_type, genome_config, num_genomes)
 
       Required interface method. Creates ``num_genomes`` new genomes of the given type using the given configuration. Also initializes ancestry
       information (as an empty tuple).
 
-      :param genome_type: Genome class (such as :py:class:`DefaultGenome <genome.DefaultGenome>` or :py:class:`iznn.IZGenome`) to create instances of.
+      :param genome_type: Genome class (such as :py:class:`DefaultGenome <genome.DefaultGenome>` or :py:class:`iznn.IZGenome`) of which to create instances.
       :type genome_type: `class`
       :param object genome_config: Opaque genome configuration object.
       :param int num_genomes: How many new genomes to create.
@@ -970,11 +1117,20 @@ reproduction
       :param int pop_size: Desired population size, as input to :py:meth:`reproduce`.
       :param int min_species_size: Minimum number of members per species; can result in population size being above ``pop_size``.
 
+    .. index:: pop_size
+    .. index:: fitness function
+    .. index:: ! key
+    .. index:: elitism
+    .. index:: survival_threshold
+    .. index:: species_stagnant()
+    .. index:: ! stagnation
+    .. index:: info()
+
     .. py:method:: reproduce(config, species, pop_size, generation)
 
       Required interface method. Creates the population to be used in the next generation from the given configuration instance, SpeciesSet instance,
-      desired :index:`size of the population <pop_size>`, and current generation number.  This method is called after all genomes have been evaluated and their ``fitness``
-      member assigned.  This method should use the stagnation instance given to the initializer to remove species deemed to have stagnated.
+      desired :index:`size of the population <pop_size>`, and current generation number.  This method is called after all genomes have been evaluated and
+      their ``fitness`` member assigned.  This method should use the stagnation instance given to the initializer to remove species deemed to have stagnated.
       Note: Determines relative fitnesses by transforming into (ideally) a 0-1 scale; however, if the top and bottom fitnesses are not at least 1 apart, the
       range may be less than 0-1, as a check against dividing by a too-small number. TODO: Make minimum difference configurable (defaulting to 1 to
       preserve compatibility).
@@ -983,7 +1139,7 @@ reproduction
       :param object species: A :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>` instance. As well as depending on some of the :py:class:`DefaultStagnation <stagnation.DefaultStagnation>` internals, this method also depends on some of those of the ``DefaultSpeciesSet`` and its referenced species objects.
       :param int pop_size: Population size desired, such as set in the :ref:`configuration file <pop-size-label>`.
       :param int generation: Generation count.
-      :return: New population, as a dict of unique genome ID/key vs genome.
+      :return: New population, as a dict of unique genome :term:`ID/key <key>` vs :term:`genome`.
       :rtype: dict(int, object)
 
 .. todo::
@@ -1020,8 +1176,7 @@ This Python 2/3 portability code was copied from the `six module <https://python
     :param dict d: Dictionary to iterate over
     :param kw: The function of this parameter is unclear.
 
-.. index:: ! genomic distance
-.. index:: ! compatibility_threshold
+.. index:: ! key
 
 .. py:module:: species
    :synopsis: Divides the population into genome-based species.
@@ -1034,14 +1189,27 @@ species
     Represents a :term:`species` and contains data about it such as members, fitness, and time stagnating.
     Note: :py:class:`stagnation.DefaultStagnation` manipulates many of these.
 
-    :param int key: Identifier
+    :param int key: :term:`Identifier/key <key>`
     :param int generation: Initial generation of appearance
+
+  .. index:: genomic distance
 
   .. py:class:: GenomeDistanceCache(config)
 
-    Caches :term:`genomic distance` information to avoid repeated lookups (the :py:meth:`distance function <genome.DefaultGenome.distance>` is
-    among the most time-consuming parts of the library, although many fitness functions are likely to far outweigh this for moderate-size populations).
-    Called as a method with a pair of genomes to retrieve the distance.
+    Caches (indexing by :term:`genome` :term:`key`/id) :term:`genomic distance` information to avoid repeated lookups. (The :py:meth:`distance function
+    <genome.DefaultGenome.distance>` is among the most time-consuming parts of the library, although many fitness functions are likely to far outweigh
+    this for moderate-size populations.)
+
+    :param object config: A genome configuration object; later used by the genome distance function.
+
+    .. py:method:: __call__(genome0, genome1)
+
+      GenomeDistanceCache is called as a method with a pair of genomes to retrieve the distance.
+
+      :param object genome0: The first genome object.
+      :param object genome1: The second genome object.
+      :return: The :term:`genomic distance`.
+      :rtype: float
 
   .. py:class:: DefaultSpeciesSet(config, reporters)
 
@@ -1068,6 +1236,10 @@ species
       :type f: `file`
       :param dict param_dict: Dictionary of current parameters in this implementation; more generally, stagnation config object.
 
+    .. index:: ! genomic distance
+    .. index:: compatibility_threshold
+    .. index:: info()
+
     .. py:method:: speciate(config, population, generation)
 
       Required interface method. Place genomes into species by genetic similarity (:term:`genomic distance`). (The current code has a `docstring` stating
@@ -1081,27 +1253,28 @@ species
 
     .. py:method:: get_species_id(individual_id)
 
-      Required interface method (used by :py:class:`reporting.StdOutReporter`). Retrieves species id for a given genome id.
+      Required interface method (used by :py:class:`reporting.StdOutReporter`). Retrieves species :term:`id/key <key>` for a given genome id/key.
 
-      :param int individual_id: Genome id/key.
-      :return: Species id/key.
+      :param int individual_id: Genome id/:term:`key`.
+      :return: Species id/:term:`key`.
       :rtype: int
 
     .. py:method:: get_species(individual_id)
 
-      Retrieves species object for a given genome id. May become a required interface method, and useful for some fitness functions already.
+      Retrieves species object for a given genome :term:`id/key <key>`. May become a required interface method, and useful for some fitness
+      functions already.
 
-      :param int individual_id: Genome id/key.
+      :param int individual_id: Genome id/:term:`key`.
       :return: :py:class:`Species <species.Species>` containing the genome corresponding to the id/key.
       :rtype: object
 
 .. todo::
 
-   Add more methods to the below for DefaultStagnation; try to figure out which ones are required interface methods; links re config file.
+   ADD more methods to the below for DefaultStagnation; try to figure out which ones are required interface methods; links re config file.
 
-.. index:: ! species_fitness_func
-.. index:: ! max_stagnation
-.. index:: ! species_elitism
+.. index:: species_fitness_func
+.. index:: ! fitness_criterion
+.. index:: ! fitness_threshold
 
 .. note::
 
@@ -1114,6 +1287,9 @@ species
 
 stagnation
 --------------
+
+  .. index:: max_stagnation
+  .. index:: species_elitism
 
   .. py:class:: DefaultStagnation(config, reporters)
 
@@ -1219,7 +1395,7 @@ statistics
       removed due to :py:mod:`stagnation`; species without generational overlap may be more similar in :term:`genomic distance` than the configured
       :ref:`compatibility_threshold <compatibility-threshold-label>` would otherwise allow.
 
-      :return: List of lists of species sizes.
+      :return: List of lists of species sizes, ordered by species :term:`id/key <key>`.
       :rtype: list(list(int))
 
     .. py:method:: get_species_fitness(null_value='')
@@ -1229,7 +1405,7 @@ statistics
       particular generation (see :py:meth:`above <get_species_sizes>`).
 
       :param str null_value: What to put in the list if the species is not present in a particular generation.
-      :return: List of lists of species fitnesses.
+      :return: List of lists of species fitnesses, ordered by species :term:`id/key <key>`.
       :rtype: list(list(float or str))
 
     .. py:method:: save_genome_fitness(delimiter=' ', filename='fitness_history.csv', with_cross_validation=False)
@@ -1247,7 +1423,7 @@ statistics
       Logs speciation throughout evolution, by tracking the number of genomes in each species. Uses :py:meth:`get_species_sizes`; see that method for
       more information.
 
-      :param str delimiter: Delimiter between columns in the file; note that the default is not ',' as may be otherwise implied by the ``csv`` file extension (which refers to the package used).
+      :param str delimiter: Delimiter between columns in the file; note that the default is not ',' as may be otherwise implied by the ``csv`` file extension (which refers to the `csv` package used).
       :param str filename: The filename to open (for writing, not appending) and write to.
 
     .. py:method:: save_species_fitness(delimiter=' ', null_value='NA', filename='species_fitness.csv')
@@ -1255,7 +1431,7 @@ statistics
       Logs species' mean fitness throughout evolution. Uses :py:meth:`get_species_fitness`; see that method for more information on, for
       instance, ``null_value``.
 
-      :param str delimiter: Delimiter between columns in the file; note that the default is not ',' as may be otherwise implied by the ``csv`` file extension (which refers to the package used).
+      :param str delimiter: Delimiter between columns in the file; note that the default is not ',' as may be otherwise implied by the ``csv`` file extension (which refers to the `csv` package used).
       :param str null_value: See :py:meth:`get_species_fitness`.
       :param str filename: The filename to open (for writing, not appending) and write to.
 

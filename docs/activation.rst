@@ -55,6 +55,8 @@ hat
    :scale: 50 %
    :alt: hat function
 
+.. _identity-label:
+
 identity
 --------
 
@@ -82,6 +84,8 @@ relu
 .. figure:: activation-relu.png
    :scale: 50 %
    :alt: rectified linear function
+
+.. _sigmoid-label:
 
 sigmoid
 -------
