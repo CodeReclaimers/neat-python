@@ -1,12 +1,14 @@
 Glossary
 =========
 
+.. default-role:: any
+
 .. glossary::
   :sorted:
 
   attributes
     These are the properties of a :term:`node` (such as its :term:`activation function`) or :term:`connection` (such as whether it is :term:`enabled` or not)
-    determined by its associated :term:`gene` (in the default implementation, in the :py:mod:`attributes` module).
+    determined by its associated :term:`gene` (in the default implementation, in the :py:mod:`attributes` module in combination with the gene class).
 
   activation function
   aggregation function
@@ -18,13 +20,14 @@ Glossary
 
   node
     Also known as a neuron (as in a *neural* network). They are of three types:
-    :term:`input <input node>`, :term:`hidden <hidden node>`, and :term:`output <output node>`. Nodes have one or more attributes, such
-    as an :term:`activation function`; all are determined by their :term:`gene`.
+    :term:`input <input node>`, :term:`hidden <hidden node>`, and :term:`output <output node>`. Nodes have one or more :term:`attributes`, such
+    as an :term:`activation function`; all are determined by their :term:`gene`. Classes of node genes include :py:class:`genes.DefaultNodeGene` and
+    :py:class:`iznn.IZNodeGene`.
 
   input node
-    These are the :term:`nodes <node>` through which the network receives inputs. They cannot be deleted (although connections from them can be),
-    cannot be the output end of a :term:`connection`, and have: no :term:`aggregation function`; a fixed :term:`bias` of 0; a fixed :term:`response` multiplier
-    of 1; and a fixed :term:`activation function` of ``identity``.
+    These are the :term:`nodes <node>` through which the network receives inputs. They cannot be deleted (although :term:`connections <connection>`
+    from them can be), cannot be the output end of a :term:`connection`, and have: no :term:`aggregation function`; a fixed :term:`bias` of 0; a
+    fixed :term:`response` multiplier of 1; and a fixed :term:`activation function` of :ref:`identity <identity-label>`.
 
   hidden node
     These are the :term:`nodes <node>` other than :term:`input nodes <input node>` and :term:`output nodes <output node>`. In the original
@@ -32,17 +35,18 @@ Glossary
     more complexity as necessary - thus "Augmenting Topologies".
 
   homologous
-    Descended from a common ancestor; two genes in NEAT from different genomes are either homologous or `:term:`disjoint`/excess.
-    TODO: Explain further.
+    Descended from a common ancestor; two genes in NEAT from different genomes are either homologous or :term:`disjoint`/excess. In NEAT, two
+    genes that are homologous will have the same :term:`key`/id. For :term:`node` genes, the key is an `int` incremented with each newly-created node;
+    for :term:`connection` genes, the key is a `tuple` of the keys of the nodes being connected. TODO: Explain further.
 
   disjoint
   excess
-    These are genes in NEAT not descended from a common ancestor - i.e., not :term:`homologous` This implementation of NEAT, like most, does
+    These are genes in NEAT not descended from a common ancestor - i.e., not :term:`homologous`. This implementation of NEAT, like most, does
     not distinguish between disjoint and excess genes. TODO: Explain further.
 
   output node
-    These are the :term:`nodes <node>` to which the network delivers outputs. They cannot be deleted (although connections to them can be) but
-    can otherwise be altered normally.
+    These are the :term:`nodes <node>` to which the network delivers outputs. They cannot be deleted (although :term:`connections <connection>` to
+    them can be) but can otherwise be :term:`mutated <mutation>` normally.
 
   weight
   enabled
@@ -55,8 +59,9 @@ Glossary
 
   connection
     These connect between :term:`nodes <node>`, and give rise to the *network* in the term ``neural network``. For non-loopback (directly :term:`recurrent`)
-    connections, they are equivalent to biological synapses. Connections have two attributes, their :term:`weight` and whether or not they are
-    :term:`enabled`; both are determined by their :term:`gene`.
+    connections, they are equivalent to biological synapses. Connections have two :term:`attributes`, their :term:`weight` and whether or not they are
+    :term:`enabled`; both are determined by their :term:`gene`. An example gene class for connections can be seen
+    in :py:class:`genes.DefaultConnectionGene`.
 
   feedforward
   feed-forward
@@ -78,7 +83,8 @@ Glossary
     simulates a continuous process via differential equations (or other methods).
 
   genome
-    The set of :term:`genes <gene>` that together code for a (neural network) phenotype. TODO: Add appropriate links.
+    The set of :term:`genes <gene>` that together code for a (neural network) phenotype. Example genome objects can be seen in
+    :py:class:`genome.DefaultGenome` and :py:class:`iznn.IZGenome`, and the object interface is described in :ref:`genome-interface-label`.
 
   genomic distance
     An approximate measure of the difference between :term:`genomes <genome>`, used in dividing the population into :term:`species`. TODO: Explain
@@ -90,15 +96,28 @@ Glossary
 
   gene
     The information coding (in the current implementation) for a particular aspect (:term:`node` or :term:`connection`) of a neural network phenotype.
-    TODO: Add links.
+    Contains several :term:`attributes`, varying depending on the type of gene. Example gene classes include :py:class:`genes.DefaultNodeGene`,
+    :py:class:`genes.DefaultConnectionGene`, and :py:class:`iznn.IZNodeGene`; all of these are subclasses of :py:class:`genes.BaseGene`.
 
   species
     Subdivisions of the population into groups of similar (by the :term:`genomic distance` measure) individuals (:term:`genomes <genome>`),
     which compete among themselves but share fitness relative to the rest of the population. This is, among other things, a mechanism to try to avoid the
-    quick elimination of high-potential topological mutants that have an initial poor fitness prior to smaller "tuning" changes. TODO: Add links.
+    quick elimination of high-potential topological mutants that have an initial poor fitness prior to smaller "tuning" changes. TODO: Add links!
 
   crossover
     The process in sexual reproduction in which two :term:`genomes <genome>` are combined. This involves the combination of :term:`homologous`
-    genes and the copying (from the highest-fitness genome) of :term:`disjoint/excess <disjoint>` genes. TODO: Add links.
+    genes and the copying (from the highest-fitness genome) of :term:`disjoint/excess <disjoint>` genes. Along with :term:`mutation`, one of the
+    two sources of innovation in (classical) evolution.
+
+  mutate
+  mutation
+    The process in which the :term:`attributes` of a :term:`gene` (or the genes in a :term:`genome`) are (randomly, with likelihoods determined by
+    configuration parameters) altered. Along with :term:`crossover`, one of the two sources of innovation in (classical) evolution.
+
+  id
+  key
+    Various of the objects used by the library are indexed by an key (id); for most, this is an `int`, which is either unique in the library as a whole
+    (as with :term:`species` and :term:`genomes <genome>`), or within a genome (as with :term:`node` :term:`genes <gene>`).
+    For :term:`connection` genes, this is a `tuple` of two `ints <int>`, the keys of the connected nodes.
 
 :ref:`Table of Contents <toc-label>`
