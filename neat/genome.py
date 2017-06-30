@@ -87,7 +87,11 @@ class DefaultGenomeConfig(object):
         write_pretty_params(f, self, self._params)
 
     def get_new_node_key(self, node_dict):
+<<<<<<< HEAD
         if self.node_indexer == None:
+=======
+        if not hasattr(self, 'node_indexer'):
+>>>>>>> Found another bug - commit prior to checkout
             self.node_indexer = Indexer(max(list(iterkeys(node_dict)))+1)
 
         new_id = self.node_indexer.get_next()
