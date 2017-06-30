@@ -9,7 +9,7 @@ NEAT-Python allows the user to provide drop-in replacements for some parts of th
 makes it easier to implement common variations of the algorithm as mentioned in the literature.  If
 you find that you'd like to be able to customize something not shown here, please submit an issue on GitHub.
 
-.. index:: ! activation function
+.. index:: activation function
 
 New activation functions
 ------------------------
@@ -32,7 +32,7 @@ This is demonstrated in the `memory-fixed
   the :py:class:`DefaultGenomeConfig <genome.DefaultGenomeConfig>` implementation; different genome implementations
   may require a different method of registration.
 
-.. index:: ! reporting
+.. index:: reporting
 
 Reporting/logging
 -----------------
@@ -43,7 +43,8 @@ it with an object which implements the same interface as `BaseReporter` (in :py:
 
 :py:class:`StdOutReporter <reporting.StdOutReporter>`, :py:class:`StatisticsReporter <statistics.StatisticsReporter>`, and :py:class:`Checkpointer <checkpoint.Checkpointer>` may be useful as examples of the behavior you can add using a reporter.
 
-.. index:: ! genome
+.. index:: genome
+.. index:: DefaultGenome
 
 New genome types
 ----------------
@@ -59,7 +60,7 @@ This is done in the `OpenAI lander
 <https://github.com/CodeReclaimers/neat-python/blob/master/examples/openai-lander/evolve.py>`_ example to
 add an evolvable per-genome reward discount value. It is also done in the :py:mod:`iznn` setup, with :py:class:`IZGenome <iznn.IZGenome>`.
 
-.. index:: ! species
+.. index:: species
 
 Speciation scheme
 -----------------
@@ -75,7 +76,7 @@ To use a different speciation scheme, you can create a custom class whose interf
 
   TODO: Include example
 
-.. index:: ! stagnation
+.. index:: stagnation
 
 Species stagnation scheme
 -------------------------
@@ -94,7 +95,8 @@ This is demonstrated in the `interactive 2D image
 
   Document stagnation interface
 
-.. index:: ! DefaultReproduction
+.. index:: reproduction
+.. index:: DefaultReproduction
 
 Reproduction scheme
 -------------------

@@ -16,7 +16,7 @@ Input 1  Input 2  Output
 1        1        0
 =======  =======  ======
 
-.. index:: fitness function
+.. index:: ! fitness function
 
 Fitness function
 ----------------

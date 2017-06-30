@@ -17,7 +17,7 @@ two sets of :term:`genes <gene>` that describe how to build an artificial neural
     1. :term:`Node` genes, each of which specifies a single neuron.
     2. :term:`Connection` genes, each of which specifies a single connection between neurons.
 
-.. index:: fitness function
+.. index:: ! fitness function
 
 To evolve a solution to a problem, the user must provide a fitness function which computes a single real number
 indicating the quality of an individual genome: better ability to solve the problem means a higher score.  The algorithm

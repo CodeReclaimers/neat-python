@@ -8,7 +8,7 @@ Module summaries
 
   Finish putting in all needed material from modules; add links; go over parameters as used in code to make sure are described correctly.
 
-.. index:: ! activation function
+.. index:: activation function
 
 .. py:module:: activations
    :synopsis: Has the built-in activation functions and code for using them and adding new user-defined ones.
@@ -110,7 +110,7 @@ attributes
       :return: The new value.
       :rtype: float
 
-    .. index:: mutation
+    .. index:: ! mutation
 
     .. py:method:: mutate_value(value, config)
 
@@ -144,7 +144,7 @@ attributes
       :return: The new value.
       :rtype: bool
 
-    .. index:: mutation
+    .. index:: ! mutation
 
     .. py:method:: mutate_value(value, config)
 
@@ -179,7 +179,7 @@ attributes
       :return: The new value.
       :rtype: str
 
-    .. index:: mutation
+    .. index:: ! mutation
 
     .. py:method:: mutate_value(value, config)
 
@@ -220,10 +220,10 @@ checkpoint
       :return: Object that can be used with :py:meth:`Population.run <population.Population.run>` to restart the simulation.
       :rtype: :py:class:`Population <population.Population>` object.
 
-.. index:: ! fitness_criterion
-.. index:: ! fitness_threshold
-.. index:: ! pop_size
-.. index:: ! reset_on_extinction
+.. index:: fitness_criterion
+.. index:: fitness_threshold
+.. index:: pop_size
+.. index:: reset_on_extinction
 
 .. py:module:: config
    :synopsis: Does general configuration parsing; used by other classes for their configuration.
@@ -303,10 +303,6 @@ config
 
       :param str filename: The configuration file to be written.
 
-.. todo::
-
-  Give more information about parameters for ctrnn.
-
 .. py:module:: ctrnn
    :synopsis: Handles the continuous-time recurrent neural network implementation.
 
@@ -315,15 +311,29 @@ ctrnn
 
   .. py:class:: CTRNNNodeEval(time_constant, activation, aggregation, bias, response, links)
 
-    Sets up the basic :doc:`ctrnn` nodes.
+    Sets up the basic :doc:`ctrnn` (:term:`continuous-time` :term:`recurrent` neural network) :term:`nodes <node>`.
+
+    :param float time_constant: Controls how fast the node responds; :math:`\tau_i` from :doc:`ctrnn`.
+    :param activation: :term:`Activation function <activation function>` for the node.
+    :type activation: `function`
+    :param aggregation: :term:`Aggregation function <aggregation function>` for the node.
+    :type aggregation: `function`
+    :param float bias: :term:`Bias <bias>` for the node.
+    :param float response: :term:`Response <response>` multiplier for the node.
+    :param links: List of other nodes providing input, as tuples of (input :term:`key`, :term:`weight`)
+    :type links: list(tuple(int,float))
 
   .. py:class:: CTRNN(inputs, outputs, node_evals)
 
     Sets up the :doc:`ctrnn` network itself.
 
+    .. index:: recurrent
+
     .. py:method:: reset()
 
-      Resets the time and all node activations to 0 (necessary due to otherwise retaining state via recurrent connections).
+      Resets the time and all node activations to 0 (necessary due to otherwise retaining state via :term:`recurrent` connections).
+
+    .. index:: ! continuous-time
 
     .. py:method:: advance(inputs, advance_time, time_step=None)
 
@@ -335,10 +345,15 @@ ctrnn
       :param float time_step: How much time per step to advance the network; the default of ``None`` will currently result in an error, but it is planned to determine it automatically.
       :return: The values for the :term:`output nodes <output node>`.
       :rtype: list
+      :raises NotImplementedError: If a ``time_step`` is not given.
 
     .. py:staticmethod:: create(genome, config, time_constant)
 
-      Receives a genome and returns its phenotype (a :py:class:`CTRNN`). The ``time_constant`` is used for the :py:class:`CTRNNNodeEval` initializations.
+      Receives a genome and returns its phenotype (a :py:class:`CTRNN` with :py:class:`CTRNNNodeEval` :term:`nodes <node>`).
+
+      :param object genome: A :py:class:`genome.DefaultGenome` instance.
+      :param object config: A :py:class:`config.Config` instance.
+      :param float time_constant: Used for the :py:class:`CTRNNNodeEval` initializations.
 
 .. py:module:: genes
    :synopsis: Handles node and connection genes.
@@ -348,8 +363,8 @@ genes
 
   .. inheritance-diagram:: genes iznn.IZNodeGene
 
-  .. index:: ! key
-  .. index:: gene
+  .. index:: key
+  .. index:: ! gene
 
   .. py:class:: BaseGene(key)
 
@@ -398,7 +413,7 @@ genes
 
     .. index::
       see: mutate; mutation
-    .. index:: mutation
+    .. index:: ! mutation
 
     .. py:method:: mutate(config)
 
@@ -416,7 +431,7 @@ genes
       :return: A copied gene
       :rtype: object
 
-    .. index:: crossover
+    .. index:: ! crossover
 
     .. py:method:: crossover(gene2)
 
@@ -427,10 +442,10 @@ genes
       :return: A new gene, with the same key/id, with other attributes being copied randomly (50/50 chance) from each parent gene.
       :rtype: object
 
-  .. index:: ! node
-  .. index:: genetic distance
-  .. index:: ! genomic distance
-  .. index:: compatibility_weight_coefficient
+  .. index:: node
+  .. index:: ! genetic distance
+  .. index:: genomic distance
+  .. index:: ! compatibility_weight_coefficient
 
   .. py:class:: DefaultNodeGene(BaseGene)
 
@@ -447,10 +462,10 @@ genes
       :return: The contribution of this pair to the :term:`genomic distance` between the source genomes.
       :rtype: float
 
-  .. index:: ! connection
-  .. index:: genetic distance
-  .. index:: ! genomic distance
-  .. index:: compatibility_weight_coefficient
+  .. index:: connection
+  .. index:: ! genetic distance
+  .. index:: genomic distance
+  .. index:: ! compatibility_weight_coefficient
 
   .. py:class:: DefaultConnectionGene(BaseGene)
 
@@ -486,8 +501,8 @@ genome
     :param x: The inputs to be multiplied together.
     :type x: list(float)
 
-  .. index:: aggregation function
-  .. index:: ! initial_connection
+  .. index:: ! aggregation function
+  .. index:: initial_connection
 
   .. py:class:: DefaultGenomeConfig(params)
 
@@ -498,7 +513,7 @@ genome
 
     :param dict params: Parameters from configuration file and DefaultGenome initialization (by parse_config).
 
-    .. index:: activation function
+    .. index:: ! activation function
 
     .. py:method:: add_activation(name, func)
 
@@ -517,7 +532,7 @@ genome
       :param f: The `File object <file>` to be written to.
       :type f: `file`
 
-    .. index:: key
+    .. index:: ! key
 
     .. py:method:: get_new_node_key(node_dict)
 
@@ -562,10 +577,10 @@ genome
       :type f: `file`
       :param object config: Configuration object (here, a `DefaultGenomeConfig` instance).
 
-    .. index:: initial_connection
-    .. index:: ! hidden node
-    .. index:: ! input node
-    .. index:: ! output node
+    .. index:: ! initial_connection
+    .. index:: hidden node
+    .. index:: input node
+    .. index:: output node
 
     .. py:method:: configure_new(config)
 
@@ -576,7 +591,7 @@ genome
 
       :param object config: Genome configuration object.
 
-    .. index:: crossover
+    .. index:: ! crossover
 
     .. py:method:: configure_crossover(genome1, genome2, config)
 
@@ -588,7 +603,7 @@ genome
       :param object genome2: The second parent genome.
       :param object config: Genome configuration object.
 
-    .. index:: mutation
+    .. index:: ! mutation
 
     .. py:method:: mutate(config)
 
@@ -601,7 +616,7 @@ genome
 
       :param object config: Genome configuration object.
 
-    .. index:: ! node
+    .. index:: node
 
     .. py:method:: mutate_add_node(config)
 
@@ -613,6 +628,8 @@ genome
 
       :param object config: Genome configuration object.
 
+    .. index:: ! connection
+
     .. py:method:: add_connection(config, input_key, output_key, weight, enabled)
 
       Adds a specified new connection; its :term:`key` is the `tuple` of ``(input_key, output_key)``. TODO: Add validation of this connection addition.
@@ -623,8 +640,8 @@ genome
       :param float weight: The :term:`weight` the new connection should have.
       :param bool enabled: The :term:`enabled` attribute the new connection should have.
 
-    .. index:: feed_forward
-    .. index:: ! connection
+    .. index:: ! feed_forward
+    .. index:: connection
 
     .. py:method:: mutate_add_connection(config)
 
@@ -647,9 +664,9 @@ genome
       Deletes a randomly-chosen connection. TODO: If the connection is :term:`enabled`, have an option to - possibly with a :term:`weight`-dependent
       chance - turn its enabled attribute to ``False`` instead.
 
-    .. index:: compatibility_disjoint_coefficient
-    .. index:: genomic distance
-    .. index:: ! genetic distance
+    .. index:: ! compatibility_disjoint_coefficient
+    .. index:: ! genomic distance
+    .. index:: genetic distance
 
     .. py:method:: distance(other, config)
 
@@ -677,6 +694,8 @@ genome
       :return: Node and connection information.
       :rtype: str
 
+    .. index:: node
+
     .. py:staticmethod:: create_node(config, node_id)
 
       Creates a new node with the specified :term:`id <key>` (including for its :term:`gene`), using the specified configuration object to retrieve the proper
@@ -686,6 +705,8 @@ genome
       :param int node_id: The key for the new node.
       :return: The new node object.
       :rtype: object
+
+    .. index:: connection
 
     .. py:staticmethod:: create_connection(config, input_id, output_id)
 
@@ -698,7 +719,7 @@ genome
       :return: The new connection object.
       :rtype: object
 
-    .. index:: initial_connection
+    .. index:: ! initial_connection
 
     .. py:method:: connect_fs_neat_nohidden(config)
 
@@ -715,11 +736,11 @@ genome
       :param object config: The genome configuration object.
 
 
-.. index:: ! feed_forward
-.. index:: ! feedforward
+.. index:: feed_forward
+.. index:: feedforward
 .. index::
   see: feed-forward; feedforward
-.. index:: ! recurrent
+.. index:: recurrent
 
 .. py:module:: graphs
    :synopsis: Directed graph algorithm implementations.
@@ -807,14 +828,14 @@ See http://www.izhikevich.org/publications/spikes.pdf.
 
   .. inheritance-diagram:: iznn
 
-  .. index:: ! node
-  .. index:: ! gene
+  .. index:: node
+  .. index:: gene
 
   .. py:class:: IZNodeGene(BaseGene)
 
     Contains attributes for the iznn :term:`node` genes and determines :term:`genomic distances <genomic distance>`.
 
-  .. index:: ! genome
+  .. index:: genome
 
   .. py:class:: IZGenome(DefaultGenome)
 
@@ -1006,20 +1027,20 @@ parallel
 population
 --------------
 
-  .. index:: ! reset_on_extinction
+  .. index:: reset_on_extinction
 
   .. py:exception:: CompleteExtinctionException
 
     Raised on complete extinction (all species removed due to stagnation) unless :ref:`reset_on_extinction <reset-on-extinction-label>` is set.
 
-  .. index:: fitness function
-  .. index:: ! fitness_criterion
-  .. index:: ! fitness_threshold
-  .. index:: ! start_generation()
-  .. index:: ! end_generation()
-  .. index:: ! post_evaluate()
-  .. index:: ! complete_extinction()
-  .. index:: ! found_solution()
+  .. index:: ! fitness function
+  .. index:: fitness_criterion
+  .. index:: fitness_threshold
+  .. index:: start_generation()
+  .. index:: end_generation()
+  .. index:: post_evaluate()
+  .. index:: complete_extinction()
+  .. index:: found_solution()
 
   .. py:class:: Population(config, initial_state=None)
 
@@ -1059,9 +1080,6 @@ population
       :return: The best genome seen.
       :rtype: object
 
-.. todo::
-  Add methods under ReporterSet.
-
 .. py:module:: reporting
    :synopsis: Makes possible reporter classes, which are triggered on particular events and may provide information to the user, may do something else such as checkpointing, or may do both.
 
@@ -1074,31 +1092,36 @@ reporting
 
     Keeps track of the set of reporters and gives methods to dispatch them at appropriate points.
 
-  .. py:class:: BaseReporter
+    .. py:method:: add(reporter)
 
-    Definition of the reporter interface expected by ReporterSet. Inheriting from it will provide a set of ``dummy`` methods to be overridden as desired,
-    as follows:
+      Adds a reporter to those to be called via :py:class:`ReporterSet` methods.
 
-    .. py:method:: start_generation(generation)
+      :param object reporter: A reporter instance.
 
-      Called (by :py:meth:`population.Population.run`) at the start of each generation, prior to the invocation of the fitness function.
+    .. py:method:: remove(reporter)
 
-      :param int generation: The generation number.
+      Removes a reporter from those to be called via :py:class:`ReporterSet` methods.
 
-    .. index:: ! key
+      :param object reporter: A reporter instance.
+
+    .. py:method:: start_generation(gen)
+
+      Calls :py:meth:`start_generation <BaseReporter.start_generation>` on each reporter in the set.
+
+      :param int gen: The generation number.
 
     .. py:method:: end_generation(config, population, species)
 
-      Called (by :py:meth:`population.Population.run`) at the end of each generation, after reproduction and speciation.
+      Calls :py:meth:`end_generation <BaseReporter.end_generation>` on each reporter in the set.
 
       :param object config: :py:class:`Config <config.Config>` configuration object.
       :param population: Current population, as a dict of unique genome :term:`ID/key <key>` vs genome.
       :type population: dict(int, object)
       :param object species: Current species set object, such as a :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>`.
 
-    .. py:method:: post_evaluate(config, population, species, best_genome)
+    .. py:method:: post_evaluate(config, population, species)
 
-      Called (by :py:meth:`population.Population.run`) after the fitness function is finished.
+      Calls :py:meth:`post_evaluate <BaseReporter.post_evaluate>` on each reporter in the set.
 
       :param object config: :py:class:`Config <config.Config>` configuration object.
       :param population: Current population, as a dict of unique genome :term:`ID/key <key>` vs genome.
@@ -1108,22 +1131,15 @@ reporting
 
     .. py:method:: post_reproduction(config, population, species)
 
-      Not currently called, either by :py:meth:`population.Population.run` or by :py:class:`reproduction.DefaultReproduction`.
-      Note: New members of the population likely will not have a set species.
+       Not currently called. Would call :py:meth:`post_reproduction <BaseReporter.post_reproduction>` on each reporter in the set.
 
     .. py:method:: complete_extinction()
 
-      Called (by :py:meth:`population.Population.run`) if complete extinction (due to stagnation) occurs, prior to
-      (depending on the :ref:`reset_on_extinction <reset-on-extinction-label>` configuration setting)
-      a new population being created or a :py:exc:`population.CompleteExtinctionException` being raised.
-
-    .. index:: found_solution()
-    .. index:: ! fitness_threshold
+      Calls :py:meth:`complete_extinction <BaseReporter.complete_extinction>` on each reporter in the set.
 
     .. py:method:: found_solution(config, generation, best)
 
-      Called (by :py:meth:`population.Population.run`) prior to exiting if the configured :ref:`fitness threshold <fitness-threshold-label>` is met.
-      (Note: Not called upon reaching the generation maximum - set when calling :py:meth:`population.Population.run` - and exiting for this reason.)
+      Calls :py:meth:`found_solution <BaseReporter.found_solution>` on each reporter in the set.
 
       :param object config: :py:class:`Config <config.Config>` configuration object.
       :param int generation: Generation number.
@@ -1131,15 +1147,84 @@ reporting
 
     .. py:method:: species_stagnant(sid, species)
 
-      Called (by py:meth:`reproduction.DefaultReproduction.reproduce`) for each species considered stagnant by the stagnation class
-      (such as :py:class:`stagnation.DefaultStagnation`).
+      Calls :py:meth:`species_stagnant <BaseReporter.species_stagnant>` on each reporter in the set.
 
       :param int sid: The species :term:`id/key <key>`.
       :param object species: The :py:class:`Species <species.Species>` object.
 
     .. py:method:: info(msg)
 
-      Miscellaneous informational messages, from multiple parts of the library.
+      Calls :py:meth:`info <BaseReporter.info>` on each reporter in the set.
+
+      :param str msg: Message to be handled.
+
+  .. py:class:: BaseReporter
+
+    Abstract class defining the reporter interface expected by ReporterSet. Inheriting from it will provide a set of ``dummy`` methods to be overridden as
+    desired, as follows:
+
+    .. py:method:: start_generation(generation)
+
+      Called via :py:class:`ReporterSet` (by :py:meth:`population.Population.run`) at the start of each generation, prior to the invocation of the fitness function.
+
+      :param int generation: The generation number.
+
+    .. index:: key
+
+    .. py:method:: end_generation(config, population, species)
+
+      Called via :py:class:`ReporterSet` (by :py:meth:`population.Population.run`) at the end of each generation, after reproduction and speciation.
+
+      :param object config: :py:class:`Config <config.Config>` configuration object.
+      :param population: Current population, as a dict of unique genome :term:`ID/key <key>` vs genome.
+      :type population: dict(int, object)
+      :param object species: Current species set object, such as a :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>`.
+
+    .. py:method:: post_evaluate(config, population, species, best_genome)
+
+      Called via :py:class:`ReporterSet` (by :py:meth:`population.Population.run`) after the fitness function is finished.
+
+      :param object config: :py:class:`Config <config.Config>` configuration object.
+      :param population: Current population, as a dict of unique genome :term:`ID/key <key>` vs genome.
+      :type population: dict(int, object)
+      :param object species: Current species set object, such as a :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>`.
+      :param object best_genome: The currently highest-fitness :term:`genome`. (Ties are resolved pseudorandomly, by `dictionary <dict>` ordering.)
+
+    .. py:method:: post_reproduction(config, population, species)
+
+      Not currently called (indirectly or directly), including by either :py:meth:`population.Population.run` or :py:class:`reproduction.DefaultReproduction`.
+      Note: New members of the population likely will not have a set species.
+
+    .. py:method:: complete_extinction()
+
+      Called via :py:class:`ReporterSet` (by :py:meth:`population.Population.run`) if complete extinction (due to stagnation) occurs, prior to
+      (depending on the :ref:`reset_on_extinction <reset-on-extinction-label>` configuration setting)
+      a new population being created or a :py:exc:`population.CompleteExtinctionException` being raised.
+
+    .. index:: ! found_solution()
+    .. index:: fitness_threshold
+
+    .. py:method:: found_solution(config, generation, best)
+
+      Called via :py:class:`ReporterSet` (by :py:meth:`population.Population.run`) prior to exiting if the configured
+      :ref:`fitness threshold <fitness-threshold-label>` is met. (Note: Not called upon reaching the generation maximum - set when
+      calling :py:meth:`population.Population.run` - and exiting for this reason.)
+
+      :param object config: :py:class:`Config <config.Config>` configuration object.
+      :param int generation: Generation number.
+      :param object best: The currently highest-fitness :term:`genome`. (Ties are resolved pseudorandomly by `dictionary <dict>` ordering.)
+
+    .. py:method:: species_stagnant(sid, species)
+
+      Called via :py:class:`ReporterSet` (by py:meth:`reproduction.DefaultReproduction.reproduce`) for each species considered stagnant by the
+      stagnation class (such as :py:class:`stagnation.DefaultStagnation`).
+
+      :param int sid: The species :term:`id/key <key>`.
+      :param object species: The :py:class:`Species <species.Species>` object.
+
+    .. py:method:: info(msg)
+
+      Miscellaneous informational messages, from multiple parts of the library, called via :py:class:`ReporterSet`.
 
       :param str msg: Message to be handled.
 
@@ -1181,7 +1266,7 @@ reproduction
       :type f: `file`
       :param dict param_dict: Dictionary of current parameters in this implementation; more generally, reproduction config object.
 
-    .. index:: ! genome
+    .. index:: genome
 
     .. py:method:: create_new(genome_type, genome_config, num_genomes)
 
@@ -1207,14 +1292,14 @@ reproduction
       :param int pop_size: Desired population size, as input to :py:meth:`reproduce`.
       :param int min_species_size: Minimum number of members per species; can result in population size being above ``pop_size``.
 
-    .. index:: pop_size
-    .. index:: fitness function
-    .. index:: ! key
-    .. index:: elitism
-    .. index:: survival_threshold
-    .. index:: species_stagnant()
-    .. index:: ! stagnation
-    .. index:: info()
+    .. index:: ! pop_size
+    .. index:: ! fitness function
+    .. index:: key
+    .. index:: ! elitism
+    .. index:: ! survival_threshold
+    .. index:: ! species_stagnant()
+    .. index:: stagnation
+    .. index:: ! info()
 
     .. py:method:: reproduce(config, species, pop_size, generation)
 
@@ -1266,7 +1351,7 @@ This Python 2/3 portability code was copied from the `six module <https://python
     :param dict d: Dictionary to iterate over
     :param kw: The function of this parameter is unclear.
 
-.. index:: ! key
+.. index:: key
 
 .. py:module:: species
    :synopsis: Divides the population into genome-based species.
@@ -1282,7 +1367,7 @@ species
     :param int key: :term:`Identifier/key <key>`
     :param int generation: Initial generation of appearance
 
-  .. index:: genomic distance
+  .. index:: ! genomic distance
 
   .. py:class:: GenomeDistanceCache(config)
 
@@ -1362,9 +1447,9 @@ species
 
    ADD more methods to the below for DefaultStagnation; try to figure out which ones are required interface methods; links re config file.
 
-.. index:: species_fitness_func
-.. index:: ! fitness_criterion
-.. index:: ! fitness_threshold
+.. index:: ! species_fitness_func
+.. index:: fitness_criterion
+.. index:: fitness_threshold
 
 .. note::
 
@@ -1378,8 +1463,8 @@ species
 stagnation
 --------------
 
-  .. index:: max_stagnation
-  .. index:: species_elitism
+  .. index:: ! max_stagnation
+  .. index:: ! species_elitism
 
   .. py:class:: DefaultStagnation(config, reporters)
 
