@@ -18,9 +18,13 @@ def product(x):
 
 
 class DefaultGenomeConfig(object):
+<<<<<<< HEAD
     allowed_connectivity = ['unconnected', 'fs_neat_nohidden', 'fs_neat', 'fs_neat_hidden',
                             'full_nodirect', 'full', 'full_direct',
                             'partial_nodirect', 'partial', 'partial_direct']
+=======
+    allowed_connectivity = ['unconnected', 'fs_neat_nohidden', 'fs_neat', 'fs_neat_hidden', 'full', 'partial']
+>>>>>>> Commit prior to switching back to master (full bug)
     aggregation_function_defs = {'sum': sum, 'max': max, 'min': min, 'product': product}
 
     def __init__(self, params):
@@ -88,10 +92,14 @@ class DefaultGenomeConfig(object):
 
     def get_new_node_key(self, node_dict):
 <<<<<<< HEAD
+<<<<<<< HEAD
         if self.node_indexer == None:
 =======
         if not hasattr(self, 'node_indexer'):
 >>>>>>> Found another bug - commit prior to checkout
+=======
+        if self.node_indexer == None:
+>>>>>>> Commit prior to switching back to master (full bug)
             self.node_indexer = Indexer(max(list(iterkeys(node_dict)))+1)
 
         new_id = self.node_indexer.get_next()
@@ -427,11 +435,19 @@ class DefaultGenome(object):
             connection = self.create_connection(config, input_id, output_id)
             self.connections[connection.key] = connection
 
+<<<<<<< HEAD
     def compute_full_connections(self, config, direct):
         """
         Compute connections for a fully-connected feed-forward genome--each
         input connected to all hidden nodes (and output nodes if ``direct`` is set or there are no hidden nodes),
         each hidden node connected to all output nodes. (Recurrent genomes will also include node self-connections.)
+=======
+    def compute_full_connections(self, config):
+        """
+        Compute connections for a fully-connected feed-forward genome--each
+        input connected to all hidden nodes, each hidden node connected to all
+        output nodes. (Recurrent genomes will also include node self-connections.)
+>>>>>>> Commit prior to switching back to master (full bug)
         """
         hidden = [i for i in iterkeys(self.nodes) if i not in config.output_keys]
         output = [i for i in iterkeys(self.nodes) if i in config.output_keys]
