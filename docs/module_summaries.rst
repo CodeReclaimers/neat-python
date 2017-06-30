@@ -517,6 +517,16 @@ genome
       :param f: The `File object <file>` to be written to.
       :type f: `file`
 
+    .. index:: key
+
+    .. py:method:: get_new_node_key(node_dict)
+
+      Finds the next unused node :term:`key`.
+
+      :param dict node_dict: A dictionary of node keys vs nodes
+      :return: A currently-unused node key.
+      :rtype: int
+
   .. index:: key
 
   .. py:class:: DefaultGenome(key)
@@ -591,15 +601,51 @@ genome
 
       :param object config: Genome configuration object.
 
-    .. index:: key
+    .. index:: ! node
 
-    .. py:method:: get_new_node_key()
+    .. py:method:: mutate_add_node(config)
 
-      Finds a currently-unused node :term:`key`. TODO: How in the world does the way it is set up prevent having duplicate non-:term:`homologous` node
-      keys?
+      Takes a randomly-selected existing connection, turns its :term:`enabled` attribute to ``False``, and makes two new (enabled) connections with a
+      new :term:`node` between them, which join the now-disabled connection's nodes. The connection weights are chosen so as to potentially have
+      roughly the same behavior as the original connection, although this will depend on the :term:`activation function`, :term:`bias`, and
+      :term:`response` multiplier of the new node. TODO: Particularly if the configuration is changed to only allow one structural mutation, then if there
+      are no connections, call :py:meth:`mutate_add_connection` instead of returning.
 
-      :return: A currently-unused node key.
-      :rtype: int
+      :param object config: Genome configuration object.
+
+    .. py:method:: add_connection(config, input_key, output_key, weight, enabled)
+
+      Adds a specified new connection; its :term:`key` is the `tuple` of ``(input_key, output_key)``. TODO: Add validation of this connection addition.
+
+      :param object config: Genome configuration object
+      :param int input_key: :term:`Key <key>` of the input node.
+      :param int output_key: Key of the output node.
+      :param float weight: The :term:`weight` the new connection should have.
+      :param bool enabled: The :term:`enabled` attribute the new connection should have.
+
+    .. index:: feed_forward
+    .. index:: ! connection
+
+    .. py:method:: mutate_add_connection(config)
+
+      Attempts to add a randomly-selected new connection, with some filtering:
+      1. :term:`input nodes <input node>` cannot be at the output end.
+      2. Existing connections cannot be duplicated. TODO: If a selected existing connection is not :term:`enabled`, have some configurable chance that it will become enabled.
+      3. Two :term:`output nodes <output node>` cannot be connected together.
+      4. If :ref:`feed_forward <feed-forward-config-label>` is set to ``True`` in the configuration file, connections cannot create :py:func:`cycles <graphs.creates_cycle>`.
+
+      :param object config: Genome configuration object
+
+    .. py:method:: mutate_delete_node(config)
+
+      Deletes a randomly-chosen (non-:term:`output <output node>`/input) node along with its connections.
+
+      :param object config: Genome configuration object
+
+    .. py:method:: mutate_delete_connection()
+
+      Deletes a randomly-chosen connection. TODO: If the connection is :term:`enabled`, have an option to - possibly with a :term:`weight`-dependent
+      chance - turn its enabled attribute to ``False`` instead.
 
     .. index:: compatibility_disjoint_coefficient
     .. index:: genomic distance
@@ -610,9 +656,9 @@ genome
       Required interface method. Returns the :term:`genomic distance` between this genome and the other.
       This distance value is used to compute genome compatibility for :py:mod:`speciation <species>`. Uses (by default) the
       :py:meth:`genes.DefaultNodeGene.distance` and :py:meth:`genes.DefaultConnectionGene.distance` methods for
-      :term:`homologous` pairs, and the configured :ref:`compatibility_disjoint_coefficient <compatibility-disjoint-coefficient-label>` for disjoint/excess genes.
-      (Note that this is one of the most time-consuming portions of the library; optimization - such as using `cython <http://cython.org>`_ may be
-      needed if using an using an unusually fast fitness function and/or an unusually large population.)
+      :term:`homologous` pairs, and the configured :ref:`compatibility_disjoint_coefficient <compatibility-disjoint-coefficient-label>` for
+      disjoint/excess genes. (Note that this is one of the most time-consuming portions of the library; optimization - such as using
+      `cython <http://cython.org>`_ - may be needed if using an unusually fast fitness function and/or an unusually large population.)
 
       :param object other: The other DefaultGenome instance (genome) to be compared to.
       :param object config: The genome configuration object.
@@ -624,12 +670,40 @@ genome
       Required interface method. Returns genome ``complexity``, taken to be (number of nodes, number of enabled connections); currently only used
       for reporters - some retrieve this information for the highest-fitness genome at the end of each generation.
 
+    .. py:method:: __str__()
+
+      Gives a listing of the genome's nodes and connections.
+
+      :return: Node and connection information.
+      :rtype: str
+
+    .. py:staticmethod:: create_node(config, node_id)
+
+      Creates a new node with the specified :term:`id <key>` (including for its :term:`gene`), using the specified configuration object to retrieve the proper
+      node gene type and how to initialize its attributes.
+
+      :param object config: The genome configuration object.
+      :param int node_id: The key for the new node.
+      :return: The new node object.
+      :rtype: object
+
+    .. py:staticmethod:: create_connection(config, input_id, output_id)
+
+      Creates a new connection with the specified :term:`id <key>` pair as its key (including for its :term:`gene`, as a `tuple`), using the specified
+      configuration object to retrieve the proper connection gene type and how to initialize its attributes.
+
+      :param object config: The genome configuration object.
+      :param int input_id: The input end's key.
+      :param int output_id: The output end's key.
+      :return: The new connection object.
+      :rtype: object
+
+
 .. index:: ! feed_forward
 .. index:: ! feedforward
 .. index::
   see: feed-forward; feedforward
 .. index:: ! recurrent
-.. index:: ! key
 
 .. py:module:: graphs
    :synopsis: Directed graph algorithm implementations.

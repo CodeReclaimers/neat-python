@@ -8,6 +8,7 @@ from neat.activations import ActivationFunctionSet
 from neat.config import ConfigParameter, write_pretty_params
 from neat.genes import DefaultConnectionGene, DefaultNodeGene
 from neat.graphs import creates_cycle
+from neat.indexer import Indexer
 from neat.six_util import iteritems, iterkeys
 
 
@@ -80,6 +81,15 @@ class DefaultGenomeConfig(object):
 
         write_pretty_params(f, self, self._params)
 
+    def get_new_node_key(self, node_dict):
+        if not hasattr(self, 'node_indexer'):
+            self.node_indexer = Indexer(max(list(iterkeys(node_dict)))+1)
+
+        new_id = self.node_indexer.get_next()
+
+        assert new_id not in node_dict
+
+        return new_id
 
 class DefaultGenome(object):
     """
@@ -134,7 +144,7 @@ class DefaultGenome(object):
         # Add hidden nodes if requested.
         if config.num_hidden > 0:
             for i in range(config.num_hidden):
-                node_key = self.get_new_node_key()
+                node_key = config.get_new_node_key(self.nodes)
                 assert node_key not in self.nodes
                 node = self.create_node(config, node_key)
                 self.nodes[node_key] = node
@@ -203,19 +213,13 @@ class DefaultGenome(object):
         for ng in self.nodes.values():
             ng.mutate(config)
 
-    def get_new_node_key(self):
-        new_id = 0
-        while new_id in self.nodes:
-            new_id += 1
-        return new_id
-
     def mutate_add_node(self, config):
         if not self.connections:
             return None, None
 
         # Choose a random connection to split
         conn_to_split = choice(list(self.connections.values()))
-        new_node_id = self.get_new_node_key()
+        new_node_id = config.get_new_node_key(self.nodes)
         ng = self.create_node(config, new_node_id)
         self.nodes[new_node_id] = ng
 

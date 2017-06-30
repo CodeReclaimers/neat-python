@@ -21,7 +21,7 @@ New :term:`activation functions <activation function>` are registered with your 
 
     config.genome_config.add_activation('my_sinc_function', sinc)
 
-The first argument to :py:meth:`add_activation <config.DefaultGenomeConfig.add_activation>` is the name by which this activation function will be referred to in the configuration settings file.
+The first argument to :py:meth:`add_activation <genome.DefaultGenomeConfig.add_activation>` is the name by which this activation function will be referred to in the configuration settings file.
 
 This is demonstrated in the `memory-fixed
 <https://github.com/CodeReclaimers/neat-python/tree/master/examples/memory-fixed>`_ example.
