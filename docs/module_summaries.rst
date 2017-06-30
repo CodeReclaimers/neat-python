@@ -698,6 +698,22 @@ genome
       :return: The new connection object.
       :rtype: object
 
+    .. index:: initial_connection
+
+    .. py:method:: connect_fs_neat_nohidden(config)
+
+      Connect one randomly-chosen input to all :term:`output nodes <output node>` (FS-NEAT without connections to :term:`hidden nodes <hidden node>`,
+      if any). Previously called ``connect_fs_neat``. Implements the ``fs_neat_nohidden`` setting for :ref:`initial_connection <initial-connection-config-label>`.
+
+      :param object config: The genome configuration object.
+
+    .. py:method:: connect_fs_neat_hidden(config)
+
+      Connect one randomly-chosen input to all :term:`hidden nodes <hidden node>` and :term:`output nodes <output node>` (FS-NEAT with
+      connections to hidden nodes, if any). Implements the ``fs_neat_hidden`` setting for :ref:`initial_connection <initial-connection-config-label>`.
+
+      :param object config: The genome configuration object.
+
 
 .. index:: ! feed_forward
 .. index:: ! feedforward
