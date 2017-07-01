@@ -459,6 +459,7 @@ class DefaultGenome(object):
         Compute connections for a fully-connected feed-forward genome--each
         input connected to all hidden nodes (and output nodes if ``direct`` is set or there are no hidden nodes),
         each hidden node connected to all output nodes. (Recurrent genomes will also include node self-connections.)
+<<<<<<< HEAD
 =======
     def compute_full_connections(self, config):
 =======
@@ -472,6 +473,8 @@ class DefaultGenome(object):
         input connected to all hidden nodes (and output ndoes if ``direct`` is set), each hidden node connected to all
         output nodes. (Recurrent genomes will also include node self-connections.)
 >>>>>>> Commit prior to switching back to master (full bug)
+=======
+>>>>>>> Updated documentation for merged compute_full_connections
         """
         hidden = [i for i in iterkeys(self.nodes) if i not in config.output_keys]
         output = [i for i in iterkeys(self.nodes) if i in config.output_keys]

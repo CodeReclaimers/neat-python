@@ -731,8 +731,18 @@ genome
 
       :param object config: The genome configuration object.
 
+    .. py:method:: compute_full_connections(config, direct)
+
+      Compute connections for a fully-connected feed-forward genome--each input connected to all hidden nodes (and output nodes if ``direct`` is set or
+      there are no hidden nodes), each hidden node connected to all output nodes. (Recurrent genomes will also include node self-connections.)
+
+      :param object config: The genome configuration object
+      :param bool direct: Whether or not, if there are :term:`hidden nodes <hidden node>`, to include links directly from input to output.
+      :return: The list of connections, as (input :term:`key`, output key) tuples
+      :rtype: list(tuple(int,int))
+
     .. note::
-      Waiting here since uncertain on exactly what will happen re full/partial connectivity specifications. (May wind up merging the above also.)
+      Waiting here since uncertain on exactly what will happen re full/partial connectivity specifications. (May wind up merging fs_neat ones above also.)
 
 .. index:: feed_forward
 .. index:: feedforward
