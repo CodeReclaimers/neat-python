@@ -426,8 +426,8 @@ class DefaultGenome(object):
     def compute_full_connections(self, config, direct):
         """
         Compute connections for a fully-connected feed-forward genome--each
-        input connected to all hidden nodes (and output ndoes if ``direct`` is set), each hidden node connected to all
-        output nodes. (Recurrent genomes will also include node self-connections.)
+        input connected to all hidden nodes (and output nodes if ``direct`` is set or there are no hidden nodes),
+        each hidden node connected to all output nodes. (Recurrent genomes will also include node self-connections.)
         """
         hidden = [i for i in iterkeys(self.nodes) if i not in config.output_keys]
         output = [i for i in iterkeys(self.nodes) if i in config.output_keys]
