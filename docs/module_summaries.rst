@@ -4,10 +4,6 @@ Module summaries
 
 .. default-role:: any
 
-.. todo::
-
-  Finish putting in all needed material from modules; add links; go over parameters as used in code to make sure are described correctly.
-
 .. index:: activation function
 
 .. py:module:: activations
@@ -735,6 +731,8 @@ genome
 
       :param object config: The genome configuration object.
 
+    .. note::
+      Waiting here since uncertain on exactly what will happen re full/partial connectivity specifications.
 
 .. index:: feed_forward
 .. index:: feedforward
@@ -1020,10 +1018,6 @@ parallel
     :type eval_function: `function`
     :param timeout: How long (in seconds) each subprocess will be given before an exception is raised (unlimited if `None`).
     :type timeout: int or None
-
-.. todo::
-
-  Put in more about calls to rest of program?
 
 .. py:module:: population
    :synopsis: Implements the core evolution algorithm.

@@ -26,7 +26,7 @@ sexual or asexual) and mutation of the most fit individuals of the previous gene
 
 The reproduction and mutation operations may add nodes and/or connections to genomes, so as the algorithm proceeds
 genomes (and the neural networks they produce) may become more and more complex.  When the preset number of generations
-is reached, or when at least one individual (for a :ref:`fitness_criterion <fitness-criterion-label>` of ``max``; others are configurable)
+is reached, or when at least one individual (for a :ref:`fitness criterion function <fitness-criterion-label>` of ``max``; others are configurable)
 exceeds the user-specified :ref:`fitness threshold <fitness-threshold-label>`, the algorithm terminates.
 
 .. index:: crossover
