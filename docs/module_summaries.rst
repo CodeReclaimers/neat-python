@@ -732,7 +732,7 @@ genome
       :param object config: The genome configuration object.
 
     .. note::
-      Waiting here since uncertain on exactly what will happen re full/partial connectivity specifications.
+      Waiting here since uncertain on exactly what will happen re full/partial connectivity specifications. (May wind up merging the above also.)
 
 .. index:: feed_forward
 .. index:: feedforward
