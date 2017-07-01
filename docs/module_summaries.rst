@@ -1607,7 +1607,7 @@ statistics
       :return: List of lists of species sizes, ordered by species :term:`id/key <key>`.
       :rtype: list(list(int))
 
-    .. py:method:: get_species_fitness(null_value=``)
+    .. py:method:: get_species_fitness(null_value='')
 
       Returns a by-generation list of lists of species fitnesses; the fitness of a species is determined by the ``mean`` fitness of the genomes in the species,
       as with the reproduction distribution by :py:class:`reproduction.DefaultReproduction`. The ``null_value`` parameter is used for species not present in a
