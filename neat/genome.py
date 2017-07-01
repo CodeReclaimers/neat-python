@@ -199,12 +199,17 @@ class DefaultGenome(object):
             if config.num_hidden > 0: # partial num!
                 print("Warning: initial_connection = partial will not connect input nodes directly to output nodes;",
 <<<<<<< HEAD
+<<<<<<< HEAD
                       "\tif this is desired, set initial_connection = partial_nodirect {0};".format(config.connection_fraction),
                       "\tif not, set initial_connection = partial_direct {0}".format(config.connection_fraction),
 =======
                       "\tif this is desired, set initial_connection = partial_nodirect {0};".format(self.connection_fraction),
                       "\tif not, set initial_connection = partial_direct {0}".format(self.connection_fraction),
 >>>>>>> Fix original docs vs code conflict for full, partial initial_connectivity
+=======
+                      "\tif this is desired, set initial_connection = partial_nodirect {0};".format(config.connection_fraction),
+                      "\tif not, set initial_connection = partial_direct {0}".format(config.connection_fraction),
+>>>>>>> Fix my goof in messages for partial in genome.py; add tests for fs_neat, other variants
                       sep='\n', file=stderr);
             self.connect_partial_nodirect(config)
         elif config.initial_connection == 'partial_nodirect':
@@ -448,6 +453,7 @@ class DefaultGenome(object):
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     def compute_full_connections(self, config, direct):
         """
         Compute connections for a fully-connected feed-forward genome--each
@@ -458,9 +464,12 @@ class DefaultGenome(object):
 =======
     def compute_full_connections_nodirect(self, config):
 >>>>>>> Fix original docs vs code conflict for full, partial initial_connectivity
+=======
+    def compute_full_connections(self, config, direct):
+>>>>>>> Fix my goof in messages for partial in genome.py; add tests for fs_neat, other variants
         """
         Compute connections for a fully-connected feed-forward genome--each
-        input connected to all hidden nodes, each hidden node connected to all
+        input connected to all hidden nodes (and output ndoes if ``direct`` is set), each hidden node connected to all
         output nodes. (Recurrent genomes will also include node self-connections.)
 >>>>>>> Commit prior to switching back to master (full bug)
         """
@@ -486,6 +495,7 @@ class DefaultGenome(object):
 
         return connections
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     def connect_full_nodirect(self, config):
         """ Create a fully-connected genome (except without direct input-output unless no hidden nodes). """
@@ -522,16 +532,25 @@ class DefaultGenome(object):
         """ Create a fully-connected genome (except without direct input-output unless no hidden nodes). """
         for input_id, output_id in self.compute_full_connections_nodirect(config):
 >>>>>>> Fix original docs vs code conflict for full, partial initial_connectivity
+=======
+    def connect_full_nodirect(self, config):
+        """ Create a fully-connected genome (except without direct input-output unless no hidden nodes). """
+        for input_id, output_id in self.compute_full_connections(config, False):
+>>>>>>> Fix my goof in messages for partial in genome.py; add tests for fs_neat, other variants
             connection = self.create_connection(config, input_id, output_id)
             self.connections[connection.key] = connection
 
     def connect_full_direct(self, config):
         """ Create a fully-connected genome, including direct input-output connections. """
 <<<<<<< HEAD
+<<<<<<< HEAD
         for input_id, output_id in self.compute_full_connections(config, True):
 =======
         for input_id, output_id in self.compute_full_connections_direct(config):
 >>>>>>> Fix original docs vs code conflict for full, partial initial_connectivity
+=======
+        for input_id, output_id in self.compute_full_connections(config, True):
+>>>>>>> Fix my goof in messages for partial in genome.py; add tests for fs_neat, other variants
             connection = self.create_connection(config, input_id, output_id)
             self.connections[connection.key] = connection
 
@@ -539,10 +558,14 @@ class DefaultGenome(object):
         """ Create a partially-connected genome, with (unless no hidden nodes) no direct input-output connections. """
         assert 0 <= config.connection_fraction <= 1
 <<<<<<< HEAD
+<<<<<<< HEAD
         all_connections = self.compute_full_connections(config, False)
 =======
         all_connections = self.compute_full_connections_nodirect(config)
 >>>>>>> Fix original docs vs code conflict for full, partial initial_connectivity
+=======
+        all_connections = self.compute_full_connections(config, False)
+>>>>>>> Fix my goof in messages for partial in genome.py; add tests for fs_neat, other variants
         shuffle(all_connections)
         num_to_add = int(round(len(all_connections) * config.connection_fraction))
         for input_id, output_id in all_connections[:num_to_add]:
@@ -553,10 +576,14 @@ class DefaultGenome(object):
         """ Create a partially-connected genome, including (possibly) direct input-output connections. """
         assert 0 <= config.connection_fraction <= 1
 <<<<<<< HEAD
+<<<<<<< HEAD
         all_connections = self.compute_full_connections(config, True)
 =======
         all_connections = self.compute_full_connections_direct(config)
 >>>>>>> Fix original docs vs code conflict for full, partial initial_connectivity
+=======
+        all_connections = self.compute_full_connections(config, True)
+>>>>>>> Fix my goof in messages for partial in genome.py; add tests for fs_neat, other variants
         shuffle(all_connections)
         num_to_add = int(round(len(all_connections) * config.connection_fraction))
         for input_id, output_id in all_connections[:num_to_add]:
