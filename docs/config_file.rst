@@ -95,10 +95,14 @@ required for your particular implementation.
 
   This is **not** used for calculating species fitness for apportioning reproduction (which always uses ``mean``).
 
+.. _max-stagnation-label:
+
 .. index:: ! max_stagnation
 
 * *max_stagnation*
     Species that have not shown improvement in more than this number of generations will be considered stagnant and removed. **This defaults to 15.**
+
+.. _species-elitism-label:
 
 .. index:: ! species_elitism
 

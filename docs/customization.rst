@@ -83,17 +83,13 @@ Species stagnation scheme
 
 The default species stagnation scheme is a simple fixed stagnation limit--when a species exhibits
 no improvement for a fixed number of generations, all its members are removed from the simulation. This
-behavior is encapsulated in the `DefaultStagnation` class.
+behavior is encapsulated in the :py:class:`DefaultStagnation class <stagnation.DefaultStagnation>`.
 
 To use a different species stagnation scheme, you must create a custom class whose interface matches that
 of `DefaultStagnation`, and provide it as the ``stagnation_type`` argument to the `Config` constructor.
 
 This is demonstrated in the `interactive 2D image
 <https://github.com/CodeReclaimers/neat-python/blob/master/examples/picture2d/interactive.py>`_ example.
-
-.. todo::
-
-  Document stagnation interface
 
 .. index:: reproduction
 .. index:: DefaultReproduction
