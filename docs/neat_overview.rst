@@ -1,7 +1,7 @@
 NEAT Overview
 =============
 
-:dfn:`NEAT` (NeuroEvolution of Augmenting Topologies) is an evolutionary algorithm that creates artificial networks. For a
+:dfn:`NEAT` (NeuroEvolution of Augmenting Topologies) is an evolutionary algorithm that creates artificial neural networks. For a
 detailed description of the algorithm, you should probably go read some of `Stanley's papers
 <http://www.cs.ucf.edu/~kstanley/#publications>`_ on his website.
 

@@ -909,14 +909,18 @@ See http://www.izhikevich.org/publications/spikes.pdf.
       :rtype: object
 
 .. py:module:: math_util
-   :synopsis: Contains some mathematical functions not found in the Python2 standard library, plus a mechanism for looking up some commonly used functions by name.
+   :synopsis: Contains some mathematical functions not found in the Python2 standard library, plus a mechanism for looking up some commonly used functions (such as for the species_fitness_func) by name.
 
 math_util
 -------------
 
+  .. index:: ! species_fitness_func
+  .. index:: stagnation
+
   .. py:data:: stat_functions
 
     Lookup table for commonly used ``{value} -> value`` functions; includes `max`, `min`, `mean`, and `median`.
+    The :ref:`species_fitness_func <species-fitness-func-label>` (used for :py:class:`stagnation.DefaultStagnation`) is required to be one of these.
 
   .. py:function:: mean(values)
 
@@ -1367,6 +1371,23 @@ species
     :param int key: :term:`Identifier/key <key>`
     :param int generation: Initial generation of appearance
 
+    .. index:: genomic distance
+
+    .. py:method:: update(representative, members)
+
+      Required interface method. Updates a species instance with the current members and most-representative member (from which
+      :term:`genomic distances <genomic distance>` are measured).
+
+      :param object representative: A genome instance.
+      :param members: A `dictionary <dict>` of genome :term:`id <key>` vs genome instance.
+
+    .. py:method:: get_fitnesses()
+
+      Required interface method (used by :py:class:`stagnation.DefaultStagnation`, for instance). Retrieves the fitnesses of each member genome.
+
+      :return: List of fitnesses of member genomes.
+      :rtype: list(float)
+
   .. index:: ! genomic distance
 
   .. py:class:: GenomeDistanceCache(config)
@@ -1443,10 +1464,6 @@ species
       :return: :py:class:`Species <species.Species>` containing the genome corresponding to the id/key.
       :rtype: object
 
-.. todo::
-
-   ADD more methods to the below for DefaultStagnation; try to figure out which ones are required interface methods; links re config file.
-
 .. index:: ! species_fitness_func
 .. index:: fitness_criterion
 .. index:: fitness_threshold
@@ -1455,7 +1472,7 @@ species
 
   TODO: Currently, depending on the settings for :ref:`species_fitness_func <species-fitness-func-label>` and
   :ref:`fitness_criterion <fitness-criterion-label>`, it is possible for a species with members **above** the :ref:`fitness_threshold <fitness-threshold-label>`
-  level of fitness to be considered "stagnant" (including, in particular, because they are at the limit of fitness improvement).
+  level of fitness to be considered "stagnant" (including, most problematically, because they are at the limit of fitness improvement).
 
 .. py:module:: stagnation
    :synopsis: Keeps track of whether species are making progress and removes ones that are not (for a configurable number of generations).
@@ -1468,15 +1485,16 @@ stagnation
 
   .. py:class:: DefaultStagnation(config, reporters)
 
-    Keeps track of whether species are making progress and helps remove ones that, for a configurable number of generations, are not.
+    Keeps track of whether species are making progress and helps remove ones that, for a
+    :ref:`configurable number of generations <max-stagnation-label>`, are not.
 
     :param object config: Configuration object; in this implementation, a `dictionary <dict>`, but should be treated as opaque outside this class.
-    :param reporters: A :py:class:`ReporterSet <reporting.ReporterSet>` with reporters that may need activating; not currently used.
-    :type reporters: `class`
+    :param object reporters: A :py:class:`ReporterSet <reporting.ReporterSet>` instance with reporters that may need activating; not currently used.
 
     .. py:classmethod:: parse_config(param_dict)
 
-      Required interface method. Provides defaults for ``species_fitness_func``, ``max_stagnation``, and ``species_elitism`` parameters and updates them
+      Required interface method. Provides defaults for :ref:`species_fitness_func <species-fitness-func-label>`, 
+      :ref:`max_stagnation <max-stagnation-label>`, and :ref:`species_elitism <species-elitism-label>` parameters and updates them
       from the configuration file.
 
       :param param_dict: Dictionary of parameters from configuration file.
@@ -1486,12 +1504,28 @@ stagnation
 
     .. py:classmethod:: write_config(f, param_dict)
 
-      Required interface method. Saves parameters to new config file. **Has a default of 15 for species_elitism, but will be overridden by the default of
-      0 in parse_config.**
+      Required interface method. Saves parameters to new config file. TODO: Has a default of 15 for species_elitism, but will be overridden by the default of
+      0 in parse_config.
 
       :param f: `File object <file>` to write to.
       :type f: `file`
       :param dict param_dict: Dictionary of current parameters in this implementation; more generally, stagnation config object.
+
+    .. py:method:: update(species_set, generation)
+
+      Required interface method. Updates species fitness history information, checking for ones that have not improved in
+      :ref:`max_stagnation <max-stagnation-label>` generations, and - unless it would result in the number of species dropping below the configured
+      :ref:`species_elitism <species-elitism-label>` if they were removed, in which case the highest-fitness species are spared - returns a list with
+      stagnant species marked for removal. TODO: Currently interacts directly with the internals of the :py:class:`species.Species` object.
+      Also, currently both checks for num_non_stagnant to stop marking stagnant **and** does not allow the top ``species_elitism`` species to be
+      marked stagnant. While the latter could admittedly help with the problem mentioned above, the ordering of species fitness is using the
+      fitness gotten from the ``species_fitness_func`` (and thus may miss high-fitness members of overall low-fitness species, depending on the
+      function in use).
+
+      :param object species_set: A :py:class:`species.DefaultSpeciesSet` or compatible object.
+      :param int generation: The current generation.
+      :return: A list of tuples of (species :term:`id/key <key>`, :py:class:`Species <species.Species>` object, is_stagnant).
+      :rtype: list(tuple(int, object, bool))
 
 .. py:module:: statistics
    :synopsis: Gathers and provides (to callers and/or to a file) information on genome and species fitness, which are the most-fit genomes, and similar.
@@ -1573,7 +1607,7 @@ statistics
       :return: List of lists of species sizes, ordered by species :term:`id/key <key>`.
       :rtype: list(list(int))
 
-    .. py:method:: get_species_fitness(null_value='')
+    .. py:method:: get_species_fitness(null_value=``)
 
       Returns a by-generation list of lists of species fitnesses; the fitness of a species is determined by the ``mean`` fitness of the genomes in the species,
       as with the reproduction distribution by :py:class:`reproduction.DefaultReproduction`. The ``null_value`` parameter is used for species not present in a
