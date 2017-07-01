@@ -29,7 +29,7 @@ genomes (and the neural networks they produce) may become more and more complex.
 is reached, or when at least one individual (for a :ref:`fitness criterion function <fitness-criterion-label>` of ``max``; others are configurable)
 exceeds the user-specified :ref:`fitness threshold <fitness-threshold-label>`, the algorithm terminates.
 
-.. index:: crossover
+.. index:: ! crossover
 .. index:: key
 .. index:: ! homologous
 
