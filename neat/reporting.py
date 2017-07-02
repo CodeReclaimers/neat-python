@@ -22,9 +22,9 @@ class ReporterSet(object):
         for r in self.reporters:
             r.start_generation(gen)
 
-    def end_generation(self, config, population, species):
+    def end_generation(self, config, population, species_set):
         for r in self.reporters:
-            r.end_generation(config, population, species)
+            r.end_generation(config, population, species_set)
 
     def post_evaluate(self, config, population, species, best_genome):
         for r in self.reporters:
@@ -56,7 +56,7 @@ class BaseReporter(object):
     def start_generation(self, generation):
         pass
 
-    def end_generation(self, config, population, species):
+    def end_generation(self, config, population, species_set):
         pass
 
     def post_evaluate(self, config, population, species, best_genome):
