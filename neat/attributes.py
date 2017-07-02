@@ -1,3 +1,4 @@
+"""Deals with the attributes (variable parameters) of genes"""
 from random import choice, gauss, random
 from neat.config import ConfigParameter
 
