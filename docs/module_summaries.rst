@@ -11,7 +11,7 @@ Module summaries
 
 activations
 ---------------
-  Has the built-in :term:`activation functions <activation function>` and code for using them and adding new user-defined ones.
+  Has the built-in :term:`activation functions <activation function>`, code for using them, and code for adding new user-defined ones.
 
   .. py:exception:: InvalidActivationFunction(Exception)
 
@@ -759,6 +759,7 @@ genome
 
 graphs
 ---------
+  Directed graph algorithm implementations.
 
   .. py:function:: creates_cycle(connections, test)
 
@@ -808,6 +809,7 @@ graphs
 
 indexer
 ----------
+  Helps with creating new :term:`identifiers/keys <key>`.
 
   .. py:class:: Indexer(first)
 
@@ -1022,6 +1024,7 @@ nn.recurrent
 
 parallel
 ----------
+  Runs evaluation functions in parallel subprocesses in order to evaluate multiple genomes at once.
 
   .. py:class:: ParallelEvaluator(num_workers, eval_function, timeout=None)
 
@@ -1038,6 +1041,7 @@ parallel
 
 population
 --------------
+  Implements the core evolution algorithm.
 
   .. index:: reset_on_extinction
 
@@ -1366,10 +1370,11 @@ This Python 2/3 portability code was copied from the `six module <https://python
 .. index:: key
 
 .. py:module:: species
-   :synopsis: Divides the population into genome-based species.
+   :synopsis: Divides the population into species based on genomic distances.
 
 species
 -----------
+  Divides the population into species based on :term:`genomic distances <genomic distance>`.
 
   .. py:class:: Species(key, generation)
 
@@ -1483,7 +1488,7 @@ species
   level of fitness to be considered "stagnant" (including, most problematically, because they are at the limit of fitness improvement).
 
 .. py:module:: stagnation
-   :synopsis: Keeps track of whether species are making progress and removes ones that are not (for a configurable number of generations).
+   :synopsis: Keeps track of whether species are making progress and helps remove ones that are not (for a configurable number of generations).
 
 stagnation
 --------------
