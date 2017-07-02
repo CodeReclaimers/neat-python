@@ -1,5 +1,4 @@
-""" Directed graph algorithm implementations. """
-
+"""Directed graph algorithm implementations."""
 
 def creates_cycle(connections, test):
     """

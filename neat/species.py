@@ -1,3 +1,4 @@
+"""Divides the population into species based on genomic distances."""
 from neat.indexer import Indexer
 from neat.math_util import mean, stdev
 from neat.six_util import iteritems, iterkeys, itervalues

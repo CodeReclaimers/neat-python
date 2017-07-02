@@ -1,3 +1,5 @@
+"""Helps with creating new identifiers/keys."""
+
 class Indexer(object):
     def __init__(self, first):
         self.next_id = first

@@ -1,4 +1,4 @@
-"""Uses `pickle` to save and restore populations(and other aspects of the simulation state)."""
+"""Uses `pickle` to save and restore populations (and other aspects of the simulation state)."""
 from __future__ import print_function
 
 import gzip
