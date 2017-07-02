@@ -11,6 +11,7 @@ Module summaries
 
 activations
 ---------------
+  Has the built-in :term:`activation functions <activation function>` and code for using them and adding new user-defined ones.
 
   .. py:exception:: InvalidActivationFunction(Exception)
 
@@ -52,15 +53,17 @@ activations
       :rtype: bool
 
 .. note::
-  TODO: Suggested simplification for the below: Make ``__config_items__`` a list of lists/tuples, with the latter containing (name, value_type, default) -
+  TODO: Suggested simplification for the below: Make ``__config_items__`` a list of lists, with the latter containing [name, value_type, default] -
   no default if the last is None. This would also allow moving get_config_params into the BaseAttribute class, although config_item_names may require
-  some modifications. (A default capability will be needed for future expansions of the attributes, such as different types of initializations.)
+  some modifications. (A default capability will be needed for future expansions of the attributes, such as different types of initializations, and for
+  enabling better handling of the current activation/aggregation function defaults.)
 
 .. py:module:: attributes
    :synopsis: Deals with attributes used by genes.
 
 attributes
 -------------
+  Deals with :term:`attributes` used by :term:`genes <gene>`.
 
   .. inheritance-diagram:: attributes
 
@@ -191,11 +194,12 @@ attributes
 
 checkpoint
 ---------------
+  Uses :py:mod:`pickle` to save and restore populations (and other aspects of the simulation state).
 
   .. py:class:: Checkpointer(generation_interval=100, time_interval_seconds=300)
 
-    A reporter class that performs checkpointing using :py:mod:`pickle` to save and restore populations (and other aspects of the simulation state). It saves
-    the current state every ``generation_interval`` generations or ``time_interval_seconds`` seconds, whichever happens first.
+    A reporter class that performs checkpointing, saving and restoring the simulation state (including population, randomization, and other aspects).
+    It saves the current state every ``generation_interval`` generations or ``time_interval_seconds`` seconds, whichever happens first.
     Subclasses :py:class:`reporting.BaseReporter`. (The potential save point is at the end of a generation.)
 
     :param generation_interval: If not None, maximum number of generations between checkpoints.
