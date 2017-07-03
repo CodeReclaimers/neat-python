@@ -119,10 +119,6 @@ Glossary
   key
     Various of the objects used by the library are indexed by an key (id); for most, this is an `int`, which is either unique in the library as a whole
     (as with :term:`species` and :term:`genomes <genome>`), or within a genome (as with :term:`node` :term:`genes <gene>`).
-<<<<<<< HEAD
     For :term:`connection` genes, this is a `tuple` of two `ints <int>`, the keys of the connected nodes.
-=======
-    For :term:`connection` genes, this is a `tuple` of two `ints <int>`, the keys of the connected nodes. 
->>>>>>> cc528a336487b9675c9898001822e58be2d99e84
 
 :ref:`Table of Contents <toc-label>`

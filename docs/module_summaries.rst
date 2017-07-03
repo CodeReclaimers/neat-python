@@ -833,11 +833,7 @@ iznn
 ------
 
 This module implements a spiking neural network. Neurons are based on the model described by::
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> cc528a336487b9675c9898001822e58be2d99e84
   Izhikevich, E. M.
   Simple Model of Spiking Neurons
   IEEE TRANSACTIONS ON NEURAL NETWORKS, VOL. 14, NO. 6, NOVEMBER 2003
@@ -1510,11 +1506,7 @@ stagnation
 
     .. py:classmethod:: parse_config(param_dict)
 
-<<<<<<< HEAD
       Required interface method. Provides defaults for :ref:`species_fitness_func <species-fitness-func-label>`,
-=======
-      Required interface method. Provides defaults for :ref:`species_fitness_func <species-fitness-func-label>`, 
->>>>>>> cc528a336487b9675c9898001822e58be2d99e84
       :ref:`max_stagnation <max-stagnation-label>`, and :ref:`species_elitism <species-elitism-label>` parameters and updates them
       from the configuration file.
 
@@ -1564,11 +1556,7 @@ statistics
   .. py:class:: StatisticsReporter(BaseReporter)
 
     Gathers (via the reporting interface) and provides (to callers and/or to a file) the most-fit genomes and information on genome and species fitness
-<<<<<<< HEAD
-    and species sizes.
-=======
     and species sizes. 
->>>>>>> cc528a336487b9675c9898001822e58be2d99e84
 
     .. py:method:: post_evaluate(config, population, species, best_genome)
 

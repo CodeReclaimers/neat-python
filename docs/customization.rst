@@ -103,10 +103,6 @@ The default reproduction scheme uses explicit fitness sharing.  This behavior is
 To use a different reproduction scheme, you must create a custom class whose interface matches that
 of `DefaultReproduction`, and provide it as the ``reproduction_type`` argument to the `Config` constructor.
 
-<<<<<<< HEAD
-.. note::
-=======
 .. note:: 
->>>>>>> cc528a336487b9675c9898001822e58be2d99e84
 
   TODO: Include example

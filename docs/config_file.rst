@@ -209,11 +209,7 @@ required for your particular implementation.
 * *bias_mutate_rate*
     The probability that :term:`mutation` will change the bias of a node by adding a random value.
 * *bias_replace_rate*
-<<<<<<< HEAD
-    The probability that :term:`mutation` will replace the bias of a node with a newly :py:meth:`chosen <attributes.FloatAttribute.mutate_value>`
-=======
-    The probability that :term:`mutation` will replace the bias of a node with a newly :py:meth:`chosen <attributes.FloatAttribute.mutate_value>` 
->>>>>>> cc528a336487b9675c9898001822e58be2d99e84
+    The probability that :term:`mutation` will replace the bias of a node with a newly :py:meth:`chosen <attributes.FloatAttribute.init_value>`
     random value (as if it were a new node).
 
 .. _compatibility-threshold-label:
@@ -362,11 +358,7 @@ required for your particular implementation.
 * *response_mutate_rate*
     The probability that :term:`mutation` will change the response multiplier of a node by adding a random value.
 * *response_replace_rate*
-<<<<<<< HEAD
-    The probability that :term:`mutation` will replace the response multiplier of a node with a newly :py:meth:`chosen <attributes.FloatAttribute.mutate_value>`
-=======
-    The probability that :term:`mutation` will replace the response multiplier of a node with a newly :py:meth:`chosen <attributes.FloatAttribute.mutate_value>` 
->>>>>>> cc528a336487b9675c9898001822e58be2d99e84
+    The probability that :term:`mutation` will replace the response multiplier of a node with a newly :py:meth:`chosen <attributes.FloatAttribute.init_value>` 
     random value (as if it were a new node).
 
 .. index:: weight
@@ -388,5 +380,5 @@ required for your particular implementation.
 * *weight_mutate_rate*
     The probability that :term:`mutation` will change the weight of a connection by adding a random value.
 * *weight_replace_rate*
-    The probability that :term:`mutation` will replace the weight of a connection with a newly :py:meth:`chosen <attributes.FloatAttribute.mutate_value>`
+    The probability that :term:`mutation` will replace the weight of a connection with a newly :py:meth:`chosen <attributes.FloatAttribute.init_value>`
     random value (as if it were a new connection).
