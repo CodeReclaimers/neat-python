@@ -1,9 +1,9 @@
 from __future__ import division, print_function
 
-from functools import reduce
 from operator import mul
 from random import choice, random, shuffle
-from sys import stderr
+
+import sys
 
 from neat.activations import ActivationFunctionSet
 from neat.config import ConfigParameter, write_pretty_params
@@ -12,6 +12,8 @@ from neat.graphs import creates_cycle
 from neat.indexer import Indexer
 from neat.six_util import iteritems, iterkeys
 
+if sys.version_info[0] == 3:
+    from functools import reduce
 
 def product(x):
     return reduce(mul, x, 1.0)
@@ -26,8 +28,6 @@ class DefaultGenomeConfig(object):
     def __init__(self, params):
         # Create full set of available activation functions.
         self.activation_defs = ActivationFunctionSet()
-        self.activation_options = params.get('activation_options', 'sigmoid').strip().split()
-        self.aggregation_options = params.get('aggregation_options', 'sum').strip().split()
 
         self._params = [ConfigParameter('num_inputs', int),
                         ConfigParameter('num_outputs', int),
@@ -38,7 +38,8 @@ class DefaultGenomeConfig(object):
                         ConfigParameter('conn_add_prob', float),
                         ConfigParameter('conn_delete_prob', float),
                         ConfigParameter('node_add_prob', float),
-                        ConfigParameter('node_delete_prob', float)]
+                        ConfigParameter('node_delete_prob', float),
+                        ConfigParameter('initial_connection', str, 'unconnected')]
 
         # Gather configuration data from the gene classes.
         self.node_gene_type = params['node_gene_type']
@@ -58,7 +59,7 @@ class DefaultGenomeConfig(object):
         self.connection_fraction = None
 
         # Verify that initial connection type is valid.
-        self.initial_connection = params.get('initial_connection', 'unconnected')
+        # pylint: disable=access-member-before-definition
         if 'partial' in self.initial_connection:
             c, p = self.initial_connection.split()
             self.initial_connection = c
@@ -84,10 +85,10 @@ class DefaultGenomeConfig(object):
 
         assert self.initial_connection in self.allowed_connectivity
 
-        write_pretty_params(f, self, self._params)
+        write_pretty_params(f, self, [p for p in self._params if not 'initial_connection' in p.name])
 
     def get_new_node_key(self, node_dict):
-        if self.node_indexer == None:
+        if self.node_indexer is None:
             self.node_indexer = Indexer(max(list(iterkeys(node_dict)))+1)
 
         new_id = self.node_indexer.get_next()
@@ -155,39 +156,43 @@ class DefaultGenome(object):
                 self.nodes[node_key] = node
 
         # Add connections based on initial connectivity type.
-        if config.initial_connection == 'fs_neat':
-            if config.num_hidden > 0:
-                print("Warning: initial_connection = fs_neat will not connect to hidden nodes;",
-                      "\tif this is desired, set initial_connection = fs_neat_nohidden;",
-                      "\tif not, set initial_connection = fs_neat_hidden",
-                      sep='\n', file=stderr);
-            self.connect_fs_neat_nohidden(config)
-        elif config.initial_connection == 'fs_neat_nohidden':
-            self.connect_fs_neat_nohidden(config)
-        elif config.initial_connection == 'fs_neat_hidden':
-            self.connect_fs_neat_hidden(config)
-        elif config.initial_connection == 'full':
-            if config.num_hidden > 0:
-                print("Warning: initial_connection = full will not connect input nodes directly to output nodes;",
-                      "\tif this is desired, set initial_connection = full_nodirect;",
-                      "\tif not, set initial_connection = full_direct",
-                      sep='\n', file=stderr);
-            self.connect_full_nodirect(config)
-        elif config.initial_connection == 'full_nodirect':
-            self.connect_full_nodirect(config)
-        elif config.initial_connection == 'full_direct':
-            self.connect_full_direct(config)
-        elif config.initial_connection == 'partial':
-            if config.num_hidden > 0: # partial num!
-                print("Warning: initial_connection = partial will not connect input nodes directly to output nodes;",
-                      "\tif this is desired, set initial_connection = partial_nodirect {0};".format(config.connection_fraction),
-                      "\tif not, set initial_connection = partial_direct {0}".format(config.connection_fraction),
-                      sep='\n', file=stderr);
-            self.connect_partial_nodirect(config)
-        elif config.initial_connection == 'partial_nodirect':
-            self.connect_partial_nodirect(config)
-        elif config.initial_connection == 'partial_direct':
-            self.connect_partial_direct(config)
+
+        if 'fs_neat' in config.initial_connection:
+            if config.initial_connection == 'fs_neat_nohidden':
+                self.connect_fs_neat_nohidden(config)
+            elif config.initial_connection == 'fs_neat_hidden':
+                self.connect_fs_neat_hidden(config)
+            else:
+                if config.num_hidden > 0:
+                    print("Warning: initial_connection = fs_neat will not connect to hidden nodes;",
+                          "\tif this is desired, set initial_connection = fs_neat_nohidden;",
+                          "\tif not, set initial_connection = fs_neat_hidden",
+                          sep='\n', file=sys.stderr);
+                self.connect_fs_neat_nohidden(config)
+        elif 'full' in config.initial_connection:
+            if config.initial_connection == 'full_nodirect':
+                self.connect_full_nodirect(config)
+            elif config.initial_connection == 'full_direct':
+                self.connect_full_direct(config)
+            else:
+                if config.num_hidden > 0:
+                    print("Warning: initial_connection = full will not connect input nodes directly to output nodes;",
+                          "\tif this is desired, set initial_connection = full_nodirect;",
+                          "\tif not, set initial_connection = full_direct",
+                          sep='\n', file=sys.stderr);
+                self.connect_full_nodirect(config)
+        elif 'partial' in config.initial_connection:
+            if config.initial_connection == 'partial_nodirect':
+                self.connect_partial_nodirect(config)
+            elif config.initial_connection == 'partial_direct':
+                self.connect_partial_direct(config)
+            else:
+                if config.num_hidden > 0:
+                    print("Warning: initial_connection = partial will not connect input nodes directly to output nodes;",
+                          "\tif this is desired, set initial_connection = partial_nodirect {0};".format(config.connection_fraction),
+                          "\tif not, set initial_connection = partial_direct {0}".format(config.connection_fraction),
+                          sep='\n', file=sys.stderr);
+                self.connect_partial_nodirect(config)
 
     def configure_crossover(self, genome1, genome2, config):
         """ Configure a new genome by crossover from two parent genomes. """
@@ -306,11 +311,11 @@ class DefaultGenome(object):
 
     def mutate_delete_node(self, config):
         # Do nothing if there are no non-output nodes.
-        available_nodes = [(k, v) for k, v in iteritems(self.nodes) if k not in config.output_keys]
+        available_nodes = [k for k in iterkeys(self.nodes) if k not in config.output_keys]
         if not available_nodes:
             return -1
 
-        del_key, del_node = choice(available_nodes)
+        del_key = choice(available_nodes)
 
         connections_to_delete = set()
         for k, v in iteritems(self.connections):
@@ -439,7 +444,7 @@ class DefaultGenome(object):
             for h in hidden:
                 for output_id in output:
                     connections.append((h, output_id))
-        if (direct == True) or (not hidden):
+        if direct or (not hidden):
             for input_id in config.input_keys:
                 for output_id in output:
                     connections.append((input_id, output_id))

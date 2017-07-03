@@ -1,4 +1,8 @@
+"""Does general configuration parsing; used by other classes for their configuration."""
+from __future__ import print_function
+
 import os
+from sys import stderr
 
 try:
     from configparser import ConfigParser
@@ -7,12 +11,15 @@ except ImportError:
 
 
 class ConfigParameter(object):
-    def __init__(self, name, value_type):
+    def __init__(self, name, value_type, default=None):
         self.name = name
         self.value_type = value_type
+        self.default = default
 
     def __repr__(self):
-        return "ConfigParameter({!r}, {!r})".format(self.name, self.value_type)
+        if self.default is None:
+            return "ConfigParameter({!r}, {!r})".format(self.name, self.value_type)
+        return "ConfigParameter({!r}, {!r}, {!r})".format(self.name, self.value_type, self.default)
 
     def parse(self, section, config_parser):
         if int == self.value_type:
@@ -29,7 +36,11 @@ class ConfigParameter(object):
     def interpret(self, config_dict):
         value = config_dict.get(self.name)
         if value is None:
-            raise Exception('Missing configuration item: ' + self.name)
+            if self.default is None:
+                raise RuntimeError('Missing configuration item: ' + self.name)
+            else:
+                print("Using default '{!r}' for '{!s}'".format(self.default, self.name), file=stderr)
+                value = self.default
 
         try:
             if str == self.value_type:
@@ -37,18 +48,18 @@ class ConfigParameter(object):
             if int == self.value_type:
                 return int(value)
             if bool == self.value_type:
-                if "true" == value.lower():
+                if value.lower() == "true":
                     return True
-                elif "false" == value.lower():
+                elif value.lower() == "false":
                     return False
                 else:
-                    raise Exception(self.name + " must be True or False")
+                    raise RuntimeError(self.name + " must be True or False")
             if float == self.value_type:
                 return float(value)
             if list == self.value_type:
                 return value.split(" ")
         except Exception as e:
-            raise Exception("Error interpreting config item '{}' with value '{}' and type {}".format(
+            raise RuntimeError("Error interpreting config item '{}' with value '{}' and type {}".format(
                 self.name, value, self.value_type))
 
         raise Exception("Unexpected configuration type: " + repr(self.value_type))

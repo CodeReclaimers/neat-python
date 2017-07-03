@@ -66,8 +66,8 @@ class BaseGene(object):
 class DefaultNodeGene(BaseGene):
     __gene_attributes__ = [FloatAttribute('bias'),
                            FloatAttribute('response'),
-                           StringAttribute('activation'),
-                           StringAttribute('aggregation')]
+                           StringAttribute('activation', 'sigmoid'),
+                           StringAttribute('aggregation', 'sum')]
 
     def distance(self, other, config):
         d = abs(self.bias - other.bias) + abs(self.response - other.response)
