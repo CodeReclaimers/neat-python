@@ -1,4 +1,5 @@
 """Divides the population into species based on genomic distances."""
+from neat.config import ConfigParameter, write_pretty_params
 from neat.indexer import Indexer
 from neat.math_util import mean, stdev
 from neat.six_util import iteritems, iterkeys, itervalues
@@ -45,25 +46,35 @@ class GenomeDistanceCache(object):
 
         return d
 
+class DefaultSpeciesSetConfig(object):
+    def __init__(self, param_dict):
+        self._params = [ConfigParameter('compatibility_threshold', float)]
+
+        # Use the configuration data to interpret the supplied parameters.
+        for p in self._params:
+            setattr(self, p.name, p.interpret(param_dict))
+
+    def save(self, f):
+        write_pretty_params(f, self, self._params)
+
 
 class DefaultSpeciesSet(object):
     """ Encapsulates the default speciation scheme. """
 
     def __init__(self, config, reporters):
+        self.species_set_config = config
         self.reporters = reporters
         self.indexer = Indexer(1)
         self.species = {}
         self.genome_to_species = {}
 
-    # TODO: Create a separate configuration class instead of using a dict (for consistency with other types).
     @classmethod
     def parse_config(cls, param_dict):
-        return {'compatibility_threshold': float(param_dict['compatibility_threshold'])}
+        return DefaultSpeciesSetConfig(param_dict)
 
     @classmethod
-    def write_config(cls, f, param_dict):
-        compatibility_threshold = param_dict['compatibility_threshold']
-        f.write('compatibility_threshold = {}\n'.format(compatibility_threshold))
+    def write_config(cls, f, config):
+        config.save(f)
 
     def speciate(self, config, population, generation):
         """
@@ -77,7 +88,7 @@ class DefaultSpeciesSet(object):
         """
         assert isinstance(population, dict)
 
-        compatibility_threshold = config.species_set_config['compatibility_threshold']
+        compatibility_threshold = self.species_set_config.compatibility_threshold
 
         # Find the best representatives for each existing species.
         unspeciated = set(iterkeys(population))

@@ -1,38 +1,42 @@
 import sys
 
+from neat.config import ConfigParameter, write_pretty_params
 from neat.six_util import iteritems
 from neat.math_util import stat_functions
 
 # TODO: Add a method for the user to change the "is stagnant" computation.
 
+class DefaultStagnationConfig(object):
+    def __init__(self, param_dict):
+        self._params = [ConfigParameter('species_fitness_func', str, 'mean'),
+                        ConfigParameter('max_stagnation', int, 15),
+                        ConfigParameter('species_elitism', int, 0)]
+
+        # Use the configuration data to interpret the supplied parameters.
+        for p in self._params:
+            setattr(self, p.name, p.interpret(param_dict))
+
+    def save(self, f):
+        write_pretty_params(f, self, self._params)
 
 class DefaultStagnation(object):
     @classmethod
     def parse_config(cls, param_dict):
-        config = {'species_fitness_func': 'mean',
-                  'max_stagnation': 15,
-                  'species_elitism': 0}
-        config.update(param_dict)
-
-        return config
+        return DefaultStagnationConfig(param_dict)
 
     @classmethod
     def write_config(cls, f, config):
-        fitness_func = config.get('species_fitness_func', 'mean')
-        f.write('species_fitness_func = {}\n'.format(fitness_func))
-        max_stagnation = config.get('max_stagnation', 15)
-        f.write('max_stagnation       = {}\n'.format(max_stagnation))
-        species_elitism = config.get('species_elitism', 15)
-        f.write('species_elitism      = {}\n'.format(species_elitism))
+        config.save(f)
 
     def __init__(self, config, reporters):
-        self.max_stagnation = int(config.get('max_stagnation'))
-        self.species_fitness = config.get('species_fitness_func')
-        self.species_elitism = int(config.get('species_elitism'))
+        self.stagnation_config = config
+        
+        #self.max_stagnation = int(config.get('max_stagnation'))
+        #self.species_elitism = int(config.get('species_elitism'))
 
-        self.species_fitness_func = stat_functions.get(self.species_fitness)
+        self.species_fitness_func = stat_functions.get(config.species_fitness_func)
         if self.species_fitness_func is None:
-            raise Exception("Unexpected species fitness: {0!r}".format(self.species_fitness))
+            raise RuntimeError("Unexpected species fitness func: {0!r}".format(config.species_fitness_func))
 
         self.reporters = reporters
 
@@ -65,10 +69,10 @@ class DefaultStagnation(object):
             # will be marked as stagnant first.
             stagnant_time = generation - s.last_improved
             is_stagnant = False
-            if num_non_stagnant > self.species_elitism:
-                is_stagnant = stagnant_time >= self.max_stagnation
+            if num_non_stagnant > self.stagnation_config.species_elitism:
+                is_stagnant = stagnant_time >= self.stagnation_config.max_stagnation
                 
-            if (len(species_data) - idx) <= self.species_elitism:
+            if (len(species_data) - idx) <= self.stagnation_config.species_elitism:
                 is_stagnant = False
 
             if is_stagnant:
