@@ -380,5 +380,5 @@ required for your particular implementation.
 * *weight_mutate_rate*
     The probability that :term:`mutation` will change the weight of a connection by adding a random value.
 * *weight_replace_rate*
-    The probability that :term:`mutation` will replace the weight of a connection with a newly py:meth:`chosen <attributes.FloatAttribute.mutate_value>`
+    The probability that :term:`mutation` will replace the weight of a connection with a newly :py:meth:`chosen <attributes.FloatAttribute.mutate_value>`
     random value (as if it were a new connection).
