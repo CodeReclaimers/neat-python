@@ -778,7 +778,7 @@ graphs
 
     Collect the :term:`nodes <node>` whose state is required to compute the final network output(s).
 
-    :param inputs: the :term:`input node` :term`identifiers <key>`; **it is assumed that the input identifier set and the node identifier set are disjoint.**
+    :param inputs: the :term:`input node` :term:`identifiers <key>`; **it is assumed that the input identifier set and the node identifier set are disjoint.**
     :type inputs: list(int)
     :param outputs: the :term:`output node` identifiers; by convention, the output node :term:`ids <key>` are always the same as the output index.
     :type outputs: list(int)
@@ -1232,7 +1232,7 @@ reporting
 
     .. py:method:: species_stagnant(sid, species)
 
-      Called via :py:class:`ReporterSet` (by py:meth:`reproduction.DefaultReproduction.reproduce`) for each species considered stagnant by the
+      Called via :py:class:`ReporterSet` (by :py:meth:`reproduction.DefaultReproduction.reproduce`) for each species considered stagnant by the
       stagnation class (such as :py:class:`stagnation.DefaultStagnation`).
 
       :param int sid: The species :term:`id/key <key>`.
