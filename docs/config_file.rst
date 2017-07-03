@@ -165,14 +165,13 @@ required for your particular implementation.
 
 * *activation_default*
     The default :term:`activation function` :term:`attribute <attributes>` :py:meth:`assigned <attributes.StringAttribute.init_value>` to new
-    :term:`nodes <node>`. **If none is given, or ``random`` is specified, one of the ``activation_options`` will be
-    :py:meth:`chosen <attributes.StringAttribute.init_value>` at random.**
+    :term:`nodes <node>`. **If none is given, or ``random`` is specified, one of the ``activation_options`` will be chosen at random.**
 * *activation_mutate_rate*
     The probability that :term:`mutation` will replace the node's activation function with a
     :py:meth:`randomly-determined <attributes.StringAttribute.mutate_value>` member of the ``activation_options``.
     Valid values are in [0.0, 1.0].
 * *activation_options*
-    A space-separated list of the activation functions that may be used by nodes.  **This defaults to :ref:`sigmoid <sigmoid-label>`.** The
+    A space-separated list of the activation functions that may be used by nodes.  **This defaults to** :ref:`sigmoid <sigmoid-label>`. The
     built-in available functions can be found in :ref:`activation-functions-label`; more can be added as described in :ref:`customization-label`.
 
 .. index:: aggregation function
@@ -182,8 +181,7 @@ required for your particular implementation.
 
 * *aggregation_default*
     The default :term:`aggregation function` :term:`attribute <attributes>` :py:meth:`assigned <attributes.StringAttribute.init_value>` to new
-    :term:`nodes <node>`. **If none is given, or ``random`` is specified, one of the ``aggregation_options`` will be
-    :py:meth:`chosen <attributes.StringAttribute.init_value>` at random.**
+    :term:`nodes <node>`. **If none is given, or ``random`` is specified, one of the ``aggregation_options`` will be chosen at random.**
 * *aggregation_mutate_rate*
     The probability that :term:`mutation` will replace the node's aggregation function with a
     :py:meth:`randomly-determined <attributes.StringAttribute.mutate_value>` member of the ``aggregation_options``.
@@ -203,15 +201,15 @@ required for your particular implementation.
 * *bias_init_stdev*
     The standard deviation of the normal/gaussian distribution used to select bias values for new nodes.
 * *bias_max_value*
-    The maximum allowed bias value.  Biases above this value will be :py:meth::`clamped <attributes.FloatAttribute.clamp>` to this value.
+    The maximum allowed bias value.  Biases above this value will be :py:meth:`clamped <attributes.FloatAttribute.clamp>` to this value.
 * *bias_min_value*
-    The minimum allowed bias value.  Biases below this value will be :py:meth::`clamped <attributes.FloatAttribute.clamp>` to this value.
+    The minimum allowed bias value.  Biases below this value will be :py:meth:`clamped <attributes.FloatAttribute.clamp>` to this value.
 * *bias_mutate_power*
     The standard deviation of the zero-centered normal/gaussian distribution from which a bias value :term:`mutation` is drawn.
 * *bias_mutate_rate*
     The probability that :term:`mutation` will change the bias of a node by adding a random value.
 * *bias_replace_rate*
-    The probability that :term:`mutation` will replace the bias of a node with a newly :py:meth::`chosen <attributes.FloatAttribute.mutate_value>`
+    The probability that :term:`mutation` will replace the bias of a node with a newly :py:meth:`chosen <attributes.FloatAttribute.mutate_value>`
     random value (as if it were a new node).
 
 .. _compatibility-threshold-label:
@@ -352,15 +350,15 @@ required for your particular implementation.
 * *response_init_stdev*
     The standard deviation of the normal/gaussian distribution used to select response multipliers for new nodes.
 * *response_max_value*
-    The maximum allowed response multiplier. Response multipliers above this value will be :py:meth::`clamped <attributes.FloatAttribute.clamp>` to this value.
+    The maximum allowed response multiplier. Response multipliers above this value will be :py:meth:`clamped <attributes.FloatAttribute.clamp>` to this value.
 * *response_min_value*
-    The minimum allowed response multiplier. Response multipliers below this value will be :py:meth::`clamped <attributes.FloatAttribute.clamp>` to this value.
+    The minimum allowed response multiplier. Response multipliers below this value will be :py:meth:`clamped <attributes.FloatAttribute.clamp>` to this value.
 * *response_mutate_power*
     The standard deviation of the zero-centered normal/gaussian distribution from which a response multiplier :term:`mutation` is drawn.
 * *response_mutate_rate*
     The probability that :term:`mutation` will change the response multiplier of a node by adding a random value.
 * *response_replace_rate*
-    The probability that :term:`mutation` will replace the response multiplier of a node with a newly :py:meth::`chosen <attributes.FloatAttribute.mutate_value>`
+    The probability that :term:`mutation` will replace the response multiplier of a node with a newly :py:meth:`chosen <attributes.FloatAttribute.mutate_value>`
     random value (as if it were a new node).
 
 .. index:: weight
@@ -374,13 +372,13 @@ required for your particular implementation.
 * *weight_init_stdev*
     The standard deviation of the normal/gaussian distribution used to select weight values for new connections.
 * *weight_max_value*
-    The maximum allowed weight value. Weights above this value will be :py:meth::`clamped <attributes.FloatAttribute.clamp>` to this value.
+    The maximum allowed weight value. Weights above this value will be :py:meth:`clamped <attributes.FloatAttribute.clamp>` to this value.
 * *weight_min_value*
-    The minimum allowed weight value. Weights below this value will be :py:meth::`clamped <attributes.FloatAttribute.clamp>` to this value.
+    The minimum allowed weight value. Weights below this value will be :py:meth:`clamped <attributes.FloatAttribute.clamp>` to this value.
 * *weight_mutate_power*
     The standard deviation of the zero-centered normal/gaussian distribution from which a weight value :term:`mutation` is drawn.
 * *weight_mutate_rate*
     The probability that :term:`mutation` will change the weight of a connection by adding a random value.
 * *weight_replace_rate*
-    The probability that :term:`mutation` will replace the weight of a connection with a newly py:meth::`chosen <attributes.FloatAttribute.mutate_value>`
+    The probability that :term:`mutation` will replace the weight of a connection with a newly py:meth:`chosen <attributes.FloatAttribute.mutate_value>`
     random value (as if it were a new connection).
