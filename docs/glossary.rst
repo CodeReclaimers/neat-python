@@ -16,7 +16,7 @@ Glossary
   response
     These are the :term:`attributes` of a :term:`node`. They determine the output of a node as follows:
     :math:`\begin{equation}\operatorname{activation}(bias + (response * \operatorname{aggregation}(inputs)))\end{equation}`
-    For available activation functions, see :ref:`activation-functions-label`
+    For available activation functions, see :ref:`activation-functions-label`; for adding new ones, see :ref:`customization-label`.
 
   node
     Also known as a neuron (as in a *neural* network). They are of three types:
@@ -27,8 +27,8 @@ Glossary
   input node
     These are the :term:`nodes <node>` through which the network receives inputs. They cannot be deleted (although :term:`connections <connection>`
     from them can be), cannot be the output end of a :term:`connection`, and have: no :term:`aggregation function`; a fixed :term:`bias` of 0; a
-    fixed :term:`response` multiplier of 1; and a fixed :term:`activation function` of :ref:`identity <identity-label>`. Note: In :py:mod:`genome`, they are not
-    in many respects treated as actual nodes, but simply as :term:`keys <key>` for input ends of connections.
+    fixed :term:`response` multiplier of 1; and a fixed :term:`activation function` of :ref:`identity <identity-label>`. Note: In the :py:mod:`genome` module,
+    they are not in many respects treated as actual nodes, but simply as :term:`keys <key>` for input ends of connections.
 
   hidden node
     These are the :term:`nodes <node>` other than :term:`input nodes <input node>` and :term:`output nodes <output node>`. In the original
@@ -38,12 +38,12 @@ Glossary
   homologous
     Descended from a common ancestor; two genes in NEAT from different genomes are either homologous or :term:`disjoint`/excess. In NEAT, two
     genes that are homologous will have the same :term:`key`/id. For :term:`node` genes, the key is an `int` incremented with each newly-created node;
-    for :term:`connection` genes, the key is a `tuple` of the keys of the nodes being connected. TODO: Explain further.
+    for :term:`connection` genes, the key is a `tuple` of the keys of the nodes being connected. For further discussion, see the :ref:`neat-overview-label`.
 
   disjoint
   excess
     These are genes in NEAT not descended from a common ancestor - i.e., not :term:`homologous`. This implementation of NEAT, like most, does
-    not distinguish between disjoint and excess genes. TODO: Explain further.
+    not distinguish between disjoint and excess genes. For further discussion, see the :ref:`neat-overview-label`.
 
   output node
     These are the :term:`nodes <node>` to which the network delivers outputs. They cannot be deleted (although :term:`connections <connection>` to
@@ -55,8 +55,8 @@ Glossary
     multiplied by the weight then sent to the output (to a node - possibly the same node, for a :term:`recurrent` neural network).
     If a connection is not enabled, then the output is 0; genes for such connections are the equivalent of `pseudogenes
     <http://pseudogene.org/background.php>`_ that, as in `in vivo <https://en.wikipedia.org/wiki/In_vivo>`_ evolution, can be reactivated at a later time.
-    (Some versions of NEAT give a chance, such as 25%, that a disabled connection will be enabled during :term:`crossover`; in the future, this may be
-    implemented as an option in this implementation.)
+    TODO: Some versions of NEAT give a chance, such as 25%, that a disabled connection will be enabled during :term:`crossover`; in the future, this
+    should be an option.
 
   connection
     These connect between :term:`nodes <node>`, and give rise to the *network* in the term ``neural network``. For non-loopback (directly :term:`recurrent`)
@@ -88,8 +88,8 @@ Glossary
     :py:class:`genome.DefaultGenome` and :py:class:`iznn.IZGenome`, and the object interface is described in :ref:`genome-interface-label`.
 
   genomic distance
-    An approximate measure of the difference between :term:`genomes <genome>`, used in dividing the population into :term:`species`. TODO: Explain
-    further, put in links, etc...
+    An approximate measure of the difference between :term:`genomes <genome>`, used in dividing the population into :term:`species`. For further
+    discussion, see the :ref:`neat-overview-label`.
 
   genetic distance
     The distance between two :term:`homologous` :term:`genes <gene>`, added up as part of the :term:`genomic distance`. Also sometimes used as
@@ -103,7 +103,8 @@ Glossary
   species
     Subdivisions of the population into groups of similar (by the :term:`genomic distance` measure) individuals (:term:`genomes <genome>`),
     which compete among themselves but share fitness relative to the rest of the population. This is, among other things, a mechanism to try to avoid the
-    quick elimination of high-potential topological mutants that have an initial poor fitness prior to smaller "tuning" changes. TODO: Add links!
+    quick elimination of high-potential topological mutants that have an initial poor fitness prior to smaller "tuning" changes. For further discussion,
+    see the :ref:`neat-overview-label`.
 
   crossover
     The process in sexual reproduction in which two :term:`genomes <genome>` are combined. This involves the combination of :term:`homologous`

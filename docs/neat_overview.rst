@@ -1,3 +1,5 @@
+.. _neat-overview-label:
+
 NEAT Overview
 =============
 

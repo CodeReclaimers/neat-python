@@ -1661,3 +1661,5 @@ statistics
 
       A wrapper for :py:meth:`save_genome_fitness`, :py:meth:`save_species_count`, and :py:meth:`save_species_fitness`;
       uses the default values for all three.
+
+:ref:`Table of Contents <toc-label>`

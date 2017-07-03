@@ -382,3 +382,5 @@ required for your particular implementation.
 * *weight_replace_rate*
     The probability that :term:`mutation` will replace the weight of a connection with a newly :py:meth:`chosen <attributes.FloatAttribute.init_value>`
     random value (as if it were a new connection).
+
+:ref:`Table of Contents <toc-label>`
