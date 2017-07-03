@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 import os
-from sys import stderr
+import sys
 
 try:
     from configparser import ConfigParser
@@ -39,7 +39,7 @@ class ConfigParameter(object):
             if self.default is None:
                 raise RuntimeError('Missing configuration item: ' + self.name)
             else:
-                print("Using default '{!r}' for '{!s}'".format(self.default, self.name), file=stderr)
+                print("Using default '{!r}' for '{!s}'".format(self.default, self.name), file=sys.stderr)
                 value = self.default
 
         try:
@@ -58,7 +58,8 @@ class ConfigParameter(object):
                 return float(value)
             if list == self.value_type:
                 return value.split(" ")
-        except Exception as e:
+        except Exception:
+            sys.excepthook(sys.exc_info()) # otherwise, why do the above w/RuntimeError?
             raise RuntimeError("Error interpreting config item '{}' with value '{}' and type {}".format(
                 self.name, value, self.value_type))
 
