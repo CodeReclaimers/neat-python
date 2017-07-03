@@ -277,7 +277,7 @@ config
 
     Prints configuration parameters, with justification based on the longest configuration parameter name.
 
-    :param f: `File object <file>` to be written to.
+    :param f: File object to be written to.
     :type f: `file`
     :param object config: Configuration object from which parameter values are to be fetched (using `getattr`).
     :param list params: List of :py:class:`ConfigParameter` instances giving the names of interest and the types of parameters.
@@ -361,7 +361,7 @@ ctrnn
 genes
 --------
 
-  .. inheritance-diagram:: genes iznn.IZNodeGene
+  .. inheritance-diagram:: genes iznn
 
   .. index:: key
   .. index:: ! gene
@@ -492,11 +492,11 @@ genes
 genome
 -----------
 
-  .. inheritance-diagram:: genome iznn.IZGenome
+  .. inheritance-diagram:: genome iznn
 
   .. py:function:: product(x)
 
-    Used to implement a product (:math:`\[\prod x\]`) :term:`aggregation function`.
+    Used to implement a product (:math:`prod x`) :term:`aggregation function`.
 
     :param x: The inputs to be multiplied together.
     :type x: list(float)
@@ -529,7 +529,7 @@ genome
       Saves the :ref:`initial_connection <initial-connection-config-label>` configuration and uses :py:func:`config.write_pretty_params` to write out the
       other parameters.
 
-      :param f: The `File object <file>` to be written to.
+      :param f: The file object to be written to.
       :type f: `file`
 
     .. index:: ! key
@@ -573,7 +573,7 @@ genome
 
       Required interface method. Saves configuration using :py:meth:`DefaultGenomeConfig.save`.
 
-      :param f: `File object <file>` to write to.
+      :param f: File object to write to.
       :type f: `file`
       :param object config: Configuration object (here, a `DefaultGenomeConfig` instance).
 
@@ -1102,7 +1102,7 @@ population
 reporting
 -----------
 
-  .. inheritance-diagram:: reporting checkpoint.Checkpointer statistics.StatisticsReporter
+  .. inheritance-diagram:: reporting checkpoint statistics
 
   .. py:class:: ReporterSet
 
@@ -1278,7 +1278,7 @@ reproduction
 
       Required interface method. Saves ``elitism`` and ``survival_threshold`` (but not ``min_species_size``) parameters to new config file.
 
-      :param f: `File object <file>` to write to.
+      :param f: File object to write to.
       :type f: `file`
       :param dict param_dict: Dictionary of current parameters in this implementation; more generally, reproduction config object.
 
@@ -1441,7 +1441,7 @@ species
 
       Required interface method. Writes parameter(s) to new config file.
 
-      :param f: `File object <file>` to write to.
+      :param f: File object to write to.
       :type f: `file`
       :param dict param_dict: Dictionary of current parameters in this implementation; more generally, stagnation config object.
 
@@ -1520,7 +1520,7 @@ stagnation
       Required interface method. Saves parameters to new config file. TODO: Has a default of 15 for species_elitism, but will be overridden by the default of
       0 in parse_config.
 
-      :param f: `File object <file>` to write to.
+      :param f: File object to write to.
       :type f: `file`
       :param dict param_dict: Dictionary of current parameters in this implementation; more generally, stagnation config object.
 
@@ -1546,7 +1546,7 @@ stagnation
 statistics
 -------------
 
-.. note::
+  .. note::
     There are two design decisions to be aware of:
     * The most-fit genomes are based on the highest-fitness member of each generation; other genomes are not saved by this module (if they were, it would far worsen existing potential memory problems - see below), and it is assumed that fitnesses (as given by the :index:`fitness function <single: fitness function>`) are not relative to others in the generation (also assumed by the use of the :ref:`fitness threshold <fitness-threshold-label>` as a signal for exiting). Code violating this assumption (e.g., with competitive coevolution) will need to use different statistical gathering methods.
     * Generally reports or records a per-generation list of values; the numeric position in the list may not correspond to the generation number if there has been a restart, such as via the :py:mod:`checkpoint` module.
