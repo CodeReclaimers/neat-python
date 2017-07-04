@@ -1,14 +1,16 @@
 """Deals with the attributes (variable parameters) of genes"""
 from random import choice, gauss, random
 from neat.config import ConfigParameter
-from neat.six_util import iterkeys
+from neat.six_util import iterkeys, iteritems
 
 # TODO: There is probably a lot of room for simplification of these classes using metaprogramming.
 
 
 class BaseAttribute(object):
-    def __init__(self, name):
+    def __init__(self, name, **default_dict):
         self.name = name
+        for n, default in iteritems(default_dict):
+            self.__config_items__[n] = [self.__config_items__[n][0], default]
         for n in iterkeys(self.__config_items__):
             setattr(self, n + "_name", self.config_item_name(n))
 
@@ -91,11 +93,8 @@ class BoolAttribute(BaseAttribute):
 
 class StringAttribute(BaseAttribute):
     __config_items__ = {"default": [str, 'random'],
+                        "options": [list, None],
                         "mutate_rate": [float, None]}
-
-    def __init__(self, name, options_default=None):
-        self.__config_items__["options"] = [list, options_default]
-        BaseAttribute.__init__(self, name)
 
     def init_value(self, config):
         default = getattr(config, self.default_name)
