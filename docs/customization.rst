@@ -89,7 +89,7 @@ To use a different species stagnation scheme, you must create a custom class who
 of `DefaultStagnation`, and provide it as the ``stagnation_type`` argument to the `Config` constructor.
 
 This is demonstrated in the `interactive 2D image
-<https://github.com/CodeReclaimers/neat-python/blob/master/examples/picture2d/interactive.py>`_ example.
+<https://github.com/CodeReclaimers/neat-python/blob/master/examples/picture2d/evolve_interactive.py>`_ example.
 
 .. index:: reproduction
 .. index:: DefaultReproduction
