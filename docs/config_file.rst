@@ -21,6 +21,8 @@ insofar as possible new configuration parameters will default to the existing be
   use. Another example would be for a configuration file variable for whether more than one addition/connection :term:`mutation` can take place at a time,
   as mentioned in genome.py.
 
+  The above is mostly done in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch.
+
 Note that the `Config` constructor also requires you to explicitly specify the types that will be used
 for the NEAT simulation.  This, again, is to help avoid silent changes in behavior.
 
@@ -55,7 +57,8 @@ itself.  This section is always required, and is handled by the `Config` class i
   The ``found_solution`` method is **not** called if the maximum number of generations is reached without the above threshold being passed.
   TODO: Add a new configuration parameter to ignore the above, provided a maximum number of generations is passed
   to :py:meth:`population.Population.run`, and if so call ``found_solution`` upon termination by a maximum number of generations. (Passing a value
-  of ``None``, which was my first thought, will not work because that will be identical to no configuration of fitness_threshold in the config file.)
+  of ``None``, which was my first thought, will not work because that will be identical to no configuration of fitness_threshold in the config file, or at least
+  will be too confusing, if it is passed as a string.)
 
 .. _pop-size-label:
 
@@ -117,6 +120,8 @@ required for your particular implementation.
   TODO: `DefaultStagnation.write_config` uses a default of 15 for ``species_elitism``, but the default by `DefaultStagnation.parse_config` is 0,
   which will override.
 
+  The above is handled in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch.
+
 .. index:: reproduction
 .. index:: DefaultReproduction
 
@@ -144,6 +149,8 @@ required for your particular implementation.
 
   TODO: There is also a :index:`min_species_size` configuration parameter, defaulting to 2, although it is not written out by
   `DefaultReproduction.write_config`.
+
+  The above is handled in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch, although documentation is needed.
 
 .. index:: genome
 .. index:: DefaultGenome
@@ -310,6 +317,9 @@ required for your particular implementation.
       (valid values are in [0.0, 1.0]).
     * ``partial_direct #`` - as for ``full_direct``, but each connection has a probability of being present determined by the number
       (valid values are in [0.0, 1.0]).
+
+.. todo::
+  The changes to fs_neat, full, and partial should be noted under a "versionchanged" for something like 0.92.
 
 .. index:: mutation
 .. index:: node

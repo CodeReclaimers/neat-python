@@ -58,6 +58,8 @@ activations
   some modifications. (A default capability will be needed for future expansions of the attributes, such as different types of initializations, and for
   enabling better handling of the current activation/aggregation function defaults.)
 
+  The above is mostly done in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch.
+
 .. py:module:: attributes
    :synopsis: Deals with attributes used by genes.
 
@@ -115,8 +117,8 @@ attributes
 
       May replace (as if reinitializing, using `init_value`), mutate (using a 0-mean gaussian distribution with a configured standard
       deviation from ``mutate_power``), or leave alone the input value, depending on the configuration settings (of ``replace_rate`` and ``mutate_rate``).
-      TODO: Why check vs `random` if the ``replace_rate`` and ``mutate_rate`` are 0? Also note that the ``replace_rate`` is likely to be lower, so should
-      be checked second.
+      TODO: Note that the ``replace_rate`` is likely to be lower, so should be checked second. (Done in the
+      `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch.)
 
       :param float value: The current value of the attribute.
       :param object config: The configuration object from which the parameters are to be extracted.
@@ -185,7 +187,8 @@ attributes
       With a frequency determined by the ``mutate_rate`` (which is more precisely a ``replace_rate``) configuration parameter, replaces
       the value with an one of the ``options``, with each having an equal chance; note that this can be the same value as before. (It is possible to crudely
       alter the chances of what is chosen by listing a given option more than once, although this is inefficient given the use of the `random.choice` function.)
-      TODO: Do not check vs `random` if the ``mutate_rate`` is 0. (Longer-term, add configurable probabilities of which option is used; eventually, as with the
+      TODO: Do not check vs `random` if the ``mutate_rate`` is 0 (done in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_
+      branch). (Longer-term, add configurable probabilities of which option is used; eventually, as with the
       improved version of RBF-NEAT, separate genes for the likelihoods of each (but always doing some change, to prevent overly-conservative evolution
       due to its inherent short-sightedness), allowing the genomes to control the distribution of options, will be desirable.)
 
@@ -1263,12 +1266,13 @@ reproduction
 
     :param dict config: Configuration object, in this implementation a dictionary.
     :param object reporters: A :py:class:`ReporterSet <reporting.ReporterSet>` object.
-    :param object stagnation: A :py:class:`DefaultStagnation <stagnation.DefaultStagnation>` object - the current code partially depends on internals of this class (a TODO is noted to correct this)
+    :param object stagnation: A :py:class:`DefaultStagnation <stagnation.DefaultStagnation>` object - the current code partially depends on internals of this class (a TODO is noted to correct this).
 
     .. py:classmethod:: parse_config(param_dict)
 
-      Required interface method. Provides defaults for :index:`elitism`, :index:`survival_threshold`, and :index:`min_species_size` parameters and updates them from the
-      :ref:`configuration file <reproduction-config-label>`.
+      Required interface method. Provides defaults for :index:`elitism`, :index:`survival_threshold`, and :index:`min_species_size` parameters and updates
+      them from the :ref:`configuration file <reproduction-config-label>`. TODO: Use a separate configuration class, for consistency with other types
+      (mostly done in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch).
 
       :param dict param_dict: Dictionary of parameters from configuration file.
       :return: Configuration object; considered opaque by rest of code, so current type returned is not required for interface.
@@ -1430,7 +1434,9 @@ species
 
     .. py:classmethod:: parse_config(param_dict)
 
-      Required interface method. Currently, the only configuration parameter is the :ref:`compatibility_threshold <compatibility-threshold-label>`.
+      Required interface method. Currently, the only configuration parameter is the :ref:`compatibility_threshold <compatibility-threshold-label>`. TODO:
+      Use a separate configuration class, for consistency with other types
+      (mostly done in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch).
 
       :param param_dict: Dictionary of parameters from configuration file.
       :type param_dict: dict(str, str)
@@ -1508,7 +1514,8 @@ stagnation
 
       Required interface method. Provides defaults for :ref:`species_fitness_func <species-fitness-func-label>`,
       :ref:`max_stagnation <max-stagnation-label>`, and :ref:`species_elitism <species-elitism-label>` parameters and updates them
-      from the configuration file.
+      from the configuration file. TODO: Use a separate configuration class, for consistency with other types
+      (mostly done in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch).
 
       :param param_dict: Dictionary of parameters from configuration file.
       :type param_dict: dict(str, str)
@@ -1530,7 +1537,7 @@ stagnation
       :ref:`max_stagnation <max-stagnation-label>` generations, and - unless it would result in the number of species dropping below the configured
       :ref:`species_elitism <species-elitism-label>` if they were removed, in which case the highest-fitness species are spared - returns a list with
       stagnant species marked for removal. TODO: Currently interacts directly with the internals of the :py:class:`species.Species` object.
-      Also, currently both checks for num_non_stagnant to stop marking stagnant **and** does not allow the top ``species_elitism`` species to be
+      Also, currently **both** checks for num_non_stagnant to stop marking stagnant **and** does not allow the top ``species_elitism`` species to be
       marked stagnant. While the latter could admittedly help with the problem mentioned above, the ordering of species fitness is using the
       fitness gotten from the ``species_fitness_func`` (and thus may miss high-fitness members of overall low-fitness species, depending on the
       function in use).
