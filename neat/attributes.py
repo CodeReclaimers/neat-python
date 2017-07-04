@@ -1,5 +1,5 @@
 """Deals with the attributes (variable parameters) of genes"""
-from random import choice, gauss, random
+from random import choice, gauss, random, uniform
 from neat.config import ConfigParameter
 from neat.six_util import iterkeys, iteritems
 
@@ -25,6 +25,7 @@ class BaseAttribute(object):
 class FloatAttribute(BaseAttribute):
     __config_items__ = {"init_mean": [float, None],
                         "init_stdev": [float, None],
+                        "init_type": [str, 'gaussian'],
                         "replace_rate": [float, None],
                         "mutate_rate": [float, None],
                         "mutate_power": [float, None],
@@ -39,7 +40,19 @@ class FloatAttribute(BaseAttribute):
     def init_value(self, config):
         mean = getattr(config, self.init_mean_name)
         stdev = getattr(config, self.init_stdev_name)
-        return self.clamp(gauss(mean, stdev), config)
+        init_type = getattr(config, self.init_type_name).lower()
+
+        if ('gauss' in init_type) or (init_type == 'normal'):
+            return self.clamp(gauss(mean, stdev), config)
+
+        if init_type == 'uniform':
+            min_value = max(getattr(config, self.min_value_name),
+                            (mean-(2*stdev)))
+            max_value = min(getattr(config, self.max_value_name),
+                            (mean+(2*stdev)))
+            return uniform(min_value, max_value)
+
+        raise RuntimeError("Unknown init_type {!r} for {!s}".format(getattr(config, self.init_type_name), self.init_type_name))
 
     def mutate_value(self, value, config):
          # mutate_rate is usually no lower than replace_rate, and frequently higher - so put first for efficiency
