@@ -3,6 +3,7 @@ from __future__ import print_function
 
 import os
 import sys
+import warnings
 
 try:
     from configparser import ConfigParser
@@ -39,7 +40,7 @@ class ConfigParameter(object):
             if self.default is None:
                 raise RuntimeError('Missing configuration item: ' + self.name)
             else:
-                print("Using default '{!r}' for '{!s}'".format(self.default, self.name), file=sys.stderr)
+                warnings.warn("Using default {!r} for '{!s}'".format(self.default, self.name), DeprecationWarning)
                 value = self.default
 
         try:
