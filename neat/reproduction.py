@@ -3,7 +3,7 @@ from __future__ import division
 import math
 import random
 
-from neat.config import ConfigParameter, write_pretty_params
+from neat.config import ConfigParameter, DefaultClassConfig
 from neat.indexer import Indexer
 from neat.math_util import mean
 from neat.six_util import iteritems, itervalues
@@ -12,20 +12,6 @@ from neat.six_util import iteritems, itervalues
 # are then used to control stagnation and possibly the mutation rate configuration.
 # This scheme should be adaptive so that species do not evolve to become "cautious"
 # and only make very slow progress.
-
-class DefaultReproductionConfig(object):
-    def __init__(self, param_dict):
-        self._params = [ConfigParameter('elitism', int, 0),
-                        ConfigParameter('survival_threshold', float, 0.2),
-                        ConfigParameter('min_species_size', int, 2)]
-
-        # Use the configuration data to interpret the supplied parameters.
-        for p in self._params:
-            setattr(self, p.name, p.interpret(param_dict))
-
-    def save(self, f):
-        write_pretty_params(f, self, self._params)
-
 
 class DefaultReproduction(object):
     """
@@ -36,7 +22,10 @@ class DefaultReproduction(object):
 
     @classmethod
     def parse_config(cls, param_dict):
-        return DefaultReproductionConfig(param_dict)
+        return DefaultClassConfig(param_dict,
+                                  [ConfigParameter('elitism', int, 0),
+                                   ConfigParameter('survival_threshold', float, 0.2),
+                                   ConfigParameter('min_species_size', int, 2)])
 
     @classmethod
     def write_config(cls, f, config):

@@ -1,28 +1,18 @@
 import sys
 
-from neat.config import ConfigParameter, write_pretty_params
+from neat.config import ConfigParameter, DefaultClassConfig
 from neat.six_util import iteritems
 from neat.math_util import stat_functions
 
 # TODO: Add a method for the user to change the "is stagnant" computation.
 
-class DefaultStagnationConfig(object):
-    def __init__(self, param_dict):
-        self._params = [ConfigParameter('species_fitness_func', str, 'mean'),
-                        ConfigParameter('max_stagnation', int, 15),
-                        ConfigParameter('species_elitism', int, 0)]
-
-        # Use the configuration data to interpret the supplied parameters.
-        for p in self._params:
-            setattr(self, p.name, p.interpret(param_dict))
-
-    def save(self, f):
-        write_pretty_params(f, self, self._params)
-
 class DefaultStagnation(object):
     @classmethod
     def parse_config(cls, param_dict):
-        return DefaultStagnationConfig(param_dict)
+        return DefaultClassConfig(param_dict,
+                                  [ConfigParameter('species_fitness_func', str, 'mean'),
+                                   ConfigParameter('max_stagnation', int, 15),
+                                   ConfigParameter('species_elitism', int, 0)])
 
     @classmethod
     def write_config(cls, f, config):
@@ -30,9 +20,6 @@ class DefaultStagnation(object):
 
     def __init__(self, config, reporters):
         self.stagnation_config = config
-        
-        #self.max_stagnation = int(config.get('max_stagnation'))
-        #self.species_elitism = int(config.get('species_elitism'))
 
         self.species_fitness_func = stat_functions.get(config.species_fitness_func)
         if self.species_fitness_func is None:

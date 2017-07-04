@@ -1,5 +1,5 @@
 """Divides the population into species based on genomic distances."""
-from neat.config import ConfigParameter, write_pretty_params
+from neat.config import ConfigParameter, DefaultClassConfig
 from neat.indexer import Indexer
 from neat.math_util import mean, stdev
 from neat.six_util import iteritems, iterkeys, itervalues
@@ -46,18 +46,6 @@ class GenomeDistanceCache(object):
 
         return d
 
-class DefaultSpeciesSetConfig(object):
-    def __init__(self, param_dict):
-        self._params = [ConfigParameter('compatibility_threshold', float)]
-
-        # Use the configuration data to interpret the supplied parameters.
-        for p in self._params:
-            setattr(self, p.name, p.interpret(param_dict))
-
-    def save(self, f):
-        write_pretty_params(f, self, self._params)
-
-
 class DefaultSpeciesSet(object):
     """ Encapsulates the default speciation scheme. """
 
@@ -70,7 +58,8 @@ class DefaultSpeciesSet(object):
 
     @classmethod
     def parse_config(cls, param_dict):
-        return DefaultSpeciesSetConfig(param_dict)
+        return DefaultClassConfig(param_dict,
+                                  [ConfigParameter('compatibility_threshold', float)])
 
     @classmethod
     def write_config(cls, f, config):
