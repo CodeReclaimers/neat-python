@@ -83,6 +83,18 @@ def write_pretty_params(f, config, params):
         f.write('{} = {}\n'.format(p.name.ljust(longest_name), p.format(getattr(config, p.name))))
 
 
+class DefaultClassConfig(object):
+    """Replaces at least some boilerplate configuration code for reproduction, species_set, and stagnation classes."""
+
+    def __init__(self, param_dict, param_list):
+        self._params = param_list
+        for p in param_list:
+            setattr(self, p.name, p.interpret(param_dict))
+
+    def save(self, f):
+        write_pretty_params(f, self, self._params)
+
+
 class Config(object):
     ''' A simple container for user-configurable parameters of NEAT. '''
 
