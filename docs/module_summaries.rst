@@ -17,6 +17,9 @@ Has the built-in :term:`activation functions <activation function>`, code for us
 
     Exception called if an activation function being added is invalid according to the `validate_activation` function.
 
+    .. versionchanged:: 0.91-github
+      Base of exception changed to more-precise TypeError.
+
   .. py:function:: validate_activation(function)
 
     Checks to make sure its parameter is a function that takes a single argument.
@@ -234,6 +237,7 @@ Uses :py:mod:`pickle` to save and restore populations (and other aspects of the 
 
 config
 --------
+Does general configuration parsing; used by other classes for their configuration.
 
   .. py:class:: ConfigParameter(name, value_type)
 
@@ -542,6 +546,9 @@ genome
       :return: A currently-unused node key.
       :rtype: int
 
+      .. versionchanged:: 0.91-github
+        Moved from DefaultGenome so no longer only single-genome-instance unique.
+
   .. index:: key
 
   .. py:class:: DefaultGenome(key)
@@ -653,6 +660,9 @@ genome
 
       :param object config: Genome configuration object
 
+      .. versionchanged:: 0.91-github
+        Output nodes not allowed to be connected together.
+
     .. py:method:: mutate_delete_node(config)
 
       Deletes a randomly-chosen (non-:term:`output <output node>`/input) node along with its connections.
@@ -744,6 +754,9 @@ genome
       :param bool direct: Whether or not, if there are :term:`hidden nodes <hidden node>`, to include links directly from input to output.
       :return: The list of connections, as (input :term:`key`, output key) tuples
       :rtype: list(tuple(int,int))
+
+      .. versionchanged:: 0.91-github
+        "Direct" added to help with documentation vs program conflict; connect_fs_neat, connect_full, connect_partial split up.
 
     .. py:method:: connect_full_nodirect(config)
 
@@ -1313,7 +1326,8 @@ reproduction
 
     .. py:classmethod:: write_config(f, param_dict)
 
-      Required interface method. Saves ``elitism`` and ``survival_threshold`` (but not ``min_species_size``) parameters to new config file.
+      Required interface method. Saves ``elitism`` and ``survival_threshold`` (but not ``min_species_size``) parameters to new config file. (Inconsistency
+      re ``min_species_size`` fixed in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch.)
 
       :param f: File object to write to.
       :type f: `file`
@@ -1557,7 +1571,7 @@ stagnation
     .. py:classmethod:: write_config(f, param_dict)
 
       Required interface method. Saves parameters to new config file. TODO: Has a default of 15 for species_elitism, but will be overridden by the default of
-      0 in parse_config.
+      0 in parse_config (fixed in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch).
 
       :param f: File object to write to.
       :type f: `file`
@@ -1578,6 +1592,9 @@ stagnation
       :param int generation: The current generation.
       :return: A list of tuples of (species :term:`id/key <key>`, :py:class:`Species <species.Species>` object, is_stagnant).
       :rtype: list(tuple(int, object, bool))
+
+      .. versionchanged:: 0.91-github
+        Species sorted to avoid marking best-performing as stagnant even with ``species_elitism``.
 
 .. py:module:: statistics
    :synopsis: Gathers and provides (to callers and/or to a file) information on genome and species fitness, which are the most-fit genomes, and similar.

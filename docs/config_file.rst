@@ -318,8 +318,8 @@ required for your particular implementation.
     * ``partial_direct #`` - as for ``full_direct``, but each connection has a probability of being present determined by the number
       (valid values are in [0.0, 1.0]).
 
-.. todo::
-  The changes to fs_neat, full, and partial should be noted under a "versionchanged" for something like 0.92.
+.. versionchanged:: 0.91-github
+  fs_neat split into fs_neat_nohidden and fs_neat_hidden; full, partial split into full_nodirect, full_direct, partial_nodirect, partial_direct
 
 .. index:: mutation
 .. index:: node
