@@ -21,6 +21,7 @@ from neat.six_util import itervalues
 # c: the after-spike reset value of the membrane potential
 # d: after-spike reset of the recovery variable
 # The following parameter sets produce some known spiking behaviors:
+# pylint: disable=bad-whitespace
 REGULAR_SPIKING_PARAMS        = {'a': 0.02, 'b': 0.20, 'c': -65.0, 'd': 8.00}
 INTRINSICALLY_BURSTING_PARAMS = {'a': 0.02, 'b': 0.20, 'c': -55.0, 'd': 4.00}
 CHATTERING_PARAMS             = {'a': 0.02, 'b': 0.20, 'c': -50.0, 'd': 2.00}
@@ -34,6 +35,8 @@ LOW_THRESHOLD_SPIKING_PARAMS  = {'a': 0.02, 'b': 0.25, 'c': -65.0, 'd': 2.00}
 
 
 class IZNodeGene(BaseGene):
+    """Contains attributes for the iznn node genes and determines genomic distances."""
+    
     __gene_attributes__ = [FloatAttribute('bias'),
                            FloatAttribute('a'),
                            FloatAttribute('b'),
@@ -55,10 +58,18 @@ class IZGenome(DefaultGenome):
 
 
 class IZNeuron(object):
+    """Sets up and simulates the iznn nodes (neurons)."""
     def __init__(self, bias, a, b, c, d, inputs):
         """
         a, b, c, d are the parameters of the Izhikevich model.
-        inputs: list of (input key, weight) pairs for incoming connections
+
+        :param float bias: The bias of the neuron.
+        :param float a: The time-scale of the recovery variable.
+        :param float b: The sensitivity of the recovery variable.
+        :param float c: The after-spike reset value of the membrane potential.
+        :param float d: The after-spike reset value of the recovery variable.
+        :param inputs: A list of (input key, weight) pairs for incoming connections.
+        :type inputs: list(tuple(int, float))
         """
         self.a = a
         self.b = b
@@ -133,6 +144,7 @@ class IZNN(object):
             n.reset()
 
     def get_time_step_msec(self):
+        # pylint: disable=no-self-use
         # TODO: Investigate performance or numerical stability issues that may
         # result from using this hard-coded time step.
         return 0.05
