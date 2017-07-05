@@ -46,7 +46,7 @@ class FeedForwardNetwork(object):
                         node_expr.append("v[{}] * {:.7e}".format(inode, cg.weight))
 
                 ng = genome.nodes[node]
-                aggregation_function = config.genome_config.aggregation_function_defs[ng.aggregation]
+                aggregation_function = config.genome_config.aggregation_function_defs.get(ng.aggregation)
                 activation_function = config.genome_config.activation_defs.get(ng.activation)
                 node_evals.append((node, activation_function, aggregation_function, ng.bias, ng.response, inputs))
 

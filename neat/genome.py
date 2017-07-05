@@ -1,33 +1,28 @@
 from __future__ import division, print_function
 
-from operator import mul
 from random import choice, random, shuffle
 
 import sys
 
 from neat.activations import ActivationFunctionSet
+from neat.aggregations import AggregationFunctionSet
 from neat.config import ConfigParameter, write_pretty_params
 from neat.genes import DefaultConnectionGene, DefaultNodeGene
 from neat.graphs import creates_cycle
 from neat.indexer import Indexer
 from neat.six_util import iteritems, iterkeys
 
-if sys.version_info[0] == 3:
-    from functools import reduce
-
-def product(x):
-    return reduce(mul, x, 1.0)
-
 
 class DefaultGenomeConfig(object):
     allowed_connectivity = ['unconnected', 'fs_neat_nohidden', 'fs_neat', 'fs_neat_hidden',
                             'full_nodirect', 'full', 'full_direct',
                             'partial_nodirect', 'partial', 'partial_direct']
-    aggregation_function_defs = {'sum': sum, 'max': max, 'min': min, 'product': product}
 
     def __init__(self, params):
         # Create full set of available activation functions.
         self.activation_defs = ActivationFunctionSet()
+        # ditto for aggregation functions - name difference for backward compatibility
+        self.aggregation_function_defs = AggregationFunctionSet()
 
         self._params = [ConfigParameter('num_inputs', int),
                         ConfigParameter('num_outputs', int),
@@ -73,6 +68,9 @@ class DefaultGenomeConfig(object):
 
     def add_activation(self, name, func):
         self.activation_defs.add(name, func)
+
+    def add_aggregation(self, name, func):
+        self.aggregation_function_defs.add(name, func)
 
     def save(self, f):
         if 'partial' in self.initial_connection:
