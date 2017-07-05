@@ -28,7 +28,8 @@ Glossary
     These are the :term:`nodes <node>` through which the network receives inputs. They cannot be deleted (although :term:`connections <connection>`
     from them can be), cannot be the output end of a :term:`connection`, and have: no :term:`aggregation function`; a fixed :term:`bias` of 0; a
     fixed :term:`response` multiplier of 1; and a fixed :term:`activation function` of :ref:`identity <identity-label>`. Note: In the :py:mod:`genome` module,
-    they are not in many respects treated as actual nodes, but simply as :term:`keys <key>` for input ends of connections.
+    they are not in many respects treated as actual nodes, but simply as :term:`keys <key>` for input ends of connections. Sometimes known as an
+    input :term:`pin`.
 
   hidden node
     These are the :term:`nodes <node>` other than :term:`input nodes <input node>` and :term:`output nodes <output node>`. In the original
@@ -47,7 +48,12 @@ Glossary
 
   output node
     These are the :term:`nodes <node>` to which the network delivers outputs. They cannot be deleted (although :term:`connections <connection>` to
-    them can be) but can otherwise be :term:`mutated <mutation>` normally.
+    them can be) but can otherwise be :term:`mutated <mutation>` normally. The output of this node is connected to the corresponding output :term:`pin`
+    with an implicit :term:`weight`-1, :term:`enabled` connection.
+
+  pin
+    Point at which the network is effectively connected to the external world. Pins are either input (aka :term:`input nodes <input node>`) or output
+    (connected to an :term:`output node` with the same :term:`key` as the output pin).
 
   weight
   enabled

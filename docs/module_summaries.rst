@@ -11,15 +11,15 @@ Module summaries
 
 activations
 ---------------
-  Has the built-in :term:`activation functions <activation function>`, code for using them, and code for adding new user-defined ones.
+Has the built-in :term:`activation functions <activation function>`, code for using them, and code for adding new user-defined ones.
 
-  .. py:exception:: InvalidActivationFunction(Exception)
+  .. py:exception:: InvalidActivationFunction(TypeError)
 
     Exception called if an activation function being added is invalid according to the `validate_activation` function.
 
   .. py:function:: validate_activation(function)
 
-    Checks to make sure its parameter is a function that takes a single argument. TODO: Currently raises a deprecation warning due to changes in `inspect`.
+    Checks to make sure its parameter is a function that takes a single argument.
 
     :param object function: Object to be checked.
     :raises InvalidActivationFunction: If the object does not pass the tests.
@@ -53,19 +53,19 @@ activations
       :rtype: bool
 
 .. note::
-  TODO: Suggested simplification for the below: Make ``__config_items__`` a list of lists, with the latter containing [name, value_type, default] -
+  TODO: Suggested simplification for the below: Make ``__config_items__`` a dict of lists, with name -> [value_type, default] -
   no default if the last is None. This would also allow moving get_config_params into the BaseAttribute class, although config_item_names may require
   some modifications. (A default capability will be needed for future expansions of the attributes, such as different types of initializations, and for
   enabling better handling of the current activation/aggregation function defaults.)
 
-  The above is mostly done in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch.
+  The above is mostly/entirely done in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch.
 
 .. py:module:: attributes
    :synopsis: Deals with attributes used by genes.
 
 attributes
 -------------
-  Deals with :term:`attributes` used by :term:`genes <gene>`.
+Deals with :term:`attributes` used by :term:`genes <gene>`.
 
   .. inheritance-diagram:: attributes
 
@@ -151,7 +151,8 @@ attributes
 
       With a frequency determined by the ``mutate_rate`` (which is more precisely a ``replace_rate``) configuration parameter, replaces
       the value with a 50/50 chance of ``True`` or ``False``; note that this has a 50% chance of leaving the value unchanged. TODO: Have different
-      chances possible of :term:`mutation` in each direction. Also, do not check vs `random` if the ``mutate_rate`` is 0.
+      chances possible of :term:`mutation` in each direction. Also, do not check vs `random` if the ``mutate_rate`` is 0 (done in the
+      `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch).
 
       :param bool value: The current value of the attribute.
       :param object config: The configuration object from which the ``mutate_rate`` parameter is to be extracted.
@@ -197,7 +198,7 @@ attributes
 
 checkpoint
 ---------------
-  Uses :py:mod:`pickle` to save and restore populations (and other aspects of the simulation state).
+Uses :py:mod:`pickle` to save and restore populations (and other aspects of the simulation state).
 
   .. py:class:: Checkpointer(generation_interval=100, time_interval_seconds=300)
 
@@ -485,10 +486,6 @@ genes
       :return: The contribution of this pair to the :term:`genomic distance` between the source genomes.
       :rtype: float
 
-.. todo::
-
-   Explain more regarding parameters of the below; add all methods!
-
 .. py:module:: genome
    :synopsis: Handles genomes (individuals in the population).
 
@@ -551,10 +548,10 @@ genome
 
     A :term:`genome` for generalized neural networks. For class requirements, see :ref:`genome-interface-label`.
     Terminology:
-    pin - Point at which the network is conceptually connected to the external world; pins are either input or output.
-    node - Analog of a physical neuron.
-    connection - Connection between a pin/node output and a node's input, or between a node's output and a pin/node input.
-    key - Identifier for an object, unique within the set of similar objects.
+    :term:`pin` - Point at which the network is conceptually connected to the external world; pins are either input or output.
+    :term:`node` - Analog of a physical neuron.
+    :term:`connection` - Connection between a pin/node output and a node's input, or between a node's output and a pin/node input.
+    :term:`key` - Identifier for an object, unique within the set of similar objects.
     Design assumptions and conventions.
     1. Each output pin is connected only to the output of its own unique neuron by an implicit connection with weight one. This connection is permanently enabled.
     2. The output pin's key is always the same as the key for its associated neuron.
@@ -743,13 +740,35 @@ genome
       Compute connections for a fully-connected feed-forward genome--each input connected to all hidden nodes (and output nodes if ``direct`` is set or
       there are no hidden nodes), each hidden node connected to all output nodes. (Recurrent genomes will also include node self-connections.)
 
-      :param object config: The genome configuration object
+      :param object config: The genome configuration object.
       :param bool direct: Whether or not, if there are :term:`hidden nodes <hidden node>`, to include links directly from input to output.
       :return: The list of connections, as (input :term:`key`, output key) tuples
       :rtype: list(tuple(int,int))
 
-    .. note::
-      Waiting here since uncertain on exactly what will happen re full/partial connectivity specifications. (May wind up merging fs_neat ones above also.)
+    .. py:method:: connect_full_nodirect(config)
+
+      Create a fully-connected genome (except no direct :term:`input <input node>` to :term:`output <output node>` connections unless there are no
+      :term:`hidden nodes <hidden node>`).
+
+      :param object config: The genome configuration object.
+
+    .. py:method:: connect_full_direct(config)
+
+      Create a fully-connected genome, including direct input-output connections.
+
+      :param object config: The genome configuration object.
+
+    .. py:method:: connect_partial_nodirect(config)
+
+      Create a partially-connected genome, with (unless there are no :term:`hidden nodes <hidden node>`) no direct input-output connections.
+
+      :param object config: The genome configuration object.
+
+    .. py:method:: connect_partial_direct(config)
+
+      Create a partially-connected genome, possibly including direct input-output connections.
+
+      :param object config: The genome configuration object.
 
 .. index:: feed_forward
 .. index:: feedforward
@@ -762,7 +781,7 @@ genome
 
 graphs
 ---------
-  Directed graph algorithm implementations.
+Directed graph algorithm implementations.
 
   .. py:function:: creates_cycle(connections, test)
 
@@ -812,7 +831,7 @@ graphs
 
 indexer
 ----------
-  Helps with creating new :term:`identifiers/keys <key>`.
+Helps with creating new :term:`identifiers/keys <key>`.
 
   .. py:class:: Indexer(first)
 
@@ -834,7 +853,6 @@ indexer
 
 iznn
 ------
-
 This module implements a spiking neural network. Neurons are based on the model described by::
 
   Izhikevich, E. M.
@@ -903,7 +921,7 @@ See http://www.izhikevich.org/publications/spikes.pdf.
 
     .. py:method:: get_time_step_msec()
 
-      Returns a suggested time step; currently hardwired to 0.05 - investigation of this (particularly effects on numerical stability issues) is planned.
+      Returns a suggested time step; currently hardwired to 0.05. TODO: Investigate this (particularly effects on numerical stability issues).
 
       :return: Suggested time step in milliseconds.
       :rtype: float
@@ -930,6 +948,8 @@ See http://www.izhikevich.org/publications/spikes.pdf.
 
 math_util
 -------------
+Contains some mathematical/statistical functions not found in the Python2 standard library, plus a mechanism for looking up some commonly used
+functions (such as for the :ref:`species_fitness_func <species-fitness-func-label>`) by name.
 
   .. index:: ! species_fitness_func
   .. index:: stagnation
@@ -1027,24 +1047,37 @@ nn.recurrent
 
 parallel
 ----------
-  Runs evaluation functions in parallel subprocesses in order to evaluate multiple genomes at once.
+Runs evaluation functions in parallel subprocesses in order to evaluate multiple genomes at once.
 
   .. py:class:: ParallelEvaluator(num_workers, eval_function, timeout=None)
 
-    Runs evaluation functions in parallel subprocesses in order to evaluate multiple genomes at once.
+    Runs evaluation functions in parallel subprocesses in order to evaluate multiple genomes at once. TODO: Description of eval_function in docstring is
+    currently incorrect.
 
     :param int num_workers: How many workers to have in the `Pool <python:multiprocessing.pool.Pool>`.
-    :param eval_function: eval_function should take one argument (a genome object) and return a single float (the genome's fitness) Note that this is not the same as how a fitness function is called by :py:meth:`Population.run <population.Population.run>`.
+    :param eval_function: The eval_function should take one argument - a `tuple` of (genome object, config object) - and return a single `float` (the genome's fitness) Note that this is not the same as how a fitness function is called by :py:meth:`Population.run <population.Population.run>`.
     :type eval_function: `function`
     :param timeout: How long (in seconds) each subprocess will be given before an exception is raised (unlimited if `None`).
     :type timeout: int or None
 
+    .. py:method:: __del__()
+
+       Takes care of removing the subprocesses.
+
+    .. py:method:: evaluate(genomes, config)
+
+      Distributes the evaluation jobs among the subprocesses, then assigns each fitness back to the appropriate genome.
+
+      :param genomes: A dictionary of :term:`genome_id <key>` (not used) to genome objects.
+      :type genomes: dict(int, object)
+      :param object config: A `config.Config` object.
+      
 .. py:module:: population
    :synopsis: Implements the core evolution algorithm.
 
 population
 --------------
-  Implements the core evolution algorithm.
+Implements the core evolution algorithm.
 
   .. index:: reset_on_extinction
 
@@ -1272,7 +1305,7 @@ reproduction
 
       Required interface method. Provides defaults for :index:`elitism`, :index:`survival_threshold`, and :index:`min_species_size` parameters and updates
       them from the :ref:`configuration file <reproduction-config-label>`. TODO: Use a separate configuration class, for consistency with other types
-      (mostly done in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch).
+      (done in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch).
 
       :param dict param_dict: Dictionary of parameters from configuration file.
       :return: Configuration object; considered opaque by rest of code, so current type returned is not required for interface.
@@ -1347,7 +1380,6 @@ reproduction
 
 six_util
 ----------
-
 This Python 2/3 portability code was copied from the `six module <https://pythonhosted.org/six/>`_ to avoid adding it as a dependency.
 
   .. py:function:: iterkeys(d, **kw)
@@ -1378,7 +1410,7 @@ This Python 2/3 portability code was copied from the `six module <https://python
 
 species
 -----------
-  Divides the population into species based on :term:`genomic distances <genomic distance>`.
+Divides the population into species based on :term:`genomic distances <genomic distance>`.
 
   .. py:class:: Species(key, generation)
 
@@ -1435,8 +1467,8 @@ species
     .. py:classmethod:: parse_config(param_dict)
 
       Required interface method. Currently, the only configuration parameter is the :ref:`compatibility_threshold <compatibility-threshold-label>`. TODO:
-      Use a separate configuration class, for consistency with other types
-      (mostly done in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch).
+      Use a separate configuration class, for consistency with other types (done in the
+      `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch).
 
       :param param_dict: Dictionary of parameters from configuration file.
       :type param_dict: dict(str, str)
@@ -1515,7 +1547,7 @@ stagnation
       Required interface method. Provides defaults for :ref:`species_fitness_func <species-fitness-func-label>`,
       :ref:`max_stagnation <max-stagnation-label>`, and :ref:`species_elitism <species-elitism-label>` parameters and updates them
       from the configuration file. TODO: Use a separate configuration class, for consistency with other types
-      (mostly done in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch).
+      (done in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch).
 
       :param param_dict: Dictionary of parameters from configuration file.
       :type param_dict: dict(str, str)
