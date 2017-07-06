@@ -550,6 +550,7 @@ genome
         Moved from DefaultGenome so no longer only single-genome-instance unique.
 
   .. index:: key
+  .. index:: ! pin
 
   .. py:class:: DefaultGenome(key)
 
