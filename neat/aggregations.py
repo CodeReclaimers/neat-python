@@ -1,15 +1,18 @@
-"""Has the built-in aggregation functions, code for using them, and code for adding new user-defined ones"""
-from operator import mul
+"""
+Has the built-in aggregation functions, code for using them,
+and code for adding new user-defined ones.
+"""
 
 import sys
+import types
+import warnings
+
+from operator import mul
 
 if sys.version_info[0] > 2:
     from functools import reduce
 
-import types
-import warnings
-
-def product_aggregation(x):
+def product_aggregation(x): # note: `x` is a list or other iterable
     return reduce(mul, x, 1.0)
 
 def sum_aggregation(x):
@@ -28,7 +31,7 @@ class InvalidAggregationFunction(TypeError):
     pass
 
 
-def validate_aggregation(function):
+def validate_aggregation(function): # TODO: Recognize when need `reduce`
     if not isinstance(function,
                       (types.BuiltinFunctionType,
                        types.FunctionType,
@@ -37,6 +40,8 @@ def validate_aggregation(function):
 
 
 class AggregationFunctionSet(object):
+    """Contains aggregation functions and methods to add and retrieve them."""
+    
     def __init__(self):
         self.functions = {}
         self.add('product', product_aggregation)
@@ -57,7 +62,8 @@ class AggregationFunctionSet(object):
         return f
 
     def __getitem__(self, index):
-        warnings.warn("Use get, not indexing ([{!r}]), for aggregation functions".format(index), DeprecationWarning)
+        warnings.warn("Use get, not indexing ([{!r}]), for aggregation functions".format(index),
+                      DeprecationWarning)
         return self.get(index)
 
     def is_valid(self, name):
