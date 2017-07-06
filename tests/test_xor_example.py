@@ -2,8 +2,10 @@ from __future__ import print_function
 import os
 import neat
 
+def test_xor_example_uniform():
+    test_xor_example(True)
 
-def test_xor_example():
+def test_xor_example(uniform=False):
     # 2-input XOR inputs and expected outputs.
     xor_inputs = [(0.0, 0.0), (0.0, 1.0), (1.0, 0.0), (1.0, 1.0)]
     xor_outputs = [(0.0,), (1.0,), (1.0,), (0.0,)]
@@ -27,6 +29,9 @@ def test_xor_example():
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_path)
 
+    if uniform:
+        config.weight_init_type = 'uniform'
+
     # Create the population, which is the top-level object for a NEAT run.
     p = neat.Population(config)
 
@@ -43,6 +48,8 @@ def test_xor_example():
         pass
 
     if winner:
+        if uniform:
+            print('\nUsing uniform weight initialization:')
         # Display the winning genome.
         print('\nBest genome:\n{!s}'.format(winner))
 
@@ -56,3 +63,4 @@ def test_xor_example():
 
 if __name__ == '__main__':
     test_xor_example()
+    test_xor_example_uniform()
