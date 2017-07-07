@@ -56,9 +56,8 @@ itself.  This section is always required, and is handled by the `Config` class i
 .. note::
   The ``found_solution`` method is **not** called if the maximum number of generations is reached without the above threshold being passed.
   TODO: Add a new configuration parameter to ignore the above, provided a maximum number of generations is passed
-  to :py:meth:`population.Population.run`, and if so call ``found_solution`` upon termination by a maximum number of generations. (Passing a value
-  of ``None``, which was my first thought, will not work because that will be identical to no configuration of fitness_threshold in the config file, or at least
-  will be too confusing, if it is passed as a string.)
+  to :py:meth:`population.Population.run`, and if so call ``found_solution`` upon termination by a maximum number of generations. (This is mostly done
+  in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch.)
 
 .. _pop-size-label:
 
