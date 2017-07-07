@@ -101,7 +101,8 @@ class Config(object):
     __params = [ConfigParameter('pop_size', int),
                 ConfigParameter('fitness_criterion', str),
                 ConfigParameter('fitness_threshold', float),
-                ConfigParameter('reset_on_extinction', bool)]
+                ConfigParameter('reset_on_extinction', bool),
+                ConfigParameter('no_fitness_termination', bool, False)]
 
     def __init__(self, genome_type, reproduction_type, species_set_type, stagnation_type, filename):
         # Check that the provided types have the required methods.
@@ -130,7 +131,13 @@ class Config(object):
             raise RuntimeError("'NEAT' section not found in NEAT configuration file.")
 
         for p in self.__params:
-            setattr(self, p.name, p.parse('NEAT', parameters))
+            if p.default is None:
+                setattr(self, p.name, p.parse('NEAT', parameters))
+            else:
+                try:
+                    setattr(self, p.name, p.parse('NEAT', parameters))
+                except Exception:
+                    setattr(self, p.name, p.default)
 
         # Parse type sections.
         genome_dict = dict(parameters.items(genome_type.__name__))

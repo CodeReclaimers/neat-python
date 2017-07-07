@@ -70,6 +70,10 @@ class Population(object):
         the genomes themselves (apart from updating the fitness member),
         or the configuration object.
         """
+
+        if self.config.no_fitness_termination and (n is None):
+            raise RuntimeError("Cannot have no generational limit with no fitness termination")
+        
         k = 0
         while n is None or k < n:
             k += 1
@@ -90,11 +94,12 @@ class Population(object):
             if self.best_genome is None or best.fitness > self.best_genome.fitness:
                 self.best_genome = best
 
-            # End if the fitness threshold is reached.
-            fv = self.fitness_criterion(g.fitness for g in itervalues(self.population))
-            if fv >= self.config.fitness_threshold:
-                self.reporters.found_solution(self.config, self.generation, best)
-                break
+            if not self.config.no_fitness_termination:
+                # End if the fitness threshold is reached.
+                fv = self.fitness_criterion(g.fitness for g in itervalues(self.population))
+                if fv >= self.config.fitness_threshold:
+                    self.reporters.found_solution(self.config, self.generation, best)
+                    break
 
             # Create the next generation from the current generation.
             self.population = self.reproduction.reproduce(self.config, self.species,
@@ -119,5 +124,8 @@ class Population(object):
             self.reporters.end_generation(self.config, self.population, self.species)
 
             self.generation += 1
+
+        if self.config.no_fitness_termination:
+            self.reporters.found_solution(self.config, self.generation, self.best_genome)
 
         return self.best_genome
