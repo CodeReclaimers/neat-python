@@ -60,6 +60,8 @@ class ThreadedEvaluator(object):
 
     def evaluate(self, genomes, config):
         """evaluate the genomes"""
+        if not self.working:
+            self.start()
         p = 0
         for genome_id, genome in genomes:
             p += 1

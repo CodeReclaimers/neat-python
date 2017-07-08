@@ -21,7 +21,10 @@ import os
 
 import neat
 
-import visualize
+try:
+	import visualize
+except ImportError:
+	visualize = None
 
 # 2-input XOR inputs and expected outputs.
 xor_inputs = [(0.0, 0.0), (0.0, 1.0), (1.0, 0.0), (1.0, 1.0)]
@@ -73,10 +76,11 @@ def run(config_file):
             "input {!r}, expected output {!r}, got {!r}".format(xi, xo, output)
             )
 
-    node_names = {-1: 'A', -2: 'B', 0: 'A XOR B'}
-    visualize.draw_net(config, winner, True, node_names=node_names)
-    visualize.plot_stats(stats, ylog=False, view=True)
-    visualize.plot_species(stats, view=True)
+    if visualize is not None:
+        node_names = {-1: 'A', -2: 'B', 0: 'A XOR B'}
+        visualize.draw_net(config, winner, True, node_names=node_names)
+        visualize.plot_stats(stats, ylog=False, view=True)
+        visualize.plot_species(stats, view=True)
 
 
 if __name__ == '__main__':
