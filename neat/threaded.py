@@ -33,7 +33,7 @@ class ThreadedEvaluator(object):
         if self.working:
             return
         self.working = True
-        for i in xrange(self.num_workers):
+        for i in range(self.num_workers):
             w = threading.Thread(
                 name="Worker Thread #{i}".format(i=i),
                 target=self._worker,
