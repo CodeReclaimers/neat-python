@@ -141,10 +141,12 @@ def test_threaded_evaluator():
     if not w.is_alive():
         raise Exception("Workers did not start on start()")
     # ensure del stops workers
-    w = e.workers[0]
     del e
-    if w.is_alive():
-        raise Exception("__del__() did not stop workers!")
+    # unfortunately, __del__() may never be called, even when using del
+    # this means that testing for __del__() to call stop() may not work
+    # this test had a high random failure rate, so i removed it.
+    # if w.is_alive():
+    #     raise Exception("__del__() did not stop workers!")
 
 
 def eval_dummy_genomes_nn_recurrent(genomes, config):

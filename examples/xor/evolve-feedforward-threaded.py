@@ -47,6 +47,7 @@ def eval_genome(genome, config):
 
 
 def run(config_file):
+    """load the config, create a population, evolve and show the result"""
     # Load configuration.
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
@@ -63,6 +64,7 @@ def run(config_file):
     # Run for up to 300 generations.
     pe = neat.ThreadedEvaluator(4, eval_genome)
     winner = p.run(pe.evaluate, 300)
+    pe.stop()
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
