@@ -25,7 +25,12 @@ class ThreadedEvaluator(object):
         self.outqueue = queue.Queue()
 
     def __del__(self):
-        """called on deletion of the object. We stop our workers here."""
+        """
+        Called on deletion of the object. We stop our workers here.
+        WARNING: __del__ may not always work!
+        please stop the threads explicitly by calling self.stop()!
+        todo: ensure that there are no reference-cycles.
+        """
         if self.working:
             self.stop()
             
