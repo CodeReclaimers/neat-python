@@ -25,6 +25,12 @@ class ThreadedEvaluator(object):
         self.outqueue = queue.Queue()
 
     def __del__(self):
+        """
+        Called on deletion of the object. We stop our workers here.
+        WARNING: __del__ may not always work!
+        please stop the threads explicitly by calling self.stop()!
+        todo: ensure that there are no reference-cycles.
+        """
         if self.working:
             self.stop()
             
@@ -47,12 +53,16 @@ class ThreadedEvaluator(object):
         self.working = False
         for w in self.workers:
             w.join()
+        self.workers = []
 
     def _worker(self):
         """the worker function"""
         while self.working:
             try:
-                genome_id, genome, config = self.inqueue.get(block=True, timeout=0.2)
+                genome_id, genome, config = self.inqueue.get(
+                    block=True,
+                    timeout=0.2,
+                    )
             except queue.Empty:
                 continue
             f = self.eval_function(genome, config)
