@@ -74,7 +74,7 @@ class DefaultSpeciesSet(object):
         assumption, you should make sure other necessary parts of the code are updated to reflect
         the new behavior.
         """
-        assert type(population) is dict
+        assert isinstance(population, dict)
 
         compatibility_threshold = config.species_set_config['compatibility_threshold']
 
