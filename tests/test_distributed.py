@@ -105,7 +105,7 @@ def test_DistributedEvaluator_mode():
         addr = (hostname, 80)
         de = neat.DistributedEvaluator(
             addr,
-            authkey="abcd1234",
+            authkey=b"abcd1234",
             eval_function=eval_dummy_genome_nn,
             mode=mode,
             )
@@ -133,7 +133,7 @@ def test_DistributedEvaluator_mode():
     # test invalid mode error
     de = neat.DistributedEvaluator(
         addr,
-        authkey="abcd1234",
+        authkey=b"abcd1234",
         eval_function=eval_dummy_genome_nn,
         mode="#invalid MODE!",
         )
@@ -148,7 +148,7 @@ def test_DistributedEvaluator_master_restrictions():
     """tests that some master-exclusive methods fail when called  by the slaves"""
     slave = neat.DistributedEvaluator(
         ("localhost", 80),
-        authkey="abcd1234",
+        authkey=b"abcd1234",
         eval_function=eval_dummy_genome_nn,
         mode=MODE_SLAVE,
         )
@@ -180,7 +180,7 @@ def test_distributed_evaluation_multiprocessing():
     created using the multiprocessing module.
     """
     addr = ("localhost", random.randint(12000, 30000))
-    authkey = "abcd1234"
+    authkey = b"abcd1234"
     mp = multiprocessing.Process(
         name="Master evaluation process",
         target=run_master,
@@ -223,7 +223,7 @@ def test_distributed_evaluation_threaded():
     We use this to get the coverage correctly.
     """
     addr = ("localhost", random.randint(12000, 30000))
-    authkey = "abcd1234"
+    authkey = b"abcd1234"
     mp = threading.Thread(
         name="Master evaluation thread",
         target=run_master,
