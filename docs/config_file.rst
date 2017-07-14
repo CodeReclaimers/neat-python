@@ -192,7 +192,7 @@ required for your particular implementation.
     (Note that the function needs to take a `list` or other `iterable`; the `reduce <functools.reduce>` function, as in `aggregations`, may be of use in this.)
 
     .. versionchanged:: 0.91-config_work
-      Moved out of `genome` into `aggregations`; maxabs added; method for defining new aggregation functions added.
+      Moved out of :py:mod:`genome` into :py:mod:`aggregations`; maxabs added; method for defining new aggregation functions added.
 
 .. index:: bias
 .. index:: mutation
@@ -395,9 +395,12 @@ required for your particular implementation.
     random value (as if it were a new node).
 
 .. index:: ! single_structural_mutation
+.. index:: ! structural_mutation_surer
 .. index:: mutation
 .. index:: node
 .. index:: connection
+
+.. _structural-mutation-surer-label:
 
 * *single_structural_mutation*
     If this evaluates to ``True``, only one structural mutation (the addition or removal of a :term:`node` or :term:`connection`) will be allowed per genome

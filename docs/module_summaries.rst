@@ -294,6 +294,7 @@ Uses :py:mod:`pickle` to save and restore populations (and other aspects of the 
 
 .. index:: fitness_criterion
 .. index:: fitness_threshold
+.. index:: no_fitness_termination
 .. index:: pop_size
 .. index:: reset_on_extinction
 
@@ -304,12 +305,16 @@ config
 --------
 Does general configuration parsing; used by other classes for their configuration.
 
-  .. py:class:: ConfigParameter(name, value_type)
+  .. py:class:: ConfigParameter(name, value_type, default=None)
 
     Does initial handling of a particular configuration parameter.
 
     :param str name: The name of the configuration parameter.
     :param str value_type: The type that the configuration parameter should be; must be one of ``str``, ``int``, ``bool``, ``float``, or ``list``.
+    :param str default: If given, the default to use for the configuration parameter.
+
+    .. versionchanged:: 0.91-config_work
+      Default capability added.
 
     .. py:method:: __repr__()
 
@@ -337,6 +342,11 @@ Does general configuration parsing; used by other classes for their configuratio
       :param dict config_dict: Configuration parameters as output by the configuration parser.
       :return: The configuration parameter value
       :rtype: str or int or bool or float or list
+      :raises RuntimeError: If there is a problem with the configuration parameter.
+      :raises DeprecationWarning: If a default is used.
+
+      .. versionchanged:: 0.91-config_work
+        Default capability added; error handling enhanced.
 
     .. py:method:: format(value)
 
@@ -351,9 +361,26 @@ Does general configuration parsing; used by other classes for their configuratio
     Prints configuration parameters, with justification based on the longest configuration parameter name.
 
     :param f: File object to be written to.
-    :type f: `file`
+    :type f: :pygloss:`file <file-object>`
     :param object config: Configuration object from which parameter values are to be fetched (using `getattr`).
     :param list params: List of :py:class:`ConfigParameter` instances giving the names of interest and the types of parameters.
+
+  .. py:class:: DefaultClassConfig(param_dict, param_list)
+
+    Replaces at least some boilerplate configuration code for reproduction, species_set, and stagnation classes.
+
+    :param dict param_dict: Dictionary of configuration parameters from config file.
+    :param param_list: List of `ConfigParameter` instances; used to know what parameters are of interest to the calling class.
+    :type param_list: list(object)
+
+    .. py:method:: save(f)
+
+      Uses :py:func:`write_pretty_params` to output parameters of interest to the calling class.
+
+      :param f: File object to be written to.
+      :type f: :pygloss:`file <file-object>`
+
+    .. versionadded:: 0.91-config_work
 
   .. py:class:: Config(genome_type, reproduction_type, species_set_type, stagnation_type, filename)
 
@@ -369,10 +396,14 @@ Does general configuration parsing; used by other classes for their configuratio
     :param str filename: Pathname for configuration file to be opened, read, processed by a parser from the :py:class:`configparser.ConfigParser` class (or, for 2.7, the `ConfigParser.SafeConfigParser class <https://docs.python.org/2.7/library/configparser.html#ConfigParser.SafeConfigParser>`_), the ``NEAT`` section handled by ``Config``, and then other sections passed to the ``parse_config`` methods of the appropriate classes.
     :raises AssertionError: If any of the objects lack a ``parse_config`` method.
 
+    .. versionchanged:: 0.91-config_work
+      Added default capabilities.
+
     .. py:method:: save(filename)
 
       Opens the specified file for writing (not appending) and outputs a configuration file from the current configuration. Uses :py:func:`write_pretty_params` for
-      the ``NEAT`` parameters and the appropriate class ``write_config`` methods for the other sections.
+      the ``NEAT`` parameters and the appropriate class ``write_config`` methods for the other sections. (A comparison of it and the input configuration file
+      can be used to determine any default parameters of interest.)
 
       :param str filename: The configuration file to be written.
 
@@ -561,17 +592,20 @@ genome
 
   .. inheritance-diagram:: genome iznn
 
-  .. index:: ! aggregation function
   .. index:: initial_connection
+  .. index:: structural_mutation_surer
 
   .. py:class:: DefaultGenomeConfig(params)
 
-    Does the configuration for the DefaultGenome class. Has the `dictionary <dict>` ``aggregation_function_defs``, which
-    defines the available :term:`aggregation functions <aggregation function>`, and the `list <list>` ``allowed_connectivity``, which defines the available
+    Does the configuration for the DefaultGenome class. Has the `list <list>` ``allowed_connectivity``, which defines the available
     values for :ref:`initial_connection <initial-connection-config-label>`. Includes parameters taken from the configured gene classes, such
     as :py:class:`genes.DefaultNodeGene`, :py:class:`genes.DefaultConnectionGene`, or :py:class:`iznn.IZNodeGene`.
 
     :param dict params: Parameters from configuration file and DefaultGenome initialization (by parse_config).
+    :raises RuntimeError: If ``initial_connection`` or :ref:`structural_mutation_surer <structural-mutation-surer-label>` is invalid.
+
+    .. versionchanged:: 0.91-config_work
+      Aggregation functions moved to :py:mod:`aggregations`; additional configuration parameters added.
 
     .. index:: ! activation function
 
@@ -584,19 +618,34 @@ genome
       :param func: A function meeting the requirements of :py:func:`activations.validate_activation`.
       :type func: `function`
 
+    .. index:: ! aggregation function
+
+    .. py:method:: add_aggregation(name, func)
+
+      Adds a new :term:`aggregation function`.
+      Uses :py:meth:`AggregationFunctionSet.add <aggregations.AggregationFunctionSet.add>`.
+
+      :param str name: The name by which the function is to be known in the :ref:`configuration file <aggregation-function-config-label>`.
+      :param func: A function meeting the requirements of :py:func:`aggregations.validate_aggregation`.
+      :type func: `function`
+
+      .. versionadded:: 0.91-config_work
+
     .. py:method:: save(f)
 
       Saves the :ref:`initial_connection <initial-connection-config-label>` configuration and uses :py:func:`config.write_pretty_params` to write out the
       other parameters.
 
       :param f: The file object to be written to.
-      :type f: `file`
+      :type f: :pygloss:`file <file-object>`
 
     .. index:: ! key
 
     .. py:method:: get_new_node_key(node_dict)
 
-      Finds the next unused node :term:`key`.
+      Finds the next unused node :term:`key`. TODO: Explore using the same :term:`node` key if a particular connection is replaced in more than
+      one genome in the same generation (use a :py:meth:`reporting.BaseReporter.end_generation` method to wipe a dictionary of connection tuples
+      versus node keys).
 
       :param dict node_dict: A dictionary of node keys vs nodes
       :return: A currently-unused node key.
@@ -604,6 +653,19 @@ genome
 
       .. versionchanged:: 0.91-github
         Moved from DefaultGenome so no longer only single-genome-instance unique.
+
+    .. index:: structural_mutation_surer
+    .. index:: single_structural_mutation
+
+    .. py:method:: check_structural_mutation_surer()
+
+      Checks vs :ref:`structural_mutation_surer <structural-mutation-surer-label>` and, if necessary, ``single_structural_mutation`` to decide if
+      changes from the former should happen.
+
+      :returns: If should have a structural mutation under a wider set of circumstances.
+      :rtype: bool
+
+      .. versionadded:: 0.91-config_work
 
   .. index:: key
   .. index:: ! pin
@@ -617,10 +679,10 @@ genome
     :term:`connection` - Connection between a pin/node output and a node's input, or between a node's output and a pin/node input.
     :term:`key` - Identifier for an object, unique within the set of similar objects.
     Design assumptions and conventions.
-    1. Each output pin is connected only to the output of its own unique neuron by an implicit connection with weight one. This connection is permanently enabled.
+    1. Each output pin is connected only to the output of its own unique :term:`neuron <output node>` by an implicit connection with weight one. This connection is permanently enabled.
     2. The output pin's key is always the same as the key for its associated neuron.
     3. Output neurons can be modified but not deleted.
-    4. The input values are applied to the input pins unmodified.
+    4. The input values are applied to the :term:`input pins <input node>` unmodified.
 
     :param int key: :term:`Identifier <key>` for this individual/genome.
 
@@ -638,7 +700,7 @@ genome
       Required interface method. Saves configuration using :py:meth:`DefaultGenomeConfig.save`.
 
       :param f: File object to write to.
-      :type f: `file`
+      :type f: :pygloss:`file <file-object>`
       :param object config: Configuration object (here, a `DefaultGenomeConfig` instance).
 
     .. index:: ! initial_connection
@@ -668,27 +730,31 @@ genome
       :param object config: Genome configuration object.
 
     .. index:: ! mutation
+    .. index:: single_structural_mutation
 
     .. py:method:: mutate(config)
 
       Required interface method. :term:`Mutates <mutation>` this genome. What mutations take place are determined by configuration file settings, such
       as :ref:`node_add_prob <node-add-prob-label>` and ``node_delete_prob`` for the likelihood of adding or removing a :term:`node` and
-      :ref:`conn_add_prob <conn-add-prob-label>` and ``conn_delete_prob`` for the likelihood of adding or removing a :term:`connection`. (Currently,
-      more than one of these can happen with a call to ``mutate``; a TODO is to add a configuration item to choose whether or not multiple mutations
-      can happen simultaneously.) Non-structural mutations (to gene :term:`attributes`) are performed by calling the appropriate ``mutate`` method(s) for
+      :ref:`conn_add_prob <conn-add-prob-label>` and ``conn_delete_prob`` for the likelihood of adding or removing a :term:`connection`. Checks
+      :ref:`single_structural_mutation <structural-mutation-surer-label>` for whether more than one structural mutation should be permitted per call.
+      Non-structural mutations (to gene :term:`attributes`) are performed by calling the appropriate ``mutate`` method(s) for
       connection and node genes (generally :py:meth:`genes.BaseGene.mutate`).
 
       :param object config: Genome configuration object.
 
+      .. versionchanged:: 0.91-config_work
+        ``single_structural_mutation`` config parameter added.
+
     .. index:: node
+    .. index:: structural_mutation_surer
 
     .. py:method:: mutate_add_node(config)
 
       Takes a randomly-selected existing connection, turns its :term:`enabled` attribute to ``False``, and makes two new (enabled) connections with a
       new :term:`node` between them, which join the now-disabled connection's nodes. The connection weights are chosen so as to potentially have
       roughly the same behavior as the original connection, although this will depend on the :term:`activation function`, :term:`bias`, and
-      :term:`response` multiplier of the new node. TODO: Particularly if the configuration is changed to only allow one structural mutation, then if there
-      are no connections, call :py:meth:`mutate_add_connection` instead of returning.
+      :term:`response` multiplier of the new node.
 
       :param object config: Genome configuration object.
 
@@ -1386,7 +1452,7 @@ reproduction
       re ``min_species_size`` fixed in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch.)
 
       :param f: File object to write to.
-      :type f: `file`
+      :type f: :pygloss:`file <file-object>`
       :param dict param_dict: Dictionary of current parameters in this implementation; more generally, reproduction config object.
 
     .. index:: genome
@@ -1550,7 +1616,7 @@ Divides the population into species based on :term:`genomic distances <genomic d
       Required interface method. Writes parameter(s) to new config file.
 
       :param f: File object to write to.
-      :type f: `file`
+      :type f: :pygloss:`file <file-object>`
       :param dict param_dict: Dictionary of current parameters in this implementation; more generally, stagnation config object.
 
     .. index:: ! genomic distance
@@ -1630,7 +1696,7 @@ stagnation
       0 in parse_config (fixed in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch).
 
       :param f: File object to write to.
-      :type f: `file`
+      :type f: :pygloss:`file <file-object>`
       :param dict param_dict: Dictionary of current parameters in this implementation; more generally, stagnation config object.
 
     .. py:method:: update(species_set, generation)

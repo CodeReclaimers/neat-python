@@ -65,7 +65,7 @@ class ConfigParameter(object):
             raise RuntimeError("Error interpreting config item '{}' with value '{}' and type {}".format(
                 self.name, value, self.value_type))
 
-        raise Exception("Unexpected configuration type: " + repr(self.value_type))
+        raise RuntimeError("Unexpected configuration type: " + repr(self.value_type))
 
     def format(self, value):
         if list == self.value_type:

@@ -214,12 +214,12 @@ Valid values are in [0.0, 1.0].</p>
 <li><dl class="first docutils">
 <dt><em>aggregation_options</em></dt>
 <dd><p class="first">A space-separated list of the aggregation functions that may be used by nodes.  <strong>This defaults to “sum“.</strong> The
-available functions (defined in <a class="reference internal" href="module_summaries.html#module-aggregations" title="aggregations: Has the built-in aggregation functions, code for using them,  and code for adding new user-defined ones."><code class="xref any py py-mod docutils literal"><span class="pre">aggregations</span></code></a>) are: <code class="docutils literal"><span class="pre">sum</span></code>, <code class="xref py py-func docutils literal"><span class="pre">product</span></code>, <code class="docutils literal"><span class="pre">min</span></code>, <code class="docutils literal"><span class="pre">max</span></code>,
-and <code class="xref py py-func docutils literal"><span class="pre">maxabs</span></code> (which returns the input value with the greatest absolute value; the returned
+available functions (defined in <a class="reference internal" href="module_summaries.html#module-aggregations" title="aggregations: Has the built-in aggregation functions, code for using them,  and code for adding new user-defined ones."><code class="xref any py py-mod docutils literal"><span class="pre">aggregations</span></code></a>) are: <code class="docutils literal"><span class="pre">sum</span></code>, <a class="reference internal" href="module_summaries.html#aggregations.product_aggregation" title="aggregations.product_aggregation"><code class="xref py py-func docutils literal"><span class="pre">product</span></code></a>, <code class="docutils literal"><span class="pre">min</span></code>, <code class="docutils literal"><span class="pre">max</span></code>,
+and <a class="reference internal" href="module_summaries.html#aggregations.maxabs_aggregation" title="aggregations.maxabs_aggregation"><code class="xref py py-func docutils literal"><span class="pre">maxabs</span></code></a> (which returns the input value with the greatest absolute value; the returned
 value may be positive or negative). New aggregation functions can be defined similarly to <a class="reference internal" href="customization.html#customization-label"><span class="std std-ref">new activation functions</span></a>.
 (Note that the function needs to take a <a class="reference external" href="https://docs.python.org/3.5/glossary.html#term-list" title="(in Python v3.5)"><code class="xref any docutils literal"><span class="pre">list</span></code></a> or other <a class="reference external" href="https://docs.python.org/3.5/glossary.html#term-iterable" title="(in Python v3.5)"><code class="xref any docutils literal"><span class="pre">iterable</span></code></a>; the <a class="reference external" href="https://docs.python.org/3.5/library/functools.html#functools.reduce" title="(in Python v3.5)"><code class="xref any docutils literal"><span class="pre">reduce</span></code></a> function, as in <a class="reference internal" href="module_summaries.html#module-aggregations" title="aggregations: Has the built-in aggregation functions, code for using them,  and code for adding new user-defined ones."><code class="xref any py py-mod docutils literal"><span class="pre">aggregations</span></code></a>, may be of use in this.)</p>
 <div class="last versionchanged">
-<p><span class="versionmodified">Changed in version 0.91-config_work: </span>Moved out of <a class="reference internal" href="glossary.html#term-genome"><code class="xref any std std-term docutils literal"><span class="pre">genome</span></code></a> into <a class="reference internal" href="module_summaries.html#module-aggregations" title="aggregations: Has the built-in aggregation functions, code for using them,  and code for adding new user-defined ones."><code class="xref any py py-mod docutils literal"><span class="pre">aggregations</span></code></a>; maxabs added; method for defining new aggregation functions added.</p>
+<p><span class="versionmodified">Changed in version 0.91-config_work: </span>Moved out of <a class="reference internal" href="module_summaries.html#module-genome" title="genome: Handles genomes (individuals in the population)."><code class="xref py py-mod docutils literal"><span class="pre">genome</span></code></a> into <a class="reference internal" href="module_summaries.html#module-aggregations" title="aggregations: Has the built-in aggregation functions, code for using them,  and code for adding new user-defined ones."><code class="xref py py-mod docutils literal"><span class="pre">aggregations</span></code></a>; maxabs added; method for defining new aggregation functions added.</p>
 </div>
 </dd>
 </dl>
@@ -491,7 +491,7 @@ random value (as if it were a new node).</p>
 </dl>
 </li>
 </ul>
-<span class="target" id="index-61"></span><span class="target" id="index-62"></span><span class="target" id="index-63"></span><ul id="index-64">
+<span class="target" id="index-61"></span><span class="target" id="index-62"></span><span class="target" id="index-63"></span><span class="target" id="index-64"></span><span id="index-65"></span><ul id="structural-mutation-surer-label">
 <li><dl class="first docutils">
 <dt><em>single_structural_mutation</em></dt>
 <dd><p class="first last">If this evaluates to <code class="docutils literal"><span class="pre">True</span></code>, only one structural mutation (the addition or removal of a <a class="reference internal" href="glossary.html#term-node"><span class="xref std std-term">node</span></a> or <a class="reference internal" href="glossary.html#term-connection"><span class="xref std std-term">connection</span></a>) will be allowed per genome
@@ -512,7 +512,7 @@ a connection instead; furthermore, if an attempt to add a connection tries to ad
 </dl>
 </li>
 </ul>
-<span class="target" id="index-65"></span><span class="target" id="index-66"></span><span class="target" id="index-67"></span><ul id="index-68">
+<span class="target" id="index-66"></span><span class="target" id="index-67"></span><span class="target" id="index-68"></span><ul id="index-69">
 <li><dl class="first docutils">
 <dt><em>weight_init_mean</em></dt>
 <dd><p class="first last">The mean of the normal/gaussian distribution used to <a class="reference internal" href="module_summaries.html#attributes.FloatAttribute.init_value" title="attributes.FloatAttribute.init_value"><code class="xref py py-meth docutils literal"><span class="pre">select</span></code></a> <a class="reference internal" href="glossary.html#term-weight"><span class="xref std std-term">weight</span></a>
