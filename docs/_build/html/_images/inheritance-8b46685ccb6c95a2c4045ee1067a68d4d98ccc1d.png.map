@@ -1,8 +1,0 @@
-<map id="inheritanceb0b6a3b8e8" name="inheritanceb0b6a3b8e8">
-<area shape="rect" id="node1" href="#checkpoint.Checkpointer" target="_top" title="A reporter class that performs checkpointing using `pickle`" alt="" coords="251,104,419,129"/>
-<area shape="rect" id="node2" title="Definition of the reporter interface expected by ReporterSet." alt="" coords="5,129,196,155"/>
-<area shape="rect" id="node6" href="#statistics.StatisticsReporter" target="_top" title="Gathers (via the reporting interface) and provides (to callers and/or a file) the most&#45;fit genomes and" alt="" coords="244,153,427,179"/>
-<area shape="rect" id="node3" href="#reporting.BaseReporter" target="_top" title="Definition of the reporter interface expected by ReporterSet." alt="" coords="21,55,181,80"/>
-<area shape="rect" id="node5" href="#reporting.StdOutReporter" target="_top" title="reporting.StdOutReporter" alt="" coords="249,55,421,80"/>
-<area shape="rect" id="node4" href="#reporting.ReporterSet" target="_top" title="reporting.ReporterSet" alt="" coords="25,5,176,31"/>
-</map>

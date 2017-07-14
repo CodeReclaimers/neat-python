@@ -1,7 +1,0 @@
-<map id="inheritance88c83b859f" name="inheritance88c83b859f">
-<area shape="rect" id="node1" href="#iznn.IZGenome" target="_top" title="iznn.IZGenome" alt="" coords="257,153,371,179"/>
-<area shape="rect" id="node2" title="A genome for generalized neural networks." alt="" coords="5,153,203,179"/>
-<area shape="rect" id="node3" href="#iznn.IZNN" target="_top" title="iznn.IZNN" alt="" coords="63,104,145,129"/>
-<area shape="rect" id="node4" href="#iznn.IZNeuron" target="_top" title="Sets up and simulates the iznn nodes (neurons)." alt="" coords="51,55,157,80"/>
-<area shape="rect" id="node5" href="#iznn.IZNodeGene" target="_top" title="Contains attributes for the iznn node genes and determines genomic distances." alt="" coords="251,5,377,31"/>
-</map>
