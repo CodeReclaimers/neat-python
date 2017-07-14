@@ -21,7 +21,7 @@ insofar as possible new configuration parameters will default to the existing be
   use. Another example would be for a configuration file variable for whether more than one addition/connection :term:`mutation` can take place at a time,
   as mentioned in genome.py.
 
-  The above is mostly done in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch.
+  The above is done in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch.
 
 Note that the `Config` constructor also requires you to explicitly specify the types that will be used
 for the NEAT simulation.  This, again, is to help avoid silent changes in behavior.
