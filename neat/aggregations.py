@@ -38,6 +38,9 @@ def validate_aggregation(function): # TODO: Recognize when need `reduce`
                        types.LambdaType)):
         raise InvalidAggregationFunction("A function object is required.")
 
+    if not (function.__code__.co_argcount >= 1):
+        raise InvalidAggregationFunction("A function taking at least one argument is required")
+
 
 class AggregationFunctionSet(object):
     """Contains aggregation functions and methods to add and retrieve them."""

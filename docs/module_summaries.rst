@@ -55,13 +55,79 @@ Has the built-in :term:`activation functions <activation function>`, code for us
       :return: Whether or not the function is known.
       :rtype: bool
 
-.. note::
-  TODO: Suggested simplification for the below: Make ``__config_items__`` a dict of lists, with name -> [value_type, default] -
-  no default if the last is None. This would also allow moving get_config_params into the BaseAttribute class, although config_item_names may require
-  some modifications. (A default capability will be needed for future expansions of the attributes, such as different types of initializations, and for
-  enabling better handling of the current activation/aggregation function defaults.)
+.. index:: aggregation function
 
-  The above is mostly/entirely done in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch.
+.. py:module:: aggregations
+   :synopsis: Has the built-in aggregation functions, code for using them,  and code for adding new user-defined ones.
+
+aggregations
+---------------
+Has the built-in :term:`aggregation functions <aggregation function>`, code for using them, and code for adding new user-defined ones.
+
+  .. py:function:: product_aggregation(x)
+    An adaptation of the multiplication function to take an :ref:`iterable <python:iterables>`.
+
+    :param x: The numbers to be multiplied together; takes any ``iterable``.
+    :type x: list(float) or tuple(float) or set(float)
+    :return: :math:`\prod(x)`
+    :rtype: float
+
+  .. py:function:: maxabs_aggregation(x)
+    Returns the maximum by absolute value, which may be positive or negative. Envisioned as suitable for neural network pooling operations.
+
+    :param x: The numbers to find the absolute-value maximum of; takes any ``iterable``.
+    :type x: list(float) or tuple(float) or set(float)
+    :return: The absolute-value maximum, which may be positive or negative.
+    :rtype: float
+
+    .. versionadded:: 0.91-config_work
+
+  .. py:exception:: InvalidAggregationFunction(TypeError)
+
+    Exception called if an aggregation function being added is invalid according to the `validate_aggregation` function.
+
+    .. versionchanged:: 0.91-github
+      Base of exception changed to more-precise TypeError.
+
+  .. py:function:: validate_aggregation(function)
+
+    Checks to make sure its parameter is a function that takes at least one argument.
+
+    :param object function: Object to be checked.
+    :raises InvalidAggregationFunction: If the object does not pass the tests.
+
+  .. py:class:: AggregationFunctionSet
+
+    Contains the list of current valid aggregation functions, including methods for adding and getting them.
+
+    .. py:method:: add(name, function)
+
+      After validating the function (via `validate_aggregation`), adds it to the available activation functions under the given name. Used
+      by :py:meth:`DefaultGenomeConfig.add_activation <genome.DefaultGenomeConfig.add_activation>`. TODO: Check for whether
+      the function needs `reduce <functools.reduce>`, or at least offer a form of this function (or extra argument for it, defaulting to false)
+      that will appropriately "wrap" the input function.
+
+      :param str name: The name by which the function is to be known in the :ref:`configuration file <aggregation-function-config-label>`.
+      :param function: The function to be added.
+      :type function: `function`
+
+    .. py:method:: get(name)
+
+      Returns the named function, or raises an exception if it is not a known aggregation function.
+
+      :param str name: The name of the function.
+      :raises InvalidAggregationFunction: If the function is not known.
+
+    .. py:method:: is_valid(name)
+
+      Checks whether the named function is a known aggregation function.
+
+      :param str name: The name of the function.
+      :return: Whether or not the function is known.
+      :rtype: bool
+
+  .. versionadded:: 0.91-config_work
+    Moved from :py:mod:`genome` and expanded to match `activations` (plus the ``maxabs`` function added).
 
 .. py:module:: attributes
    :synopsis: Deals with attributes used by genes.
@@ -72,29 +138,42 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
 
   .. inheritance-diagram:: attributes
 
-  .. py:class:: BaseAttribute(name)
+  .. py:class:: BaseAttribute(name, **default_dict)
 
-    Superclass for the type-specialized attribute subclasses, used by genes (such as via the :py:class:`genes.BaseGene` implementation). Calls
-    `config_item_names` to set up a listing of the names of configuration items using `setattr`.
+    Superclass for the type-specialized attribute subclasses, used by genes (such as via the :py:class:`genes.BaseGene` implementation). Updates
+    ``__config_items__`` with any defaults supplied, then uses `config_item_name` to set up a listing of the names of configuration items using `setattr`.
 
-    .. py:method:: config_item_names()
+    :param str name: The name of the attribute.
+    :param dict default_dict: An optional dictionary of defaults for the configuration items.
 
-      Formats a list of configuration item names by combining the attribute's name with the attribute class' list of ``__config_items__``.
+    .. versionchanged:: 0.91-config_work
+      Default_dict capability added.
 
-      :return: A list of configuration item names.
-      :rtype: list(str)
+    .. py:method:: config_item_name(config_item_base_name)
+
+      Formats a configuration item's name by combining the attribute's name with the base item name.
+
+      :param str config_item_base_name: The base name of the configuration item, to be combined with the attribute's name.
+      :return: The configuration item's full name.
+      :rtype: str
+
+      .. versionchanged:: 0.91-config_work
+        Originally did not take any input and returned a list based on the ``__config_items__`` subclass attribute.
+
+    .. py:method:: get_config_params()
+      Uses `config_item_name` for each configuration item to get the name, then gets the appropriate type of :py:class:`config.ConfigParameter`
+      instance for each (with any appropriate defaults being set from ``__config_items__``, including as modified by `BaseAttribute`) and returns it.
+
+      :return: A list of ``ConfigParameter`` instances.
+      :rtype: list(object)
+
+      .. versionchanged:: 0.91-config_work
+        Was originally specific for the attribute subclass, since it did not pick up the appropriate type from the ``__config_items__`` list; default capability
+        also added.
 
   .. py:class:: FloatAttribute(BaseAttribute)
 
     Class for numeric :term:`attributes` such as the :term:`response` of a :term:`node`; includes code for configuration, creation, and mutation.
-
-    .. py:method:: get_config_params()
-
-      Uses `config_item_names` to get its list of configuration item names, then gets a `float`-type :py:class:`config.ConfigParameter` instance for each
-      and returns it.
-
-      :return: A list of ``ConfigParameter`` instances.
-      :rtype: list(object)
 
     .. py:method:: clamp(value, config)
 
@@ -107,12 +186,15 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
 
     .. py:method:: init_value(config)
 
-      Initializes the attribute's value, (currently always) using a gaussian distribution with the configured mean and standard deviation followed by `clamp` to
-      keep the result within the desired range.
+      Initializes the attribute's value, using either a gaussian distribution with the configured mean and standard deviation, or a uniform distribution,
+      followed by `clamp` to keep the result within the desired range.
 
-      :param object config: The configuration object from which the mean and standard deviation values are to be retrieved.
+      :param object config: The configuration object from which the mean, standard deviation, and initialization distribution type values are to be retrieved.
       :return: The new value.
       :rtype: float
+
+      .. versionchanged:: 0.91-config_work
+        Uniform distribution initialization option added.
 
     .. index:: ! mutation
 
@@ -120,8 +202,6 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
 
       May replace (as if reinitializing, using `init_value`), mutate (using a 0-mean gaussian distribution with a configured standard
       deviation from ``mutate_power``), or leave alone the input value, depending on the configuration settings (of ``replace_rate`` and ``mutate_rate``).
-      TODO: Note that the ``replace_rate`` is likely to be lower, so should be checked second. (Done in the
-      `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch.)
 
       :param float value: The current value of the attribute.
       :param object config: The configuration object from which the parameters are to be extracted.
@@ -131,14 +211,6 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
   .. py:class:: BoolAttribute(BaseAttribute)
 
     Class for boolean :term:`attributes` such as whether a :term:`connection` is :term:`enabled` or not; includes code for configuration, creation, and mutation.
-
-    .. py:method:: get_config_params()
-
-      Uses `config_item_names` to get its list of configuration item names, then gets a `bool`-type or `float`-type :py:class:`config.ConfigParameter`
-      instance for each and returns it.
-
-      :return: A list of ``ConfigParameter`` instances.
-      :rtype: list(object)
 
     .. py:method:: init_value(config)
 
@@ -152,28 +224,22 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
 
     .. py:method:: mutate_value(value, config)
 
-      With a frequency determined by the ``mutate_rate`` (which is more precisely a ``replace_rate``) configuration parameter, replaces
-      the value with a 50/50 chance of ``True`` or ``False``; note that this has a 50% chance of leaving the value unchanged. TODO: Have different
-      chances possible of :term:`mutation` in each direction. Also, do not check vs `random` if the ``mutate_rate`` is 0 (done in the
-      `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch).
+      With a frequency determined by the ``mutate_rate`` (which is more precisely a ``replace_rate``) and ``rate_to_false_add`` or
+      ``rate_to_true_add`` configuration parameters, replaces the value with a 50/50 chance of ``True`` or ``False``; note that this has a
+      50% chance of leaving the value unchanged.
 
       :param bool value: The current value of the attribute.
-      :param object config: The configuration object from which the ``mutate_rate`` parameter is to be extracted.
+      :param object config: The configuration object from which the ``mutate_rate`` and other parameters are to be extracted.
       :return: Either the original value, if unchanged, or the new value.
       :rtype: bool
+
+      .. versionchanged:: 0.91-config_work
+        Added the ``rate_to_false_add`` and ``rate_to_true_add`` parameters.
 
   .. py:class:: StringAttribute(BaseAttribute)
 
     Class for string attributes such as the :term:`aggregation function` of a :term:`node`, which are selected from a list of options;
     includes code for configuration, creation, and mutation.
-
-    .. py:method:: get_config_params()
-
-      Uses `config_item_names` to get its list of configuration item names, then gets a `str`-type, `list`-type or `float`-type :py:class:`config.ConfigParameter`
-      instance for each and returns it.
-
-      :return: A list of ``ConfigParameter`` instances.
-      :rtype: list(object)
 
     .. py:method:: init_value(config)
 
@@ -191,10 +257,9 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
       With a frequency determined by the ``mutate_rate`` (which is more precisely a ``replace_rate``) configuration parameter, replaces
       the value with an one of the ``options``, with each having an equal chance; note that this can be the same value as before. (It is possible to crudely
       alter the chances of what is chosen by listing a given option more than once, although this is inefficient given the use of the `random.choice` function.)
-      TODO: Do not check vs `random` if the ``mutate_rate`` is 0 (done in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_
-      branch). (Longer-term, add configurable probabilities of which option is used; eventually, as with the
+      TODO: Longer-term, add configurable probabilities of which option is used; eventually, as with the
       improved version of RBF-NEAT, separate genes for the likelihoods of each (but always doing some change, to prevent overly-conservative evolution
-      due to its inherent short-sightedness), allowing the genomes to control the distribution of options, will be desirable.)
+      due to its inherent short-sightedness), allowing the genomes to control the distribution of options, will be desirable.
 
 .. py:module:: checkpoint
    :synopsis: Uses `pickle` to save and restore populations (and other aspects of the simulation state).
@@ -403,9 +468,7 @@ genes
     .. py:classmethod:: get_config_params()
 
       Fetches configuration parameters from each gene class' ``__gene_attributes__`` list (using
-      :py:meth:`FloatAttribute.get_config_params <attributes.FloatAttribute.get_config_params>`,
-      :py:meth:`BoolAttribute.get_config_params <attributes.BoolAttribute.get_config_params>`,
-      or :py:meth:`StringAttribute.get_config_params <attributes.StringAttribute.get_config_params>` as appropriate for each listed attribute).
+      :py:meth:`BaseAttribute.get_config_params <attributes.BaseAttribute.get_config_params>`).
       Used by :py:class:`genome.DefaultGenomeConfig` to include gene parameters in its configuration parameters.
 
       :return: List of configuration parameters (as :py:class:`config.ConfigParameter` instances) for the gene attributes.
@@ -497,13 +560,6 @@ genome
 -----------
 
   .. inheritance-diagram:: genome iznn
-
-  .. py:function:: product(x)
-
-    Used to implement a product (:math:`prod x`) :term:`aggregation function`.
-
-    :param x: The inputs to be multiplied together.
-    :type x: list(float)
 
   .. index:: ! aggregation function
   .. index:: initial_connection

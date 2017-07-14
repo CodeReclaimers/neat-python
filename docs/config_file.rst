@@ -175,6 +175,8 @@ required for your particular implementation.
 .. index:: node
 .. index:: attributes
 
+.. _aggregation-function-config-label:
+
 * *aggregation_default*
     The default :term:`aggregation function` :term:`attribute <attributes>` :py:meth:`assigned <attributes.StringAttribute.init_value>` to new
     :term:`nodes <node>`. **If none is given, or ``random`` is specified, one of the ``aggregation_options`` will be chosen at random.**
@@ -185,9 +187,9 @@ required for your particular implementation.
 * *aggregation_options*
     A space-separated list of the aggregation functions that may be used by nodes.  **This defaults to ``sum``.** The
     available functions (defined in `aggregations`) are: ``sum``, :py:func:`product <aggregations.product_aggregation>`, ``min``, ``max``,
-    and :py:func:`maxabs <aggregations.maxabs_aggregation` (which returns the input value with the greatest absolute value; the returned
+    and :py:func:`maxabs <aggregations.maxabs_aggregation>` (which returns the input value with the greatest absolute value; the returned
     value may be positive or negative). New aggregation functions can be defined similarly to :ref:`new activation functions <customization-label>`.
-    (Note that the function needs to take a `list` or other `iterable`; the `reduce` function, as in `aggregations`, may be of use in this.)
+    (Note that the function needs to take a `list` or other `iterable`; the `reduce <functools.reduce>` function, as in `aggregations`, may be of use in this.)
 
     .. versionchanged:: 0.91-config_work
       Moved out of `genome` into `aggregations`; maxabs added; method for defining new aggregation functions added.
