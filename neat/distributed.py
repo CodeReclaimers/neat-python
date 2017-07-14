@@ -1,4 +1,47 @@
-"""distributed evaluation of genomes"""
+"""
+Distributed evaluation of genomes.
+
+About nodes:
+The master node (=the node which creates and mutates genomes) and the slave
+nodes (=the nodes which evaluate genomes) can execute the same script. The
+role of a node is determined using the 'mode' argument of the
+DistributedEvaluator. If the mode is MODE_AUTO, the 'host_is_local()' function
+is used to check if the 'addr' argument points to the localhost. If it does, the
+node starts as a master node, otherwise as a slave node. If 'mode' is
+MODE_MASTER, the node always starts as a master node. If 'mode' is MODE_SLAVE,
+the node will always start as a slave node.
+There can only be one master node per NEAT, but any number of slave nodes.
+The master node will not evaluate any genome, which means you will always need
+at least two nodes.
+You can run any number of nodes on the same physical node.
+
+Usage:
+1. import modules and define evaluation logic (the eval_genome function).
+(after this, check for 'if __name__ == "__main__"', and put the rest of the code
+inside of the bode of the statement.)
+2. load config and create a population (here as variable 'p')
+3. if required, create and add  reporters
+4. create a DistributedEvaluator(addr_of_master_node, "some_password",
+eval_function, mode=MODE_AUTO) (here as variable 'de')
+5. call de.start(exit_on_stop=True)
+The 'start()' call will block on the slave nodes and call sys.exit(0) when the
+NEAT evolution finishes. This means that the following code will only be
+executed on the master node.
+6. start the evaluation using 'p.run(de.evaluate, number_of_generations)'
+7. stop the slave nodes using 'de.stop()'
+8. you are done. you may want to save the winning genome or show some statistics
+
+See 'examples/xor/evolve-feedforward-distributed.py' for a complete example.
+
+Utility functions:
+
+'host_is_local(hostname, port=22)' returns True if hostname points to the local
+node. This can be used to check if a node will run as a master node or as a
+slave node.
+
+'chunked(data, chunksize)': split data in a list of chunks with at most
+'chunksize' elements.
+"""
 import multiprocessing
 import socket
 import sys
@@ -35,6 +78,7 @@ class RoleError(RuntimeError):
     An exception raised when a role-specific method is being
     called without being in the role.
     """
+    pass
 
 
 def host_is_local(hostname, port=None):
