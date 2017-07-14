@@ -1065,8 +1065,7 @@ Runs evaluation functions in parallel subprocesses in order to evaluate multiple
 
   .. py:class:: ParallelEvaluator(num_workers, eval_function, timeout=None)
 
-    Runs evaluation functions in parallel subprocesses in order to evaluate multiple genomes at once. TODO: Description of eval_function in docstring is
-    currently incorrect.
+    Runs evaluation functions in parallel subprocesses in order to evaluate multiple genomes at once.
 
     :param int num_workers: How many workers to have in the `Pool <python:multiprocessing.pool.Pool>`.
     :param eval_function: The eval_function should take one argument - a `tuple` of (genome object, config object) - and return a single `float` (the genome's fitness) Note that this is not the same as how a fitness function is called by :py:meth:`Population.run <population.Population.run>`.
