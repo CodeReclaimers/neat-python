@@ -34,7 +34,7 @@ class DefaultGenomeConfig(object):
                         ConfigParameter('conn_delete_prob', float),
                         ConfigParameter('node_add_prob', float),
                         ConfigParameter('node_delete_prob', float),
-                        ConfigParameter('single_structural_mutation', bool, False),
+                        ConfigParameter('single_structural_mutation', bool, 'false'),
                         ConfigParameter('structural_mutation_surer', str, 'default'),
                         ConfigParameter('initial_connection', str, 'unconnected')]
 
@@ -108,6 +108,17 @@ class DefaultGenomeConfig(object):
         assert new_id not in node_dict
 
         return new_id
+
+    def check_structural_mutation_surer(self):
+        if self.structural_mutation_surer == 'true':
+            return True
+        elif self.structural_mutation_surer == 'false':
+            return False
+        elif self.structural_mutation_surer == 'default':
+            return self.single_structural_mutation
+        else:
+            error_string = "Invalid structural_mutation_surer {!r}".format(self.structural_mutation_surer)
+            raise RuntimeError(error_string)
 
 class DefaultGenome(object):
     """
@@ -274,18 +285,6 @@ class DefaultGenome(object):
         # Mutate node genes (bias, response, etc.).
         for ng in self.nodes.values():
             ng.mutate(config)
-
-    @staticmethod
-    def check_structural_mutation_surer(config):
-        if config.structural_mutation_surer == 'true':
-            return True
-        elif config.structural_mutation_surer == 'false':
-            return False
-        elif config.structural_mutation_surer == 'default':
-            return config.single_structural_mutation
-        else:
-            error_string = "Invalid structural_mutation_surer {!r}".format(config.structural_mutation_surer)
-            raise RuntimeError(error_string)
 
     def mutate_add_node(self, config):
         if not self.connections:
