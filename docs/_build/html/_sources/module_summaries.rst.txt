@@ -65,20 +65,20 @@ aggregations
 Has the built-in :term:`aggregation functions <aggregation function>`, code for using them, and code for adding new user-defined ones.
 
   .. py:function:: product_aggregation(x)
-    An adaptation of the multiplication function to take an :ref:`iterable <python:iterables>`.
+    An adaptation of the multiplication function to take an :pygloss:`iterable`.
 
     :param x: The numbers to be multiplied together; takes any ``iterable``.
     :type x: list(float) or tuple(float) or set(float)
     :return: :math:`\prod(x)`
-    :rtype: float
+    :rtype: :pytypes:`float <typesnumeric>`
 
   .. py:function:: maxabs_aggregation(x)
     Returns the maximum by absolute value, which may be positive or negative. Envisioned as suitable for neural network pooling operations.
 
-    :param x: The numbers to find the absolute-value maximum of; takes any ``iterable``.
+    :param x: The numbers to find the absolute-value maximum of; takes any :pygloss:`iterable`.
     :type x: list(float) or tuple(float) or set(float)
     :return: The absolute-value maximum, which may be positive or negative.
-    :rtype: float
+    :rtype: :pytypes:`float <typesnumeric>`
 
     .. versionadded:: 0.91-config_work
 
@@ -182,7 +182,7 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
       :param float value: The value to be clamped.
       :param object config: The configuration object from which the minimum and maximum desired values are to be retrieved.
       :return: The value, if it is within the desired range, or the appropriate end of the range, if it is not.
-      :rtype: float
+      :rtype: :pytypes:`float <typesnumeric>`
 
     .. py:method:: init_value(config)
 
@@ -191,7 +191,7 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
 
       :param object config: The configuration object from which the mean, standard deviation, and initialization distribution type values are to be retrieved.
       :return: The new value.
-      :rtype: float
+      :rtype: :pytypes:`float <typesnumeric>`
 
       .. versionchanged:: 0.91-config_work
         Uniform distribution initialization option added.
@@ -206,7 +206,7 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
       :param float value: The current value of the attribute.
       :param object config: The configuration object from which the parameters are to be extracted.
       :return: Either the original value, if unchanged, or the new value.
-      :rtype: float
+      :rtype: :pytypes:`float <typesnumeric>`
 
   .. py:class:: BoolAttribute(BaseAttribute)
 
@@ -310,7 +310,7 @@ Does general configuration parsing; used by other classes for their configuratio
     Does initial handling of a particular configuration parameter.
 
     :param str name: The name of the configuration parameter.
-    :param str value_type: The type that the configuration parameter should be; must be one of ``str``, ``int``, ``bool``, ``float``, or ``list``.
+    :param str value_type: The type that the configuration parameter should be; must be one of ``str``, :pytypes:`int <typesnumeric>`, ``bool``, :pytypes:`float <typesnumeric>`, or ``list``.
     :param str default: If given, the default to use for the configuration parameter.
 
     .. versionchanged:: 0.91-config_work
@@ -531,7 +531,7 @@ genes
       Makes a copy of itself, including its subclass, :term:`key`, and all gene attributes.
 
       :return: A copied gene
-      :rtype: object
+      :rtype: :pygloss:`object`
 
     .. index:: ! crossover
 
@@ -542,7 +542,7 @@ genes
 
       :param object gene2: The other gene.
       :return: A new gene, with the same key/id, with other attributes being copied randomly (50/50 chance) from each parent gene.
-      :rtype: object
+      :rtype: :pygloss:`object`
 
   .. index:: node
   .. index:: ! genetic distance
@@ -562,7 +562,7 @@ genes
       :param object other: The other ``DefaultNodeGene``.
       :param object config: The genome configuration object.
       :return: The contribution of this pair to the :term:`genomic distance` between the source genomes.
-      :rtype: float
+      :rtype: :pytypes:`float <typesnumeric>`
 
   .. index:: connection
   .. index:: ! genetic distance
@@ -582,7 +582,7 @@ genes
       :param object other: The other ``DefaultConnectionGene``.
       :param object config: The genome configuration object.
       :return: The contribution of this pair to the :term:`genomic distance` between the source genomes.
-      :rtype: float
+      :rtype: :pytypes:`float <typesnumeric>`
 
 .. py:module:: genome
    :synopsis: Handles genomes (individuals in the population).
@@ -649,7 +649,7 @@ genome
 
       :param dict node_dict: A dictionary of node keys vs nodes
       :return: A currently-unused node key.
-      :rtype: int
+      :rtype: :pytypes:`int <typesnumeric>`
 
       .. versionchanged:: 0.91-github
         Moved from DefaultGenome so no longer only single-genome-instance unique.
@@ -693,7 +693,7 @@ genome
 
       :param dict param_dict: Dictionary of parameters from configuration file.
       :return: Configuration object; considered opaque by rest of code, so type may vary by implementation (here, a `DefaultGenomeConfig` instance).
-      :rtype: object
+      :rtype: :pygloss:`object`
 
     .. py:classmethod:: write_config(f, config)
 
@@ -754,9 +754,13 @@ genome
       Takes a randomly-selected existing connection, turns its :term:`enabled` attribute to ``False``, and makes two new (enabled) connections with a
       new :term:`node` between them, which join the now-disabled connection's nodes. The connection weights are chosen so as to potentially have
       roughly the same behavior as the original connection, although this will depend on the :term:`activation function`, :term:`bias`, and
-      :term:`response` multiplier of the new node.
+      :term:`response` multiplier of the new node. If there are no connections available, may call :py:meth:`mutate_add_connection` instead,
+      depending on the result from :py:meth:`check_structural_mutation_surer <genome.DefaultGenomeConfig.check_structural_mutation_surer>`.
 
       :param object config: Genome configuration object.
+
+      .. versionchanged:: 0.91-config_work
+        Potential addition of connection instead added.
 
     .. index:: ! connection
 
@@ -772,12 +776,13 @@ genome
 
     .. index:: ! feed_forward
     .. index:: connection
+    .. index:: structural_mutation_surer
 
     .. py:method:: mutate_add_connection(config)
 
       Attempts to add a randomly-selected new connection, with some filtering:
       1. :term:`input nodes <input node>` cannot be at the output end.
-      2. Existing connections cannot be duplicated. TODO: If a selected existing connection is not :term:`enabled`, have some configurable chance that it will become enabled.
+      2. Existing connections cannot be duplicated. (If an existing connection is selected, it may be :term:`enabled` depending on the result from :py:meth:`check_structural_mutation_surer <genome.DefaultGenomeConfig.check_structural_mutation_surer>`.)
       3. Two :term:`output nodes <output node>` cannot be connected together.
       4. If :ref:`feed_forward <feed-forward-config-label>` is set to ``True`` in the configuration file, connections cannot create :py:func:`cycles <graphs.creates_cycle>`.
 
@@ -785,6 +790,8 @@ genome
 
       .. versionchanged:: 0.91-github
         Output nodes not allowed to be connected together.
+      .. versionchanged:: 0.91-config_work
+        Possibility of enabling existing connection added.
 
     .. py:method:: mutate_delete_node(config)
 
@@ -795,7 +802,7 @@ genome
     .. py:method:: mutate_delete_connection()
 
       Deletes a randomly-chosen connection. TODO: If the connection is :term:`enabled`, have an option to - possibly with a :term:`weight`-dependent
-      chance - turn its enabled attribute to ``False`` instead.
+      chance - turn its :term:`enabled` attribute to ``False`` instead.
 
     .. index:: ! compatibility_disjoint_coefficient
     .. index:: ! genomic distance
@@ -813,7 +820,7 @@ genome
       :param object other: The other DefaultGenome instance (genome) to be compared to.
       :param object config: The genome configuration object.
       :return: The genomic distance.
-      :rtype: float
+      :rtype: :pytypes:`float <typesnumeric>`
 
     .. py:method:: size()
 
@@ -837,7 +844,7 @@ genome
       :param object config: The genome configuration object.
       :param int node_id: The key for the new node.
       :return: The new node object.
-      :rtype: object
+      :rtype: :pygloss:`object`
 
     .. index:: connection
 
@@ -850,7 +857,7 @@ genome
       :param int input_id: The input end's key.
       :param int output_id: The output end's key.
       :return: The new connection object.
-      :rtype: object
+      :rtype: :pygloss:`object`
 
     .. index:: ! initial_connection
 
@@ -955,7 +962,7 @@ Directed graph algorithm implementations.
     :type outputs: list(int)
     :param connections: list of (input, output) connections in the network; should only include enabled ones.
     :type connections: list(tuple(int, int))
-    :return: A list of layers, with each layer consisting of a set of :term:`identifiers <key>`; only includes nodes returned by required_for_output.
+    :return: A list of layers, with each layer consisting of a set of :term:`identifiers <key>`; only includes nodes returned by `required_for_output`.
     :rtype: list(set(int))
 
 .. py:module:: indexer
@@ -982,7 +989,7 @@ Helps with creating new :term:`identifiers/keys <key>`.
       :param result: Returned unmodified unless `None`.
       :type result: int or None
       :return: Identifier/:term:`key` to use.
-      :rtype: int
+      :rtype: :pytypes:`int <typesnumeric>`
 
 .. py:module:: iznn
    :synopsis: Implements a spiking neural network (closer to in vivo neural networks) based on Izhikevich's 2003 model.
@@ -1060,7 +1067,7 @@ See http://www.izhikevich.org/publications/spikes.pdf.
       Returns a suggested time step; currently hardwired to 0.05. TODO: Investigate this (particularly effects on numerical stability issues).
 
       :return: Suggested time step in milliseconds.
-      :rtype: float
+      :rtype: :pytypes:`float <typesnumeric>`
 
     .. py:method:: advance(dt_msec)
 
@@ -1077,7 +1084,7 @@ See http://www.izhikevich.org/publications/spikes.pdf.
       :param object genome: An IZGenome instance.
       :param object config: Configuration object.
       :return: An IZNN instance.
-      :rtype: object
+      :rtype: :pygloss:`object`
 
 .. py:module:: math_util
    :synopsis: Contains some mathematical functions not found in the Python2 standard library, plus a mechanism for looking up some commonly used functions (such as for the species_fitness_func) by name.
@@ -1190,7 +1197,7 @@ Runs evaluation functions in parallel subprocesses in order to evaluate multiple
     Runs evaluation functions in parallel subprocesses in order to evaluate multiple genomes at once.
 
     :param int num_workers: How many workers to have in the `Pool <python:multiprocessing.pool.Pool>`.
-    :param eval_function: The eval_function should take one argument - a `tuple` of (genome object, config object) - and return a single `float` (the genome's fitness) Note that this is not the same as how a fitness function is called by :py:meth:`Population.run <population.Population.run>`.
+    :param eval_function: The eval_function should take one argument - a `tuple` of (genome object, config object) - and return a single :pytypes:`float <typesnumeric>` (the genome's fitness) Note that this is not the same as how a fitness function is called by :py:meth:`Population.run <population.Population.run>`.
     :type eval_function: `function`
     :param timeout: How long (in seconds) each subprocess will be given before an exception is raised (unlimited if `None`).
     :type timeout: int or None
@@ -1252,7 +1259,7 @@ Implements the core evolution algorithm.
       2. The current configuration object.
 
       The return value of the fitness function is ignored, but it must assign
-      a Python `float` to the ``fitness`` member of each genome.
+      a Python :pytypes:`float <typesnumeric>` to the ``fitness`` member of each genome.
 
       The fitness function is free to maintain external state, perform
       evaluations in :py:mod:`parallel`, etc.
@@ -1265,7 +1272,7 @@ Implements the core evolution algorithm.
       :param n: The maximum number of generations to run (unlimited if ``None``).
       :type n: int or None
       :return: The best genome seen.
-      :rtype: object
+      :rtype: :pygloss:`object`
 
 .. py:module:: reporting
    :synopsis: Makes possible reporter classes, which are triggered on particular events and may provide information to the user, may do something else such as checkpointing, or may do both.
@@ -1590,7 +1597,7 @@ Divides the population into species based on :term:`genomic distances <genomic d
       :param object genome0: The first genome object.
       :param object genome1: The second genome object.
       :return: The :term:`genomic distance`.
-      :rtype: float
+      :rtype: :pytypes:`float <typesnumeric>`
 
   .. py:class:: DefaultSpeciesSet(config, reporters)
 
@@ -1640,7 +1647,7 @@ Divides the population into species based on :term:`genomic distances <genomic d
 
       :param int individual_id: Genome id/:term:`key`.
       :return: Species id/:term:`key`.
-      :rtype: int
+      :rtype: :pytypes:`int <typesnumeric>`
 
     .. py:method:: get_species(individual_id)
 
@@ -1649,7 +1656,7 @@ Divides the population into species based on :term:`genomic distances <genomic d
 
       :param int individual_id: Genome id/:term:`key`.
       :return: :py:class:`Species <species.Species>` containing the genome corresponding to the id/key.
-      :rtype: object
+      :rtype: :pygloss:`object`
 
 .. index:: ! species_fitness_func
 .. index:: fitness_criterion
@@ -1787,7 +1794,7 @@ statistics
       Returns the most-fit genome ever seen. A wrapper around :py:meth:`best_genomes`.
 
       :return: The most-fit genome.
-      :rtype: object
+      :rtype: :pygloss:`object`
 
     .. py:method:: get_species_sizes()
 

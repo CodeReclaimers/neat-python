@@ -41,9 +41,9 @@ extensions = [
     'sphinx.ext.inheritance_diagram', # note: does not actually require (at least the Python) graphviz package to be installed
 ]
 
-extlinks = {'types': ('https://docs.python.org/3.5/library/stdtypes.html#%s',
+extlinks = {'pytypes': ('https://docs.python.org/3.5/library/stdtypes.html#%s',
                       ''),
-            'pygloss': ('https://docs.python.org/3.5/library/glossary.html#term-%s',
+            'pygloss': ('https://docs.python.org/3.5/glossary.html#term-%s',
                          '')}
 
 # Add any paths that contain templates here, relative to this directory.

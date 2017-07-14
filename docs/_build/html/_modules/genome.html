@@ -360,10 +360,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">connections</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">connection</span></div>
 
 <div class="viewcode-block" id="DefaultGenome.mutate_add_connection"><a class="viewcode-back" href="../module_summaries.html#genome.DefaultGenome.mutate_add_connection">[docs]</a>    <span class="k">def</span> <span class="nf">mutate_add_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Attempt to add a new connection, the only restriction being that the output</span>
 <span class="sd">        node cannot be one of the network input pins.</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">possible_outputs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">iterkeys</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">))</span>
         <span class="n">out_node</span> <span class="o">=</span> <span class="n">choice</span><span class="p">(</span><span class="n">possible_outputs</span><span class="p">)</span>
 
@@ -381,9 +381,8 @@
         <span class="k">if</span> <span class="n">in_node</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">output_keys</span> <span class="ow">and</span> <span class="n">out_node</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">output_keys</span><span class="p">:</span>
             <span class="k">return</span>
 
-        <span class="c1"># Don&#39;t allow connections between two input nodes</span>
-        <span class="k">if</span> <span class="n">in_node</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">input_keys</span> <span class="ow">and</span> <span class="n">out_node</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">input_keys</span><span class="p">:</span>
-            <span class="k">return</span>
+        <span class="c1"># No need to check for connections between input nodes:</span>
+        <span class="c1"># they cannot be the output end of a connection (see above).</span>
 
         <span class="c1"># For feed-forward networks, avoid creating cycles.</span>
         <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">feed_forward</span> <span class="ow">and</span> <span class="n">creates_cycle</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">iterkeys</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connections</span><span class="p">)),</span> <span class="n">key</span><span class="p">):</span>

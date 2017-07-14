@@ -318,10 +318,10 @@ class DefaultGenome(object):
         self.connections[key] = connection
 
     def mutate_add_connection(self, config):
-        '''
+        """
         Attempt to add a new connection, the only restriction being that the output
         node cannot be one of the network input pins.
-        '''
+        """
         possible_outputs = list(iterkeys(self.nodes))
         out_node = choice(possible_outputs)
 
@@ -339,9 +339,8 @@ class DefaultGenome(object):
         if in_node in config.output_keys and out_node in config.output_keys:
             return
 
-        # Don't allow connections between two input nodes
-        if in_node in config.input_keys and out_node in config.input_keys:
-            return
+        # No need to check for connections between input nodes:
+        # they cannot be the output end of a connection (see above).
 
         # For feed-forward networks, avoid creating cycles.
         if config.feed_forward and creates_cycle(list(iterkeys(self.connections)), key):
