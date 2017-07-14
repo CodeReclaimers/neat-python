@@ -288,7 +288,7 @@ class DefaultGenome(object):
 
     def mutate_add_node(self, config):
         if not self.connections:
-            if check_structural_mutation_surer(config):
+            if config.check_structural_mutation_surer():
                 self.mutate_add_connection(config)
             return
 
@@ -330,7 +330,7 @@ class DefaultGenome(object):
         # Don't duplicate connections.
         key = (in_node, out_node)
         if key in self.connections: # TODO: Should this be using mutation to/from rates? Hairy to configure...
-            if check_structural_mutation_surer(config):
+            if config.check_structural_mutation_surer():
                 self.connections[key].enabled = True
             return
 
