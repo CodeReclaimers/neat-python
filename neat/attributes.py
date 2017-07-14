@@ -52,10 +52,13 @@ class FloatAttribute(BaseAttribute):
                             (mean+(2*stdev)))
             return uniform(min_value, max_value)
 
-        raise RuntimeError("Unknown init_type {!r} for {!s}".format(getattr(config, self.init_type_name), self.init_type_name))
+        raise RuntimeError("Unknown init_type {!r} for {!s}".format(getattr(config,
+                                                                            self.init_type_name),
+                                                                    self.init_type_name))
 
     def mutate_value(self, value, config):
-         # mutate_rate is usually no lower than replace_rate, and frequently higher - so put first for efficiency
+        # mutate_rate is usually no lower than replace_rate, and frequently higher -
+        # so put first for efficiency
         mutate_rate = getattr(config, self.mutate_rate_name)
 
         r = random()
@@ -76,7 +79,9 @@ class FloatAttribute(BaseAttribute):
 
 class BoolAttribute(BaseAttribute):
     __config_items__ = {"default": [bool, None],
-                        "mutate_rate": [float, None]}
+                        "mutate_rate": [float, None],
+                        "add_rate_to_true": [float, 0.0],
+                        "add_rate_to_false": [float, 0.0]}
 
     def init_value(self, config):
         default = getattr(config, self.default_name)
@@ -88,6 +93,11 @@ class BoolAttribute(BaseAttribute):
 
     def mutate_value(self, value, config):
         mutate_rate = getattr(config, self.mutate_rate_name)
+
+        if value:
+            mutate_rate += getattr(config, self.add_rate_to_false_name)
+        else:
+            mutate_rate += getattr(config, self.add_rate_to_true_name)
 
         if mutate_rate > 0:
             r = random()
