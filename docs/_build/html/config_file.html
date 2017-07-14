@@ -1,0 +1,537 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Configuration file description &#8212; NEAT-Python 0.91-github documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.91-github',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Overview of the basic XOR example (xor2.py)" href="xor_example.html" />
+    <link rel="prev" title="Installation" href="installation.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="configuration-file-description">
+<span id="configuration-file-description-label"></span><h1>Configuration file description<a class="headerlink" href="#configuration-file-description" title="Permalink to this headline">¶</a></h1>
+<p>The configuration file is in the format described in the Python <a class="reference external" href="https://docs.python.org/3.5/library/configparser.html#module-configparser" title="(in Python v3.5)"><code class="xref py py-mod docutils literal"><span class="pre">configparser</span></code></a> documentation
+as “a basic configuration file parser language which provides a structure similar to what you would find on Microsoft Windows INI files.”</p>
+<p>Most settings must be explicitly enumerated in the configuration file.  (This makes it less likely
+that library code changes will result in your project silently using different NEAT settings. There are some defaults, as noted below, and
+insofar as possible new configuration parameters will default to the existing behavior.)</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>TODO: Work on ways to make the existing defaults more integrated with the configuration code. This may involve a third, optional (defaulting to <code class="docutils literal"><span class="pre">None</span></code>)
+parameter for <a class="reference internal" href="module_summaries.html#config.ConfigParameter" title="config.ConfigParameter"><code class="xref any py py-class docutils literal"><span class="pre">ConfigParameter</span></code></a>, giving a default. Such a mechanism will be needed to convert the configuration in <a class="reference internal" href="module_summaries.html#reproduction.DefaultReproduction" title="reproduction.DefaultReproduction"><code class="xref any py py-class docutils literal"><span class="pre">DefaultReproduction</span></code></a> and
+<a class="reference internal" href="module_summaries.html#stagnation.DefaultStagnation" title="stagnation.DefaultStagnation"><code class="xref any py py-class docutils literal"><span class="pre">DefaultStagnation</span></code></a> to match that in other classes/modules. It would also be needed to add, for instance, an alternative uniform-distribution initialization
+for various parameters such as weight and bias, without requiring all configuration files to be changed to specify the gaussian distribution currently in
+use. Another example would be for a configuration file variable for whether more than one addition/connection <a class="reference internal" href="glossary.html#term-mutation"><span class="xref std std-term">mutation</span></a> can take place at a time,
+as mentioned in genome.py.</p>
+<p class="last">The above is done in the <a class="reference external" href="https://github.com/drallensmith/neat-python/tree/config_work">config_work</a> branch.</p>
+</div>
+<p>Note that the <a class="reference internal" href="module_summaries.html#config.Config" title="config.Config"><code class="xref any py py-class docutils literal"><span class="pre">Config</span></code></a> constructor also requires you to explicitly specify the types that will be used
+for the NEAT simulation.  This, again, is to help avoid silent changes in behavior.</p>
+<p id="configuration-file-sections-label">The configuration file is in several sections, of which at least one is required. However, there are no requirements for ordering within these sections, or for ordering of the sections themselves.</p>
+<div class="section" id="neat-section">
+<h2>[NEAT] section<a class="headerlink" href="#neat-section" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">NEAT</span></code> section specifies parameters particular to the generic NEAT algorithm or the experiment
+itself.  This section is always required, and is handled by the <a class="reference internal" href="module_summaries.html#config.Config" title="config.Config"><code class="xref any py py-class docutils literal"><span class="pre">Config</span></code></a> class itself.</p>
+<span class="target" id="fitness-criterion-label"></span><ul class="simple" id="index-0">
+<li><dl class="first docutils">
+<dt><em>fitness_criterion</em></dt>
+<dd>The function used to compute the termination criterion from the set of genome fitnesses.  Allowable values are: <code class="docutils literal"><span class="pre">min</span></code>, <code class="docutils literal"><span class="pre">max</span></code>, and <code class="docutils literal"><span class="pre">mean</span></code></dd>
+</dl>
+</li>
+</ul>
+<span class="target" id="fitness-threshold-label"></span><span class="target" id="index-1"></span><ul class="simple" id="index-2">
+<li><dl class="first docutils">
+<dt><em>fitness_threshold</em></dt>
+<dd>When the fitness computed by <code class="docutils literal"><span class="pre">fitness_criterion</span></code> meets or exceeds this threshold, the evolution process will terminate, with a call to
+any registered reporting class’ <a class="reference internal" href="module_summaries.html#reporting.BaseReporter.found_solution" title="reporting.BaseReporter.found_solution"><code class="xref py py-meth docutils literal"><span class="pre">found_solution</span></code></a> method.</dd>
+</dl>
+</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <code class="docutils literal"><span class="pre">found_solution</span></code> method is <strong>not</strong> called if the maximum number of generations is reached without the above threshold being passed.
+TODO: Add a new configuration parameter to ignore the above, provided a maximum number of generations is passed
+to <a class="reference internal" href="module_summaries.html#population.Population.run" title="population.Population.run"><code class="xref py py-meth docutils literal"><span class="pre">population.Population.run()</span></code></a>, and if so call <code class="docutils literal"><span class="pre">found_solution</span></code> upon termination by a maximum number of generations. (This is mostly done
+in the <a class="reference external" href="https://github.com/drallensmith/neat-python/tree/config_work">config_work</a> branch.)</p>
+</div>
+<span class="target" id="pop-size-label"></span><ul class="simple" id="index-3">
+<li><dl class="first docutils">
+<dt><em>pop_size</em></dt>
+<dd>The number of individuals in each generation.</dd>
+</dl>
+</li>
+</ul>
+<span class="target" id="reset-on-extinction-label"></span><ul class="simple" id="index-4">
+<li><dl class="first docutils">
+<dt><em>reset_on_extinction</em></dt>
+<dd>If this evaluates to <code class="docutils literal"><span class="pre">True</span></code>, when all species simultaneously become extinct due to stagnation, a new random
+population will be created. If <code class="docutils literal"><span class="pre">False</span></code>, a <a class="reference internal" href="module_summaries.html#population.CompleteExtinctionException" title="population.CompleteExtinctionException"><code class="xref any py py-exc docutils literal"><span class="pre">CompleteExtinctionException</span></code></a> will be thrown.</dd>
+</dl>
+</li>
+</ul>
+<span class="target" id="index-5"></span></div>
+<div class="section" id="defaultstagnation-section">
+<span id="index-6"></span><h2>[DefaultStagnation] section<a class="headerlink" href="#defaultstagnation-section" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">DefaultStagnation</span></code> section specifies parameters for the builtin <a class="reference internal" href="module_summaries.html#stagnation.DefaultStagnation" title="stagnation.DefaultStagnation"><code class="xref any py py-class docutils literal"><span class="pre">DefaultStagnation</span></code></a> class.
+This section is only necessary if you specify this class as the stagnation implementation when
+creating the <a class="reference internal" href="module_summaries.html#config.Config" title="config.Config"><code class="xref any py py-class docutils literal"><span class="pre">Config</span></code></a> instance; otherwise you need to include whatever configuration (if any) is
+required for your particular implementation.</p>
+<span class="target" id="species-fitness-func-label"></span><ul class="simple" id="index-7">
+<li><dl class="first docutils">
+<dt><em>species_fitness_func</em></dt>
+<dd>The function used to compute species fitness.  <strong>This defaults to “mean“.</strong> Allowed values are: <code class="docutils literal"><span class="pre">max</span></code>, <code class="docutils literal"><span class="pre">min</span></code>, <code class="docutils literal"><span class="pre">mean</span></code>, and
+<a class="reference internal" href="module_summaries.html#math_util.median" title="math_util.median"><code class="xref py py-func docutils literal"><span class="pre">median</span></code></a></dd>
+</dl>
+</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is <strong>not</strong> used for calculating species fitness for apportioning reproduction (which always uses <code class="docutils literal"><span class="pre">mean</span></code>).</p>
+</div>
+<span class="target" id="max-stagnation-label"></span><ul class="simple" id="index-8">
+<li><dl class="first docutils">
+<dt><em>max_stagnation</em></dt>
+<dd>Species that have not shown improvement in more than this number of generations will be considered stagnant and removed. <strong>This defaults to 15.</strong></dd>
+</dl>
+</li>
+</ul>
+<span class="target" id="species-elitism-label"></span><ul class="simple" id="index-9">
+<li><dl class="first docutils">
+<dt><em>species_elitism</em></dt>
+<dd>The number of species that will be protected from stagnation; mainly intended to prevent
+total extinctions caused by all species becoming stagnant before new species arise.  For example,
+a <code class="docutils literal"><span class="pre">species_elitism</span></code> setting of 3 will prevent the 3 species with the highest species fitness from
+being removed for stagnation regardless of the amount of time they have not shown improvement. <strong>This defaults to 0.</strong></dd>
+</dl>
+</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>TODO: <a class="reference internal" href="module_summaries.html#stagnation.DefaultStagnation.write_config" title="stagnation.DefaultStagnation.write_config"><code class="xref any py py-meth docutils literal"><span class="pre">DefaultStagnation.write_config</span></code></a> uses a default of 15 for <code class="docutils literal"><span class="pre">species_elitism</span></code>, but the default by <a class="reference internal" href="module_summaries.html#stagnation.DefaultStagnation.parse_config" title="stagnation.DefaultStagnation.parse_config"><code class="xref any py py-meth docutils literal"><span class="pre">DefaultStagnation.parse_config</span></code></a> is 0,
+which will override.</p>
+<p class="last">The above is handled in the <a class="reference external" href="https://github.com/drallensmith/neat-python/tree/config_work">config_work</a> branch.</p>
+</div>
+<span class="target" id="index-10"></span></div>
+<div class="section" id="defaultreproduction-section">
+<span id="reproduction-config-label"></span><span id="index-11"></span><h2>[DefaultReproduction] section<a class="headerlink" href="#defaultreproduction-section" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">DefaultReproduction</span></code> section specifies parameters for the builtin <a class="reference internal" href="module_summaries.html#reproduction.DefaultReproduction" title="reproduction.DefaultReproduction"><code class="xref any py py-class docutils literal"><span class="pre">DefaultReproduction</span></code></a> class.
+This section is only necessary if you specify this class as the reproduction implementation when
+creating the <a class="reference internal" href="module_summaries.html#config.Config" title="config.Config"><code class="xref any py py-class docutils literal"><span class="pre">Config</span></code></a> instance; otherwise you need to include whatever configuration (if any) is
+required for your particular implementation.</p>
+<ul class="simple" id="index-12">
+<li><dl class="first docutils">
+<dt><em>elitism</em></dt>
+<dd>The number of most-fit individuals in each species that will be preserved as-is from one generation to the next. <strong>This defaults to 0.</strong></dd>
+</dl>
+</li>
+</ul>
+<ul class="simple" id="index-13">
+<li><dl class="first docutils">
+<dt><em>survival_threshold</em></dt>
+<dd>The fraction for each species allowed to reproduce each generation. <strong>This defaults to 0.2.</strong></dd>
+</dl>
+</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>TODO: There is also a <span class="target" id="index-14"></span>min_species_size configuration parameter, defaulting to 2, although it is not written out by
+<a class="reference internal" href="module_summaries.html#reproduction.DefaultReproduction.write_config" title="reproduction.DefaultReproduction.write_config"><code class="xref any py py-meth docutils literal"><span class="pre">DefaultReproduction.write_config</span></code></a>.</p>
+<p class="last">The above is handled in the <a class="reference external" href="https://github.com/drallensmith/neat-python/tree/config_work">config_work</a> branch, although documentation is needed.</p>
+</div>
+<span class="target" id="index-15"></span></div>
+<div class="section" id="defaultgenome-section">
+<span id="index-16"></span><h2>[DefaultGenome] section<a class="headerlink" href="#defaultgenome-section" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">DefaultGenome</span></code> section specifies parameters for the builtin <a class="reference internal" href="module_summaries.html#genome.DefaultGenome" title="genome.DefaultGenome"><code class="xref any py py-class docutils literal"><span class="pre">DefaultGenome</span></code></a> class.
+This section is only necessary if you specify this class as the genome implementation when
+creating the <a class="reference internal" href="module_summaries.html#config.Config" title="config.Config"><code class="xref any py py-class docutils literal"><span class="pre">Config</span></code></a> instance; otherwise you need to include whatever configuration (if any) is
+required for your particular implementation.</p>
+<span class="target" id="index-17"></span><span class="target" id="index-18"></span><span class="target" id="index-19"></span><span id="index-20"></span><ul class="simple" id="activation-function-config-label">
+<li><dl class="first docutils">
+<dt><em>activation_default</em></dt>
+<dd>The default <a class="reference internal" href="glossary.html#term-activation-function"><span class="xref std std-term">activation function</span></a> <a class="reference internal" href="glossary.html#term-attributes"><span class="xref std std-term">attribute</span></a> <a class="reference internal" href="module_summaries.html#attributes.StringAttribute.init_value" title="attributes.StringAttribute.init_value"><code class="xref py py-meth docutils literal"><span class="pre">assigned</span></code></a> to new
+<a class="reference internal" href="glossary.html#term-node"><span class="xref std std-term">nodes</span></a>. <strong>If none is given, or “random“ is specified, one of the “activation_options“ will be chosen at random.</strong></dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>activation_mutate_rate</em></dt>
+<dd>The probability that <a class="reference internal" href="glossary.html#term-mutation"><span class="xref std std-term">mutation</span></a> will replace the node’s activation function with a
+<a class="reference internal" href="module_summaries.html#attributes.StringAttribute.mutate_value" title="attributes.StringAttribute.mutate_value"><code class="xref py py-meth docutils literal"><span class="pre">randomly-determined</span></code></a> member of the <code class="docutils literal"><span class="pre">activation_options</span></code>.
+Valid values are in [0.0, 1.0].</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>activation_options</em></dt>
+<dd>A space-separated list of the activation functions that may be used by nodes.  <strong>This defaults to</strong> <a class="reference internal" href="activation.html#sigmoid-label"><span class="std std-ref">sigmoid</span></a>. The
+built-in available functions can be found in <a class="reference internal" href="activation.html#activation-functions-label"><span class="std std-ref">Overview of builtin activation functions</span></a>; more can be added as described in <a class="reference internal" href="customization.html#customization-label"><span class="std std-ref">Customizing Behavior</span></a>.</dd>
+</dl>
+</li>
+</ul>
+<span class="target" id="index-21"></span><span class="target" id="index-22"></span><span class="target" id="index-23"></span><ul class="simple" id="index-24">
+<li><dl class="first docutils">
+<dt><em>aggregation_default</em></dt>
+<dd>The default <a class="reference internal" href="glossary.html#term-aggregation-function"><span class="xref std std-term">aggregation function</span></a> <a class="reference internal" href="glossary.html#term-attributes"><span class="xref std std-term">attribute</span></a> <a class="reference internal" href="module_summaries.html#attributes.StringAttribute.init_value" title="attributes.StringAttribute.init_value"><code class="xref py py-meth docutils literal"><span class="pre">assigned</span></code></a> to new
+<a class="reference internal" href="glossary.html#term-node"><span class="xref std std-term">nodes</span></a>. <strong>If none is given, or “random“ is specified, one of the “aggregation_options“ will be chosen at random.</strong></dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>aggregation_mutate_rate</em></dt>
+<dd>The probability that <a class="reference internal" href="glossary.html#term-mutation"><span class="xref std std-term">mutation</span></a> will replace the node’s aggregation function with a
+<a class="reference internal" href="module_summaries.html#attributes.StringAttribute.mutate_value" title="attributes.StringAttribute.mutate_value"><code class="xref py py-meth docutils literal"><span class="pre">randomly-determined</span></code></a> member of the <code class="docutils literal"><span class="pre">aggregation_options</span></code>.
+Valid values are in [0.0, 1.0].</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>aggregation_options</em></dt>
+<dd>A space-separated list of the aggregation functions that may be used by nodes.  <strong>This defaults to “sum“.</strong> The
+available functions (defined in <a class="reference internal" href="module_summaries.html#genome.DefaultGenomeConfig" title="genome.DefaultGenomeConfig"><code class="xref any py py-class docutils literal"><span class="pre">genome.DefaultGenomeConfig</span></code></a>) are: <code class="docutils literal"><span class="pre">sum</span></code>, <a class="reference internal" href="module_summaries.html#genome.product" title="genome.product"><code class="xref py py-func docutils literal"><span class="pre">product</span></code></a>, <code class="docutils literal"><span class="pre">min</span></code>, and <code class="docutils literal"><span class="pre">max</span></code></dd>
+</dl>
+</li>
+</ul>
+<span class="target" id="index-25"></span><span class="target" id="index-26"></span><span class="target" id="index-27"></span><ul class="simple" id="index-28">
+<li><dl class="first docutils">
+<dt><em>bias_init_mean</em></dt>
+<dd>The mean of the normal/gaussian distribution used to <a class="reference internal" href="module_summaries.html#attributes.FloatAttribute.init_value" title="attributes.FloatAttribute.init_value"><code class="xref py py-meth docutils literal"><span class="pre">select</span></code></a> <a class="reference internal" href="glossary.html#term-bias"><span class="xref std std-term">bias</span></a>
+<a class="reference internal" href="glossary.html#term-attributes"><span class="xref std std-term">attribute</span></a> values for new <a class="reference internal" href="glossary.html#term-node"><span class="xref std std-term">nodes</span></a>.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>bias_init_stdev</em></dt>
+<dd>The standard deviation of the normal/gaussian distribution used to select bias values for new nodes.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>bias_max_value</em></dt>
+<dd>The maximum allowed bias value.  Biases above this value will be <a class="reference internal" href="module_summaries.html#attributes.FloatAttribute.clamp" title="attributes.FloatAttribute.clamp"><code class="xref py py-meth docutils literal"><span class="pre">clamped</span></code></a> to this value.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>bias_min_value</em></dt>
+<dd>The minimum allowed bias value.  Biases below this value will be <a class="reference internal" href="module_summaries.html#attributes.FloatAttribute.clamp" title="attributes.FloatAttribute.clamp"><code class="xref py py-meth docutils literal"><span class="pre">clamped</span></code></a> to this value.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>bias_mutate_power</em></dt>
+<dd>The standard deviation of the zero-centered normal/gaussian distribution from which a bias value <a class="reference internal" href="glossary.html#term-mutation"><span class="xref std std-term">mutation</span></a> is drawn.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>bias_mutate_rate</em></dt>
+<dd>The probability that <a class="reference internal" href="glossary.html#term-mutation"><span class="xref std std-term">mutation</span></a> will change the bias of a node by adding a random value.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>bias_replace_rate</em></dt>
+<dd>The probability that <a class="reference internal" href="glossary.html#term-mutation"><span class="xref std std-term">mutation</span></a> will replace the bias of a node with a newly <a class="reference internal" href="module_summaries.html#attributes.FloatAttribute.init_value" title="attributes.FloatAttribute.init_value"><code class="xref py py-meth docutils literal"><span class="pre">chosen</span></code></a>
+random value (as if it were a new node).</dd>
+</dl>
+</li>
+</ul>
+<span class="target" id="compatibility-threshold-label"></span><span class="target" id="index-29"></span><span class="target" id="index-30"></span><ul class="simple" id="index-31">
+<li><dl class="first docutils">
+<dt><em>compatibility_threshold</em></dt>
+<dd>Individuals whose <a class="reference internal" href="glossary.html#term-genomic-distance"><span class="xref std std-term">genomic distance</span></a> is less than this threshold are considered to be in the same <a class="reference internal" href="glossary.html#term-species"><span class="xref std std-term">species</span></a>.</dd>
+</dl>
+</li>
+</ul>
+<span class="target" id="compatibility-disjoint-coefficient-label"></span><span class="target" id="index-32"></span><ul class="simple" id="index-33">
+<li><dl class="first docutils">
+<dt><em>compatibility_disjoint_coefficient</em></dt>
+<dd>The coefficient for the <a class="reference internal" href="glossary.html#term-disjoint"><span class="xref std std-term">disjoint</span></a> and <a class="reference internal" href="glossary.html#term-excess"><span class="xref std std-term">excess</span></a> <a class="reference internal" href="glossary.html#term-gene"><span class="xref std std-term">gene</span></a> counts’ contribution to the <a class="reference internal" href="glossary.html#term-genomic-distance"><span class="xref std std-term">genomic distance</span></a>.</dd>
+</dl>
+</li>
+</ul>
+<span class="target" id="compatibility-weight-coefficient-label"></span><span class="target" id="index-34"></span><span class="target" id="index-35"></span><ul class="simple" id="index-36">
+<li><dl class="first docutils">
+<dt><em>compatibility_weight_coefficient</em></dt>
+<dd>The coefficient for each <a class="reference internal" href="glossary.html#term-weight"><span class="xref std std-term">weight</span></a>, <a class="reference internal" href="glossary.html#term-bias"><span class="xref std std-term">bias</span></a>, or <a class="reference internal" href="glossary.html#term-response"><span class="xref std std-term">response</span></a> multiplier difference’s contribution to the <a class="reference internal" href="glossary.html#term-genomic-distance"><span class="xref std std-term">genomic distance</span></a>
+(for <a class="reference internal" href="glossary.html#term-homologous"><span class="xref std std-term">homologous</span></a> <a class="reference internal" href="glossary.html#term-node"><span class="xref std std-term">nodes</span></a> or <a class="reference internal" href="glossary.html#term-connection"><span class="xref std std-term">connections</span></a>). This is also used as the value to add for differences
+in <a class="reference internal" href="glossary.html#term-activation-function"><span class="xref std std-term">activation functions</span></a>, <a class="reference internal" href="glossary.html#term-aggregation-function"><span class="xref std std-term">aggregation functions</span></a>, or <a class="reference internal" href="glossary.html#term-enabled"><span class="xref std std-term">enabled</span></a>/disabled status.</dd>
+</dl>
+</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It is currently possible for two <a class="reference internal" href="glossary.html#term-homologous"><span class="xref std std-term">homologous</span></a> nodes or connections to have a higher contribution to the <a class="reference internal" href="glossary.html#term-genomic-distance"><span class="xref std std-term">genomic distance</span></a> than a
+disjoint or excess <a class="reference internal" href="glossary.html#term-node"><span class="xref std std-term">node</span></a> or <a class="reference internal" href="glossary.html#term-connection"><span class="xref std std-term">connection</span></a>, depending on their <a class="reference internal" href="glossary.html#term-attributes"><span class="xref std std-term">attributes</span></a> and the settings of the above parameters.</p>
+</div>
+<span class="target" id="index-37"></span><span id="index-38"></span><ul class="simple" id="conn-add-prob-label">
+<li><dl class="first docutils">
+<dt><em>conn_add_prob</em></dt>
+<dd>The probability that <a class="reference internal" href="glossary.html#term-mutation"><span class="xref std std-term">mutation</span></a> will add a <a class="reference internal" href="glossary.html#term-connection"><span class="xref std std-term">connection</span></a> between existing <a class="reference internal" href="glossary.html#term-node"><span class="xref std std-term">nodes</span></a>. Valid values are in [0.0, 1.0].</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>conn_delete_prob</em></dt>
+<dd>The probability that <a class="reference internal" href="glossary.html#term-mutation"><span class="xref std std-term">mutation</span></a> will delete an existing connection. Valid values are in [0.0, 1.0].</dd>
+</dl>
+</li>
+</ul>
+<span class="target" id="enabled-default-label"></span><span class="target" id="index-39"></span><span class="target" id="index-40"></span><span class="target" id="index-41"></span><span class="target" id="index-42"></span><ul class="simple" id="index-43">
+<li><dl class="first docutils">
+<dt><em>enabled_default</em></dt>
+<dd>The default <a class="reference internal" href="glossary.html#term-enabled"><span class="xref std std-term">enabled</span></a> <a class="reference internal" href="glossary.html#term-attributes"><span class="xref std std-term">attribute</span></a> of newly created connections.  Valid values are <code class="docutils literal"><span class="pre">True</span></code> and <code class="docutils literal"><span class="pre">False</span></code>.</dd>
+</dl>
+</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">“Newly created connections” include ones in newly-created genomes, if those have initial connections
+(from the setting of the <a class="reference internal" href="#initial-connection-config-label"><span class="std std-ref">initial_connection</span></a> variable).</p>
+</div>
+<ul class="simple" id="index-44">
+<li><dl class="first docutils">
+<dt><em>enabled_mutate_rate</em></dt>
+<dd>The probability that <a class="reference internal" href="glossary.html#term-mutation"><span class="xref std std-term">mutation</span></a> will <a class="reference internal" href="module_summaries.html#attributes.BoolAttribute.mutate_value" title="attributes.BoolAttribute.mutate_value"><code class="xref py py-func docutils literal"><span class="pre">replace</span></code></a> (50/50 chance of <code class="docutils literal"><span class="pre">True</span></code> or <code class="docutils literal"><span class="pre">False</span></code>)
+the enabled status of a connection. Valid values are in [0.0, 1.0].</dd>
+</dl>
+</li>
+</ul>
+<span class="target" id="feed-forward-config-label"></span><span class="target" id="index-45"></span><ul class="simple" id="index-46">
+<li><dl class="first docutils">
+<dt><em>feed_forward</em></dt>
+<dd>If this evaluates to <code class="docutils literal"><span class="pre">True</span></code>, generated networks will not be allowed to have <a class="reference internal" href="glossary.html#term-recurrent"><span class="xref std std-term">recurrent</span></a> <a class="reference internal" href="glossary.html#term-connection"><span class="xref std std-term">connections</span></a>
+(they will be <a class="reference internal" href="glossary.html#term-feedforward"><span class="xref std std-term">feedforward</span></a>). Otherwise they may be (but are not forced to be) recurrent.</dd>
+</dl>
+</li>
+</ul>
+<span class="target" id="initial-connection-config-label"></span><span class="target" id="index-47"></span><span class="target" id="index-48"></span><ul class="simple" id="index-49">
+<li><dl class="first docutils">
+<dt><em>initial_connection</em></dt>
+<dd>Specifies the initial connectivity of newly-created genomes.  (Note the effects on settings other than <code class="docutils literal"><span class="pre">unconnected</span></code> of the
+<a class="reference internal" href="#enabled-default-label"><span class="std std-ref">enabled_default</span></a> parameter.) There are seven allowed values:<ul class="last">
+<li><code class="docutils literal"><span class="pre">unconnected</span></code> - No <a class="reference internal" href="glossary.html#term-connection"><span class="xref std std-term">connections</span></a> are initially present. <strong>This is the default.</strong></li>
+<li><code class="docutils literal"><span class="pre">fs_neat_nohidden</span></code> - One randomly-chosen <a class="reference internal" href="glossary.html#term-input-node"><span class="xref std std-term">input node</span></a> has one connection to each <a class="reference internal" href="glossary.html#term-output-node"><span class="xref std std-term">output node</span></a>. (This is one version of the
+FS-NEAT scheme.)</li>
+<li><code class="docutils literal"><span class="pre">fs_neat_hidden</span></code> - One randomly-chosen <a class="reference internal" href="glossary.html#term-input-node"><span class="xref std std-term">input node</span></a> has one connection to each <a class="reference internal" href="glossary.html#term-hidden-node"><span class="xref std std-term">hidden</span></a> and
+<a class="reference internal" href="glossary.html#term-output-node"><span class="xref std std-term">output node</span></a>. (This is another version of the FS-NEAT scheme. If there are no hidden nodes, it is the same as <code class="docutils literal"><span class="pre">fs_neat_nohidden</span></code>.)</li>
+<li><code class="docutils literal"><span class="pre">full_nodirect</span></code> - Each <a class="reference internal" href="glossary.html#term-input-node"><span class="xref std std-term">input node</span></a> is connected to all <a class="reference internal" href="glossary.html#term-hidden-node"><span class="xref std std-term">hidden</span></a> nodes, if there are any, and each hidden node is
+connected to all <a class="reference internal" href="glossary.html#term-output-node"><span class="xref std std-term">output nodes</span></a>; otherwise, each input node is connected to all <a class="reference internal" href="glossary.html#term-output-node"><span class="xref std std-term">output nodes</span></a>.
+Genomes with <a class="reference internal" href="#feed-forward-config-label"><span class="std std-ref">feed_forward</span></a> set to <code class="docutils literal"><span class="pre">False</span></code> will also have <a class="reference internal" href="glossary.html#term-recurrent"><span class="xref std std-term">recurrent</span></a> (loopback, in this case)
+connections from each hidden or output node to itself.</li>
+<li><code class="docutils literal"><span class="pre">full_direct</span></code> - Each <a class="reference internal" href="glossary.html#term-input-node"><span class="xref std std-term">input node</span></a> is connected to all <a class="reference internal" href="glossary.html#term-hidden-node"><span class="xref std std-term">hidden</span></a> and <a class="reference internal" href="glossary.html#term-output-node"><span class="xref std std-term">output nodes</span></a>,
+and each hidden node is connected to all output nodes. Genomes with <a class="reference internal" href="#feed-forward-config-label"><span class="std std-ref">feed_forward</span></a> set to <code class="docutils literal"><span class="pre">False</span></code> will also
+have <a class="reference internal" href="glossary.html#term-recurrent"><span class="xref std std-term">recurrent</span></a> (loopback, in this case) connections from each hidden or output node to itself.</li>
+<li><code class="docutils literal"><span class="pre">partial_nodirect</span> <span class="pre">#</span></code> - As for <code class="docutils literal"><span class="pre">full_nodirect</span></code>, but each connection has a probability of being present determined by the number
+(valid values are in [0.0, 1.0]).</li>
+<li><code class="docutils literal"><span class="pre">partial_direct</span> <span class="pre">#</span></code> - as for <code class="docutils literal"><span class="pre">full_direct</span></code>, but each connection has a probability of being present determined by the number
+(valid values are in [0.0, 1.0]).</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="versionchanged">
+<p><span class="versionmodified">Changed in version 0.91-github: </span>fs_neat split into fs_neat_nohidden and fs_neat_hidden; full, partial split into full_nodirect, full_direct, partial_nodirect, partial_direct</p>
+</div>
+<span class="target" id="index-50"></span><span id="index-51"></span><ul class="simple" id="node-add-prob-label">
+<li><dl class="first docutils">
+<dt><em>node_add_prob</em></dt>
+<dd>The probability that <a class="reference internal" href="glossary.html#term-mutation"><span class="xref std std-term">mutation</span></a> will add a new <a class="reference internal" href="glossary.html#term-node"><span class="xref std std-term">node</span></a> (essentially replacing an existing connection,
+the <a class="reference internal" href="glossary.html#term-enabled"><span class="xref std std-term">enabled</span></a> status of which will be set to <code class="docutils literal"><span class="pre">False</span></code>). Valid values are in [0.0, 1.0].</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>node_delete_prob</em></dt>
+<dd>The probability that <a class="reference internal" href="glossary.html#term-mutation"><span class="xref std std-term">mutation</span></a> will delete an existing node (and all connections to it). Valid values are in [0.0, 1.0].</dd>
+</dl>
+</li>
+</ul>
+<span class="target" id="num-nodes-config-label"></span><ul class="simple" id="index-52">
+<li><dl class="first docutils">
+<dt><em>num_hidden</em></dt>
+<dd>The number of <a class="reference internal" href="glossary.html#term-hidden-node"><span class="xref std std-term">hidden nodes</span></a> to add to each genome in the initial population.</dd>
+</dl>
+</li>
+</ul>
+<ul class="simple" id="index-53">
+<li><dl class="first docutils">
+<dt><em>num_inputs</em></dt>
+<dd>The number of <a class="reference internal" href="glossary.html#term-input-node"><span class="xref std std-term">input nodes</span></a>, through which the network receives inputs.</dd>
+</dl>
+</li>
+</ul>
+<ul class="simple" id="index-54">
+<li><dl class="first docutils">
+<dt><em>num_outputs</em></dt>
+<dd>The number of <a class="reference internal" href="glossary.html#term-output-node"><span class="xref std std-term">output nodes</span></a>, to which the network delivers outputs.</dd>
+</dl>
+</li>
+</ul>
+<span class="target" id="index-55"></span><span class="target" id="index-56"></span><span class="target" id="index-57"></span><ul class="simple" id="index-58">
+<li><dl class="first docutils">
+<dt><em>response_init_mean</em></dt>
+<dd>The mean of the normal/gaussian distribution used to <a class="reference internal" href="module_summaries.html#attributes.FloatAttribute.init_value" title="attributes.FloatAttribute.init_value"><code class="xref py py-meth docutils literal"><span class="pre">select</span></code></a> <a class="reference internal" href="glossary.html#term-response"><span class="xref std std-term">response</span></a> multiplier
+<a class="reference internal" href="glossary.html#term-attributes"><span class="xref std std-term">attribute</span></a> values for new <a class="reference internal" href="glossary.html#term-node"><span class="xref std std-term">nodes</span></a>.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>response_init_stdev</em></dt>
+<dd>The standard deviation of the normal/gaussian distribution used to select response multipliers for new nodes.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>response_max_value</em></dt>
+<dd>The maximum allowed response multiplier. Response multipliers above this value will be <a class="reference internal" href="module_summaries.html#attributes.FloatAttribute.clamp" title="attributes.FloatAttribute.clamp"><code class="xref py py-meth docutils literal"><span class="pre">clamped</span></code></a> to this value.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>response_min_value</em></dt>
+<dd>The minimum allowed response multiplier. Response multipliers below this value will be <a class="reference internal" href="module_summaries.html#attributes.FloatAttribute.clamp" title="attributes.FloatAttribute.clamp"><code class="xref py py-meth docutils literal"><span class="pre">clamped</span></code></a> to this value.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>response_mutate_power</em></dt>
+<dd>The standard deviation of the zero-centered normal/gaussian distribution from which a response multiplier <a class="reference internal" href="glossary.html#term-mutation"><span class="xref std std-term">mutation</span></a> is drawn.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>response_mutate_rate</em></dt>
+<dd>The probability that <a class="reference internal" href="glossary.html#term-mutation"><span class="xref std std-term">mutation</span></a> will change the response multiplier of a node by adding a random value.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>response_replace_rate</em></dt>
+<dd>The probability that <a class="reference internal" href="glossary.html#term-mutation"><span class="xref std std-term">mutation</span></a> will replace the response multiplier of a node with a newly <a class="reference internal" href="module_summaries.html#attributes.FloatAttribute.init_value" title="attributes.FloatAttribute.init_value"><code class="xref py py-meth docutils literal"><span class="pre">chosen</span></code></a>
+random value (as if it were a new node).</dd>
+</dl>
+</li>
+</ul>
+<span class="target" id="index-59"></span><span class="target" id="index-60"></span><span class="target" id="index-61"></span><ul class="simple" id="index-62">
+<li><dl class="first docutils">
+<dt><em>weight_init_mean</em></dt>
+<dd>The mean of the normal/gaussian distribution used to <a class="reference internal" href="module_summaries.html#attributes.FloatAttribute.init_value" title="attributes.FloatAttribute.init_value"><code class="xref py py-meth docutils literal"><span class="pre">select</span></code></a> <a class="reference internal" href="glossary.html#term-weight"><span class="xref std std-term">weight</span></a>
+<a class="reference internal" href="glossary.html#term-attributes"><span class="xref std std-term">attribute</span></a> values for new <a class="reference internal" href="glossary.html#term-connection"><span class="xref std std-term">connections</span></a>.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>weight_init_stdev</em></dt>
+<dd>The standard deviation of the normal/gaussian distribution used to select weight values for new connections.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>weight_max_value</em></dt>
+<dd>The maximum allowed weight value. Weights above this value will be <a class="reference internal" href="module_summaries.html#attributes.FloatAttribute.clamp" title="attributes.FloatAttribute.clamp"><code class="xref py py-meth docutils literal"><span class="pre">clamped</span></code></a> to this value.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>weight_min_value</em></dt>
+<dd>The minimum allowed weight value. Weights below this value will be <a class="reference internal" href="module_summaries.html#attributes.FloatAttribute.clamp" title="attributes.FloatAttribute.clamp"><code class="xref py py-meth docutils literal"><span class="pre">clamped</span></code></a> to this value.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>weight_mutate_power</em></dt>
+<dd>The standard deviation of the zero-centered normal/gaussian distribution from which a weight value <a class="reference internal" href="glossary.html#term-mutation"><span class="xref std std-term">mutation</span></a> is drawn.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>weight_mutate_rate</em></dt>
+<dd>The probability that <a class="reference internal" href="glossary.html#term-mutation"><span class="xref std std-term">mutation</span></a> will change the weight of a connection by adding a random value.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>weight_replace_rate</em></dt>
+<dd>The probability that <a class="reference internal" href="glossary.html#term-mutation"><span class="xref std std-term">mutation</span></a> will replace the weight of a connection with a newly <a class="reference internal" href="module_summaries.html#attributes.FloatAttribute.init_value" title="attributes.FloatAttribute.init_value"><code class="xref py py-meth docutils literal"><span class="pre">chosen</span></code></a>
+random value (as if it were a new connection).</dd>
+</dl>
+</li>
+</ul>
+<p><a class="reference internal" href="index.html#toc-label"><span class="std std-ref">Table of Contents</span></a></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Configuration file description</a><ul>
+<li><a class="reference internal" href="#neat-section">[NEAT] section</a></li>
+<li><a class="reference internal" href="#defaultstagnation-section">[DefaultStagnation] section</a></li>
+<li><a class="reference internal" href="#defaultreproduction-section">[DefaultReproduction] section</a></li>
+<li><a class="reference internal" href="#defaultgenome-section">[DefaultGenome] section</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="installation.html" title="previous chapter">Installation</a></li>
+      <li>Next: <a href="xor_example.html" title="next chapter">Overview of the basic XOR example (xor2.py)</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/config_file.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015-2017, CodeReclaimers, LLC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/config_file.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

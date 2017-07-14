@@ -1,0 +1,231 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>reporting &#8212; NEAT-Python 0.91-github documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.91-github',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for reporting</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">from</span> <span class="nn">neat.math_util</span> <span class="k">import</span> <span class="n">mean</span><span class="p">,</span> <span class="n">stdev</span>
+<span class="kn">from</span> <span class="nn">neat.six_util</span> <span class="k">import</span> <span class="n">itervalues</span><span class="p">,</span> <span class="n">iterkeys</span>
+
+<span class="c1"># TODO: Add a curses-based reporter.</span>
+
+
+<div class="viewcode-block" id="ReporterSet"><a class="viewcode-back" href="../module_summaries.html#reporting.ReporterSet">[docs]</a><span class="k">class</span> <span class="nc">ReporterSet</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reporters</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="ReporterSet.add"><a class="viewcode-back" href="../module_summaries.html#reporting.ReporterSet.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reporter</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reporters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reporter</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ReporterSet.remove"><a class="viewcode-back" href="../module_summaries.html#reporting.ReporterSet.remove">[docs]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reporter</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reporters</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">reporter</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ReporterSet.start_generation"><a class="viewcode-back" href="../module_summaries.html#reporting.ReporterSet.start_generation">[docs]</a>    <span class="k">def</span> <span class="nf">start_generation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gen</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reporters</span><span class="p">:</span>
+            <span class="n">r</span><span class="o">.</span><span class="n">start_generation</span><span class="p">(</span><span class="n">gen</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ReporterSet.end_generation"><a class="viewcode-back" href="../module_summaries.html#reporting.ReporterSet.end_generation">[docs]</a>    <span class="k">def</span> <span class="nf">end_generation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">species_set</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reporters</span><span class="p">:</span>
+            <span class="n">r</span><span class="o">.</span><span class="n">end_generation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">species_set</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ReporterSet.post_evaluate"><a class="viewcode-back" href="../module_summaries.html#reporting.ReporterSet.post_evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">post_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">best_genome</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reporters</span><span class="p">:</span>
+            <span class="n">r</span><span class="o">.</span><span class="n">post_evaluate</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">best_genome</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ReporterSet.post_reproduction"><a class="viewcode-back" href="../module_summaries.html#reporting.ReporterSet.post_reproduction">[docs]</a>    <span class="k">def</span> <span class="nf">post_reproduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reporters</span><span class="p">:</span>
+            <span class="n">r</span><span class="o">.</span><span class="n">post_reproduction</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ReporterSet.complete_extinction"><a class="viewcode-back" href="../module_summaries.html#reporting.ReporterSet.complete_extinction">[docs]</a>    <span class="k">def</span> <span class="nf">complete_extinction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reporters</span><span class="p">:</span>
+            <span class="n">r</span><span class="o">.</span><span class="n">complete_extinction</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ReporterSet.found_solution"><a class="viewcode-back" href="../module_summaries.html#reporting.ReporterSet.found_solution">[docs]</a>    <span class="k">def</span> <span class="nf">found_solution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">generation</span><span class="p">,</span> <span class="n">best</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reporters</span><span class="p">:</span>
+            <span class="n">r</span><span class="o">.</span><span class="n">found_solution</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">generation</span><span class="p">,</span> <span class="n">best</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ReporterSet.species_stagnant"><a class="viewcode-back" href="../module_summaries.html#reporting.ReporterSet.species_stagnant">[docs]</a>    <span class="k">def</span> <span class="nf">species_stagnant</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sid</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reporters</span><span class="p">:</span>
+            <span class="n">r</span><span class="o">.</span><span class="n">species_stagnant</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ReporterSet.info"><a class="viewcode-back" href="../module_summaries.html#reporting.ReporterSet.info">[docs]</a>    <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reporters</span><span class="p">:</span>
+            <span class="n">r</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="BaseReporter"><a class="viewcode-back" href="../module_summaries.html#reporting.BaseReporter">[docs]</a><span class="k">class</span> <span class="nc">BaseReporter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Definition of the reporter interface expected by ReporterSet.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="BaseReporter.start_generation"><a class="viewcode-back" href="../module_summaries.html#reporting.BaseReporter.start_generation">[docs]</a>    <span class="k">def</span> <span class="nf">start_generation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">generation</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BaseReporter.end_generation"><a class="viewcode-back" href="../module_summaries.html#reporting.BaseReporter.end_generation">[docs]</a>    <span class="k">def</span> <span class="nf">end_generation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">species_set</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BaseReporter.post_evaluate"><a class="viewcode-back" href="../module_summaries.html#reporting.BaseReporter.post_evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">post_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">best_genome</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BaseReporter.post_reproduction"><a class="viewcode-back" href="../module_summaries.html#reporting.BaseReporter.post_reproduction">[docs]</a>    <span class="k">def</span> <span class="nf">post_reproduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BaseReporter.complete_extinction"><a class="viewcode-back" href="../module_summaries.html#reporting.BaseReporter.complete_extinction">[docs]</a>    <span class="k">def</span> <span class="nf">complete_extinction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BaseReporter.found_solution"><a class="viewcode-back" href="../module_summaries.html#reporting.BaseReporter.found_solution">[docs]</a>    <span class="k">def</span> <span class="nf">found_solution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">generation</span><span class="p">,</span> <span class="n">best</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BaseReporter.species_stagnant"><a class="viewcode-back" href="../module_summaries.html#reporting.BaseReporter.species_stagnant">[docs]</a>    <span class="k">def</span> <span class="nf">species_stagnant</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sid</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BaseReporter.info"><a class="viewcode-back" href="../module_summaries.html#reporting.BaseReporter.info">[docs]</a>    <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="k">pass</span></div></div>
+
+
+<div class="viewcode-block" id="StdOutReporter"><a class="viewcode-back" href="../module_summaries.html#reporting.StdOutReporter">[docs]</a><span class="k">class</span> <span class="nc">StdOutReporter</span><span class="p">(</span><span class="n">BaseReporter</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show_species_detail</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_species_detail</span> <span class="o">=</span> <span class="n">show_species_detail</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generation</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generation_start_time</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generation_times</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_extinctions</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">start_generation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">generation</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generation</span> <span class="o">=</span> <span class="n">generation</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> ****** Running generation </span><span class="si">{0}</span><span class="s1"> ****** </span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">generation</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generation_start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">end_generation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">species_set</span><span class="p">):</span>
+        <span class="n">ng</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">population</span><span class="p">)</span>
+        <span class="n">ns</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">species_set</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_species_detail</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Population of </span><span class="si">{0:d}</span><span class="s1"> members in </span><span class="si">{1:d}</span><span class="s1"> species:&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ng</span><span class="p">,</span> <span class="n">ns</span><span class="p">))</span>
+            <span class="n">sids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">species_set</span><span class="o">.</span><span class="n">species</span><span class="p">))</span>
+            <span class="n">sids</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   ID   age  size  fitness  adj fit  stag&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  ====  ===  ====  =======  =======  ====&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">sid</span> <span class="ow">in</span> <span class="n">sids</span><span class="p">:</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="n">species_set</span><span class="o">.</span><span class="n">species</span><span class="p">[</span><span class="n">sid</span><span class="p">]</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generation</span> <span class="o">-</span> <span class="n">s</span><span class="o">.</span><span class="n">created</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">members</span><span class="p">)</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="s2">&quot;--&quot;</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">fitness</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;</span><span class="si">{:.1f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">fitness</span><span class="p">)</span>
+                <span class="n">af</span> <span class="o">=</span> <span class="s2">&quot;--&quot;</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">adjusted_fitness</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;</span><span class="si">{:.3f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">adjusted_fitness</span><span class="p">)</span>
+                <span class="n">st</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generation</span> <span class="o">-</span> <span class="n">s</span><span class="o">.</span><span class="n">last_improved</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  </span><span class="si">{: &gt;4}</span><span class="s2">  </span><span class="si">{: &gt;3}</span><span class="s2">  </span><span class="si">{: &gt;4}</span><span class="s2">  </span><span class="si">{: &gt;7}</span><span class="s2">  </span><span class="si">{: &gt;7}</span><span class="s2">  </span><span class="si">{: &gt;4}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">af</span><span class="p">,</span> <span class="n">st</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Population of </span><span class="si">{0:d}</span><span class="s1"> members in </span><span class="si">{1:d}</span><span class="s1"> species&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ng</span><span class="p">,</span> <span class="n">ns</span><span class="p">))</span>
+
+        <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">generation_start_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generation_times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elapsed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generation_times</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generation_times</span><span class="p">[</span><span class="o">-</span><span class="mi">10</span><span class="p">:]</span>
+        <span class="n">average</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generation_times</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generation_times</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Total extinctions: </span><span class="si">{0:d}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_extinctions</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generation_times</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generation time: </span><span class="si">{0:.3f}</span><span class="s2"> sec (</span><span class="si">{1:.3f}</span><span class="s2"> average)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elapsed</span><span class="p">,</span> <span class="n">average</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generation time: </span><span class="si">{0:.3f}</span><span class="s2"> sec&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elapsed</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">post_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">best_genome</span><span class="p">):</span>
+        <span class="n">fitnesses</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">fitness</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">itervalues</span><span class="p">(</span><span class="n">population</span><span class="p">)]</span>
+        <span class="n">fit_mean</span> <span class="o">=</span> <span class="n">mean</span><span class="p">(</span><span class="n">fitnesses</span><span class="p">)</span>
+        <span class="n">fit_std</span> <span class="o">=</span> <span class="n">stdev</span><span class="p">(</span><span class="n">fitnesses</span><span class="p">)</span>
+        <span class="n">best_species_id</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">get_species_id</span><span class="p">(</span><span class="n">best_genome</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Population</span><span class="se">\&#39;</span><span class="s1">s average fitness: </span><span class="si">{0:3.5f}</span><span class="s1"> stdev: </span><span class="si">{1:3.5f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fit_mean</span><span class="p">,</span> <span class="n">fit_std</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Best fitness: </span><span class="si">{0:3.5f}</span><span class="s1"> - size: </span><span class="si">{1!r}</span><span class="s1"> - species </span><span class="si">{2}</span><span class="s1"> - id </span><span class="si">{3}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">best_genome</span><span class="o">.</span><span class="n">fitness</span><span class="p">,</span> <span class="n">best_genome</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span>
+                                                                                   <span class="n">best_species_id</span><span class="p">,</span> <span class="n">best_genome</span><span class="o">.</span><span class="n">key</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">complete_extinction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_extinctions</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;All species extinct.&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">found_solution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">generation</span><span class="p">,</span> <span class="n">best</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Best individual in generation </span><span class="si">{0}</span><span class="s1"> meets fitness threshold - complexity: </span><span class="si">{1!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">generation</span><span class="p">,</span> <span class="n">best</span><span class="o">.</span><span class="n">size</span><span class="p">()))</span>
+
+    <span class="k">def</span> <span class="nf">species_stagnant</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sid</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_species_detail</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Species </span><span class="si">{0}</span><span class="s2"> with </span><span class="si">{1}</span><span class="s2"> members is stagnated: removing it&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="o">.</span><span class="n">members</span><span class="p">)))</span>
+
+    <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015-2017, CodeReclaimers, LLC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

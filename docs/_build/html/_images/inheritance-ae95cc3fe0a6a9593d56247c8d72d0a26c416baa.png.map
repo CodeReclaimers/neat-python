@@ -1,0 +1,10 @@
+<map id="inheritance766b52fbef" name="inheritance766b52fbef">
+<area shape="rect" id="node1" href="#genes.BaseGene" target="_top" title="genes.BaseGene" alt="" coords="41,227,167,252"/>
+<area shape="rect" id="node2" href="#genes.DefaultConnectionGene" target="_top" title="genes.DefaultConnectionGene" alt="" coords="251,203,455,228"/>
+<area shape="rect" id="node3" href="#genes.DefaultNodeGene" target="_top" title="genes.DefaultNodeGene" alt="" coords="268,252,437,277"/>
+<area shape="rect" id="node4" href="#iznn.IZGenome" target="_top" title="iznn.IZGenome" alt="" coords="296,153,409,179"/>
+<area shape="rect" id="node5" title="A genome for generalized neural networks." alt="" coords="5,153,203,179"/>
+<area shape="rect" id="node6" href="#iznn.IZNN" target="_top" title="iznn.IZNN" alt="" coords="63,104,145,129"/>
+<area shape="rect" id="node7" href="#iznn.IZNeuron" target="_top" title="Sets up and simulates the iznn nodes (neurons)." alt="" coords="51,55,157,80"/>
+<area shape="rect" id="node8" href="#iznn.IZNodeGene" target="_top" title="Contains attributes for the iznn node genes and determines genomic distances." alt="" coords="289,5,416,31"/>
+</map>

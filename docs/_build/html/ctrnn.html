@@ -1,0 +1,113 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Continuous-time recurrent neural network implementation &#8212; NEAT-Python 0.91-github documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.91-github',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Module summaries" href="module_summaries.html" />
+    <link rel="prev" title="Overview of builtin activation functions" href="activation.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="continuous-time-recurrent-neural-network-implementation">
+<h1>Continuous-time recurrent neural network implementation<a class="headerlink" href="#continuous-time-recurrent-neural-network-implementation" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="index-0"></span><span class="target" id="index-1"></span><p id="index-2">The default <a class="reference internal" href="glossary.html#term-continuous-time"><span class="xref std std-term">continuous-time</span></a> <a class="reference internal" href="glossary.html#term-recurrent"><span class="xref std std-term">recurrent</span></a> neural network (CTRNN) <a class="reference internal" href="module_summaries.html#module-ctrnn" title="ctrnn: Handles the continuous-time recurrent neural network implementation."><code class="xref py py-mod docutils literal"><span class="pre">implementation</span></code></a> in neat-python
+is modeled as a system of ordinary differential equations, with neuron potentials as the dependent variables.</p>
+<p><span class="math">\(\tau_i \frac{d y_i}{dt} = -y_i + f_i\left(\beta_i + \sum\limits_{j \in A_i} w_{ij} y_j\right)\)</span></p>
+<p>Where:</p>
+<ul class="simple">
+<li><span class="math">\(\tau_i\)</span> is the time constant of neuron <span class="math">\(i\)</span>.</li>
+<li><span class="math">\(y_i\)</span> is the potential of neuron <span class="math">\(i\)</span>.</li>
+<li><span class="math">\(f_i\)</span> is the <a class="reference internal" href="glossary.html#term-activation-function"><span class="xref std std-term">activation function</span></a> of neuron <span class="math">\(i\)</span>.</li>
+<li><span class="math">\(\beta_i\)</span> is the <a class="reference internal" href="glossary.html#term-bias"><span class="xref std std-term">bias</span></a> of neuron <span class="math">\(i\)</span>.</li>
+<li><span class="math">\(A_i\)</span> is the set of indices of neurons that provide input to neuron <span class="math">\(i\)</span>.</li>
+<li><span class="math">\(w_{ij}\)</span> is the <a class="reference internal" href="glossary.html#term-weight"><span class="xref std std-term">weight</span></a> of the <a class="reference internal" href="glossary.html#term-connection"><span class="xref std std-term">connection</span></a> from neuron <span class="math">\(j\)</span> to neuron <span class="math">\(i\)</span>.</li>
+</ul>
+<p>The time evolution of the network is computed using the forward Euler method:</p>
+<p><span class="math">\(y_i(t+\Delta t) = y_i(t) + \Delta t \frac{d y_i}{dt}\)</span></p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="activation.html" title="previous chapter">Overview of builtin activation functions</a></li>
+      <li>Next: <a href="module_summaries.html" title="next chapter">Module summaries</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/ctrnn.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015-2017, CodeReclaimers, LLC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/ctrnn.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,200 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>genes &#8212; NEAT-Python 0.91-github documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.91-github',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for genes</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Handles genes coding for node and connection attributes.&quot;&quot;&quot;</span>
+<span class="c1">##from __future__ import print_function</span>
+
+<span class="kn">from</span> <span class="nn">random</span> <span class="k">import</span> <span class="n">random</span>
+<span class="c1">##from sys import getrefcount, stderr</span>
+<span class="c1">##from types import MethodType</span>
+
+<span class="kn">from</span> <span class="nn">neat.attributes</span> <span class="k">import</span> <span class="n">FloatAttribute</span><span class="p">,</span> <span class="n">BoolAttribute</span><span class="p">,</span> <span class="n">FuncAttribute</span>
+
+<span class="c1"># TODO: There is probably a lot of room for simplification of these classes using metaprogramming.</span>
+<span class="c1"># TODO: Evaluate using __slots__ for performance/memory usage improvement.</span>
+
+
+<div class="viewcode-block" id="BaseGene"><a class="viewcode-back" href="../module_summaries.html#genes.BaseGene">[docs]</a><span class="k">class</span> <span class="nc">BaseGene</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="n">key</span>
+
+<div class="viewcode-block" id="BaseGene.__str__"><a class="viewcode-back" href="../module_summaries.html#genes.BaseGene.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">attrib</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;key&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__gene_attributes__</span><span class="p">]</span>
+        <span class="n">attrib</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">{0}</span><span class="s1">=</span><span class="si">{1}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">))</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">attrib</span><span class="p">]</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{0}</span><span class="s1">(</span><span class="si">{1}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">attrib</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="BaseGene.__lt__"><a class="viewcode-back" href="../module_summaries.html#genes.BaseGene.__lt__">[docs]</a>    <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">key</span></div>
+
+<div class="viewcode-block" id="BaseGene.parse_config"><a class="viewcode-back" href="../module_summaries.html#genes.BaseGene.parse_config">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">parse_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">param_dict</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BaseGene.get_config_params"><a class="viewcode-back" href="../module_summaries.html#genes.BaseGene.get_config_params">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_config_params</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__gene_attributes__</span><span class="p">:</span>
+            <span class="n">params</span> <span class="o">+=</span> <span class="n">a</span><span class="o">.</span><span class="n">get_config_params</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">params</span></div>
+
+<div class="viewcode-block" id="BaseGene.init_attributes"><a class="viewcode-back" href="../module_summaries.html#genes.BaseGene.init_attributes">[docs]</a>    <span class="k">def</span> <span class="nf">init_attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__gene_attributes__</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">init_value</span><span class="p">(</span><span class="n">config</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="BaseGene.mutate"><a class="viewcode-back" href="../module_summaries.html#genes.BaseGene.mutate">[docs]</a>    <span class="k">def</span> <span class="nf">mutate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__gene_attributes__</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">mutate_value</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">config</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="BaseGene.copy"><a class="viewcode-back" href="../module_summaries.html#genes.BaseGene.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">new_gene</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__gene_attributes__</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;copy&#39;</span><span class="p">):</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">new_gene</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">new_gene</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">new_gene</span></div>
+
+<div class="viewcode-block" id="BaseGene.crossover"><a class="viewcode-back" href="../module_summaries.html#genes.BaseGene.crossover">[docs]</a>    <span class="k">def</span> <span class="nf">crossover</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gene2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new gene randomly inheriting attributes from its parents.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="n">gene2</span><span class="o">.</span><span class="n">key</span>
+
+        <span class="c1"># Note: we use &quot;a if random() &gt; 0.5 else b&quot; instead of choice((a, b))</span>
+        <span class="c1"># here because `choice` is substantially slower.</span>
+        <span class="n">new_gene</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__gene_attributes__</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">random</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;copy&#39;</span><span class="p">):</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">new_gene</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">new_gene</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">gene2_attr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">gene2</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">gene2_attr</span><span class="p">,</span> <span class="s1">&#39;copy&#39;</span><span class="p">):</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">new_gene</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">gene2_attr</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">new_gene</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">gene2_attr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">new_gene</span></div></div>
+
+
+<span class="c1"># TODO: Should these be in the nn module?  iznn and ctrnn can have additional attributes.</span>
+
+
+<div class="viewcode-block" id="DefaultNodeGene"><a class="viewcode-back" href="../module_summaries.html#genes.DefaultNodeGene">[docs]</a><span class="k">class</span> <span class="nc">DefaultNodeGene</span><span class="p">(</span><span class="n">BaseGene</span><span class="p">):</span>
+    <span class="n">__gene_attributes__</span> <span class="o">=</span> <span class="p">[</span><span class="n">FloatAttribute</span><span class="p">(</span><span class="s1">&#39;bias&#39;</span><span class="p">),</span>
+                           <span class="n">FloatAttribute</span><span class="p">(</span><span class="s1">&#39;response&#39;</span><span class="p">),</span>
+                           <span class="n">FuncAttribute</span><span class="p">(</span><span class="s1">&#39;activation&#39;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="s1">&#39;sigmoid&#39;</span><span class="p">),</span>
+                           <span class="n">FuncAttribute</span><span class="p">(</span><span class="s1">&#39;aggregation&#39;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="s1">&#39;sum&#39;</span><span class="p">)]</span>
+
+<div class="viewcode-block" id="DefaultNodeGene.distance"><a class="viewcode-back" href="../module_summaries.html#genes.DefaultNodeGene.distance">[docs]</a>    <span class="k">def</span> <span class="nf">distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the genetic distance between two node genes.&quot;&quot;&quot;</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bias</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">bias</span><span class="p">)</span> <span class="o">+</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">response</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">activation</span><span class="p">,</span> <span class="s1">&#39;distance&#39;</span><span class="p">):</span>
+            <span class="n">d</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activation</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">activation</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">activation</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">activation</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">+=</span> <span class="mf">1.0</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aggregation</span><span class="p">,</span> <span class="s1">&#39;distance&#39;</span><span class="p">):</span>
+            <span class="n">d</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregation</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">aggregation</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregation</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">aggregation</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">+=</span> <span class="mf">1.0</span>
+        
+        <span class="k">return</span> <span class="n">d</span> <span class="o">*</span> <span class="n">config</span><span class="o">.</span><span class="n">compatibility_weight_coefficient</span></div></div>
+
+
+<span class="c1"># TODO: Do an ablation study to determine whether the enabled setting is</span>
+<span class="c1"># important--presumably mutations that set the weight to near zero could</span>
+<span class="c1"># provide a similar effect depending on the weight range and mutation rate.</span>
+<div class="viewcode-block" id="DefaultConnectionGene"><a class="viewcode-back" href="../module_summaries.html#genes.DefaultConnectionGene">[docs]</a><span class="k">class</span> <span class="nc">DefaultConnectionGene</span><span class="p">(</span><span class="n">BaseGene</span><span class="p">):</span>
+    <span class="n">__gene_attributes__</span> <span class="o">=</span> <span class="p">[</span><span class="n">FloatAttribute</span><span class="p">(</span><span class="s1">&#39;weight&#39;</span><span class="p">),</span>
+                           <span class="n">BoolAttribute</span><span class="p">(</span><span class="s1">&#39;enabled&#39;</span><span class="p">)]</span>
+
+<div class="viewcode-block" id="DefaultConnectionGene.distance"><a class="viewcode-back" href="../module_summaries.html#genes.DefaultConnectionGene.distance">[docs]</a>    <span class="k">def</span> <span class="nf">distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the genetic distance between two connection genes.&quot;&quot;&quot;</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">+=</span> <span class="mf">1.0</span>
+        <span class="k">return</span> <span class="n">d</span> <span class="o">*</span> <span class="n">config</span><span class="o">.</span><span class="n">compatibility_weight_coefficient</span></div></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015-2017, CodeReclaimers, LLC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,177 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>graphs &#8212; NEAT-Python 0.91-github documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.91-github',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for graphs</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Directed graph algorithm implementations.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="creates_cycle"><a class="viewcode-back" href="../module_summaries.html#graphs.creates_cycle">[docs]</a><span class="k">def</span> <span class="nf">creates_cycle</span><span class="p">(</span><span class="n">connections</span><span class="p">,</span> <span class="n">test</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns true if the addition of the &quot;test&quot; connection would create a cycle,</span>
+<span class="sd">    assuming that no cycle already exists in the graph represented by &quot;connections&quot;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">i</span><span class="p">,</span> <span class="n">o</span> <span class="o">=</span> <span class="n">test</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">o</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="n">visited</span> <span class="o">=</span> <span class="p">{</span><span class="n">o</span><span class="p">}</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">num_added</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">connections</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">visited</span> <span class="ow">and</span> <span class="n">b</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">visited</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">b</span> <span class="o">==</span> <span class="n">i</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">True</span>
+
+                <span class="n">visited</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+                <span class="n">num_added</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">num_added</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="required_for_output"><a class="viewcode-back" href="../module_summaries.html#graphs.required_for_output">[docs]</a><span class="k">def</span> <span class="nf">required_for_output</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">connections</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Collect the nodes whose state is required to compute the final network output(s).</span>
+<span class="sd">    :param inputs: list of the input identifiers</span>
+<span class="sd">    :param outputs: list of the output node identifiers</span>
+<span class="sd">    :param connections: list of (input, output) connections in the network.</span>
+<span class="sd">    NOTE: It is assumed that the input identifier set and the node identifier set are disjoint.</span>
+<span class="sd">    By convention, the output node ids are always the same as the output index.</span>
+
+<span class="sd">    Returns a list of layers, with each layer consisting of a set of identifiers.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">required</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">outputs</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">outputs</span><span class="p">)</span>
+    <span class="k">while</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># Find nodes not in S whose output is consumed by a node in s.</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">a</span> <span class="k">for</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="ow">in</span> <span class="n">connections</span> <span class="k">if</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">s</span> <span class="ow">and</span> <span class="n">a</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">s</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">t</span><span class="p">:</span>
+            <span class="k">break</span>
+
+        <span class="n">layer_nodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">t</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">layer_nodes</span><span class="p">:</span>
+            <span class="k">break</span>
+
+        <span class="n">required</span> <span class="o">=</span> <span class="n">required</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">layer_nodes</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">required</span></div>
+
+
+<div class="viewcode-block" id="feed_forward_layers"><a class="viewcode-back" href="../module_summaries.html#graphs.feed_forward_layers">[docs]</a><span class="k">def</span> <span class="nf">feed_forward_layers</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">connections</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Collect the layers whose members can be evaluated in parallel in a feed-forward network.</span>
+<span class="sd">    :param inputs: list of the network input nodes</span>
+<span class="sd">    :param outputs: list of the output node identifiers</span>
+<span class="sd">    :param connections: list of (input, output) connections in the network.</span>
+
+<span class="sd">    Returns a list of layers, with each layer consisting of a set of node identifiers.</span>
+<span class="sd">    Note that the returned layers do not contain nodes whose output is ultimately</span>
+<span class="sd">    never used to compute the final network output.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">required</span> <span class="o">=</span> <span class="n">required_for_output</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">connections</span><span class="p">)</span>
+
+    <span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+    <span class="k">while</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># Find candidate nodes c for the next layer.  These nodes should connect</span>
+        <span class="c1"># a node in s to a node not in s.</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">b</span> <span class="k">for</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="ow">in</span> <span class="n">connections</span> <span class="k">if</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">s</span> <span class="ow">and</span> <span class="n">b</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">s</span><span class="p">)</span>
+        <span class="c1"># Keep only the used nodes whose entire input set is contained in s.</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">required</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="n">a</span> <span class="ow">in</span> <span class="n">s</span> <span class="k">for</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="ow">in</span> <span class="n">connections</span> <span class="k">if</span> <span class="n">b</span> <span class="o">==</span> <span class="n">n</span><span class="p">):</span>
+                <span class="n">t</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">t</span><span class="p">:</span>
+            <span class="k">break</span>
+
+        <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">layers</span></div>
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015-2017, CodeReclaimers, LLC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
