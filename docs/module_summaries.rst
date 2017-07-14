@@ -7,7 +7,7 @@ Module summaries
 .. index:: activation function
 
 .. py:module:: activations
-   :synopsis: Has the built-in activation functions and code for using them and adding new user-defined ones.
+   :synopsis: Has the built-in activation functions, code for using them,  and code for adding new user-defined ones.
 
 activations
 ---------------

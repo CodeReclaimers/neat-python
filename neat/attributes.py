@@ -80,8 +80,8 @@ class FloatAttribute(BaseAttribute):
 class BoolAttribute(BaseAttribute):
     __config_items__ = {"default": [bool, None],
                         "mutate_rate": [float, None],
-                        "add_rate_to_true": [float, 0.0],
-                        "add_rate_to_false": [float, 0.0]}
+                        "rate_to_true_add": [float, 0.0],
+                        "rate_to_false_add": [float, 0.0]}
 
     def init_value(self, config):
         default = getattr(config, self.default_name)
@@ -95,9 +95,9 @@ class BoolAttribute(BaseAttribute):
         mutate_rate = getattr(config, self.mutate_rate_name)
 
         if value:
-            mutate_rate += getattr(config, self.add_rate_to_false_name)
+            mutate_rate += getattr(config, self.rate_to_false_add_name)
         else:
-            mutate_rate += getattr(config, self.add_rate_to_true_name)
+            mutate_rate += getattr(config, self.rate_to_true_add_name)
 
         if mutate_rate > 0:
             r = random()
