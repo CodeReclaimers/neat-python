@@ -40,7 +40,8 @@ class ConfigParameter(object):
             if self.default is None:
                 raise RuntimeError('Missing configuration item: ' + self.name)
             else:
-                warnings.warn("Using default {!r} for '{!s}'".format(self.default, self.name), DeprecationWarning)
+                warnings.warn("Using default {!r} for '{!s}'".format(self.default, self.name),
+                              DeprecationWarning)
                 value = self.default
 
         try:

@@ -34,6 +34,8 @@ class DefaultGenomeConfig(object):
                         ConfigParameter('conn_delete_prob', float),
                         ConfigParameter('node_add_prob', float),
                         ConfigParameter('node_delete_prob', float),
+                        ConfigParameter('single_structural_mutation', bool, False),
+                        ConfigParameter('structural_mutation_surer', str, 'default'),
                         ConfigParameter('initial_connection', str, 'unconnected')]
 
         # Gather configuration data from the gene classes.
@@ -60,9 +62,21 @@ class DefaultGenomeConfig(object):
             self.initial_connection = c
             self.connection_fraction = float(p)
             if not (0 <= self.connection_fraction <= 1):
-                raise Exception("'partial' connection value must be between 0.0 and 1.0, inclusive.")
+                raise RuntimeError("'partial' connection value must be between 0.0 and 1.0, inclusive.")
 
         assert self.initial_connection in self.allowed_connectivity
+
+        # Verify structural_mutation_surer is valid.
+        # pylint: disable=access-member-before-definition
+        if self.structural_mutation_surer.lower() in ['1','yes','true','on']:
+            self.structural_mutation_surer = 'true'
+        elif self.structural_mutation_surer.lower() in ['0','no','false','off']:
+            self.structural_mutation_surer = 'false'
+        elif self.structural_mutation_surer.lower() == 'default':
+            self.structural_mutation_surer = 'default'
+        else:
+            error_string = "Invalid structural_mutation_surer {!r}".format(self.structural_mutation_surer)
+            raise RuntimeError(error_string)
 
         self.node_indexer = None
 
@@ -75,7 +89,7 @@ class DefaultGenomeConfig(object):
     def save(self, f):
         if 'partial' in self.initial_connection:
             if not (0 <= self.connection_fraction <= 1):
-                raise Exception("'partial' connection value must be between 0.0 and 1.0, inclusive.")
+                raise RuntimeError("'partial' connection value must be between 0.0 and 1.0, inclusive.")
             f.write('initial_connection      = {0} {1}\n'.format(self.initial_connection,
                                                                  self.connection_fraction))
         else:
@@ -226,19 +240,32 @@ class DefaultGenome(object):
     def mutate(self, config):
         """ Mutates this genome. """
 
-        # TODO: Make a configuration item to choose whether or not multiple
-        # mutations can happen simultaneously.
-        if random() < config.node_add_prob:
-            self.mutate_add_node(config)
+        if config.single_structural_mutation:
+            div = max(1,(config.node_add_prob + config.node_delete_prob +
+                         config.conn_add_prob + config.conn_delete_prob))
+            r = random()
+            if r < (config.node_add_prob/div):
+                self.mutate_add_node(config)
+            elif r < ((config.node_add_prob + config.node_delete_prob)/div):
+                self.mutate_delete_node(config)
+            elif r < ((config.node_add_prob + config.node_delete_prob +
+                       config.conn_add_prob)/div):
+                self.mutate_add_connection(config)
+            elif r < ((config.node_add_prob + config.node_delete_prob +
+                       config.conn_add_prob + config.conn_delete_prob)/div):
+                self.mutate_delete_connection()
+        else:
+            if random() < config.node_add_prob:
+                self.mutate_add_node(config)
 
-        if random() < config.node_delete_prob:
-            self.mutate_delete_node(config)
+            if random() < config.node_delete_prob:
+                self.mutate_delete_node(config)
 
-        if random() < config.conn_add_prob:
-            self.mutate_add_connection(config)
+            if random() < config.conn_add_prob:
+                self.mutate_add_connection(config)
 
-        if random() < config.conn_delete_prob:
-            self.mutate_delete_connection()
+            if random() < config.conn_delete_prob:
+                self.mutate_delete_connection()
 
         # Mutate connection genes.
         for cg in self.connections.values():
@@ -248,9 +275,23 @@ class DefaultGenome(object):
         for ng in self.nodes.values():
             ng.mutate(config)
 
+    @staticmethod
+    def check_structural_mutation_surer(config):
+        if config.structural_mutation_surer == 'true':
+            return True
+        elif config.structural_mutation_surer == 'false':
+            return False
+        elif config.structural_mutation_surer == 'default':
+            return config.single_structural_mutation
+        else:
+            error_string = "Invalid structural_mutation_surer {!r}".format(config.structural_mutation_surer)
+            raise RuntimeError(error_string)
+
     def mutate_add_node(self, config):
         if not self.connections:
-            return None, None
+            if check_structural_mutation_surer(config):
+                self.mutate_add_connection(config)
+            return
 
         # Choose a random connection to split
         conn_to_split = choice(list(self.connections.values()))
@@ -289,7 +330,9 @@ class DefaultGenome(object):
 
         # Don't duplicate connections.
         key = (in_node, out_node)
-        if key in self.connections:
+        if key in self.connections: # TODO: Should this be using mutation to/from rates? Hairy to configure...
+            if check_structural_mutation_surer(config):
+                self.connections[key].enabled = True
             return
 
         # Don't allow connections between two output nodes
