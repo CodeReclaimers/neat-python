@@ -1,0 +1,190 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Glossary &#8212; NEAT-Python 0.91-github documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.91-github',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Reproduction Interface" href="reproduction-interface.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="glossary">
+<h1>Glossary<a class="headerlink" href="#glossary" title="Permalink to this headline">¶</a></h1>
+<dl class="glossary docutils">
+<dt id="term-activation-function">activation function<dt id="term-aggregation-function">aggregation function<dt id="term-bias">bias<dt id="term-response">response</dt>
+<dd>These are the <a class="reference internal" href="#term-attributes"><span class="xref std std-term">attributes</span></a> of a <a class="reference internal" href="#term-node"><span class="xref std std-term">node</span></a>. They determine the output of a node as follows:
+<span class="math">\(\begin{equation}\operatorname{activation}(bias + (response * \operatorname{aggregation}(inputs)))\end{equation}\)</span>
+For available activation functions, see <a class="reference internal" href="activation.html#activation-functions-label"><span class="std std-ref">Overview of builtin activation functions</span></a>; for adding new ones, see <a class="reference internal" href="customization.html#customization-label"><span class="std std-ref">Customizing Behavior</span></a>.</dd>
+<dt id="term-attributes">attributes</dt>
+<dd>These are the properties of a <a class="reference internal" href="#term-node"><span class="xref std std-term">node</span></a> (such as its <a class="reference internal" href="#term-activation-function"><span class="xref std std-term">activation function</span></a>) or <a class="reference internal" href="#term-connection"><span class="xref std std-term">connection</span></a> (such as whether it is <a class="reference internal" href="#term-enabled"><span class="xref std std-term">enabled</span></a> or not)
+determined by its associated <a class="reference internal" href="#term-gene"><span class="xref std std-term">gene</span></a> (in the default implementation, in the <a class="reference internal" href="module_summaries.html#module-attributes" title="attributes: Deals with attributes used by genes."><code class="xref py py-mod docutils literal"><span class="pre">attributes</span></code></a> module in combination with the gene class).</dd>
+<dt id="term-connection">connection</dt>
+<dd>These connect between <a class="reference internal" href="#term-node"><span class="xref std std-term">nodes</span></a>, and give rise to the <em>network</em> in the term <code class="docutils literal"><span class="pre">neural</span> <span class="pre">network</span></code>. For non-loopback (directly <a class="reference internal" href="#term-recurrent"><span class="xref std std-term">recurrent</span></a>)
+connections, they are equivalent to biological synapses. Connections have two <a class="reference internal" href="#term-attributes"><span class="xref std std-term">attributes</span></a>, their <a class="reference internal" href="#term-weight"><span class="xref std std-term">weight</span></a> and whether or not they are
+<a class="reference internal" href="#term-enabled"><span class="xref std std-term">enabled</span></a>; both are determined by their <a class="reference internal" href="#term-gene"><span class="xref std std-term">gene</span></a>. An example gene class for connections can be seen
+in <a class="reference internal" href="module_summaries.html#genes.DefaultConnectionGene" title="genes.DefaultConnectionGene"><code class="xref py py-class docutils literal"><span class="pre">genes.DefaultConnectionGene</span></code></a>.</dd>
+<dt id="term-continuous-time">continuous-time<dt id="term-discrete-time">discrete-time</dt>
+<dd>A discrete-time neural network (which should be assumed unless specified otherwise) proceeds in time steps, with processing at one <a class="reference internal" href="#term-node"><span class="xref std std-term">node</span></a>
+followed by going through <a class="reference internal" href="#term-connection"><span class="xref std std-term">connections</span></a> to other nodes followed by processing at those other nodes, eventually giving the output.
+A continuous-time neural network, such as the <a class="reference internal" href="ctrnn.html"><span class="doc">ctrnn</span></a> (continuous-time <a class="reference internal" href="#term-recurrent"><span class="xref std std-term">recurrent</span></a> neural network) implemented in NEAT-Python,
+simulates a continuous process via differential equations (or other methods).</dd>
+<dt id="term-crossover">crossover</dt>
+<dd>The process in sexual reproduction in which two <a class="reference internal" href="#term-genome"><span class="xref std std-term">genomes</span></a> are combined. This involves the combination of <a class="reference internal" href="#term-homologous"><span class="xref std std-term">homologous</span></a>
+genes and the copying (from the highest-fitness genome) of <a class="reference internal" href="#term-disjoint"><span class="xref std std-term">disjoint/excess</span></a> genes. Along with <a class="reference internal" href="#term-mutation"><span class="xref std std-term">mutation</span></a>, one of the
+two sources of innovation in (classical) evolution.</dd>
+<dt id="term-disjoint">disjoint<dt id="term-excess">excess</dt>
+<dd>These are genes in NEAT not descended from a common ancestor - i.e., not <a class="reference internal" href="#term-homologous"><span class="xref std std-term">homologous</span></a>. This implementation of NEAT, like most, does
+not distinguish between disjoint and excess genes. For further discussion, see the <a class="reference internal" href="neat_overview.html#neat-overview-label"><span class="std std-ref">NEAT Overview</span></a>.</dd>
+<dt id="term-feedforward">feedforward<dt id="term-feed-forward">feed-forward</dt>
+<dd>A neural network that is not <a class="reference internal" href="#term-recurrent"><span class="xref std std-term">recurrent</span></a> is feedforward - it has no loops. (Note that this means that it has no memory - no ability to take into account
+past events.) It can thus be described as a <a class="reference external" href="https://en.wikipedia.org/wiki/Directed_acyclic_graph">DAG (Directed Acyclic Graph)</a>.</dd>
+<dt id="term-gene">gene</dt>
+<dd>The information coding (in the current implementation) for a particular aspect (<a class="reference internal" href="#term-node"><span class="xref std std-term">node</span></a> or <a class="reference internal" href="#term-connection"><span class="xref std std-term">connection</span></a>) of a neural network phenotype.
+Contains several <a class="reference internal" href="#term-attributes"><span class="xref std std-term">attributes</span></a>, varying depending on the type of gene. Example gene classes include <a class="reference internal" href="module_summaries.html#genes.DefaultNodeGene" title="genes.DefaultNodeGene"><code class="xref py py-class docutils literal"><span class="pre">genes.DefaultNodeGene</span></code></a>,
+<a class="reference internal" href="module_summaries.html#genes.DefaultConnectionGene" title="genes.DefaultConnectionGene"><code class="xref py py-class docutils literal"><span class="pre">genes.DefaultConnectionGene</span></code></a>, and <a class="reference internal" href="module_summaries.html#iznn.IZNodeGene" title="iznn.IZNodeGene"><code class="xref py py-class docutils literal"><span class="pre">iznn.IZNodeGene</span></code></a>; all of these are subclasses of <a class="reference internal" href="module_summaries.html#genes.BaseGene" title="genes.BaseGene"><code class="xref py py-class docutils literal"><span class="pre">genes.BaseGene</span></code></a>.</dd>
+<dt id="term-genetic-distance">genetic distance</dt>
+<dd>The distance between two <a class="reference internal" href="#term-homologous"><span class="xref std std-term">homologous</span></a> <a class="reference internal" href="#term-gene"><span class="xref std std-term">genes</span></a>, added up as part of the <a class="reference internal" href="#term-genomic-distance"><span class="xref std std-term">genomic distance</span></a>. Also sometimes used as
+a synonym for <a class="reference internal" href="#term-genomic-distance"><span class="xref std std-term">genomic distance</span></a>.</dd>
+<dt id="term-genome">genome</dt>
+<dd>The set of <a class="reference internal" href="#term-gene"><span class="xref std std-term">genes</span></a> that together code for a (neural network) phenotype. Example genome objects can be seen in
+<a class="reference internal" href="module_summaries.html#genome.DefaultGenome" title="genome.DefaultGenome"><code class="xref py py-class docutils literal"><span class="pre">genome.DefaultGenome</span></code></a> and <a class="reference internal" href="module_summaries.html#iznn.IZGenome" title="iznn.IZGenome"><code class="xref py py-class docutils literal"><span class="pre">iznn.IZGenome</span></code></a>, and the object interface is described in <a class="reference internal" href="genome-interface.html#genome-interface-label"><span class="std std-ref">Genome Interface</span></a>.</dd>
+<dt id="term-genomic-distance">genomic distance</dt>
+<dd>An approximate measure of the difference between <a class="reference internal" href="#term-genome"><span class="xref std std-term">genomes</span></a>, used in dividing the population into <a class="reference internal" href="#term-species"><span class="xref std std-term">species</span></a>. For further
+discussion, see the <a class="reference internal" href="neat_overview.html#neat-overview-label"><span class="std std-ref">NEAT Overview</span></a>.</dd>
+<dt id="term-hidden-node">hidden node</dt>
+<dd>These are the <a class="reference internal" href="#term-node"><span class="xref std std-term">nodes</span></a> other than <a class="reference internal" href="#term-input-node"><span class="xref std std-term">input nodes</span></a> and <a class="reference internal" href="#term-output-node"><span class="xref std std-term">output nodes</span></a>. In the original
+NEAT (NeuroEvolution of Augmenting Topologies) <a class="reference internal" href="neat_overview.html"><span class="doc">algorithm</span></a>, networks start with no hidden nodes, and evolve
+more complexity as necessary - thus “Augmenting Topologies”.</dd>
+<dt id="term-homologous">homologous</dt>
+<dd>Descended from a common ancestor; two genes in NEAT from different genomes are either homologous or <a class="reference internal" href="#term-disjoint"><span class="xref std std-term">disjoint</span></a>/excess. In NEAT, two
+genes that are homologous will have the same <a class="reference internal" href="#term-key"><span class="xref std std-term">key</span></a>/id. For <a class="reference internal" href="#term-node"><span class="xref std std-term">node</span></a> genes, the key is an <a class="reference external" href="https://docs.python.org/3.5/library/functions.html#int" title="(in Python v3.5)"><code class="xref any docutils literal"><span class="pre">int</span></code></a> incremented with each newly-created node;
+for <a class="reference internal" href="#term-connection"><span class="xref std std-term">connection</span></a> genes, the key is a <a class="reference external" href="https://docs.python.org/3.5/library/stdtypes.html#tuple" title="(in Python v3.5)"><code class="xref any docutils literal"><span class="pre">tuple</span></code></a> of the keys of the nodes being connected. For further discussion, see the <a class="reference internal" href="neat_overview.html#neat-overview-label"><span class="std std-ref">NEAT Overview</span></a>.</dd>
+<dt id="term-id">id<dt id="term-key">key</dt>
+<dd>Various of the objects used by the library are indexed by an key (id); for most, this is an <a class="reference external" href="https://docs.python.org/3.5/library/functions.html#int" title="(in Python v3.5)"><code class="xref any docutils literal"><span class="pre">int</span></code></a>, which is either unique in the library as a whole
+(as with <a class="reference internal" href="#term-species"><span class="xref std std-term">species</span></a> and <a class="reference internal" href="#term-genome"><span class="xref std std-term">genomes</span></a>), or within a genome (as with <a class="reference internal" href="#term-node"><span class="xref std std-term">node</span></a> <a class="reference internal" href="#term-gene"><span class="xref std std-term">genes</span></a>).
+For <a class="reference internal" href="#term-connection"><span class="xref std std-term">connection</span></a> genes, this is a <a class="reference external" href="https://docs.python.org/3.5/library/stdtypes.html#tuple" title="(in Python v3.5)"><code class="xref any docutils literal"><span class="pre">tuple</span></code></a> of two <a class="reference external" href="https://docs.python.org/3.5/library/functions.html#int" title="(in Python v3.5)"><code class="xref any docutils literal"><span class="pre">ints</span></code></a>, the keys of the connected nodes.</dd>
+<dt id="term-input-node">input node</dt>
+<dd>These are the <a class="reference internal" href="#term-node"><span class="xref std std-term">nodes</span></a> through which the network receives inputs. They cannot be deleted (although <a class="reference internal" href="#term-connection"><span class="xref std std-term">connections</span></a>
+from them can be), cannot be the output end of a <a class="reference internal" href="#term-connection"><span class="xref std std-term">connection</span></a>, and have: no <a class="reference internal" href="#term-aggregation-function"><span class="xref std std-term">aggregation function</span></a>; a fixed <a class="reference internal" href="#term-bias"><span class="xref std std-term">bias</span></a> of 0; a
+fixed <a class="reference internal" href="#term-response"><span class="xref std std-term">response</span></a> multiplier of 1; and a fixed <a class="reference internal" href="#term-activation-function"><span class="xref std std-term">activation function</span></a> of <a class="reference internal" href="activation.html#identity-label"><span class="std std-ref">identity</span></a>. Note: In the <a class="reference internal" href="module_summaries.html#module-genome" title="genome: Handles genomes (individuals in the population)."><code class="xref py py-mod docutils literal"><span class="pre">genome</span></code></a> module,
+they are not in many respects treated as actual nodes, but simply as <a class="reference internal" href="#term-key"><span class="xref std std-term">keys</span></a> for input ends of connections. Sometimes known as an
+input <a class="reference internal" href="#term-pin"><span class="xref std std-term">pin</span></a>.</dd>
+<dt id="term-mutate">mutate<dt id="term-mutation">mutation</dt>
+<dd>The process in which the <a class="reference internal" href="#term-attributes"><span class="xref std std-term">attributes</span></a> of a <a class="reference internal" href="#term-gene"><span class="xref std std-term">gene</span></a> (or the genes in a <a class="reference internal" href="#term-genome"><span class="xref std std-term">genome</span></a>) are (randomly, with likelihoods determined by
+configuration parameters) altered. Along with <a class="reference internal" href="#term-crossover"><span class="xref std std-term">crossover</span></a>, one of the two sources of innovation in (classical) evolution.</dd>
+<dt id="term-node">node</dt>
+<dd>Also known as a neuron (as in a <em>neural</em> network). They are of three types:
+<a class="reference internal" href="#term-input-node"><span class="xref std std-term">input</span></a>, <a class="reference internal" href="#term-hidden-node"><span class="xref std std-term">hidden</span></a>, and <a class="reference internal" href="#term-output-node"><span class="xref std std-term">output</span></a>. Nodes have one or more <a class="reference internal" href="#term-attributes"><span class="xref std std-term">attributes</span></a>, such
+as an <a class="reference internal" href="#term-activation-function"><span class="xref std std-term">activation function</span></a>; all are determined by their <a class="reference internal" href="#term-gene"><span class="xref std std-term">gene</span></a>. Classes of node genes include <a class="reference internal" href="module_summaries.html#genes.DefaultNodeGene" title="genes.DefaultNodeGene"><code class="xref py py-class docutils literal"><span class="pre">genes.DefaultNodeGene</span></code></a> and
+<a class="reference internal" href="module_summaries.html#iznn.IZNodeGene" title="iznn.IZNodeGene"><code class="xref py py-class docutils literal"><span class="pre">iznn.IZNodeGene</span></code></a>.</dd>
+<dt id="term-output-node">output node</dt>
+<dd>These are the <a class="reference internal" href="#term-node"><span class="xref std std-term">nodes</span></a> to which the network delivers outputs. They cannot be deleted (although <a class="reference internal" href="#term-connection"><span class="xref std std-term">connections</span></a> to
+them can be) but can otherwise be <a class="reference internal" href="#term-mutation"><span class="xref std std-term">mutated</span></a> normally. The output of this node is connected to the corresponding output <a class="reference internal" href="#term-pin"><span class="xref std std-term">pin</span></a>
+with an implicit <a class="reference internal" href="#term-weight"><span class="xref std std-term">weight</span></a>-1, <a class="reference internal" href="#term-enabled"><span class="xref std std-term">enabled</span></a> connection.</dd>
+<dt id="term-pin">pin</dt>
+<dd>Point at which the network is effectively connected to the external world. Pins are either input (aka <a class="reference internal" href="#term-input-node"><span class="xref std std-term">input nodes</span></a>) or output
+(connected to an <a class="reference internal" href="#term-output-node"><span class="xref std std-term">output node</span></a> with the same <a class="reference internal" href="#term-key"><span class="xref std std-term">key</span></a> as the output pin).</dd>
+<dt id="term-recurrent">recurrent</dt>
+<dd>A recurrent neural network has cycles in its topography. These may be a <a class="reference internal" href="#term-node"><span class="xref std std-term">node</span></a> having a <a class="reference internal" href="#term-connection"><span class="xref std std-term">connection</span></a> back to itself, with (for a
+<a class="reference internal" href="#term-discrete-time"><span class="xref std std-term">discrete-time</span></a> neural network) the prior time period’s output being provided to the node as one of its inputs. They may also have longer cycles,
+such as with output from node A going into node B (via a connection) and an output from node B going (via another connection) into node A. (This
+gives it a possibly-useful memory - an ability to take into account past events - unlike a <a class="reference internal" href="#term-feedforward"><span class="xref std std-term">feedforward</span></a> neural network; however, it also makes it
+harder to work with in some respects.)</dd>
+<dt id="term-species">species</dt>
+<dd>Subdivisions of the population into groups of similar (by the <a class="reference internal" href="#term-genomic-distance"><span class="xref std std-term">genomic distance</span></a> measure) individuals (<a class="reference internal" href="#term-genome"><span class="xref std std-term">genomes</span></a>),
+which compete among themselves but share fitness relative to the rest of the population. This is, among other things, a mechanism to try to avoid the
+quick elimination of high-potential topological mutants that have an initial poor fitness prior to smaller “tuning” changes. For further discussion,
+see the <a class="reference internal" href="neat_overview.html#neat-overview-label"><span class="std std-ref">NEAT Overview</span></a>.</dd>
+<dt id="term-weight">weight<dt id="term-enabled">enabled</dt>
+<dd>These are the <a class="reference internal" href="#term-attributes"><span class="xref std std-term">attributes</span></a> of a <a class="reference internal" href="#term-connection"><span class="xref std std-term">connection</span></a>. If a connection is enabled, then the input to it (from a <a class="reference internal" href="#term-node"><span class="xref std std-term">node</span></a>) is
+multiplied by the weight then sent to the output (to a node - possibly the same node, for a <a class="reference internal" href="#term-recurrent"><span class="xref std std-term">recurrent</span></a> neural network).
+If a connection is not enabled, then the output is 0; genes for such connections are the equivalent of <a class="reference external" href="http://pseudogene.org/background.php">pseudogenes</a> that, as in <a class="reference external" href="https://en.wikipedia.org/wiki/In_vivo">in vivo</a> evolution, can be reactivated at a later time.
+TODO: Some versions of NEAT give a chance, such as 25%, that a disabled connection will be enabled during <a class="reference internal" href="#term-crossover"><span class="xref std std-term">crossover</span></a>; in the future, this
+should be an option.</dd>
+</dl>
+<p><a class="reference internal" href="index.html#toc-label"><span class="std std-ref">Table of Contents</span></a></p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="reproduction-interface.html" title="previous chapter">Reproduction Interface</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/glossary.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015-2017, CodeReclaimers, LLC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/glossary.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

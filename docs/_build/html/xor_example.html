@@ -1,0 +1,346 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Overview of the basic XOR example (xor2.py) &#8212; NEAT-Python 0.91-github documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.91-github',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Customizing Behavior" href="customization.html" />
+    <link rel="prev" title="Configuration file description" href="config_file.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="overview-of-the-basic-xor-example-xor2-py">
+<h1>Overview of the basic XOR example (xor2.py)<a class="headerlink" href="#overview-of-the-basic-xor-example-xor2-py" title="Permalink to this headline">¶</a></h1>
+<p>The xor2.py example, shown in its entirety at the bottom of this page, evolves a network that implements the two-input
+XOR function:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="35%" />
+<col width="35%" />
+<col width="30%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Input 1</th>
+<th class="head">Input 2</th>
+<th class="head">Output</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="fitness-function">
+<span id="index-0"></span><h2>Fitness function<a class="headerlink" href="#fitness-function" title="Permalink to this headline">¶</a></h2>
+<p>The key thing you need to figure out for a given problem is how to measure the fitness of the <a class="reference internal" href="glossary.html#term-genome"><span class="xref std std-term">genomes</span></a> that are produced
+by NEAT.  Fitness is expected to be a Python <a class="reference external" href="https://docs.python.org/3.5/library/functions.html#float" title="(in Python v3.5)"><code class="xref any docutils literal"><span class="pre">float</span></code></a> value.  If genome A solves your problem more successfully than genome B,
+then the fitness value of A should be greater than the value of B.  The absolute magnitude and signs of these fitnesses
+are not important, only their relative values.</p>
+<p>In this example, we create a <a class="reference internal" href="glossary.html#term-feed-forward"><span class="xref std std-term">feed-forward</span></a> neural network based on the genome, and then for each case in the
+table above, we provide that network with the inputs, and compute the network’s output.  The error for each genome
+is <span class="math">\(1 - \sum_i (e_i - a_i)^2\)</span> between the expected (<span class="math">\(e_i\)</span>) and actual (<span class="math">\(a_i\)</span>) outputs, so that if the
+network produces exactly the expected output, its fitness is 1, otherwise it is a value less than 1, with the fitness
+value decreasing the more incorrect the network responses are.</p>
+<p>This fitness computation is implemented in the <code class="docutils literal"><span class="pre">eval_genomes</span></code> function.  This function takes two arguments: a list
+of genomes (the current population) and the active configuration.  neat-python expects the fitness function to calculate
+a fitness for each genome and assign this value to the genome’s <code class="docutils literal"><span class="pre">fitness</span></code> member.</p>
+</div>
+<div class="section" id="running-neat">
+<h2>Running NEAT<a class="headerlink" href="#running-neat" title="Permalink to this headline">¶</a></h2>
+<p>Once you have implemented a fitness function, you mostly just need some additional boilerplate code that carries out
+the following steps:</p>
+<ul class="simple">
+<li>Create a <a class="reference internal" href="module_summaries.html#config.Config" title="config.Config"><code class="xref py py-class docutils literal"><span class="pre">neat.config.Config</span></code></a> object from the configuration file (described in the <a class="reference internal" href="config_file.html"><span class="doc">Configuration file description</span></a>).</li>
+<li>Create a <a class="reference internal" href="module_summaries.html#population.Population" title="population.Population"><code class="xref py py-class docutils literal"><span class="pre">neat.population.Population</span></code></a> object using the <code class="docutils literal"><span class="pre">Config</span></code> object created above.</li>
+<li>Call the <a class="reference internal" href="module_summaries.html#population.Population.run" title="population.Population.run"><code class="xref py py-meth docutils literal"><span class="pre">run</span></code></a> method on the <code class="docutils literal"><span class="pre">Population</span></code> object, giving it your fitness function and (optionally) the maximum number of generations you want NEAT to run.</li>
+</ul>
+<p>After these three things are completed, NEAT will run until either you reach the specified number of generations, or
+at least one genome achieves the <a class="reference internal" href="config_file.html#fitness-threshold-label"><span class="std std-ref">fitness_threshold</span></a> value you specified in your config file.</p>
+</div>
+<div class="section" id="getting-the-results">
+<h2>Getting the results<a class="headerlink" href="#getting-the-results" title="Permalink to this headline">¶</a></h2>
+<p>Once the call to the population object’s <code class="docutils literal"><span class="pre">run</span></code> method has returned, you can query the <code class="docutils literal"><span class="pre">statistics</span></code> member of the
+population (a <a class="reference internal" href="module_summaries.html#statistics.StatisticsReporter" title="statistics.StatisticsReporter"><code class="xref py py-class docutils literal"><span class="pre">neat.statistics.StatisticsReporter</span></code></a> object) to get the best genome(s) seen during the run.
+In this example, we take the ‘winner’ genome to be that returned by <code class="docutils literal"><span class="pre">pop.statistics.best_genome()</span></code>.</p>
+<p>Other information available from the default statistics object includes per-generation mean fitness, per-generation standard deviation of fitness,
+and the best N genomes (with or without duplicates).</p>
+</div>
+<div class="section" id="visualizations">
+<h2>Visualizations<a class="headerlink" href="#visualizations" title="Permalink to this headline">¶</a></h2>
+<p>Functions are available in the <a class="reference external" href="https://github.com/CodeReclaimers/neat-python/blob/master/examples/xor/visualize.py">visualize module</a> to plot the best
+and average fitness vs. generation, plot the change in species vs. generation, and to show the structure
+of a network described by a genome.</p>
+</div>
+<div class="section" id="example-source">
+<h2>Example Source<a class="headerlink" href="#example-source" title="Permalink to this headline">¶</a></h2>
+<p>NOTE: This page shows the source and configuration file for the current version of neat-python available on
+GitHub.  If you are using the version 0.91 installed from PyPI, make sure you get the script and config file from
+the <a class="reference external" href="https://github.com/CodeReclaimers/neat-python/releases/tag/v0.91">archived source for that release</a>.</p>
+<p>Here’s the entire example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">2-input XOR example -- this is most likely the simplest possible example.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">neat</span>
+<span class="kn">import</span> <span class="nn">visualize</span>
+
+<span class="c1"># 2-input XOR inputs and expected outputs.</span>
+<span class="n">xor_inputs</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)]</span>
+<span class="n">xor_outputs</span> <span class="o">=</span> <span class="p">[</span>   <span class="p">(</span><span class="mf">0.0</span><span class="p">,),</span>     <span class="p">(</span><span class="mf">1.0</span><span class="p">,),</span>     <span class="p">(</span><span class="mf">1.0</span><span class="p">,),</span>     <span class="p">(</span><span class="mf">0.0</span><span class="p">,)]</span>
+
+
+<span class="k">def</span> <span class="nf">eval_genomes</span><span class="p">(</span><span class="n">genomes</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">genome_id</span><span class="p">,</span> <span class="n">genome</span> <span class="ow">in</span> <span class="n">genomes</span><span class="p">:</span>
+        <span class="n">genome</span><span class="o">.</span><span class="n">fitness</span> <span class="o">=</span> <span class="mf">4.0</span>
+        <span class="n">net</span> <span class="o">=</span> <span class="n">neat</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">FeedForwardNetwork</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">genome</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">xi</span><span class="p">,</span> <span class="n">xo</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">xor_inputs</span><span class="p">,</span> <span class="n">xor_outputs</span><span class="p">):</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">activate</span><span class="p">(</span><span class="n">xi</span><span class="p">)</span>
+            <span class="n">genome</span><span class="o">.</span><span class="n">fitness</span> <span class="o">-=</span> <span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">xo</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span>
+
+
+<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">config_file</span><span class="p">):</span>
+    <span class="c1"># Load configuration.</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">neat</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">neat</span><span class="o">.</span><span class="n">DefaultGenome</span><span class="p">,</span> <span class="n">neat</span><span class="o">.</span><span class="n">DefaultReproduction</span><span class="p">,</span>
+                         <span class="n">neat</span><span class="o">.</span><span class="n">DefaultSpeciesSet</span><span class="p">,</span> <span class="n">neat</span><span class="o">.</span><span class="n">DefaultStagnation</span><span class="p">,</span>
+                         <span class="n">config_file</span><span class="p">)</span>
+
+    <span class="c1"># Create the population, which is the top-level object for a NEAT run.</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">neat</span><span class="o">.</span><span class="n">Population</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="c1"># Add a stdout reporter to show progress in the terminal.</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_reporter</span><span class="p">(</span><span class="n">neat</span><span class="o">.</span><span class="n">StdOutReporter</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+    <span class="n">stats</span> <span class="o">=</span> <span class="n">neat</span><span class="o">.</span><span class="n">StatisticsReporter</span><span class="p">()</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_reporter</span><span class="p">(</span><span class="n">stats</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_reporter</span><span class="p">(</span><span class="n">neat</span><span class="o">.</span><span class="n">Checkpointer</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
+
+    <span class="c1"># Run for up to 300 generations.</span>
+    <span class="n">winner</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">eval_genomes</span><span class="p">,</span> <span class="mi">300</span><span class="p">)</span>
+
+    <span class="c1"># Display the winning genome.</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Best genome:</span><span class="se">\n</span><span class="si">{!s}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">winner</span><span class="p">))</span>
+
+    <span class="c1"># Show output of the most fit genome against training data.</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Output:&#39;</span><span class="p">)</span>
+    <span class="n">winner_net</span> <span class="o">=</span> <span class="n">neat</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">FeedForwardNetwork</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">winner</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">xi</span><span class="p">,</span> <span class="n">xo</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">xor_inputs</span><span class="p">,</span> <span class="n">xor_outputs</span><span class="p">):</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">winner_net</span><span class="o">.</span><span class="n">activate</span><span class="p">(</span><span class="n">xi</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;input </span><span class="si">{!r}</span><span class="s2">, expected output </span><span class="si">{!r}</span><span class="s2">, got </span><span class="si">{!r}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xi</span><span class="p">,</span> <span class="n">xo</span><span class="p">,</span> <span class="n">output</span><span class="p">))</span>
+
+    <span class="n">node_names</span> <span class="o">=</span> <span class="p">{</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="s1">&#39;A XOR B&#39;</span><span class="p">}</span>
+    <span class="n">visualize</span><span class="o">.</span><span class="n">draw_net</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">winner</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">node_names</span><span class="o">=</span><span class="n">node_names</span><span class="p">)</span>
+    <span class="n">visualize</span><span class="o">.</span><span class="n">plot_stats</span><span class="p">(</span><span class="n">stats</span><span class="p">,</span> <span class="n">ylog</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">visualize</span><span class="o">.</span><span class="n">plot_species</span><span class="p">(</span><span class="n">stats</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="n">neat</span><span class="o">.</span><span class="n">Checkpointer</span><span class="o">.</span><span class="n">restore_checkpoint</span><span class="p">(</span><span class="s1">&#39;neat-checkpoint-4&#39;</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">eval_genomes</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c1"># Determine path to configuration file. This path manipulation is</span>
+    <span class="c1"># here so that the script will run successfully regardless of the</span>
+    <span class="c1"># current working directory.</span>
+    <span class="n">local_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+    <span class="n">config_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">local_dir</span><span class="p">,</span> <span class="s1">&#39;config-feedforward&#39;</span><span class="p">)</span>
+    <span class="n">run</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>and here is the associated config file:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#--- parameters for the XOR-2 experiment ---#</span>
+
+<span class="p">[</span><span class="n">NEAT</span><span class="p">]</span>
+<span class="n">fitness_criterion</span>     <span class="o">=</span> <span class="nb">max</span>
+<span class="n">fitness_threshold</span>     <span class="o">=</span> <span class="mf">3.9</span>
+<span class="n">pop_size</span>              <span class="o">=</span> <span class="mi">150</span>
+<span class="n">reset_on_extinction</span>   <span class="o">=</span> <span class="kc">False</span>
+
+<span class="p">[</span><span class="n">DefaultGenome</span><span class="p">]</span>
+<span class="c1"># node activation options</span>
+<span class="n">activation_default</span>      <span class="o">=</span> <span class="n">sigmoid</span>
+<span class="n">activation_mutate_rate</span>  <span class="o">=</span> <span class="mf">0.0</span>
+<span class="n">activation_options</span>      <span class="o">=</span> <span class="n">sigmoid</span>
+
+<span class="c1"># node aggregation options</span>
+<span class="n">aggregation_default</span>     <span class="o">=</span> <span class="nb">sum</span>
+<span class="n">aggregation_mutate_rate</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="n">aggregation_options</span>     <span class="o">=</span> <span class="nb">sum</span>
+
+<span class="c1"># node bias options</span>
+<span class="n">bias_init_mean</span>          <span class="o">=</span> <span class="mf">0.0</span>
+<span class="n">bias_init_stdev</span>         <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">bias_max_value</span>          <span class="o">=</span> <span class="mf">30.0</span>
+<span class="n">bias_min_value</span>          <span class="o">=</span> <span class="o">-</span><span class="mf">30.0</span>
+<span class="n">bias_mutate_power</span>       <span class="o">=</span> <span class="mf">0.5</span>
+<span class="n">bias_mutate_rate</span>        <span class="o">=</span> <span class="mf">0.7</span>
+<span class="n">bias_replace_rate</span>       <span class="o">=</span> <span class="mf">0.1</span>
+
+<span class="c1"># genome compatibility options</span>
+<span class="n">compatibility_disjoint_coefficient</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">compatibility_weight_coefficient</span>   <span class="o">=</span> <span class="mf">0.5</span>
+
+<span class="c1"># connection add/remove rates</span>
+<span class="n">conn_add_prob</span>           <span class="o">=</span> <span class="mf">0.5</span>
+<span class="n">conn_delete_prob</span>        <span class="o">=</span> <span class="mf">0.5</span>
+
+<span class="c1"># connection enable options</span>
+<span class="n">enabled_default</span>         <span class="o">=</span> <span class="kc">True</span>
+<span class="n">enabled_mutate_rate</span>     <span class="o">=</span> <span class="mf">0.01</span>
+
+<span class="n">feed_forward</span>            <span class="o">=</span> <span class="kc">True</span>
+<span class="n">initial_connection</span>      <span class="o">=</span> <span class="n">full</span>
+
+<span class="c1"># node add/remove rates</span>
+<span class="n">node_add_prob</span>           <span class="o">=</span> <span class="mf">0.2</span>
+<span class="n">node_delete_prob</span>        <span class="o">=</span> <span class="mf">0.2</span>
+
+<span class="c1"># network parameters</span>
+<span class="n">num_hidden</span>              <span class="o">=</span> <span class="mi">0</span>
+<span class="n">num_inputs</span>              <span class="o">=</span> <span class="mi">2</span>
+<span class="n">num_outputs</span>             <span class="o">=</span> <span class="mi">1</span>
+
+<span class="c1"># node response options</span>
+<span class="n">response_init_mean</span>      <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">response_init_stdev</span>     <span class="o">=</span> <span class="mf">0.0</span>
+<span class="n">response_max_value</span>      <span class="o">=</span> <span class="mf">30.0</span>
+<span class="n">response_min_value</span>      <span class="o">=</span> <span class="o">-</span><span class="mf">30.0</span>
+<span class="n">response_mutate_power</span>   <span class="o">=</span> <span class="mf">0.0</span>
+<span class="n">response_mutate_rate</span>    <span class="o">=</span> <span class="mf">0.0</span>
+<span class="n">response_replace_rate</span>   <span class="o">=</span> <span class="mf">0.0</span>
+
+<span class="c1"># connection weight options</span>
+<span class="n">weight_init_mean</span>        <span class="o">=</span> <span class="mf">0.0</span>
+<span class="n">weight_init_stdev</span>       <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">weight_max_value</span>        <span class="o">=</span> <span class="mi">30</span>
+<span class="n">weight_min_value</span>        <span class="o">=</span> <span class="o">-</span><span class="mi">30</span>
+<span class="n">weight_mutate_power</span>     <span class="o">=</span> <span class="mf">0.5</span>
+<span class="n">weight_mutate_rate</span>      <span class="o">=</span> <span class="mf">0.8</span>
+<span class="n">weight_replace_rate</span>     <span class="o">=</span> <span class="mf">0.1</span>
+
+<span class="p">[</span><span class="n">DefaultSpeciesSet</span><span class="p">]</span>
+<span class="n">compatibility_threshold</span> <span class="o">=</span> <span class="mf">3.0</span>
+
+<span class="p">[</span><span class="n">DefaultStagnation</span><span class="p">]</span>
+<span class="n">species_fitness_func</span> <span class="o">=</span> <span class="nb">max</span>
+<span class="n">max_stagnation</span>       <span class="o">=</span> <span class="mi">20</span>
+<span class="n">species_elitism</span>      <span class="o">=</span> <span class="mi">2</span>
+
+<span class="p">[</span><span class="n">DefaultReproduction</span><span class="p">]</span>
+<span class="n">elitism</span>            <span class="o">=</span> <span class="mi">2</span>
+<span class="n">survival_threshold</span> <span class="o">=</span> <span class="mf">0.2</span>
+
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Overview of the basic XOR example (xor2.py)</a><ul>
+<li><a class="reference internal" href="#fitness-function">Fitness function</a></li>
+<li><a class="reference internal" href="#running-neat">Running NEAT</a></li>
+<li><a class="reference internal" href="#getting-the-results">Getting the results</a></li>
+<li><a class="reference internal" href="#visualizations">Visualizations</a></li>
+<li><a class="reference internal" href="#example-source">Example Source</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="config_file.html" title="previous chapter">Configuration file description</a></li>
+      <li>Next: <a href="customization.html" title="next chapter">Customizing Behavior</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/xor_example.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015-2017, CodeReclaimers, LLC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/xor_example.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
