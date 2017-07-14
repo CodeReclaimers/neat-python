@@ -14,6 +14,7 @@ from neat.six_util import iteritems, iterkeys
 
 
 class DefaultGenomeConfig(object):
+    """Sets up and holds configuration information for the DefaultGenome class."""
     allowed_connectivity = ['unconnected', 'fs_neat_nohidden', 'fs_neat', 'fs_neat_hidden',
                             'full_nodirect', 'full', 'full_direct',
                             'partial_nodirect', 'partial', 'partial_direct']
@@ -423,7 +424,7 @@ class DefaultGenome(object):
         return distance
 
     def size(self):
-        '''Returns genome 'complexity', taken to be (number of nodes, number of enabled connections)'''
+        """Returns genome 'complexity', taken to be (number of nodes, number of enabled connections)"""
         num_enabled_connections = sum([1 for cg in self.connections.values() if cg.enabled is True])
         return len(self.nodes), num_enabled_connections
 
@@ -461,7 +462,10 @@ class DefaultGenome(object):
             self.connections[connection.key] = connection
 
     def connect_fs_neat_hidden(self, config):
-        """ Randomly connect one input to all hidden and output nodes (FS-NEAT with connections to hidden, if any). """
+        """
+        Randomly connect one input to all hidden and output nodes
+        (FS-NEAT with connections to hidden, if any).
+        """
         input_id = choice(config.input_keys)
         others = [i for i in iterkeys(self.nodes) if i not in config.input_keys]
         for output_id in others:
@@ -495,6 +499,7 @@ class DefaultGenome(object):
                 connections.append((i, i))
 
         return connections
+
 
     def connect_full_nodirect(self, config):
         """ Create a fully-connected genome (except without direct input-output unless no hidden nodes). """

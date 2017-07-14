@@ -13,6 +13,7 @@ def eval_dummy_genomes_nn(genomes, config):
 
 
 def test_serial():
+    """Test basic (dummy fitness function) non-parallel run."""
     # Load configuration.
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'test_configuration')
@@ -45,6 +46,7 @@ def test_serial():
 
 
 def test_parallel():
+    """Test parallel run using ParallelEvaluator (subprocesses)."""
     # Load configuration.
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'test_configuration')
@@ -74,6 +76,7 @@ def eval_dummy_genomes_nn_recurrent(genomes, config):
 
 
 def test_run_nn_recurrent():
+    """Basic test of nn.recurrent function."""
     # Load configuration.
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'test_configuration')
@@ -104,6 +107,7 @@ def eval_dummy_genomes_ctrnn(genomes, config):
 
 
 def test_run_ctrnn():
+    """Basic test of continuous-time recurrent neural network (ctrnn)."""
     # Load configuration.
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'test_configuration')
@@ -134,6 +138,10 @@ def eval_dummy_genomes_iznn(genomes, config):
 
 
 def test_run_iznn():
+    """
+    Basic test of spiking neural network (iznn).
+    TODO: Takes the longest of any of the tests in this file, by far. Why?
+    """
     # Load configuration.
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'test_configuration_iznn')

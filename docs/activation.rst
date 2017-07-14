@@ -3,12 +3,13 @@
 Overview of builtin activation functions
 ========================================
 
-Note that some of these functions are scaled differently from the canonical
+.. index:: ! activation function
+
+Note that some of these :term:`functions <activation function>` are scaled differently from the canonical
 versions you may be familiar with.  The intention of the scaling is to place
 more of the functions' "interesting" behavior in the region :math:`\left[-1, 1\right] \times \left[-1, 1\right]`.
 
-The implementation of these functions can be found in the `activations module
-<https://github.com/CodeReclaimers/neat-python/blob/master/neat/activations.py>`_.
+The implementation of these functions can be found in the :py:mod:`activations` module.
 
 abs
 ---
@@ -54,6 +55,8 @@ hat
    :scale: 50 %
    :alt: hat function
 
+.. _identity-label:
+
 identity
 --------
 
@@ -81,6 +84,8 @@ relu
 .. figure:: activation-relu.png
    :scale: 50 %
    :alt: rectified linear function
+
+.. _sigmoid-label:
 
 sigmoid
 -------
@@ -116,26 +121,3 @@ tanh
 .. figure:: activation-tanh.png
    :scale: 50 %
    :alt: hyperbolic tangent function
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
