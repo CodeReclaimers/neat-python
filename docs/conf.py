@@ -66,7 +66,7 @@ author = u'CodeReclaimers, LLC'
 # The short X.Y version.
 version = '0.91'
 # The full version, including alpha/beta/rc tags.
-release = '0.91-github'
+release = '0.91'
 
 if version != release:
   tags.add('draft')
