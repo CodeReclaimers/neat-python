@@ -12,17 +12,6 @@ Most settings must be explicitly enumerated in the configuration file.  (This ma
 that library code changes will result in your project silently using different NEAT settings. There are some defaults, as noted below, and
 insofar as possible new configuration parameters will default to the existing behavior.)
 
-.. note::
-
-  TODO: Work on ways to make the existing defaults more integrated with the configuration code. This may involve a third, optional (defaulting to ``None``)
-  parameter for `ConfigParameter`, giving a default. Such a mechanism will be needed to convert the configuration in `DefaultReproduction` and
-  `DefaultStagnation` to match that in other classes/modules. It would also be needed to add, for instance, an alternative uniform-distribution initialization
-  for various parameters such as weight and bias, without requiring all configuration files to be changed to specify the gaussian distribution currently in
-  use. Another example would be for a configuration file variable for whether more than one addition/connection :term:`mutation` can take place at a time,
-  as mentioned in genome.py.
-
-  The above is done in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch.
-
 Note that the `Config` constructor also requires you to explicitly specify the types that will be used
 for the NEAT simulation.  This, again, is to help avoid silent changes in behavior.
 
