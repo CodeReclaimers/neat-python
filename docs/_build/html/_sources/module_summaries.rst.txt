@@ -730,7 +730,7 @@ genome
       :param object config: Genome configuration object.
 
     .. index:: ! mutation
-    .. index:: single_structural_mutation
+    .. index:: ! single_structural_mutation
 
     .. py:method:: mutate(config)
 
@@ -748,6 +748,7 @@ genome
 
     .. index:: node
     .. index:: structural_mutation_surer
+    .. index:: check_structural_mutation_surer()
 
     .. py:method:: mutate_add_node(config)
 
@@ -777,6 +778,7 @@ genome
     .. index:: ! feed_forward
     .. index:: connection
     .. index:: structural_mutation_surer
+    .. index:: check_structural_mutation_surer()
 
     .. py:method:: mutate_add_connection(config)
 
@@ -868,12 +870,18 @@ genome
 
       :param object config: The genome configuration object.
 
+      .. versionchanged:: 0.91-github
+        Connect_fs_neat, connect_full, connect_partial split up - documentation vs program conflict.
+
     .. py:method:: connect_fs_neat_hidden(config)
 
       Connect one randomly-chosen input to all :term:`hidden nodes <hidden node>` and :term:`output nodes <output node>` (FS-NEAT with
       connections to hidden nodes, if any). Implements the ``fs_neat_hidden`` setting for :ref:`initial_connection <initial-connection-config-label>`.
 
       :param object config: The genome configuration object.
+
+      .. versionchanged:: 0.91-github
+        Connect_fs_neat, connect_full, connect_partial split up - documentation vs program conflict.
 
     .. py:method:: compute_full_connections(config, direct)
 
@@ -886,7 +894,7 @@ genome
       :rtype: list(tuple(int,int))
 
       .. versionchanged:: 0.91-github
-        "Direct" added to help with documentation vs program conflict; connect_fs_neat, connect_full, connect_partial split up.
+        "Direct" added to help with documentation vs program conflict.
 
     .. py:method:: connect_full_nodirect(config)
 
@@ -895,11 +903,17 @@ genome
 
       :param object config: The genome configuration object.
 
+      .. versionchanged:: 0.91-github
+        Connect_fs_neat, connect_full, connect_partial split up - documentation vs program conflict.
+
     .. py:method:: connect_full_direct(config)
 
       Create a fully-connected genome, including direct input-output connections.
 
       :param object config: The genome configuration object.
+
+      .. versionchanged:: 0.91-github
+        Connect_fs_neat, connect_full, connect_partial split up - documentation vs program conflict.
 
     .. py:method:: connect_partial_nodirect(config)
 
@@ -907,11 +921,17 @@ genome
 
       :param object config: The genome configuration object.
 
+      .. versionchanged:: 0.91-github
+        Connect_fs_neat, connect_full, connect_partial split up - documentation vs program conflict.
+
     .. py:method:: connect_partial_direct(config)
 
       Create a partially-connected genome, possibly including direct input-output connections.
 
       :param object config: The genome configuration object.
+
+      .. versionchanged:: 0.91-github
+        Connect_fs_neat, connect_full, connect_partial split up - documentation vs program conflict.
 
 .. index:: feed_forward
 .. index:: feedforward
@@ -1248,11 +1268,15 @@ Implements the core evolution algorithm.
     :param object config: The :py:class:`Config <config.Config>` configuration object.
     :param initial_state: If supplied (such as by a method of the :py:class:`Checkpointer <checkpoint.Checkpointer>` class), a tuple of (``Population``, ``Species``, generation number)
     :type initial_state: None or tuple(object, object, int)
+    :raises RuntimeError: If the :ref:`fitness_criterion <fitness-criterion-label>` function is invalid.
+
+    .. index:: ! no_fitness_termination
+    .. index:: ! reset_on_extinction
 
     .. py:method:: run(fitness_function, n=None)
 
       Runs NEAT's genetic algorithm for at most n generations.  If n
-      is ``None``, run until solution is found or extinction occurs.
+      is ``None``, run until a solution is found or total extinction occurs.
 
       The user-provided fitness_function must take only two arguments:
       1. The population as a list of (genome id, genome) tuples.
@@ -1268,11 +1292,14 @@ Implements the core evolution algorithm.
       the genomes themselves (apart from updating the fitness member),
       or the configuration object.
 
-      :param object fitness_function: The fitness function to use, with arguments specified above.
+      :param fitness_function: The fitness function to use, with arguments specified above.
+      :type fitness_function: `function`
       :param n: The maximum number of generations to run (unlimited if ``None``).
       :type n: int or None
       :return: The best genome seen.
       :rtype: :pygloss:`object`
+      :raises RuntimeError: If ``None`` for n but :ref:`no_fitness_termination <no-fitness-termination-label>` is ``True``.
+      :raises CompleteExtinctionException: If all species go extinct due to `stagnation` but :ref:`reset_on_extinction <reset-on-extinction-label>` is ``False``.
 
 .. py:module:: reporting
    :synopsis: Makes possible reporter classes, which are triggered on particular events and may provide information to the user, may do something else such as checkpointing, or may do both.

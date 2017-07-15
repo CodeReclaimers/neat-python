@@ -32,7 +32,7 @@ class Population(object):
         elif config.fitness_criterion == 'mean':
             self.fitness_criterion = mean
         else:
-            raise Exception("Unexpected fitness_criterion: {0!r}".format(config.fitness_criterion))
+            raise RuntimeError("Unexpected fitness_criterion: {0!r}".format(config.fitness_criterion))
 
         if initial_state is None:
             # Create a population from scratch, then partition into species.
