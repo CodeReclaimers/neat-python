@@ -14,8 +14,8 @@ class ThreadedEvaluator(object):
     """
     def __init__(self, num_workers, eval_function):
         '''
-        eval_function should take one argument (a genome object) and return
-        a single float (the genome's fitness).
+        eval_function should take two arguments (a genome object and the
+        configuration) and return a single float (the genome's fitness).
         '''
         self.num_workers = num_workers
         self.eval_function = eval_function
@@ -52,10 +52,10 @@ class ThreadedEvaluator(object):
         """the worker function"""
         while self.working:
             try:
-                genome_id, genome = self.inqueue.get(block=True, timeout=0.2)
+                genome_id, genome, config = self.inqueue.get(block=True, timeout=0.2)
             except queue.Empty:
                 continue
-            f = self.eval_function(genome)
+            f = self.eval_function(genome, config)
             self.outqueue.put((genome_id, genome, f))
 
     def evaluate(self, genomes, config):
@@ -65,7 +65,7 @@ class ThreadedEvaluator(object):
         p = 0
         for genome_id, genome in genomes:
             p += 1
-            self.inqueue.put((genome_id, genome))
+            self.inqueue.put((genome_id, genome, config))
 
         # assign the fitness back to each genome
         while p > 0:
