@@ -104,9 +104,6 @@
             <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">species_data</span><span class="p">)</span> <span class="o">-</span> <span class="n">idx</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stagnation_config</span><span class="o">.</span><span class="n">species_elitism</span><span class="p">:</span>
                 <span class="n">is_stagnant</span> <span class="o">=</span> <span class="kc">False</span>
 
-            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">species_data</span><span class="p">)</span> <span class="o">-</span> <span class="n">idx</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_elitism</span><span class="p">:</span>
-                <span class="n">is_stagnant</span> <span class="o">=</span> <span class="kc">False</span>
-
             <span class="k">if</span> <span class="n">is_stagnant</span><span class="p">:</span>
                 <span class="n">num_non_stagnant</span> <span class="o">-=</span> <span class="mi">1</span>
 

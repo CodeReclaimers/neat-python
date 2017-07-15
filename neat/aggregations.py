@@ -7,6 +7,8 @@ import sys
 import types
 import warnings
 
+from neat.math_util import mean
+
 from operator import mul
 
 if sys.version_info[0] > 2:
@@ -26,6 +28,9 @@ def min_aggregation(x):
 
 def maxabs_aggregation(x):
     return max(x, key=abs)
+
+def mean_aggregation(x):
+    return mean(x)
 
 class InvalidAggregationFunction(TypeError):
     pass
@@ -52,6 +57,7 @@ class AggregationFunctionSet(object):
         self.add('max', max_aggregation)
         self.add('min', min_aggregation)
         self.add('maxabs', maxabs_aggregation)
+        self.add('mean', mean_aggregation)
 
     def add(self, name, function):
         validate_aggregation(function)

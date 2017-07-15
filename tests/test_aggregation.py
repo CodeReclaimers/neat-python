@@ -36,6 +36,10 @@ def test_maxabs():
     assert aggregations.maxabs_aggregation([0.0,1.0,2.0]) == 2.0
     assert aggregations.maxabs_aggregation([0.0,-1.0,-2.0]) == -2.0
 
+def test_mean():
+    assert aggregations.mean_aggregation([0.0,1.0,2.0]) == 1.0
+    assert aggregations.mean_aggregation([0.0,-1.0,-2.0]) == -1.0
+
 
 def minabs_aggregation(x):
     """ Not particularly useful - just a check. """
@@ -55,12 +59,14 @@ def test_function_set():
     assert s.get('max') is not None
     assert s.get('min') is not None
     assert s.get('maxabs') is not None
+    assert s.get('mean') is not None
 
     assert s.is_valid('sum')
     assert s.is_valid('product')
     assert s.is_valid('max')
     assert s.is_valid('min')
     assert s.is_valid('maxabs')
+    assert s.is_valid('mean')
 
     assert not s.is_valid('foo')
 
@@ -71,5 +77,6 @@ if __name__ == '__main__':
     test_max()
     test_min()
     test_maxabs()
+    test_mean()
     test_add_minabs()
     test_function_set()

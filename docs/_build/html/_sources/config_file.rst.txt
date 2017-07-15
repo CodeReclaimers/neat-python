@@ -190,7 +190,7 @@ required for your particular implementation.
     Valid values are in [0.0, 1.0].
 * *aggregation_options*
     A space-separated list of the aggregation functions that may be used by nodes.  **This defaults to ``sum``.** The
-    available functions (defined in `aggregations`) are: ``sum``, :py:func:`product <aggregations.product_aggregation>`, ``min``, ``max``,
+    available functions (defined in `aggregations`) are: ``sum``, :py:func:`product <aggregations.product_aggregation>`, ``min``, ``max``, ``mean``,
     and :py:func:`maxabs <aggregations.maxabs_aggregation>` (which returns the input value with the greatest absolute value; the returned
     value may be positive or negative). New aggregation functions can be defined similarly to :ref:`new activation functions <customization-label>`.
     (Note that the function needs to take a `list` or other `iterable`; the `reduce <functools.reduce>` function, as in `aggregations`, may be of use in this.)

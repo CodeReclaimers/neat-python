@@ -136,7 +136,7 @@ Has the built-in :term:`aggregation functions <aggregation function>`, code for 
       :rtype: bool
 
   .. versionadded:: 0.91-config_work
-    Moved from :py:mod:`genome` and expanded to match `activations` (plus the ``maxabs`` function added).
+    Moved from :py:mod:`genome` and expanded to match `activations` (plus the ``maxabs`` and ``mean`` functions added).
 
 .. py:module:: attributes
    :synopsis: Deals with attributes used by genes.
