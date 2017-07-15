@@ -67,7 +67,8 @@ def test_parallel():
     stats.save()
 
 
-def test_threaded():
+def test_threaded_evaluation():
+    """tests a neat evolution using neat.threaded.ThreadedEvaluator"""
     # Load configuration.
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'test_configuration')
@@ -88,6 +89,60 @@ def test_threaded():
     p.run(pe.evaluate, 300)
 
     stats.save()
+
+
+def test_threaded_evaluator():
+    """tests generall functionality of neat.threaded.ThreadedEvaluator"""
+    n_workers = 3
+    e = neat.ThreadedEvaluator(n_workers, eval_dummy_genome_nn)
+    # ensure workers are not started
+    if (len(e.workers) > 0) or (e.working):
+        raise Exception("ThreadedEvaluator started on __init__()!")
+    # ensure start() starts the workers
+    e.start()
+    if (len(e.workers) != n_workers) or (not e.working):
+        raise Exception("ThreadedEvaluator did not start on start()!")
+    w = e.workers[0]
+    if not w.is_alive():
+        raise Exception("Workers did not start on start()")
+    # ensure a second call to start() does nothing when already started
+    e.start()
+    if (len(e.workers) != n_workers) or (not e.working):
+        raise Exception(
+            "A second ThreadedEvaluator.start() call was not ignored!"
+            )
+    w = e.workers[0]
+    if not w.is_alive():
+        raise Exception("A worker died or stopped!")
+    # ensure stop() works
+    e.stop()
+    if (len(e.workers) != 0) or (e.working):
+        raise Exception(
+            "ThreadedEvaluator.stop() did not work!"
+            )
+    if w.is_alive():
+        raise Exception("A worker is still alive!")
+    # ensure a second call to stop() does nothing when already stopped
+    e.stop()
+    if (len(e.workers) != 0) or (e.working):
+        raise Exception(
+            "A second ThreadedEvaluator.stop() call was not ignored!"
+            )
+    if w.is_alive():
+        raise Exception("A worker is still alive or was resurrected!")
+    # ensure a restart is possible
+    # ensure start() starts the workers
+    e.start()
+    if (len(e.workers) != n_workers) or (not e.working):
+        raise Exception("ThreadedEvaluator did not restart on start()!")
+    w = e.workers[0]
+    if not w.is_alive():
+        raise Exception("Workers did not start on start()")
+    # ensure del stops workers
+    w = e.workers[0]
+    del e
+    if w.is_alive():
+        raise Exception("__del__() did not stop workers!")
 
 
 def eval_dummy_genomes_nn_recurrent(genomes, config):
