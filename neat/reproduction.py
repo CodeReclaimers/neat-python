@@ -1,3 +1,7 @@
+"""
+Handles creation of genomes, either from scratch or by sexual or
+asexual reproduction from parents.
+"""
 from __future__ import division
 
 import math
@@ -9,15 +13,14 @@ from neat.math_util import mean
 from neat.six_util import iteritems, itervalues
 
 # TODO: Provide some sort of optional cross-species performance criteria, which
-# are then used to control stagnation and possibly the mutation rate configuration.
-# This scheme should be adaptive so that species do not evolve to become "cautious"
-# and only make very slow progress.
+# are then used to control stagnation and possibly the mutation rate
+# configuration. This scheme should be adaptive so that species do not evolve
+# to become "cautious" and only make very slow progress.
 
 class DefaultReproduction(object):
     """
-    Handles creation of genomes, either from scratch or by sexual or asexual
-    reproduction from parents. Implements the default NEAT-python reproduction
-    scheme: explicit fitness sharing with fixed-time species stagnation.
+    Implements the default NEAT-python reproduction scheme:
+    explicit fitness sharing with fixed-time species stagnation.
     """
 
     @classmethod

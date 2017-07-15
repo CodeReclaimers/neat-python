@@ -128,6 +128,8 @@ required for your particular implementation.
 
 .. index:: ! elitism
 
+.. _elitism-label:
+
 * *elitism*
     The number of most-fit individuals in each species that will be preserved as-is from one generation to the next. **This defaults to 0.**
 
@@ -137,6 +139,8 @@ required for your particular implementation.
     The fraction for each species allowed to reproduce each generation. **This defaults to 0.2.**
 
 .. index:: ! min_species_size
+
+.. _min-species-size-label:
 
 * *min_species_size*
     The minimum number of genomes per species after reproduction. **This defaults to 2.**

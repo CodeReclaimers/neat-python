@@ -128,4 +128,11 @@ Glossary
     (as with :term:`species` and :term:`genomes <genome>`), or within a genome (as with :term:`node` :term:`genes <gene>`).
     For :term:`connection` genes, this is a `tuple` of two `ints <int>`, the keys of the connected nodes.
 
+  generation
+    This implementation of NEAT uses, like most, multiple semi-separated generations (some genomes may survive multiple generations via
+    :ref:`elitism <elitism-label>`). In terms of generations, the steps are as follows: generate the next generation from the current population;
+    partition the new generation into :term:`species` based on :term:`genetic similarity <genomic distance>`; evaluate fitness of all genomes;
+    check if a/the termination criterion is satisfied; if not, repeat. (The ordering in the :py:mod:`population` module is somewhat different.)
+    Generations are numbered, and a limit on the number of generations is one type of termination criterion.
+
 :ref:`Table of Contents <toc-label>`

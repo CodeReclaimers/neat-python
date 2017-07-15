@@ -40,7 +40,11 @@
           <div class="body" role="main">
             
   <h1>Source code for reproduction</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Handles creation of genomes, either from scratch or by sexual or</span>
+<span class="sd">asexual reproduction from parents.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
 
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">random</span>
@@ -51,15 +55,14 @@
 <span class="kn">from</span> <span class="nn">neat.six_util</span> <span class="k">import</span> <span class="n">iteritems</span><span class="p">,</span> <span class="n">itervalues</span>
 
 <span class="c1"># TODO: Provide some sort of optional cross-species performance criteria, which</span>
-<span class="c1"># are then used to control stagnation and possibly the mutation rate configuration.</span>
-<span class="c1"># This scheme should be adaptive so that species do not evolve to become &quot;cautious&quot;</span>
-<span class="c1"># and only make very slow progress.</span>
+<span class="c1"># are then used to control stagnation and possibly the mutation rate</span>
+<span class="c1"># configuration. This scheme should be adaptive so that species do not evolve</span>
+<span class="c1"># to become &quot;cautious&quot; and only make very slow progress.</span>
 
 <div class="viewcode-block" id="DefaultReproduction"><a class="viewcode-back" href="../module_summaries.html#reproduction.DefaultReproduction">[docs]</a><span class="k">class</span> <span class="nc">DefaultReproduction</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Handles creation of genomes, either from scratch or by sexual or asexual</span>
-<span class="sd">    reproduction from parents. Implements the default NEAT-python reproduction</span>
-<span class="sd">    scheme: explicit fitness sharing with fixed-time species stagnation.</span>
+<span class="sd">    Implements the default NEAT-python reproduction scheme:</span>
+<span class="sd">    explicit fitness sharing with fixed-time species stagnation.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="DefaultReproduction.parse_config"><a class="viewcode-back" href="../module_summaries.html#reproduction.DefaultReproduction.parse_config">[docs]</a>    <span class="nd">@classmethod</span>

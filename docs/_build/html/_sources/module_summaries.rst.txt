@@ -297,6 +297,7 @@ Uses :py:mod:`pickle` to save and restore populations (and other aspects of the 
 .. index:: no_fitness_termination
 .. index:: pop_size
 .. index:: reset_on_extinction
+.. index:: generation
 
 .. py:module:: config
    :synopsis: Does general configuration parsing; used by other classes for their configuration.
@@ -1212,6 +1213,9 @@ parallel
 ----------
 Runs evaluation functions in parallel subprocesses in order to evaluate multiple genomes at once.
 
+  .. index:: fitness function
+  .. index:: fitness
+
   .. py:class:: ParallelEvaluator(num_workers, eval_function, timeout=None)
 
     Runs evaluation functions in parallel subprocesses in order to evaluate multiple genomes at once.
@@ -1247,7 +1251,8 @@ Implements the core evolution algorithm.
 
     Raised on complete extinction (all species removed due to stagnation) unless :ref:`reset_on_extinction <reset-on-extinction-label>` is set.
 
-  .. index:: ! fitness function
+  .. index:: fitness function
+  .. index:: fitness
   .. index:: fitness_criterion
   .. index:: fitness_threshold
   .. index:: start_generation()
@@ -1255,14 +1260,15 @@ Implements the core evolution algorithm.
   .. index:: post_evaluate()
   .. index:: complete_extinction()
   .. index:: found_solution()
+  .. index:: generation
 
   .. py:class:: Population(config, initial_state=None)
 
     This class implements the core evolution algorithm:
     1. Evaluate fitness of all genomes.
     2. Check to see if the termination criterion is satisfied; exit if it is.
-    3. Generate the next generation from the current population.
-    4. Partition the new generation into species based on genetic similarity.
+    3. Generate the next :term:`generation` from the current population.
+    4. Partition the new generation into species based on :term:`genetic similarity <genomic distance>`.
     5. Go to 1.
 
     :param object config: The :py:class:`Config <config.Config>` configuration object.
@@ -1272,6 +1278,8 @@ Implements the core evolution algorithm.
 
     .. index:: ! no_fitness_termination
     .. index:: ! reset_on_extinction
+    .. index:: ! generation
+    .. index:: ! fitness function
 
     .. py:method:: run(fitness_function, n=None)
 
@@ -1325,11 +1333,13 @@ reporting
 
       :param object reporter: A reporter instance.
 
+    .. index:: generation
+
     .. py:method:: start_generation(gen)
 
       Calls :py:meth:`start_generation <BaseReporter.start_generation>` on each reporter in the set.
 
-      :param int gen: The generation number.
+      :param int gen: The :term:`generation` number.
 
     .. py:method:: end_generation(config, population, species)
 
@@ -1384,22 +1394,26 @@ reporting
     Abstract class defining the reporter interface expected by ReporterSet. Inheriting from it will provide a set of ``dummy`` methods to be overridden as
     desired, as follows:
 
+    .. index:: generation
+
     .. py:method:: start_generation(generation)
 
       Called via :py:class:`ReporterSet` (by :py:meth:`population.Population.run`) at the start of each generation, prior to the invocation of the fitness function.
 
-      :param int generation: The generation number.
+      :param int generation: The :term:`generation` number.
 
     .. index:: key
 
     .. py:method:: end_generation(config, population, species)
 
-      Called via :py:class:`ReporterSet` (by :py:meth:`population.Population.run`) at the end of each generation, after reproduction and speciation.
+      Called via :py:class:`ReporterSet` (by :py:meth:`population.Population.run`) at the end of each :term:`generation`, after reproduction and speciation.
 
       :param object config: :py:class:`Config <config.Config>` configuration object.
       :param population: Current population, as a dict of unique genome :term:`ID/key <key>` vs genome.
       :type population: dict(int, object)
       :param object species: Current species set object, such as a :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>`.
+
+    .. index:: fitness function
 
     .. py:method:: post_evaluate(config, population, species, best_genome)
 
@@ -1416,6 +1430,8 @@ reporting
       Not currently called (indirectly or directly), including by either :py:meth:`population.Population.run` or :py:class:`reproduction.DefaultReproduction`.
       Note: New members of the population likely will not have a set species.
 
+    .. index:: reset_on_extinction
+
     .. py:method:: complete_extinction()
 
       Called via :py:class:`ReporterSet` (by :py:meth:`population.Population.run`) if complete extinction (due to stagnation) occurs, prior to
@@ -1424,15 +1440,16 @@ reporting
 
     .. index:: ! found_solution()
     .. index:: fitness_threshold
+    .. index:: no_fitness_termination
 
     .. py:method:: found_solution(config, generation, best)
 
       Called via :py:class:`ReporterSet` (by :py:meth:`population.Population.run`) prior to exiting if the configured
-      :ref:`fitness threshold <fitness-threshold-label>` is met. (Note: Not called upon reaching the generation maximum - set when
-      calling :py:meth:`population.Population.run` - and exiting for this reason.)
+      :ref:`fitness threshold <fitness-threshold-label>` is met, unless :ref:`no_fitness_termination <no-fitness-termination-label>` is set; if
+      it is set, then called upon reaching the generation maximum - set when calling :py:meth:`population.Population.run` - and exiting for this reason.)
 
       :param object config: :py:class:`Config <config.Config>` configuration object.
-      :param int generation: Generation number.
+      :param int generation: :term:`Generation` number.
       :param object best: The currently highest-fitness :term:`genome`. (Ties are resolved pseudorandomly by `dictionary <dict>` ordering.)
 
     .. py:method:: species_stagnant(sid, species)
@@ -1460,34 +1477,41 @@ reporting
 
 reproduction
 -----------------
+Handles creation of genomes, either from scratch or by sexual or asexual reproduction from parents. For class requirements, see :ref:`reproduction-interface-label`. Implements the default NEAT-python reproduction scheme: explicit fitness sharing with fixed-time species stagnation. 
 
   .. py:class:: DefaultReproduction(config, reporters, stagnation)
 
-    Handles creation of genomes, either from scratch or by sexual or asexual reproduction from parents. Implements the default NEAT-python reproduction
-    scheme: explicit fitness sharing with fixed-time species stagnation. For class requirements, see :ref:`reproduction-interface-label`.
+    Implements the default NEAT-python reproduction scheme: explicit fitness sharing with fixed-time species stagnation. TODO: Provide some sort of
+    optional cross-species performance criteria, which are then used to control stagnation and possibly the mutation rate configuration. This scheme should be
+    adaptive so that species do not evolve to become "cautious" and only make very slow progress.
 
-    :param dict config: Configuration object, in this implementation a dictionary.
+    :param dict config: Configuration object, in this implementation a :py:class:`config.DefaultClassConfig` :datamodel:`instance <index-48>`.
     :param object reporters: A :py:class:`ReporterSet <reporting.ReporterSet>` object.
     :param object stagnation: A :py:class:`DefaultStagnation <stagnation.DefaultStagnation>` object - the current code partially depends on internals of this class (a TODO is noted to correct this).
 
     .. py:classmethod:: parse_config(param_dict)
 
       Required interface method. Provides defaults for :index:`elitism`, :index:`survival_threshold`, and :index:`min_species_size` parameters and updates
-      them from the :ref:`configuration file <reproduction-config-label>`. TODO: Use a separate configuration class, for consistency with other types
-      (done in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch).
+      them from the :ref:`configuration file <reproduction-config-label>`, in this implementation using :py:class:`config.DefaultClassConfig`.
 
       :param dict param_dict: Dictionary of parameters from configuration file.
-      :return: Configuration object; considered opaque by rest of code, so current type returned is not required for interface.
-      :rtype: dict
+      :return: Reproduction configuration object; considered opaque by rest of code, so current type returned is not required for interface.
+      :rtype: DefaultClassConfig :datamodel:`instance <index-48>`
 
-    .. py:classmethod:: write_config(f, param_dict)
+      .. versionchanged:: 0.91-config_work
+        Configuration changed to use DefaultClassConfig instead of a dictionary.
 
-      Required interface method. Saves ``elitism`` and ``survival_threshold`` (but not ``min_species_size``) parameters to new config file. (Inconsistency
-      re ``min_species_size`` fixed in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch.)
+    .. py:classmethod:: write_config(f, config)
+
+      Required interface method. Saves configuration parameters to a new config file, in this implementation via :py:meth:`config.DefaultClassConfig.save`.
 
       :param f: File object to write to.
       :type f: :pygloss:`file <file-object>`
-      :param dict param_dict: Dictionary of current parameters in this implementation; more generally, reproduction config object.
+      :param config: Reproduction config object; considered opaque by rest of code, so current type is not required for interface.
+      :type config: :py:class:`config.DefaultClassConfig` :datamodel:`instance <index-48>`
+
+      .. versionchanged:: 0.91-config_work
+        Configuration changed to use DefaultClassConfig instead of a dictionary.
 
     .. index:: genome
 
@@ -1503,6 +1527,9 @@ reproduction
       :return: A dictionary (with the unique genome identifier as the key) of the genomes created.
       :rtype: dict(int, object)
 
+    .. index:: ! pop_size
+    .. index:: min_species_size
+
     .. py:staticmethod:: compute_spawn(adjusted_fitness, previous_sizes, pop_size, min_species_size)
 
       Apportions desired number of members per species according to fitness (adjusted by :py:meth:`reproduce` to a 0-1 scale) from out of the
@@ -1512,11 +1539,12 @@ reproduction
       :type adjusted_fitness: list(float)
       :param previous_sizes: Number of members of species in population prior to reproduction.
       :type previous_sizes: list(int)
-      :param int pop_size: Desired population size, as input to :py:meth:`reproduce`.
-      :param int min_species_size: Minimum number of members per species; can result in population size being above ``pop_size``.
+      :param int pop_size: Desired population size, as input to :py:meth:`reproduce` and :ref:`set <pop-size-label>` in the configuration file.
+      :param int min_species_size: Minimum number of members per species, set via the :ref:`min_species_size <min-species-size-label>` configuration parameter; can result in population size being above ``pop_size``.
 
-    .. index:: ! pop_size
+    .. index:: pop_size
     .. index:: ! fitness function
+    .. index:: ! fitness
     .. index:: key
     .. index:: ! elitism
     .. index:: ! survival_threshold
@@ -1527,7 +1555,7 @@ reproduction
     .. py:method:: reproduce(config, species, pop_size, generation)
 
       Required interface method. Creates the population to be used in the next generation from the given configuration instance, SpeciesSet instance,
-      desired :index:`size of the population <pop_size>`, and current generation number.  This method is called after all genomes have been evaluated and
+      :ref:`desired size of the population <pop-size-label>`, and current generation number.  This method is called after all genomes have been evaluated and
       their ``fitness`` member assigned.  This method should use the stagnation instance given to the initializer to remove species deemed to have stagnated.
       Note: Determines relative fitnesses by transforming into (ideally) a 0-1 scale; however, if the top and bottom fitnesses are not at least 1 apart, the
       range may be less than 0-1, as a check against dividing by a too-small number. TODO: Make minimum difference configurable (defaulting to 1 to
@@ -1536,7 +1564,7 @@ reproduction
       :param object config: A :py:class:`Config <config.Config>` instance.
       :param object species: A :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>` instance. As well as depending on some of the :py:class:`DefaultStagnation <stagnation.DefaultStagnation>` internals, this method also depends on some of those of the ``DefaultSpeciesSet`` and its referenced species objects.
       :param int pop_size: Population size desired, such as set in the :ref:`configuration file <pop-size-label>`.
-      :param int generation: Generation count.
+      :param int generation: :term:`Generation` count.
       :return: New population, as a dict of unique genome :term:`ID/key <key>` vs :term:`genome`.
       :rtype: dict(int, object)
 
@@ -1611,18 +1639,18 @@ Divides the population into species based on :term:`genomic distances <genomic d
 
   .. py:class:: GenomeDistanceCache(config)
 
-    Caches (indexing by :term:`genome` :term:`key`/id) :term:`genomic distance` information to avoid repeated lookups. (The :py:meth:`distance function
-    <genome.DefaultGenome.distance>` is among the most time-consuming parts of the library, although many fitness functions are likely to far outweigh
-    this for moderate-size populations.)
+    Caches (indexing by :term:`genome` :term:`key`/id) :term:`genomic distance` information to avoid repeated lookups. (The
+    :py:meth:`distance function <genome.DefaultGenome.distance>`, memoized by this class, is among the most time-consuming parts of the
+    library, although many fitness functions are likely to far outweigh this for moderate-size populations.)
 
-    :param object config: A genome configuration object; later used by the genome distance function.
+    :param object config: A genome configuration instance; later used by the genome distance function.
 
     .. py:method:: __call__(genome0, genome1)
 
       GenomeDistanceCache is called as a method with a pair of genomes to retrieve the distance.
 
-      :param object genome0: The first genome object.
-      :param object genome1: The second genome object.
+      :param object genome0: The first genome instance.
+      :param object genome1: The second genome instance.
       :return: The :term:`genomic distance`.
       :rtype: :pytypes:`float <typesnumeric>`
 
@@ -1636,22 +1664,27 @@ Divides the population into species based on :term:`genomic distances <genomic d
 
     .. py:classmethod:: parse_config(param_dict)
 
-      Required interface method. Currently, the only configuration parameter is the :ref:`compatibility_threshold <compatibility-threshold-label>`. TODO:
-      Use a separate configuration class, for consistency with other types (done in the
-      `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch).
+      Required interface method. Currently, the only configuration parameter is the :ref:`compatibility_threshold <compatibility-threshold-label>`; this
+      method provides a default for it and updates it from the configuration file, in this implementation using :py:class:`config.DefaultClassConfig`.
 
-      :param param_dict: Dictionary of parameters from configuration file.
-      :type param_dict: dict(str, str)
-      :return: Configuration object; considered opaque by rest of code, so current type returned is not required for interface.
-      :rtype: dict
+      :param dict param_dict: Dictionary of parameters from configuration file.
+      :return: SpeciesSet configuration object; considered opaque by rest of code, so current type returned is not required for interface.
+      :rtype: DefaultClassConfig :datamodel:`instance <index-48>`
 
-    .. py:classmethod:: write_config(f, param_dict)
+      .. versionchanged:: 0.91-config_work
+        Configuration changed to use DefaultClassConfig instead of a dictionary.
 
-      Required interface method. Writes parameter(s) to new config file.
+    .. py:classmethod:: write_config(f, config)
+
+      Required interface method. Saves configuration parameters to a new config file, in this implementation via :py:meth:`config.DefaultClassConfig.save`.
 
       :param f: File object to write to.
       :type f: :pygloss:`file <file-object>`
-      :param dict param_dict: Dictionary of current parameters in this implementation; more generally, stagnation config object.
+      :param config: SpeciesSet config object; considered opaque by rest of code, so current type is not required for interface.
+      :type config: :py:class:`config.DefaultClassConfig` :datamodel:`instance <index-48>`
+
+      .. versionchanged:: 0.91-config_work
+        Configuration changed to use DefaultClassConfig instead of a dictionary.
 
     .. index:: ! genomic distance
     .. index:: compatibility_threshold
@@ -1659,14 +1692,15 @@ Divides the population into species based on :term:`genomic distances <genomic d
 
     .. py:method:: speciate(config, population, generation)
 
-      Required interface method. Place genomes into species by genetic similarity (:term:`genomic distance`). (The current code has a `docstring` stating
-      that there may be a problem if all old species representatives are not dropped for each generation; it is not clear how this is consistent with the code
-      in :py:meth:`reproduction.DefaultReproduction.reproduce`, such as for ``elitism``.)
+      Required interface method. Place genomes into species by genetic similarity (:term:`genomic distance`). TODO: The current code has a `docstring`
+      stating that there may be a problem if all old species representatives are not dropped for each generation; it is not clear how this is consistent with the
+      code in :py:meth:`reproduction.DefaultReproduction.reproduce`, such as for :ref:`elitism <elitism-label>`. TODO: Check if sorting the unspeciated
+      genomes by fitness will improve speciation (by making the highest-fitness member of a species its representative).
 
       :param object config: :py:class:`Config <config.Config>` object.
       :param population: Population as per the output of :py:meth:`DefaultReproduction.reproduce <reproduction.DefaultReproduction.reproduce>`.
       :type population: dict(int, object)
-      :param int generation: Current generation number.
+      :param int generation: Current :term:`generation` number.
 
     .. py:method:: get_species_id(individual_id)
 
@@ -1688,6 +1722,7 @@ Divides the population into species based on :term:`genomic distances <genomic d
 .. index:: ! species_fitness_func
 .. index:: fitness_criterion
 .. index:: fitness_threshold
+.. index:: fitness
 
 .. note::
 
@@ -1709,29 +1744,36 @@ stagnation
     Keeps track of whether species are making progress and helps remove ones that, for a
     :ref:`configurable number of generations <max-stagnation-label>`, are not.
 
-    :param object config: Configuration object; in this implementation, a `dictionary <dict>`, but should be treated as opaque outside this class.
+    :param object config: Configuration object; in this implementation, a :py:class:`config.DefaultClassConfig` instance, but should be treated as opaque outside this class.
     :param object reporters: A :py:class:`ReporterSet <reporting.ReporterSet>` instance with reporters that may need activating; not currently used.
 
     .. py:classmethod:: parse_config(param_dict)
 
       Required interface method. Provides defaults for :ref:`species_fitness_func <species-fitness-func-label>`,
       :ref:`max_stagnation <max-stagnation-label>`, and :ref:`species_elitism <species-elitism-label>` parameters and updates them
-      from the configuration file. TODO: Use a separate configuration class, for consistency with other types
-      (done in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch).
+      from the configuration file, in this implementation using :py:class:`config.DefaultClassConfig`.
 
-      :param param_dict: Dictionary of parameters from configuration file.
-      :type param_dict: dict(str, str)
-      :return: Configuration object; considered opaque by rest of code, so current type returned is not required for interface.
-      :rtype: dict
+      :param dict param_dict: Dictionary of parameters from configuration file.
+      :return: Stagnation configuration object; considered opaque by rest of code, so current type returned is not required for interface.
+      :rtype: DefaultClassConfig :datamodel:`instance <index-48>`
 
-    .. py:classmethod:: write_config(f, param_dict)
+      .. versionchanged:: 0.91-config_work
+        Configuration changed to use DefaultClassConfig instead of a dictionary.
 
-      Required interface method. Saves parameters to new config file. TODO: Has a default of 15 for species_elitism, but will be overridden by the default of
-      0 in parse_config (fixed in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch).
+    .. py:classmethod:: write_config(f, config)
+
+      Required interface method. Saves configuration parameters to a new config file, in this implementation via :py:meth:`config.DefaultClassConfig.save`.
 
       :param f: File object to write to.
       :type f: :pygloss:`file <file-object>`
-      :param dict param_dict: Dictionary of current parameters in this implementation; more generally, stagnation config object.
+      :param config: Stagnation config object; considered opaque by rest of code, so current type is not required for interface.
+      :type config: :py:class:`config.DefaultClassConfig` :datamodel:`instance <index-48>`
+
+      .. versionchanged:: 0.91-config_work
+        Configuration changed to use DefaultClassConfig instead of a dictionary.
+
+    .. index:: fitness
+    .. index:: species_elitism
 
     .. py:method:: update(species_set, generation)
 
@@ -1763,7 +1805,6 @@ statistics
     * The most-fit genomes are based on the highest-fitness member of each generation; other genomes are not saved by this module (if they were, it would far worsen existing potential memory problems - see below), and it is assumed that fitnesses (as given by the :index:`fitness function <single: fitness function>`) are not relative to others in the generation (also assumed by the use of the :ref:`fitness threshold <fitness-threshold-label>` as a signal for exiting). Code violating this assumption (e.g., with competitive coevolution) will need to use different statistical gathering methods.
     * Generally reports or records a per-generation list of values; the numeric position in the list may not correspond to the generation number if there has been a restart, such as via the :py:mod:`checkpoint` module.
     There is also a TODO item: Currently keeps accumulating information in memory, which may be a problem in long runs.
-
 
   .. py:class:: StatisticsReporter(BaseReporter)
 

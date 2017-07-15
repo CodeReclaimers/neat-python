@@ -38,13 +38,17 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.intersphinx',
     'sphinx.ext.extlinks',
-    'sphinx.ext.inheritance_diagram', # note: does not actually require (at least the Python) graphviz package to be installed
+  # note: the below does not actually require (at least the Python) graphviz
+  # package to be installed
+    'sphinx.ext.inheritance_diagram', 
 ]
 
 extlinks = {'pytypes': ('https://docs.python.org/3.5/library/stdtypes.html#%s',
-                      ''),
+                        ''),
             'pygloss': ('https://docs.python.org/3.5/glossary.html#term-%s',
-                         '')}
+                        ''),
+            'datamodel': ('https://docs.python.org/3.5/reference/datamodel.html#%s',
+                          '')}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
