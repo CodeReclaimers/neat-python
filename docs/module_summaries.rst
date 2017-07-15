@@ -4,7 +4,7 @@ Module summaries
 
 .. default-role:: any
 
-.. index:: activation function
+.. index:: ! activation function
 
 .. py:module:: activations
    :synopsis: Has the built-in activation functions, code for using them,  and code for adding new user-defined ones.
@@ -24,7 +24,8 @@ Has the built-in :term:`activation functions <activation function>`, code for us
 
     Checks to make sure its parameter is a function that takes a single argument.
 
-    :param object function: Object to be checked.
+    :param function: Object to be checked.
+    :type function: :datamodel:`object <objects-values-and-types>`
     :raises InvalidActivationFunction: If the object does not pass the tests.
 
   .. py:class:: ActivationFunctionSet
@@ -45,6 +46,8 @@ Has the built-in :term:`activation functions <activation function>`, code for us
       Returns the named function, or raises an exception if it is not a known activation function.
 
       :param str name: The name of the function.
+      :return: The function of interest
+      :rtype: `function`
       :raises InvalidActivationFunction: If the function is not known.
 
     .. py:method:: is_valid(name)
@@ -55,7 +58,7 @@ Has the built-in :term:`activation functions <activation function>`, code for us
       :return: Whether or not the function is known.
       :rtype: bool
 
-.. index:: aggregation function
+.. index:: ! aggregation function
 
 .. py:module:: aggregations
    :synopsis: Has the built-in aggregation functions, code for using them,  and code for adding new user-defined ones.
@@ -65,6 +68,7 @@ aggregations
 Has the built-in :term:`aggregation functions <aggregation function>`, code for using them, and code for adding new user-defined ones.
 
   .. py:function:: product_aggregation(x)
+
     An adaptation of the multiplication function to take an :pygloss:`iterable`.
 
     :param x: The numbers to be multiplied together; takes any ``iterable``.
@@ -73,11 +77,12 @@ Has the built-in :term:`aggregation functions <aggregation function>`, code for 
     :rtype: :pytypes:`float <typesnumeric>`
 
   .. py:function:: maxabs_aggregation(x)
+
     Returns the maximum by absolute value, which may be positive or negative. Envisioned as suitable for neural network pooling operations.
 
     :param x: The numbers to find the absolute-value maximum of; takes any :pygloss:`iterable`.
     :type x: list(float) or tuple(float) or set(float)
-    :return: The absolute-value maximum, which may be positive or negative.
+    :return: :math:`x_i, i = \text{argmax}\lvert\mathbf{x}\rvert`
     :rtype: :pytypes:`float <typesnumeric>`
 
     .. versionadded:: 0.91-config_work
@@ -86,15 +91,17 @@ Has the built-in :term:`aggregation functions <aggregation function>`, code for 
 
     Exception called if an aggregation function being added is invalid according to the `validate_aggregation` function.
 
-    .. versionchanged:: 0.91-github
-      Base of exception changed to more-precise TypeError.
+    .. versionadded:: 0.91-config_work
 
   .. py:function:: validate_aggregation(function)
 
     Checks to make sure its parameter is a function that takes at least one argument.
 
-    :param object function: Object to be checked.
+    :param function: Object to be checked.
+    :type function: :datamodel:`object <objects-values-and-types>`
     :raises InvalidAggregationFunction: If the object does not pass the tests.
+
+    .. versionadded:: 0.91-config_work
 
   .. py:class:: AggregationFunctionSet
 
@@ -116,6 +123,8 @@ Has the built-in :term:`aggregation functions <aggregation function>`, code for 
       Returns the named function, or raises an exception if it is not a known aggregation function.
 
       :param str name: The name of the function.
+      :return: The function of interest
+      :rtype: `function`
       :raises InvalidAggregationFunction: If the function is not known.
 
     .. py:method:: is_valid(name)
@@ -144,7 +153,8 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
     ``__config_items__`` with any defaults supplied, then uses `config_item_name` to set up a listing of the names of configuration items using `setattr`.
 
     :param str name: The name of the attribute.
-    :param dict default_dict: An optional dictionary of defaults for the configuration items.
+    :param default_dict: An optional dictionary of defaults for the configuration items.
+    :type default_dict: dict(str, str)
 
     .. versionchanged:: 0.91-config_work
       Default_dict capability added.
@@ -161,11 +171,12 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
         Originally did not take any input and returned a list based on the ``__config_items__`` subclass attribute.
 
     .. py:method:: get_config_params()
+
       Uses `config_item_name` for each configuration item to get the name, then gets the appropriate type of :py:class:`config.ConfigParameter`
       instance for each (with any appropriate defaults being set from ``__config_items__``, including as modified by `BaseAttribute`) and returns it.
 
       :return: A list of ``ConfigParameter`` instances.
-      :rtype: list(object)
+      :rtype: list(:datamodel:`instance <index-48>`)
 
       .. versionchanged:: 0.91-config_work
         Was originally specific for the attribute subclass, since it did not pick up the appropriate type from the ``__config_items__`` list; default capability
@@ -179,8 +190,10 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
 
       Gets the minimum and maximum values desired from ``config``, then ensures that the value is between them.
 
-      :param float value: The value to be clamped.
-      :param object config: The configuration object from which the minimum and maximum desired values are to be retrieved.
+      :param value: The value to be clamped.
+      :type value: :pytypes:`float <typesnumeric>`
+      :param config: The configuration object from which the minimum and maximum desired values are to be retrieved.
+      :type config: :datamodel:`object <objects-values-and-types>`
       :return: The value, if it is within the desired range, or the appropriate end of the range, if it is not.
       :rtype: :pytypes:`float <typesnumeric>`
 
@@ -189,7 +202,8 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
       Initializes the attribute's value, using either a gaussian distribution with the configured mean and standard deviation, or a uniform distribution,
       followed by `clamp` to keep the result within the desired range.
 
-      :param object config: The configuration object from which the mean, standard deviation, and initialization distribution type values are to be retrieved.
+      :param config: The configuration object from which the mean, standard deviation, and initialization distribution type values are to be retrieved.
+      :type config: :datamodel:`object <objects-values-and-types>`
       :return: The new value.
       :rtype: :pytypes:`float <typesnumeric>`
 
@@ -203,8 +217,10 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
       May replace (as if reinitializing, using `init_value`), mutate (using a 0-mean gaussian distribution with a configured standard
       deviation from ``mutate_power``), or leave alone the input value, depending on the configuration settings (of ``replace_rate`` and ``mutate_rate``).
 
-      :param float value: The current value of the attribute.
-      :param object config: The configuration object from which the parameters are to be extracted.
+      :param value: The current value of the attribute.
+      :type value: :pytypes:`float <typesnumeric>`
+      :param config: The configuration object from which the parameters are to be extracted.
+      :type config: :datamodel:`object <objects-values-and-types>`
       :return: Either the original value, if unchanged, or the new value.
       :rtype: :pytypes:`float <typesnumeric>`
 
@@ -216,7 +232,8 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
 
       Initializes the attribute's value, either using a configured default or (if the default is ``None``) with a 50/50 chance of ``True`` or ``False``.
 
-      :param object config: The configuration object from which the default parameter is to be retrieved.
+      :param config: The configuration object from which the default parameter is to be retrieved.
+      :type config: :datamodel:`object <objects-values-and-types>`
       :return: The new value.
       :rtype: bool
 
@@ -229,7 +246,8 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
       50% chance of leaving the value unchanged.
 
       :param bool value: The current value of the attribute.
-      :param object config: The configuration object from which the ``mutate_rate`` and other parameters are to be extracted.
+      :param config: The configuration object from which the ``mutate_rate`` and other parameters are to be extracted.
+      :type config: :datamodel:`object <objects-values-and-types>`
       :return: Either the original value, if unchanged, or the new value.
       :rtype: bool
 
@@ -246,7 +264,8 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
       Initializes the attribute's value, either using a configured default or (if the default is either ``None`` or ``random``) with a randomly-chosen member
       of the ``options`` (each having an equal chance). Note: It is possible for the default value, if specifically configured, to **not** be one of the options.
 
-      :param object config: The configuration object from which the default and, if necessary, ``options`` parameters are to be retrieved.
+      :param config: The configuration object from which the default and, if necessary, ``options`` parameters are to be retrieved.
+      :type config: :datamodel:`object <objects-values-and-types>`
       :return: The new value.
       :rtype: str
 
@@ -260,6 +279,12 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
       TODO: Longer-term, add configurable probabilities of which option is used; eventually, as with the
       improved version of RBF-NEAT, separate genes for the likelihoods of each (but always doing some change, to prevent overly-conservative evolution
       due to its inherent short-sightedness), allowing the genomes to control the distribution of options, will be desirable.
+
+      :param str value: The current value of the attribute.
+      :param config: The configuration object from which the ``options`` and other parameters are to be extracted.
+      :type config: :datamodel:`object <objects-values-and-types>`
+      :return: The new value.
+      :rtype: str
 
 .. py:module:: checkpoint
    :synopsis: Uses `pickle` to save and restore populations (and other aspects of the simulation state).
@@ -283,14 +308,23 @@ Uses :py:mod:`pickle` to save and restore populations (and other aspects of the 
 
       Saves the current simulation (including randomization) state to :file:`neat-checkpoint-{generation}`, with ``generation`` being the generation number.
 
+      :param config: The `config.Config` configuration instance to be used.
+      :type config: :datamodel:`instance <index-48>`
+      :param population: A population as created by :py:meth:`reproduction.DefaultReproduction.create_new` or a compatible implementation.
+      :type population: dict(int, :datamodel:`object <objects-values-and-types>`)
+      :param species: A :py:class:`species.DefaultSpeciesSet` (or compatible implementation) instance.
+      :type species: :datamodel:`instance <index-48>`
+      :param generation: The generation number.
+      :type generation: :pytypes:`int <typesnumeric>`
+
     .. py:staticmethod:: restore_checkpoint(filename)
 
       Resumes the simulation from a previous saved point. Loads the specified file, sets the randomization state, and returns
       a :py:class:`population.Population` object set up with the rest of the previous state.
 
       :param str filename: The file to be restored from.
-      :return: Object that can be used with :py:meth:`Population.run <population.Population.run>` to restart the simulation.
-      :rtype: :py:class:`Population <population.Population>` object.
+      :return: :py:class:`Population <population.Population>` instance that can be used with :py:meth:`Population.run <population.Population.run>` to restart the simulation.
+      :rtype:  :datamodel:`instance <index-48>` 
 
 .. index:: fitness_criterion
 .. index:: fitness_threshold
@@ -311,8 +345,9 @@ Does general configuration parsing; used by other classes for their configuratio
     Does initial handling of a particular configuration parameter.
 
     :param str name: The name of the configuration parameter.
-    :param str value_type: The type that the configuration parameter should be; must be one of ``str``, :pytypes:`int <typesnumeric>`, ``bool``, :pytypes:`float <typesnumeric>`, or ``list``.
-    :param str default: If given, the default to use for the configuration parameter.
+    :param str value_type: The type that the configuration parameter should be; must be one of `str`, :pytypes:`int <typesnumeric>`, `bool`, :pytypes:`float <typesnumeric>`, or `list`.
+    :param default: If given, the default to use for the configuration parameter.
+    :type default: str or None
 
     .. versionchanged:: 0.91-config_work
       Default capability added.
@@ -331,7 +366,8 @@ Does general configuration parsing; used by other classes for their configuratio
       configuration parameter from the appropriate configuration file :ref:`section <configuration-file-sections-label>`. Parsing varies depending on the type.
 
       :param str section: The section name, taken from the `__name__` attribute of the class to be configured (or ``NEAT`` for those parameters).
-      :param object config_parser: The configuration parser to be used.
+      :param config_parser: The configuration parser to be used.
+      :type config_parser: :datamodel:`instance <index-48>`
       :return: The configuration parameter value, in stringified form unless a list.
       :rtype: str or list
 
