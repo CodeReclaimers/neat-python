@@ -1,7 +1,7 @@
 import copy
 import csv
 
-from neat.math_util import mean, stdev
+from neat.math_util import mean, stdev, median2
 from neat.reporting import BaseReporter
 from neat.six_util import iteritems
 
@@ -43,12 +43,16 @@ class StatisticsReporter(BaseReporter):
         return stat
 
     def get_fitness_mean(self):
-        """Get the per-generation average fitness."""
+        """Get the per-generation mean fitness."""
         return self.get_fitness_stat(mean)
 
     def get_fitness_stdev(self):
         """Get the per-generation standard deviation of the fitness."""
         return self.get_fitness_stat(stdev)
+
+    def get_fitness_median(self):
+        """Get the per-generation median fitness."""
+        return self.get_fitness_stat(median2)
 
     def get_average_cross_validation_fitness(self):
         """Get the per-generation average cross_validation fitness."""

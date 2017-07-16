@@ -7,7 +7,7 @@ import sys
 import types
 import warnings
 
-from neat.math_util import mean
+from neat.math_util import mean, median2
 
 from operator import mul
 
@@ -28,6 +28,9 @@ def min_aggregation(x):
 
 def maxabs_aggregation(x):
     return max(x, key=abs)
+
+def median_aggregation(x):
+    return median2(x)
 
 def mean_aggregation(x):
     return mean(x)
@@ -57,6 +60,7 @@ class AggregationFunctionSet(object):
         self.add('max', max_aggregation)
         self.add('min', min_aggregation)
         self.add('maxabs', maxabs_aggregation)
+        self.add('median', median_aggregation)
         self.add('mean', mean_aggregation)
 
     def add(self, name, function):
