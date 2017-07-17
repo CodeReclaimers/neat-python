@@ -1,3 +1,4 @@
+"""Divides the population into species based on genomic distances."""
 from neat.indexer import Indexer
 from neat.math_util import mean, stdev
 from neat.six_util import iteritems, iterkeys, itervalues
@@ -74,7 +75,7 @@ class DefaultSpeciesSet(object):
         assumption, you should make sure other necessary parts of the code are updated to reflect
         the new behavior.
         """
-        assert type(population) is dict
+        assert isinstance(population, dict)
 
         compatibility_threshold = config.species_set_config['compatibility_threshold']
 

@@ -71,6 +71,9 @@ class DefaultStagnation(object):
             if (len(species_data) - idx) <= self.species_elitism:
                 is_stagnant = False
 
+            if (len(species_data) - idx) <= self.species_elitism:
+                is_stagnant = False
+
             if is_stagnant:
                 num_non_stagnant -= 1
 

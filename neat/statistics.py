@@ -10,6 +10,10 @@ from neat.six_util import iteritems
 # (Maybe periodically write blocks of history to disk, or log stats in a database?)
 
 class StatisticsReporter(BaseReporter):
+    """
+    Gathers (via the reporting interface) and provides (to callers and/or a file) the most-fit genomes and
+    information on genome/species fitness and species sizes.
+    """
     def __init__(self):
         BaseReporter.__init__(self)
         self.most_fit_genomes = []
@@ -62,12 +66,12 @@ class StatisticsReporter(BaseReporter):
         best_unique = {}
         for g in self.most_fit_genomes:
             best_unique[g.key] = g
-        best_unique = list(best_unique.values())
+        best_unique_list = list(best_unique.values())
 
         def key(genome):
             return genome.fitness
 
-        return sorted(best_unique, key=key, reverse=True)[:n]
+        return sorted(best_unique_list, key=key, reverse=True)[:n]
 
     def best_genomes(self, n):
         """Returns the n most fit genomes ever seen."""

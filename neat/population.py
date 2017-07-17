@@ -1,3 +1,4 @@
+"""Implements the core evolution algorithm."""
 from __future__ import print_function
 
 from neat.reporting import ReporterSet
