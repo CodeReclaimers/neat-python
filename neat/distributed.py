@@ -198,7 +198,7 @@ class DistributedEvaluator(object):
         else:
             raise ValueError("Invalid mode!")
 
-    def stop(self, wait=1):
+    def stop(self, wait=1, shutdown=True):
         """stops all slaves."""
         if self.mode != MODE_MASTER:
             raise RoleError("Not in master mode!")
@@ -207,6 +207,8 @@ class DistributedEvaluator(object):
         stopevent = self.manager.get_stopevent()
         stopevent.set()
         time.sleep(wait)
+        if shutdown:
+            self.manager.shutdown()
 
     def _start_master(self):
         """starts as the master"""
