@@ -1,8 +1,11 @@
 """tests for neat.distributed"""
+from __future__ import print_function
+
 import socket
 import os
 import multiprocessing
 import random
+import sys
 import threading
 
 import neat
@@ -61,7 +64,7 @@ def test_chunked():
 
 
 def test_host_is_local():
-    """test fir neat.distributed.host_is_local"""
+    """test for neat.distributed.host_is_local"""
     tests = (
         # (hostname or ip, expected value)
         ("localhost", True),
@@ -74,13 +77,19 @@ def test_host_is_local():
         ("google.de", False),
         )
     for hostname, islocal in tests:
-        result = neat.host_is_local(hostname)
-        if result != islocal:
-            raise Exception(
-                "Hostname/IP: {h}; Expected: {e}; Got: {r}".format(
-                    h=hostname, e=islocal, r=result,
+        try:
+            result = neat.host_is_local(hostname)
+        except EnvironmentError:
+            print("test_host_is_local: Error with hostname {0!r} (expected {1!r})".format(hostname,
+                                                                                          islocal))
+            raise
+        else: # if do not want to do 'raise' above for some cases
+            if result != islocal:
+                raise Exception(
+                    "Hostname/IP: {h}; Expected: {e}; Got: {r}".format(
+                        h=hostname, e=islocal, r=result,
+                        )
                     )
-                )
 
 
 def test_DistributedEvaluator_mode():
@@ -103,12 +112,17 @@ def test_DistributedEvaluator_mode():
         )
     for hostname, mode, expected in tests:
         addr = (hostname, 80)
-        de = neat.DistributedEvaluator(
-            addr,
-            authkey=b"abcd1234",
-            eval_function=eval_dummy_genome_nn,
-            mode=mode,
-            )
+        try:
+            de = neat.DistributedEvaluator(
+                addr,
+                authkey=b"abcd1234",
+                eval_function=eval_dummy_genome_nn,
+                mode=mode,
+                )
+        except EnvironmentError:
+            print("test_DistributedEvaluator_mode(): Error with hostname " +
+                  "{!r}".format(hostname))
+            raise
         result = de.mode
         if result != expected:
             raise Exception(
