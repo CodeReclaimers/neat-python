@@ -4,11 +4,11 @@ Distributed evaluation of genomes.
 About nodes:
 The master node (=the node which creates and mutates genomes) and the slave
 nodes (=the nodes which evaluate genomes) can execute the same script. The
-role of a node is determined using the 'mode' argument of the
-DistributedEvaluator. If the mode is MODE_AUTO, the 'host_is_local()' function
-is used to check if the 'addr' argument points to the localhost. If it does,
-the node starts as a master node, otherwise as a slave node. If 'mode' is
-MODE_MASTER, the node always starts as a master node. If 'mode' is MODE_SLAVE,
+role of a node is determined using the ``mode`` argument of the
+DistributedEvaluator. If the mode is MODE_AUTO, the `host_is_local()` function
+is used to check if the ``addr`` argument points to the localhost. If it does,
+the node starts as a master node, otherwise as a slave node. If ``mode`` is
+MODE_MASTER, the node always starts as a master node. If ``mode`` is MODE_SLAVE,
 the node will always start as a slave node.
 There can only be one master node per NEAT, but any number of slave nodes.
 The master node will not evaluate any genomes, which means you will always need
@@ -24,23 +24,23 @@ code inside the body of the statement.)
 4. Create a ``DistributedEvaluator(addr_of_master_node, 'some_password',
 eval_function, mode=MODE_AUTO)`` - here, the variable ``de``
 5. Call ``de.start(exit_on_stop=True)``.
-The 'start()' call will block on the slave nodes and call sys.exit(0) when the
+The `start()` call will block on the slave nodes and call `sys.exit(0)` when the
 NEAT evolution finishes. This means that the following code will only be
 executed on the master node.
-6. Start the evaluation using 'p.run(de.evaluate, number_of_generations)'
-7. Stop the slave nodes using 'de.stop()'
-8. You are done. you may want to save the winning genome or show some statistics
+6. Start the evaluation using ``p.run(de.evaluate, number_of_generations)``
+7. Stop the slave nodes using ``de.stop()``
+8. You are done. You may want to save the winning genome or show some statistics
 
-See 'examples/xor/evolve-feedforward-distributed.py' for a complete example.
+See ``examples/xor/evolve-feedforward-distributed.py`` for a complete example.
 
 Utility functions:
 
-``host_is_local(hostname, port=22)`` returns True if hostname points to the local
-node. This can be used to check if a node will run as a master node or as a
+``host_is_local(hostname, port=22)`` returns True if ``hostname`` points to the local
+node/host. This can be used to check if a node will run as a master node or as a
 slave node.
 
 ``chunked(data, chunksize)``: splits data into a list of chunks with at most
-'chunksize' elements.
+``chunksize`` elements.
 """
 import multiprocessing
 import socket
@@ -81,12 +81,10 @@ class RoleError(RuntimeError):
     pass
 
 
-def host_is_local(hostname, port=None):
+def host_is_local(hostname, port=22): # no port specified, just use the ssh port
     """
     Returns True if the hostname points to the localhost, otherwise False.
     """
-    if port is None:
-        port = 22  # no port specified, just use the ssh port
     hostname = socket.getfqdn(hostname)
     if hostname in ("localhost", "0.0.0.0", "127.0.0.1", "1.0.0.127.in-addr.arpa",
                     "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa"):
@@ -151,9 +149,10 @@ class DistributedEvaluator(object):
         'num_workers' is the number of child processes to use if in client
         mode. It defaults to None, which means multiprocessing.cpu_count()
         is used to determine this value.
-        If it equals to 1, do evaluate it in this process.
+        If it equals to 1, do evaluate it in this process. TODO: Clarify!
         'worker_timeout' specifies the timeout for getting the results from
         a worker when in slave mode.
+        'mode' specifies the mode to run in; it defaults to MODE_AUTO.
         """
         self.addr = addr
         self.authkey = authkey
@@ -179,7 +178,7 @@ class DistributedEvaluator(object):
 
     def start(self, exit_on_stop=True, slave_wait=0):
         """
-        If the DistributedEvaluator is in master mode, start the manager
+        If the DistributedEvaluator is in master mode, starts the manager
         process and returns. In this case, the ``exit_on_stop`` argument will
         be ignored.
         If the DistributedEvaluator is in slave mode, connect to the manager
@@ -187,7 +186,7 @@ class DistributedEvaluator(object):
         If in slave mode and ``exit_on_stop`` is True, sys.exit() will be called
         when the connection is lost.
         ``slave_wait`` specifies the time (in seconds) to sleep before actually
-        starting when in client mode.
+        starting when in slave mode.
         """
         if self.started:
             raise RuntimeError("DistributedEvaluator already started!")
