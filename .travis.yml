@@ -1,4 +1,6 @@
+sudo: required
 language: python
+dist: trusty
 python:
   - "2.7"
   - "3.3"
@@ -12,8 +14,11 @@ python:
   - "pypy"
   - "pypy3.5-5.8.0"
 install:
-    pip install nose coveralls coverage
+  - sudo -H pip install nose coveralls coverage
+os:
+  - linux
+  - osx
 script:
-    travis_wait nosetests --with-coverage --cover-package=neat
+  - travis_wait nosetests --with-coverage --cover-package=neat
 after_success:
-    coveralls
+  - coveralls
