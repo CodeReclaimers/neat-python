@@ -1951,4 +1951,52 @@ statistics
       A wrapper for :py:meth:`save_genome_fitness`, :py:meth:`save_species_count`, and :py:meth:`save_species_fitness`;
       uses the default values for all three.
 
+.. todo::
+
+  The below needs checking!
+
+.. py:module:: threaded
+   :synopsis: Runs evaluation functions in parallel threads in order to evaluate multiple genomes at once.
+
+threaded
+----------
+Runs evaluation functions in parallel threads (using the python library module `threading <https://docs.python.org/3.5/library/threading.html>`_) in order to evaluate multiple genomes at once. Probably preferable to :py:mod:`parallel` for python implementations without a GIL (Global Interpreter Lock). TODO: Further explain/link re GIL.
+
+  .. index:: fitness function
+  .. index:: fitness
+
+  .. py:class:: ThreadedEvaluator(num_workers, eval_function)
+
+    Runs evaluation functions in parallel threads in order to evaluate multiple genomes at once.
+
+    :param int num_workers: How many worker threads to use.
+    :param eval_function: The eval_function should take two arguments - a genome object and a config object - and return a single :pytypes:`float <typesnumeric>` (the genome's fitness) Note that this is not the same as how a fitness function is called by :py:meth:`Population.run <population.Population.run>`, nor by :py:class:`ParallelEvaluator <parallel.ParallelEvaluator>` (although it is more similar to the latter).
+    :type eval_function: `function`
+
+    .. py:method:: __del__()
+
+      Attempts to take care of removing each worker thread, but deliberately calling ``self.stop()`` in the threads may be needed.
+      TODO: Avoid reference cycles to ensure this method is called. (Perhaps use `weakref`, depending on what the cycles are?)
+
+    .. py:method:: start()
+
+      Starts the worker threads, if in the master thread.
+
+    .. py:method:: stop()
+
+      Stops the worker threads and waits for them to finish.
+
+    .. py:method:: _worker():
+
+      The worker function. TODO: It is somewhat unclear what would stop it by turning off ``self.working``.
+
+    .. py:method:: evaluate(genomes, config)
+
+      Starts the worker threads if need be, queues the evaluation jobs for the worker threads, then assigns each fitness back to the appropriate genome.
+
+      :param genomes: A dictionary of :term:`genome_id <key>` to genome objects.
+      :type genomes: dict(int, object)
+      :param object config: A `config.Config` object.
+
+
 :ref:`Table of Contents <toc-label>`

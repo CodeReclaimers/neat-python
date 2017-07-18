@@ -3359,6 +3359,77 @@ uses the default values for all three.</p>
 </dd></dl>
 
 </div></blockquote>
+<div class="admonition-todo admonition" id="index-123">
+<p class="first admonition-title">Todo</p>
+<p class="last">The below needs checking!</p>
+</div>
+<span class="target" id="module-threaded"></span></div>
+<div class="section" id="threaded">
+<h2>threaded<a class="headerlink" href="#threaded" title="Permalink to this headline">¶</a></h2>
+<p>Runs evaluation functions in parallel threads (using the python library module <a class="reference external" href="https://docs.python.org/3.5/library/threading.html">threading</a>) in order to evaluate multiple genomes at once. Probably preferable to <a class="reference internal" href="#module-parallel" title="parallel: Runs evaluation functions in parallel subprocesses in order to evaluate multiple genomes at once."><code class="xref py py-mod docutils literal"><span class="pre">parallel</span></code></a> for python implementations without a GIL (Global Interpreter Lock). TODO: Further explain/link re GIL.</p>
+<blockquote>
+<div><span class="target" id="index-124"></span><span class="target" id="index-125"></span><dl class="class">
+<dt id="threaded.ThreadedEvaluator">
+<em class="property">class </em><code class="descclassname">threaded.</code><code class="descname">ThreadedEvaluator</code><span class="sig-paren">(</span><em>num_workers</em>, <em>eval_function</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/threaded.html#ThreadedEvaluator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#threaded.ThreadedEvaluator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs evaluation functions in parallel threads in order to evaluate multiple genomes at once.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>num_workers</strong> (<a class="reference external" href="https://docs.python.org/3.5/library/functions.html#int" title="(in Python v3.5)"><em>int</em></a>) – How many worker threads to use.</li>
+<li><strong>eval_function</strong> (<a class="reference external" href="https://docs.python.org/3.5/glossary.html#term-function" title="(in Python v3.5)"><code class="xref any docutils literal"><span class="pre">function</span></code></a>) – The eval_function should take two arguments - a genome object and a config object - and return a single <a class="reference external" href="https://docs.python.org/3.5/library/stdtypes.html#typesnumeric">float</a> (the genome’s fitness) Note that this is not the same as how a fitness function is called by <a class="reference internal" href="#population.Population.run" title="population.Population.run"><code class="xref py py-meth docutils literal"><span class="pre">Population.run</span></code></a>, nor by <a class="reference internal" href="#parallel.ParallelEvaluator" title="parallel.ParallelEvaluator"><code class="xref py py-class docutils literal"><span class="pre">ParallelEvaluator</span></code></a> (although it is more similar to the latter).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="threaded.ThreadedEvaluator.__del__">
+<code class="descname">__del__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/threaded.html#ThreadedEvaluator.__del__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#threaded.ThreadedEvaluator.__del__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attempts to take care of removing each worker thread, but deliberately calling <code class="docutils literal"><span class="pre">self.stop()</span></code> in the threads may be needed.
+TODO: Avoid reference cycles to ensure this method is called. (Perhaps use <a class="reference external" href="https://docs.python.org/3.5/library/weakref.html#module-weakref" title="(in Python v3.5)"><code class="xref any docutils literal"><span class="pre">weakref</span></code></a>, depending on what the cycles are?)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="threaded.ThreadedEvaluator.start">
+<code class="descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/threaded.html#ThreadedEvaluator.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#threaded.ThreadedEvaluator.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts the worker threads, if in the master thread.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="threaded.ThreadedEvaluator.stop">
+<code class="descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/threaded.html#ThreadedEvaluator.stop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#threaded.ThreadedEvaluator.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stops the worker threads and waits for them to finish.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">_worker():</code></dt>
+<dd><p>The worker function. TODO: It is somewhat unclear what would stop it by turning off <code class="docutils literal"><span class="pre">self.working</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="threaded.ThreadedEvaluator.evaluate">
+<code class="descname">evaluate</code><span class="sig-paren">(</span><em>genomes</em>, <em>config</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/threaded.html#ThreadedEvaluator.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#threaded.ThreadedEvaluator.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts the worker threads if need be, queues the evaluation jobs for the worker threads, then assigns each fitness back to the appropriate genome.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>genomes</strong> (<a class="reference external" href="https://docs.python.org/3.5/library/stdtypes.html#dict" title="(in Python v3.5)"><em>dict</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3.5/library/functions.html#int" title="(in Python v3.5)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3.5/library/functions.html#object" title="(in Python v3.5)"><em>object</em></a><em>)</em>) – A dictionary of <a class="reference internal" href="glossary.html#term-key"><span class="xref std std-term">genome_id</span></a> to genome objects.</li>
+<li><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3.5/library/functions.html#object" title="(in Python v3.5)"><em>object</em></a>) – A <a class="reference internal" href="#config.Config" title="config.Config"><code class="xref any py py-class docutils literal"><span class="pre">config.Config</span></code></a> object.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
 <p><a class="reference internal" href="index.html#toc-label"><span class="std std-ref">Table of Contents</span></a></p>
 </div>
 </div>
@@ -3394,6 +3465,7 @@ uses the default values for all three.</p>
 <li><a class="reference internal" href="#species">species</a></li>
 <li><a class="reference internal" href="#stagnation">stagnation</a></li>
 <li><a class="reference internal" href="#statistics">statistics</a></li>
+<li><a class="reference internal" href="#threaded">threaded</a></li>
 </ul>
 </li>
 </ul>

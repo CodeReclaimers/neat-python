@@ -19,7 +19,7 @@ class ParallelEvaluator(object):
 
     def evaluate(self, genomes, config):
         jobs = []
-        for genome_id, genome in genomes:
+        for ignored_genome_id, genome in genomes:
             jobs.append(self.pool.apply_async(self.eval_function, (genome, config)))
 
         # assign the fitness back to each genome

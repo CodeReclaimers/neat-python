@@ -12,6 +12,7 @@ except ImportError:
 
 
 class ConfigParameter(object):
+    """Contains information about one configuration item."""
     def __init__(self, name, value_type, default=None):
         self.name = name
         self.value_type = value_type
@@ -19,8 +20,11 @@ class ConfigParameter(object):
 
     def __repr__(self):
         if self.default is None:
-            return "ConfigParameter({!r}, {!r})".format(self.name, self.value_type)
-        return "ConfigParameter({!r}, {!r}, {!r})".format(self.name, self.value_type, self.default)
+            return "ConfigParameter({!r}, {!r})".format(self.name,
+                                                        self.value_type)
+        return "ConfigParameter({!r}, {!r}, {!r})".format(self.name,
+                                                          self.value_type,
+                                                          self.default)
 
     def parse(self, section, config_parser):
         if int == self.value_type:
@@ -35,6 +39,10 @@ class ConfigParameter(object):
         return config_parser.get(section, self.name)
 
     def interpret(self, config_dict):
+        """
+        Converts the config_parser output into the proper type,
+        supplies defaults if available and needed, and checks for some errors.
+        """
         value = config_dict.get(self.name)
         if value is None:
             if self.default is None:
@@ -85,7 +93,10 @@ def write_pretty_params(f, config, params):
 
 
 class DefaultClassConfig(object):
-    """Replaces at least some boilerplate configuration code for reproduction, species_set, and stagnation classes."""
+    """
+    Replaces at least some boilerplate configuration code
+    for reproduction, species_set, and stagnation classes.
+    """
 
     def __init__(self, param_dict, param_list):
         self._params = param_list
@@ -97,7 +108,7 @@ class DefaultClassConfig(object):
 
 
 class Config(object):
-    ''' A simple container for user-configurable parameters of NEAT. '''
+    """A simple container for user-configurable parameters of NEAT."""
 
     __params = [ConfigParameter('pop_size', int),
                 ConfigParameter('fitness_criterion', str),
