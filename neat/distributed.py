@@ -6,40 +6,40 @@ The master node (=the node which creates and mutates genomes) and the slave
 nodes (=the nodes which evaluate genomes) can execute the same script. The
 role of a node is determined using the 'mode' argument of the
 DistributedEvaluator. If the mode is MODE_AUTO, the 'host_is_local()' function
-is used to check if the 'addr' argument points to the localhost. If it does, the
-node starts as a master node, otherwise as a slave node. If 'mode' is
+is used to check if the 'addr' argument points to the localhost. If it does,
+the node starts as a master node, otherwise as a slave node. If 'mode' is
 MODE_MASTER, the node always starts as a master node. If 'mode' is MODE_SLAVE,
 the node will always start as a slave node.
 There can only be one master node per NEAT, but any number of slave nodes.
-The master node will not evaluate any genome, which means you will always need
+The master node will not evaluate any genomes, which means you will always need
 at least two nodes.
-You can run any number of nodes on the same physical node.
+You can run any number of nodes on the same physical machine (or VM).
 
 Usage:
-1. import modules and define evaluation logic (the eval_genome function).
-(after this, check for 'if __name__ == "__main__"', and put the rest of the code
-inside of the bode of the statement.)
-2. load config and create a population (here as variable 'p')
-3. if required, create and add  reporters
-4. create a DistributedEvaluator(addr_of_master_node, "some_password",
-eval_function, mode=MODE_AUTO) (here as variable 'de')
-5. call de.start(exit_on_stop=True)
+1. Import modules and define the evaluation logic (the eval_genome function).
+(after this, check for ``if __name__ == '__main__'``, and put the rest of the
+code inside the body of the statement.)
+2. Load config and create a population - here, the variable ``p``
+3. If required, create and add reporters
+4. Create a ``DistributedEvaluator(addr_of_master_node, 'some_password',
+eval_function, mode=MODE_AUTO)`` - here, the variable ``de``
+5. Call ``de.start(exit_on_stop=True)``.
 The 'start()' call will block on the slave nodes and call sys.exit(0) when the
 NEAT evolution finishes. This means that the following code will only be
 executed on the master node.
-6. start the evaluation using 'p.run(de.evaluate, number_of_generations)'
-7. stop the slave nodes using 'de.stop()'
-8. you are done. you may want to save the winning genome or show some statistics
+6. Start the evaluation using 'p.run(de.evaluate, number_of_generations)'
+7. Stop the slave nodes using 'de.stop()'
+8. You are done. you may want to save the winning genome or show some statistics
 
 See 'examples/xor/evolve-feedforward-distributed.py' for a complete example.
 
 Utility functions:
 
-'host_is_local(hostname, port=22)' returns True if hostname points to the local
+``host_is_local(hostname, port=22)`` returns True if hostname points to the local
 node. This can be used to check if a node will run as a master node or as a
 slave node.
 
-'chunked(data, chunksize)': split data in a list of chunks with at most
+``chunked(data, chunksize)``: splits data into a list of chunks with at most
 'chunksize' elements.
 """
 import multiprocessing
@@ -68,7 +68,7 @@ from argparse import Namespace
 # modes to determine the role of a machine
 # the master handles the evolution of the genomes
 # the slave handles the evaluation of the genomes
-MODE_AUTO = 0  # auto determine server role
+MODE_AUTO = 0  # auto-determine server role
 MODE_MASTER = 1  # enforce master mode
 MODE_SLAVE = 2  # enforce slave mode
 
@@ -96,8 +96,10 @@ def host_is_local(hostname, port=None):
         return True
     localaddrs = socket.getaddrinfo(localhost, port)
     targetaddrs = socket.getaddrinfo(hostname, port)
-    for (family, socktype, proto, canonname, sockaddr) in localaddrs:
-        for (rfamily, rsocktype, rproto, rcanonname, rsockaddr) in targetaddrs:
+    for (ignored_family, ignored_socktype, ignored_proto, ignored_canonname,
+         sockaddr) in localaddrs:
+        for (ignored_rfamily, ignored_rsocktype, ignored_rproto,
+             ignored_rcanonname, rsockaddr) in targetaddrs:
             if rsockaddr[0] == sockaddr[0]:
                 return True
     return False
@@ -109,7 +111,7 @@ def chunked(data, chunksize):
     """
     if chunksize < 1:
         raise ValueError("Chunksize must be at least 1!")
-    if not isinstance(chunksize, int):
+    if int(chunksize) != chunksize:
         raise ValueError("Chunksize needs to be an integer")
     res = []
     cur = []
@@ -172,19 +174,19 @@ class DistributedEvaluator(object):
         self.started = False
 
     def is_master(self):
-        """returns True if the host is the master"""
+        """Returns True if the host is the master"""
         return (self.mode == MODE_MASTER)
 
     def start(self, exit_on_stop=True, slave_wait=0):
         """
         If the DistributedEvaluator is in master mode, start the manager
-        process and returns. In this case, the 'exit_on_stop' argument will
+        process and returns. In this case, the ``exit_on_stop`` argument will
         be ignored.
         If the DistributedEvaluator is in slave mode, connect to the manager
-        and and wait for tasks.
-        If in slave mode and 'exit_on_stop' is True, sys.exit() will be called
+        and wait for tasks.
+        If in slave mode and ``exit_on_stop`` is True, sys.exit() will be called
         when the connection is lost.
-        'slave_wait' specifies the time (in seconds) to sleep before actually
+        ``slave_wait`` specifies the time (in seconds) to sleep before actually
         starting when in client mode.
         """
         if self.started:
@@ -202,7 +204,7 @@ class DistributedEvaluator(object):
             raise ValueError("Invalid mode!")
 
     def stop(self, wait=1, shutdown=True):
-        """stops all slaves."""
+        """Stops all slaves."""
         if self.mode != MODE_MASTER:
             raise RoleError("Not in master mode!")
         if not self.started:
@@ -214,7 +216,7 @@ class DistributedEvaluator(object):
             self.manager.shutdown()
 
     def _start_master(self):
-        """starts as the master"""
+        """Start as the master"""
         inqueue = queue.Queue()
         outqueue = queue.Queue()
         namespace = Namespace()
@@ -223,8 +225,8 @@ class DistributedEvaluator(object):
         class _EvaluatorSyncManager(managers.SyncManager):
             """
             A custom SyncManager.
-            Please see the documentation of multiprocesing for more
-            informations.
+            Please see the documentation of `multiprocessing` for more
+            information.
             """
             pass
 
@@ -255,13 +257,13 @@ class DistributedEvaluator(object):
         self.outqueue = self.manager.get_outqueue()
 
     def _start_slave(self):
-        """starts as a slave"""
+        """Start as a slave"""
 
         class _EvaluatorSyncManager(managers.SyncManager):
             """
             A custom SyncManager.
-            Please see the documentation of multiprocesing for more
-            informations.
+            Please see the documentation of `multiprocessing` for more
+            information.
             """
             pass
 
@@ -277,7 +279,7 @@ class DistributedEvaluator(object):
         self.manager.connect()
 
     def _slave_loop(self):
-        """the worker loop for the slave"""
+        """The worker loop for the slave"""
         inqueue = self.manager.get_inqueue()
         outqueue = self.manager.get_outqueue()
         stopevent = self.manager.get_stopevent()
@@ -315,7 +317,7 @@ class DistributedEvaluator(object):
     def evaluate(self, genomes, config):
         """
         Evaluates the genomes.
-        This method raises an RoleError when this
+        This method raises a RoleError when this
         DistributedEvaluator is not in master mode.
         """
         if self.mode != MODE_MASTER:

@@ -1,4 +1,4 @@
-"""threaded evaluation of genomes"""
+"""Threaded evaluation of genomes"""
 import threading
 
 try:
@@ -10,13 +10,13 @@ except ImportError:
 class ThreadedEvaluator(object):
     """
     A threaded genome evaluator.
-    Usefull on python implementations without GIL.
+    Useful on python implementations without GIL (Global Interpreter Lock).
     """
     def __init__(self, num_workers, eval_function):
-        '''
+        """
         eval_function should take two arguments (a genome object and the
         configuration) and return a single float (the genome's fitness).
-        '''
+        """
         self.num_workers = num_workers
         self.eval_function = eval_function
         self.workers = []
@@ -28,14 +28,14 @@ class ThreadedEvaluator(object):
         """
         Called on deletion of the object. We stop our workers here.
         WARNING: __del__ may not always work!
-        please stop the threads explicitly by calling self.stop()!
-        todo: ensure that there are no reference-cycles.
+        Please stop the threads explicitly by calling self.stop()!
+        TODO: ensure that there are no reference-cycles.
         """
         if self.working:
             self.stop()
             
     def start(self):
-        """starts the worker threads"""
+        """Starts the worker threads"""
         if self.working:
             return
         self.working = True
@@ -49,14 +49,14 @@ class ThreadedEvaluator(object):
             self.workers.append(w)
 
     def stop(self):
-        """stops the worker threads and wait for them to finish"""
+        """Stops the worker threads and waits for them to finish"""
         self.working = False
         for w in self.workers:
             w.join()
         self.workers = []
 
     def _worker(self):
-        """the worker function"""
+        """The worker function"""
         while self.working:
             try:
                 genome_id, genome, config = self.inqueue.get(
@@ -69,7 +69,7 @@ class ThreadedEvaluator(object):
             self.outqueue.put((genome_id, genome, f))
 
     def evaluate(self, genomes, config):
-        """evaluate the genomes"""
+        """Evaluate the genomes"""
         if not self.working:
             self.start()
         p = 0
@@ -80,5 +80,5 @@ class ThreadedEvaluator(object):
         # assign the fitness back to each genome
         while p > 0:
             p -= 1
-            genome_id, genome, fitness = self.outqueue.get()
+            ignored_genome_id, genome, fitness = self.outqueue.get()
             genome.fitness = fitness
