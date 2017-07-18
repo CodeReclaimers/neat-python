@@ -54,6 +54,7 @@
 
 
 <div class="viewcode-block" id="ConfigParameter"><a class="viewcode-back" href="../module_summaries.html#config.ConfigParameter">[docs]</a><span class="k">class</span> <span class="nc">ConfigParameter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Contains information about one configuration item.&quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value_type</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">value_type</span> <span class="o">=</span> <span class="n">value_type</span>
@@ -61,8 +62,11 @@
 
 <div class="viewcode-block" id="ConfigParameter.__repr__"><a class="viewcode-back" href="../module_summaries.html#config.ConfigParameter.__repr__">[docs]</a>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;ConfigParameter(</span><span class="si">{!r}</span><span class="s2">, </span><span class="si">{!r}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_type</span><span class="p">)</span>
-        <span class="k">return</span> <span class="s2">&quot;ConfigParameter(</span><span class="si">{!r}</span><span class="s2">, </span><span class="si">{!r}</span><span class="s2">, </span><span class="si">{!r}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="p">)</span></div>
+            <span class="k">return</span> <span class="s2">&quot;ConfigParameter(</span><span class="si">{!r}</span><span class="s2">, </span><span class="si">{!r}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                                        <span class="bp">self</span><span class="o">.</span><span class="n">value_type</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;ConfigParameter(</span><span class="si">{!r}</span><span class="s2">, </span><span class="si">{!r}</span><span class="s2">, </span><span class="si">{!r}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                                          <span class="bp">self</span><span class="o">.</span><span class="n">value_type</span><span class="p">,</span>
+                                                          <span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ConfigParameter.parse"><a class="viewcode-back" href="../module_summaries.html#config.ConfigParameter.parse">[docs]</a>    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">config_parser</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">int</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_type</span><span class="p">:</span>
@@ -77,6 +81,10 @@
         <span class="k">return</span> <span class="n">config_parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ConfigParameter.interpret"><a class="viewcode-back" href="../module_summaries.html#config.ConfigParameter.interpret">[docs]</a>    <span class="k">def</span> <span class="nf">interpret</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Converts the config_parser output into the proper type,</span>
+<span class="sd">        supplies defaults if available and needed, and checks for some errors.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">value</span> <span class="o">=</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -127,7 +135,10 @@
 
 
 <div class="viewcode-block" id="DefaultClassConfig"><a class="viewcode-back" href="../module_summaries.html#config.DefaultClassConfig">[docs]</a><span class="k">class</span> <span class="nc">DefaultClassConfig</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Replaces at least some boilerplate configuration code for reproduction, species_set, and stagnation classes.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Replaces at least some boilerplate configuration code</span>
+<span class="sd">    for reproduction, species_set, and stagnation classes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param_dict</span><span class="p">,</span> <span class="n">param_list</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">param_list</span>
@@ -139,7 +150,7 @@
 
 
 <div class="viewcode-block" id="Config"><a class="viewcode-back" href="../module_summaries.html#config.Config">[docs]</a><span class="k">class</span> <span class="nc">Config</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39; A simple container for user-configurable parameters of NEAT. &#39;&#39;&#39;</span>
+    <span class="sd">&quot;&quot;&quot;A simple container for user-configurable parameters of NEAT.&quot;&quot;&quot;</span>
 
     <span class="n">__params</span> <span class="o">=</span> <span class="p">[</span><span class="n">ConfigParameter</span><span class="p">(</span><span class="s1">&#39;pop_size&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
                 <span class="n">ConfigParameter</span><span class="p">(</span><span class="s1">&#39;fitness_criterion&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span>

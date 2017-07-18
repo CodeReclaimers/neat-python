@@ -61,7 +61,7 @@
 
 <div class="viewcode-block" id="ParallelEvaluator.evaluate"><a class="viewcode-back" href="../module_summaries.html#parallel.ParallelEvaluator.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genomes</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
         <span class="n">jobs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">genome_id</span><span class="p">,</span> <span class="n">genome</span> <span class="ow">in</span> <span class="n">genomes</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ignored_genome_id</span><span class="p">,</span> <span class="n">genome</span> <span class="ow">in</span> <span class="n">genomes</span><span class="p">:</span>
             <span class="n">jobs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">apply_async</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_function</span><span class="p">,</span> <span class="p">(</span><span class="n">genome</span><span class="p">,</span> <span class="n">config</span><span class="p">)))</span>
 
         <span class="c1"># assign the fitness back to each genome</span>
