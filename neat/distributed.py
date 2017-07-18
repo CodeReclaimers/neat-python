@@ -62,7 +62,7 @@ from argparse import Namespace
 # According to the website, the code is in the public domain
 # ('public domain' links to unlicense.org).
 # This means that we can use the code from this website.
-# Thanks to Eli Bendersky for making his code open source.
+# Thanks to Eli Bendersky for making his code open for use.
 
 
 # modes to determine the role of a machine
@@ -86,11 +86,14 @@ def host_is_local(hostname, port=None):
     Returns True if the hostname points to the localhost, otherwise False.
     """
     if port is None:
-        port = 22  # no port specified, lets just use the ssh port
+        port = 22  # no port specified, just use the ssh port
     hostname = socket.getfqdn(hostname)
-    if hostname in ("localhost", "0.0.0.0"):
+    if hostname in ("localhost", "0.0.0.0", "127.0.0.1", "1.0.0.127.in-addr.arpa",
+                    "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa"):
         return True
     localhost = socket.gethostname()
+    if hostname == localhost:
+        return True
     localaddrs = socket.getaddrinfo(localhost, port)
     targetaddrs = socket.getaddrinfo(hostname, port)
     for (family, socktype, proto, canonname, sockaddr) in localaddrs:
