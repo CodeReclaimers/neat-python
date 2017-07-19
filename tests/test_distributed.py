@@ -145,13 +145,13 @@ def test_DistributedEvaluator_mode():
                     "DistributedEvaluator.is_master() returns True even if the evaluator is in slave mode!"
                     )
     # test invalid mode error
-    de = neat.DistributedEvaluator(
-        addr,
-        authkey=b"abcd1234",
-        eval_function=eval_dummy_genome_nn,
-        mode="#invalid MODE!",
-        )
     try:
+        de = neat.DistributedEvaluator(
+            addr,
+            authkey=b"abcd1234",
+            eval_function=eval_dummy_genome_nn,
+            mode="#invalid MODE!",
+        )
         de.start()
     except ValueError:
         pass
