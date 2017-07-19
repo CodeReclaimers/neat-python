@@ -51,6 +51,11 @@ import threading
 import time
 
 try:
+    import threading
+except ImportError:
+    import dummy_threading as threading
+
+try:
     import Queue as queue
 except ImportError:
     import queue
