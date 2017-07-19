@@ -13,6 +13,16 @@ python:
   - "pypy3.5-5.8.0"
 install:
     pip install nose coveralls coverage
+matrix:
+  include:
+    - os: osx
+      python: 2.7
+    - os: osx
+      python: 3.5
+    - os: osx
+      python: pypy
+    - os: osx
+      python: pypy3.5-5.8.0
 script:
     travis_wait nosetests --with-coverage --cover-package=neat
 after_success:

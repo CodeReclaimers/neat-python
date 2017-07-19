@@ -1,11 +1,20 @@
 """Threaded evaluation of genomes"""
-import threading
+from __future__ import print_function
+
+try:
+    import threading
+except ImportError:
+    import dummy_threading as threading
+    have_threads = False
+else:
+    have_threads = True
 
 try:
     import Queue as queue
 except ImportError:
     import queue
 
+from sys import stderr
 
 class ThreadedEvaluator(object):
     """
@@ -23,6 +32,10 @@ class ThreadedEvaluator(object):
         self.working = False
         self.inqueue = queue.Queue()
         self.outqueue = queue.Queue()
+
+        if not have_threads:
+            print("No threads available; use ParallelEvaluator, not ThreadedEvaluator",
+                  file=stderr)
 
     def __del__(self):
         """
