@@ -52,7 +52,7 @@ def validate_aggregation(function): # TODO: Recognize when need `reduce`
 
 class AggregationFunctionSet(object):
     """Contains aggregation functions and methods to add and retrieve them."""
-    
+
     def __init__(self):
         self.functions = {}
         self.add('product', product_aggregation)

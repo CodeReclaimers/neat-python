@@ -42,6 +42,8 @@ slave node.
 ``chunked(data, chunksize)``: splits data into a list of chunks with at most
 ``chunksize`` elements.
 """
+from __future__ import print_function
+
 import multiprocessing
 import socket
 import sys
@@ -140,16 +142,17 @@ class DistributedEvaluator(object):
         running the DistributedEvaluator in master mode. If mode is MODE_AUTO,
         the mode is determined by checking wether the hostname points to this
         host or not.
-        'authkey' is the password used to restrict access to the manager.
-        All DistributedEvaluators need to use the same authkey.
+        'authkey' is the password used to restrict access to the manager; see
+        `multiprocessing.managers` for more information. All DistributedEvaluators
+        need to use the same authkey.
         'eval_function' should take two arguments (a genome object and the
         configuration) and return a single float (the genome's fitness).
         'slave_chunksize' specifies the number of genomes which will be send to
         a slave at once.
         'num_workers' is the number of child processes to use if in client
         mode. It defaults to None, which means multiprocessing.cpu_count()
-        is used to determine this value.
-        If it equals to 1, do evaluate it in this process. TODO: Clarify!
+        is used to determine this value. If 1 in a slave, the process creating
+        the DistributedEvaluator instance will also do the evaulations.
         'worker_timeout' specifies the timeout for getting the results from
         a worker when in slave mode.
         'mode' specifies the mode to run in; it defaults to MODE_AUTO.
@@ -158,10 +161,15 @@ class DistributedEvaluator(object):
         self.authkey = authkey
         self.eval_function = eval_function
         self.slave_chunksize = slave_chunksize
-        if num_workers is None:
-            self.num_workers = multiprocessing.cpu_count()
-        else:
+        if num_workers:
             self.num_workers = num_workers
+        else:
+            try:
+                self.num_workers = max(1,multiprocessing.cpu_count())
+            except (RuntimeError, AttributeError):
+                print("multiprocessing.cpu_count() gave an error; assuming 1",
+                      file=sys.stderr)
+                self.num_workers = 1
         self.worker_timeout = worker_timeout
         if mode == MODE_AUTO:
             if host_is_local(self.addr[0]):

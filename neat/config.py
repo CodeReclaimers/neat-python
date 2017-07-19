@@ -70,7 +70,7 @@ class ConfigParameter(object):
                 return value.split(" ")
         except Exception:
             sys.excepthook(*sys.exc_info()) # otherwise, why do the above w/RuntimeError?
-            raise RuntimeError("Error interpreting config item '{}' with value '{}' and type {}".format(
+            raise RuntimeError("Error interpreting config item '{}' with value {!r} and type {}".format(
                 self.name, value, self.value_type))
 
         raise RuntimeError("Unexpected configuration type: " + repr(self.value_type))

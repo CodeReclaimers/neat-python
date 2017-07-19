@@ -87,6 +87,16 @@ Has the built-in :term:`aggregation functions <aggregation function>`, code for 
 
     .. versionadded:: 0.91-config_work
 
+  .. py:function:: mean_aggregation(x)
+
+    Returns the arithmetic mean. Potentially maintains a more stable result than ``sum`` for changing numbers of :term:`enabled`
+    :term:`connections <connection>`, which may be good or bad depending on the circumstances; having both available to the algorithm is advised.
+
+    :param x: The numbers to find the mean of; takes any :pygloss:`iterable`.
+    :type x: list(float) or tuple(float) or set(float)
+    :return: The arithmetic mean.
+    :rtype: :pytypes:`float <typesnumeric>`
+
   .. py:exception:: InvalidAggregationFunction(TypeError)
 
     Exception called if an aggregation function being added is invalid according to the `validate_aggregation` function.
@@ -143,7 +153,8 @@ Has the built-in :term:`aggregation functions <aggregation function>`, code for 
 
 attributes
 -------------
-Deals with :term:`attributes` used by :term:`genes <gene>`.
+Deals with :term:`attributes` used by :term:`genes <gene>`. TODO: ``__config_items__`` should perhaps be ``_config_items`` instead, since it is not
+a term built into Python?
 
   .. inheritance-diagram:: attributes
 
@@ -404,7 +415,8 @@ Does general configuration parsing; used by other classes for their configuratio
 
   .. py:class:: DefaultClassConfig(param_dict, param_list)
 
-    Replaces at least some boilerplate configuration code for reproduction, species_set, and stagnation classes.
+    Replaces at least some boilerplate configuration code for reproduction, species_set, and stagnation classes. TODO: Find a way to put `write_config()`
+    into this class also. This would be simple if it were a normal method, but it is called as a class method.
 
     :param dict param_dict: Dictionary of configuration parameters from config file.
     :param param_list: List of `ConfigParameter` instances; used to know what parameters are of interest to the calling class.
@@ -675,6 +687,7 @@ genome
 
       :param f: The file object to be written to.
       :type f: :pygloss:`file <file-object>`
+      :raises RuntimeError: If the value for a :ref:`partial-connectivity configuration <initial-connection-config-label>` is not in [0.0,1.0].
 
     .. index:: ! key
 
@@ -1156,8 +1169,11 @@ functions (such as for the :ref:`species_fitness_func <species-fitness-func-labe
 
   .. py:data:: stat_functions
 
-    Lookup table for commonly used ``{value} -> value`` functions; includes `max`, `min`, `mean`, and `median`.
+    Lookup table for commonly used ``{value} -> value`` functions, namely `max`, `min`, `mean`, `median`, and `median2`.
     The :ref:`species_fitness_func <species-fitness-func-label>` (used for :py:class:`stagnation.DefaultStagnation`) is required to be one of these.
+
+    .. versionchanged:: 0.91-config_work
+      `median2` added.
 
   .. py:function:: mean(values)
 
@@ -1165,7 +1181,13 @@ functions (such as for the :ref:`species_fitness_func <species-fitness-func-labe
 
   .. py:function:: median(values)
 
-    Returns the median. (Note: For even numbers of values, does not take the mean between the two middle values.)
+    Returns the median for odd numbers of values; returns the higher of the middle two values for even numbers of values.
+
+  .. py:function:: median2(values)
+
+    Returns the median for odd numbers of values; returns the mean of the middle two values for even numbers of values.
+
+    .. versionadded:: 0.91-config_work
 
   .. py:function:: variance(values)
 
@@ -1864,10 +1886,14 @@ statistics
 
     .. py:method:: get_fitness_mean()
 
-      Gets the per-generation average fitness. A wrapper for :py:meth:`get_fitness_stat` with the function being ``mean``.
+      Gets the per-generation mean fitness. A wrapper for :py:meth:`get_fitness_stat` with the function being ``mean``.
 
       :return: List of mean genome fitnesses for each generation.
       :rtype: list(float)
+
+    .. py:method:: get_fitness_median()
+
+      Gets the per-generation median fitness. A wrapper for :py:meth:`get_fitness_stat` with the function being `median2`.
 
     .. py:method:: get_fitness_stdev()
 
