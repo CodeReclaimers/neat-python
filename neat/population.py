@@ -31,7 +31,7 @@ class Population(object):
             self.fitness_criterion = min
         elif config.fitness_criterion == 'mean':
             self.fitness_criterion = mean
-        else:
+        elif not config.no_fitness_termination:
             raise RuntimeError("Unexpected fitness_criterion: {0!r}".format(config.fitness_criterion))
 
         if initial_state is None:
@@ -73,7 +73,7 @@ class Population(object):
 
         if self.config.no_fitness_termination and (n is None):
             raise RuntimeError("Cannot have no generational limit with no fitness termination")
-        
+
         k = 0
         while n is None or k < n:
             k += 1

@@ -74,8 +74,8 @@
 <span class="k">def</span> <span class="nf">median_aggregation</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">median2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">mean_aggregation</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">mean</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<div class="viewcode-block" id="mean_aggregation"><a class="viewcode-back" href="../module_summaries.html#aggregations.mean_aggregation">[docs]</a><span class="k">def</span> <span class="nf">mean_aggregation</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">mean</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="InvalidAggregationFunction"><a class="viewcode-back" href="../module_summaries.html#aggregations.InvalidAggregationFunction">[docs]</a><span class="k">class</span> <span class="nc">InvalidAggregationFunction</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">):</span>
     <span class="k">pass</span></div>
@@ -94,7 +94,7 @@
 
 <div class="viewcode-block" id="AggregationFunctionSet"><a class="viewcode-back" href="../module_summaries.html#aggregations.AggregationFunctionSet">[docs]</a><span class="k">class</span> <span class="nc">AggregationFunctionSet</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Contains aggregation functions and methods to add and retrieve them.&quot;&quot;&quot;</span>
-    
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">functions</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;product&#39;</span><span class="p">,</span> <span class="n">product_aggregation</span><span class="p">)</span>

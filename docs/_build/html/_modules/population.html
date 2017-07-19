@@ -73,7 +73,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">fitness_criterion</span> <span class="o">=</span> <span class="nb">min</span>
         <span class="k">elif</span> <span class="n">config</span><span class="o">.</span><span class="n">fitness_criterion</span> <span class="o">==</span> <span class="s1">&#39;mean&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">fitness_criterion</span> <span class="o">=</span> <span class="n">mean</span>
-        <span class="k">else</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">config</span><span class="o">.</span><span class="n">no_fitness_termination</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unexpected fitness_criterion: </span><span class="si">{0!r}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">fitness_criterion</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">initial_state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -115,7 +115,7 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">no_fitness_termination</span> <span class="ow">and</span> <span class="p">(</span><span class="n">n</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Cannot have no generational limit with no fitness termination&quot;</span><span class="p">)</span>
-        
+
         <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">while</span> <span class="n">n</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">:</span>
             <span class="n">k</span> <span class="o">+=</span> <span class="mi">1</span>

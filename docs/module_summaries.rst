@@ -1986,7 +1986,8 @@ statistics
 
 threaded
 ----------
-Runs evaluation functions in parallel threads (using the python library module `threading <https://docs.python.org/3.5/library/threading.html>`_) in order to evaluate multiple genomes at once. Probably preferable to :py:mod:`parallel` for python implementations without a GIL (Global Interpreter Lock). TODO: Further explain/link re GIL.
+Runs evaluation functions in parallel threads (using the python library module `threading <https://docs.python.org/3.5/library/threading.html>`_) in order to evaluate multiple genomes at once. Probably preferable to :py:mod:`parallel` for python implementations without a :pygloss:`GIL` (Global Interpreter Lock).
+TODO: Further explain/link re GIL.
 
   .. index:: fitness function
   .. index:: fitness

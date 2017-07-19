@@ -180,6 +180,25 @@ by <a class="reference internal" href="#genome.DefaultGenomeConfig.add_activatio
 </div>
 </dd></dl>
 
+<dl class="function">
+<dt id="aggregations.mean_aggregation">
+<code class="descclassname">aggregations.</code><code class="descname">mean_aggregation</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aggregations.html#mean_aggregation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aggregations.mean_aggregation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the arithmetic mean. Potentially maintains a more stable result than <code class="docutils literal"><span class="pre">sum</span></code> for changing numbers of <a class="reference internal" href="glossary.html#term-enabled"><span class="xref std std-term">enabled</span></a>
+<a class="reference internal" href="glossary.html#term-connection"><span class="xref std std-term">connections</span></a>, which may be good or bad depending on the circumstances; having both available to the algorithm is advised.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> (<a class="reference external" href="https://docs.python.org/3.5/library/stdtypes.html#list" title="(in Python v3.5)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3.5/library/functions.html#float" title="(in Python v3.5)"><em>float</em></a><em>) or </em><a class="reference external" href="https://docs.python.org/3.5/library/stdtypes.html#tuple" title="(in Python v3.5)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3.5/library/functions.html#float" title="(in Python v3.5)"><em>float</em></a><em>) or </em><a class="reference external" href="https://docs.python.org/3.5/library/stdtypes.html#set" title="(in Python v3.5)"><em>set</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3.5/library/functions.html#float" title="(in Python v3.5)"><em>float</em></a><em>)</em>) – The numbers to find the mean of; takes any <a class="reference external" href="https://docs.python.org/3.5/glossary.html#term-iterable">iterable</a>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The arithmetic mean.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3.5/library/stdtypes.html#typesnumeric">float</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="exception">
 <dt id="aggregations.InvalidAggregationFunction">
 <em class="property">exception </em><code class="descclassname">aggregations.</code><code class="descname">InvalidAggregationFunction</code><span class="sig-paren">(</span><em>TypeError</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aggregations.html#InvalidAggregationFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aggregations.InvalidAggregationFunction" title="Permalink to this definition">¶</a></dt>
@@ -280,7 +299,8 @@ that will appropriately “wrap” the input function.</p>
 <span class="target" id="module-attributes"></span></div>
 <div class="section" id="attributes">
 <h2>attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h2>
-<p>Deals with <a class="reference internal" href="glossary.html#term-attributes"><span class="xref std std-term">attributes</span></a> used by <a class="reference internal" href="glossary.html#term-gene"><span class="xref std std-term">genes</span></a>.</p>
+<p>Deals with <a class="reference internal" href="glossary.html#term-attributes"><span class="xref std std-term">attributes</span></a> used by <a class="reference internal" href="glossary.html#term-gene"><span class="xref std std-term">genes</span></a>. TODO: <code class="docutils literal"><span class="pre">__config_items__</span></code> should perhaps be <code class="docutils literal"><span class="pre">_config_items</span></code> instead, since it is not
+a term built into Python?</p>
 <blockquote>
 <div><img src="_images/inheritance-4a822d5882324ff178248a7c4205a91173dead11.png" alt="Inheritance diagram of attributes" usemap="#inheritance199b63f8fc" class="inheritance"/>
 <map id="inheritance199b63f8fc" name="inheritance199b63f8fc">
@@ -741,7 +761,8 @@ proper type, with some error-checking.</p>
 <dl class="class">
 <dt id="config.DefaultClassConfig">
 <em class="property">class </em><code class="descclassname">config.</code><code class="descname">DefaultClassConfig</code><span class="sig-paren">(</span><em>param_dict</em>, <em>param_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/config.html#DefaultClassConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#config.DefaultClassConfig" title="Permalink to this definition">¶</a></dt>
-<dd><p>Replaces at least some boilerplate configuration code for reproduction, species_set, and stagnation classes.</p>
+<dd><p>Replaces at least some boilerplate configuration code for reproduction, species_set, and stagnation classes. TODO: Find a way to put <a class="reference internal" href="#stagnation.DefaultStagnation.write_config" title="stagnation.DefaultStagnation.write_config"><code class="xref any py py-meth docutils literal"><span class="pre">write_config()</span></code></a>
+into this class also. This would be simple if it were a normal method, but it is called as a class method.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1213,6 +1234,8 @@ other parameters.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>f</strong> (<a class="reference external" href="https://docs.python.org/3.5/glossary.html#term-file-object">file</a>) – The file object to be written to.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3.5/library/exceptions.html#RuntimeError" title="(in Python v3.5)"><strong>RuntimeError</strong></a> – If the value for a <a class="reference internal" href="config_file.html#initial-connection-config-label"><span class="std std-ref">partial-connectivity configuration</span></a> is not in [0.0,1.0].</td>
 </tr>
 </tbody>
 </table>
@@ -2008,8 +2031,11 @@ functions (such as for the <a class="reference internal" href="config_file.html#
 <div><span class="target" id="index-65"></span><span class="target" id="index-66"></span><dl class="data">
 <dt id="math_util.stat_functions">
 <code class="descclassname">math_util.</code><code class="descname">stat_functions</code><a class="headerlink" href="#math_util.stat_functions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Lookup table for commonly used <code class="docutils literal"><span class="pre">{value}</span> <span class="pre">-&gt;</span> <span class="pre">value</span></code> functions; includes <a class="reference external" href="https://docs.python.org/3.5/library/functions.html#max" title="(in Python v3.5)"><code class="xref any docutils literal"><span class="pre">max</span></code></a>, <a class="reference external" href="https://docs.python.org/3.5/library/functions.html#min" title="(in Python v3.5)"><code class="xref any docutils literal"><span class="pre">min</span></code></a>, <a class="reference internal" href="#math_util.mean" title="math_util.mean"><code class="xref any py py-func docutils literal"><span class="pre">mean</span></code></a>, and <a class="reference internal" href="#math_util.median" title="math_util.median"><code class="xref any py py-func docutils literal"><span class="pre">median</span></code></a>.
+<dd><p>Lookup table for commonly used <code class="docutils literal"><span class="pre">{value}</span> <span class="pre">-&gt;</span> <span class="pre">value</span></code> functions, namely <a class="reference external" href="https://docs.python.org/3.5/library/functions.html#max" title="(in Python v3.5)"><code class="xref any docutils literal"><span class="pre">max</span></code></a>, <a class="reference external" href="https://docs.python.org/3.5/library/functions.html#min" title="(in Python v3.5)"><code class="xref any docutils literal"><span class="pre">min</span></code></a>, <a class="reference internal" href="#math_util.mean" title="math_util.mean"><code class="xref any py py-func docutils literal"><span class="pre">mean</span></code></a>, <a class="reference internal" href="#math_util.median" title="math_util.median"><code class="xref any py py-func docutils literal"><span class="pre">median</span></code></a>, and <a class="reference internal" href="#math_util.median2" title="math_util.median2"><code class="xref any py py-func docutils literal"><span class="pre">median2</span></code></a>.
 The <a class="reference internal" href="config_file.html#species-fitness-func-label"><span class="std std-ref">species_fitness_func</span></a> (used for <a class="reference internal" href="#stagnation.DefaultStagnation" title="stagnation.DefaultStagnation"><code class="xref py py-class docutils literal"><span class="pre">stagnation.DefaultStagnation</span></code></a>) is required to be one of these.</p>
+<div class="versionchanged">
+<p><span class="versionmodified">Changed in version 0.91-config_work: </span><a class="reference internal" href="#math_util.median2" title="math_util.median2"><code class="xref any py py-func docutils literal"><span class="pre">median2</span></code></a> added.</p>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -2021,7 +2047,16 @@ The <a class="reference internal" href="config_file.html#species-fitness-func-la
 <dl class="function">
 <dt id="math_util.median">
 <code class="descclassname">math_util.</code><code class="descname">median</code><span class="sig-paren">(</span><em>values</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/math_util.html#median"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#math_util.median" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the median. (Note: For even numbers of values, does not take the mean between the two middle values.)</p>
+<dd><p>Returns the median for odd numbers of values; returns the higher of the middle two values for even numbers of values.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="math_util.median2">
+<code class="descclassname">math_util.</code><code class="descname">median2</code><span class="sig-paren">(</span><em>values</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/math_util.html#median2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#math_util.median2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the median for odd numbers of values; returns the mean of the middle two values for even numbers of values.</p>
+<div class="versionadded">
+<p><span class="versionmodified">New in version 0.91-config_work.</span></p>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -3169,7 +3204,7 @@ Information gathered includes a copy of the best genome in each generation and t
 <dl class="method">
 <dt id="statistics.StatisticsReporter.get_fitness_mean">
 <code class="descname">get_fitness_mean</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/statistics.html#StatisticsReporter.get_fitness_mean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#statistics.StatisticsReporter.get_fitness_mean" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets the per-generation average fitness. A wrapper for <a class="reference internal" href="#statistics.StatisticsReporter.get_fitness_stat" title="statistics.StatisticsReporter.get_fitness_stat"><code class="xref py py-meth docutils literal"><span class="pre">get_fitness_stat()</span></code></a> with the function being <code class="docutils literal"><span class="pre">mean</span></code>.</p>
+<dd><p>Gets the per-generation mean fitness. A wrapper for <a class="reference internal" href="#statistics.StatisticsReporter.get_fitness_stat" title="statistics.StatisticsReporter.get_fitness_stat"><code class="xref py py-meth docutils literal"><span class="pre">get_fitness_stat()</span></code></a> with the function being <code class="docutils literal"><span class="pre">mean</span></code>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -3180,6 +3215,12 @@ Information gathered includes a copy of the best genome in each generation and t
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="statistics.StatisticsReporter.get_fitness_median">
+<code class="descname">get_fitness_median</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/statistics.html#StatisticsReporter.get_fitness_median"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#statistics.StatisticsReporter.get_fitness_median" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the per-generation median fitness. A wrapper for <a class="reference internal" href="#statistics.StatisticsReporter.get_fitness_stat" title="statistics.StatisticsReporter.get_fitness_stat"><code class="xref py py-meth docutils literal"><span class="pre">get_fitness_stat()</span></code></a> with the function being <a class="reference internal" href="#math_util.median2" title="math_util.median2"><code class="xref any py py-func docutils literal"><span class="pre">median2</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -3366,7 +3407,8 @@ uses the default values for all three.</p>
 <span class="target" id="module-threaded"></span></div>
 <div class="section" id="threaded">
 <h2>threaded<a class="headerlink" href="#threaded" title="Permalink to this headline">¶</a></h2>
-<p>Runs evaluation functions in parallel threads (using the python library module <a class="reference external" href="https://docs.python.org/3.5/library/threading.html">threading</a>) in order to evaluate multiple genomes at once. Probably preferable to <a class="reference internal" href="#module-parallel" title="parallel: Runs evaluation functions in parallel subprocesses in order to evaluate multiple genomes at once."><code class="xref py py-mod docutils literal"><span class="pre">parallel</span></code></a> for python implementations without a GIL (Global Interpreter Lock). TODO: Further explain/link re GIL.</p>
+<p>Runs evaluation functions in parallel threads (using the python library module <a class="reference external" href="https://docs.python.org/3.5/library/threading.html">threading</a>) in order to evaluate multiple genomes at once. Probably preferable to <a class="reference internal" href="#module-parallel" title="parallel: Runs evaluation functions in parallel subprocesses in order to evaluate multiple genomes at once."><code class="xref py py-mod docutils literal"><span class="pre">parallel</span></code></a> for python implementations without a <a class="reference external" href="https://docs.python.org/3.5/glossary.html#term-GIL">GIL</a> (Global Interpreter Lock).
+TODO: Further explain/link re GIL.</p>
 <blockquote>
 <div><span class="target" id="index-124"></span><span class="target" id="index-125"></span><dl class="class">
 <dt id="threaded.ThreadedEvaluator">

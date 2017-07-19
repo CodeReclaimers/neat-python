@@ -65,7 +65,7 @@ class FloatAttribute(BaseAttribute):
         if r < mutate_rate:
             mutate_power = getattr(config, self.mutate_power_name)
             return self.clamp(value + gauss(0.0, mutate_power), config)
-        
+
         replace_rate = getattr(config, self.replace_rate_name)
 
         if r < replace_rate + mutate_rate:

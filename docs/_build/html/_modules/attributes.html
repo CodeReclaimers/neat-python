@@ -107,7 +107,7 @@
         <span class="k">if</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="n">mutate_rate</span><span class="p">:</span>
             <span class="n">mutate_power</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutate_power_name</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">value</span> <span class="o">+</span> <span class="n">gauss</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">mutate_power</span><span class="p">),</span> <span class="n">config</span><span class="p">)</span>
-        
+
         <span class="n">replace_rate</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">replace_rate_name</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="n">replace_rate</span> <span class="o">+</span> <span class="n">mutate_rate</span><span class="p">:</span>
