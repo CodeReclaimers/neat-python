@@ -1,0 +1,455 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>distributed &#8212; NEAT-Python 0.91-config_work documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.91-config_work',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for distributed</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Distributed evaluation of genomes.</span>
+
+<span class="sd">About compute nodes:</span>
+<span class="sd">The master node (=the node which creates and mutates genomes) and the slave</span>
+<span class="sd">nodes (=the nodes which evaluate genomes) can execute the same script. The</span>
+<span class="sd">role of a compute node is determined using the ``mode`` argument of the</span>
+<span class="sd">DistributedEvaluator. If the mode is MODE_AUTO, the `host_is_local()` function</span>
+<span class="sd">is used to check if the ``addr`` argument points to the localhost. If it does,</span>
+<span class="sd">the compute node starts as a master node, otherwise as a slave node. If</span>
+<span class="sd">``mode`` is MODE_MASTER, the compute node always starts as a master node. If</span>
+<span class="sd">``mode`` is MODE_SLAVE, the compute node will always start as a slave node.</span>
+
+<span class="sd">There can only be one master node per NEAT, but any number of slave nodes.</span>
+<span class="sd">The master node will not evaluate any genomes, which means you will always need</span>
+<span class="sd">at least two compute nodes.</span>
+
+<span class="sd">You can run any number of compute nodes on the same physical machine (or VM).</span>
+<span class="sd">However, if a machine has both a master node and one or more slave nodes,</span>
+<span class="sd">MODE_AUTO cannot be used for those slave nodes - MODE_SLAVE will need to be</span>
+<span class="sd">specified.</span>
+
+<span class="sd">Usage:</span>
+<span class="sd">1. Import modules and define the evaluation logic (the eval_genome function).</span>
+<span class="sd">  (After this, check for ``if __name__ == &#39;__main__&#39;``, and put the rest of</span>
+<span class="sd">  the code inside the body of the statement.)</span>
+<span class="sd">2. Load config and create a population - here, the variable ``p``.</span>
+<span class="sd">3. If required, create and add reporters.</span>
+<span class="sd">4. Create a ``DistributedEvaluator(addr_of_master_node, &#39;some_password&#39;,</span>
+<span class="sd">  eval_function, mode=MODE_AUTO)`` - here, the variable ``de``.</span>
+<span class="sd">5. Call ``de.start(exit_on_stop=True)``. The `start()` call will block on the</span>
+<span class="sd">  slave nodes and call `sys.exit(0)` when the NEAT evolution finishes. This</span>
+<span class="sd">  means that the following code will only be executed on the master node.</span>
+<span class="sd">6. Start the evaluation using ``p.run(de.evaluate, number_of_generations)``.</span>
+<span class="sd">7. Stop the slave nodes using ``de.stop()``.</span>
+<span class="sd">8. You are done. You may want to save the winning genome or show some</span>
+<span class="sd">  statistics.</span>
+
+<span class="sd">See ``examples/xor/evolve-feedforward-distributed.py`` for a complete example.</span>
+
+<span class="sd">Utility functions:</span>
+
+<span class="sd">``host_is_local(hostname, port=22)`` returns True if ``hostname`` points to</span>
+<span class="sd">the local node/host. This can be used to check if a compute node will run as</span>
+<span class="sd">a master node or as a slave node with MODE_AUTO.</span>
+
+<span class="sd">``chunked(data, chunksize)``: splits data into a list of chunks with at most</span>
+<span class="sd">``chunksize`` elements.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
+
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="kn">import</span> <span class="nn">socket</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">threading</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">dummy_threading</span> <span class="k">as</span> <span class="nn">threading</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">Queue</span> <span class="k">as</span> <span class="nn">queue</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">queue</span>
+
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">managers</span>
+<span class="kn">from</span> <span class="nn">argparse</span> <span class="k">import</span> <span class="n">Namespace</span>
+
+
+<span class="c1"># Some of this code is based on</span>
+<span class="c1"># http://eli.thegreenplace.net/2012/01/24/distributed-computing-in-python-with-multiprocessing</span>
+<span class="c1"># According to the website, the code is in the public domain</span>
+<span class="c1"># (&#39;public domain&#39; links to unlicense.org).</span>
+<span class="c1"># This means that we can use the code from this website.</span>
+<span class="c1"># Thanks to Eli Bendersky for making his code open for use.</span>
+
+
+<span class="c1"># modes to determine the role of a machine</span>
+<span class="c1"># the master handles the evolution of the genomes</span>
+<span class="c1"># the slave handles the evaluation of the genomes</span>
+<span class="n">MODE_AUTO</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># auto-determine server role</span>
+<span class="n">MODE_MASTER</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># enforce master mode</span>
+<span class="n">MODE_SLAVE</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># enforce slave mode</span>
+
+
+<div class="viewcode-block" id="RoleError"><a class="viewcode-back" href="../module_summaries.html#distributed.RoleError">[docs]</a><span class="k">class</span> <span class="nc">RoleError</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An exception raised when a role-specific method is being</span>
+<span class="sd">    called without being in the role (mode) - either a master-specific method</span>
+<span class="sd">    called by a slave node or a slave-specific method called by a master node.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="host_is_local"><a class="viewcode-back" href="../module_summaries.html#distributed.host_is_local">[docs]</a><span class="k">def</span> <span class="nf">host_is_local</span><span class="p">(</span><span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">22</span><span class="p">):</span> <span class="c1"># no port specified, just use the ssh port</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns True if the hostname points to the localhost, otherwise False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">hostname</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">getfqdn</span><span class="p">(</span><span class="n">hostname</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">hostname</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="s2">&quot;0.0.0.0&quot;</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="s2">&quot;1.0.0.127.in-addr.arpa&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="n">localhost</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">hostname</span> <span class="o">==</span> <span class="n">localhost</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="n">localaddrs</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">getaddrinfo</span><span class="p">(</span><span class="n">localhost</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+    <span class="n">targetaddrs</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">getaddrinfo</span><span class="p">(</span><span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">ignored_family</span><span class="p">,</span> <span class="n">ignored_socktype</span><span class="p">,</span> <span class="n">ignored_proto</span><span class="p">,</span> <span class="n">ignored_canonname</span><span class="p">,</span>
+         <span class="n">sockaddr</span><span class="p">)</span> <span class="ow">in</span> <span class="n">localaddrs</span><span class="p">:</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">ignored_rfamily</span><span class="p">,</span> <span class="n">ignored_rsocktype</span><span class="p">,</span> <span class="n">ignored_rproto</span><span class="p">,</span>
+             <span class="n">ignored_rcanonname</span><span class="p">,</span> <span class="n">rsockaddr</span><span class="p">)</span> <span class="ow">in</span> <span class="n">targetaddrs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">rsockaddr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">sockaddr</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="chunked"><a class="viewcode-back" href="../module_summaries.html#distributed.chunked">[docs]</a><span class="k">def</span> <span class="nf">chunked</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a list of chunks containing at most ``chunksize`` elements of data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">chunksize</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Chunksize must be at least 1!&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">chunksize</span><span class="p">)</span> <span class="o">!=</span> <span class="n">chunksize</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Chunksize needs to be an integer&quot;</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cur</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">chunksize</span><span class="p">:</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur</span><span class="p">)</span>
+            <span class="n">cur</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cur</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="DistributedEvaluator"><a class="viewcode-back" href="../module_summaries.html#distributed.DistributedEvaluator">[docs]</a><span class="k">class</span> <span class="nc">DistributedEvaluator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An evaluator working across multiple machines&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">addr</span><span class="p">,</span>
+            <span class="n">authkey</span><span class="p">,</span>
+            <span class="n">eval_function</span><span class="p">,</span>
+            <span class="n">slave_chunksize</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">num_workers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">worker_timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+            <span class="n">mode</span><span class="o">=</span><span class="n">MODE_AUTO</span>
+            <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ``addr`` should be a tuple of (hostname, port) pointing to the machine</span>
+<span class="sd">        running the DistributedEvaluator in master mode. If mode is MODE_AUTO,</span>
+<span class="sd">        the mode is determined by checking whether the hostname points to this</span>
+<span class="sd">        host or not.</span>
+<span class="sd">        ``authkey`` is the password used to restrict access to the manager; see</span>
+<span class="sd">        `multiprocessing.managers` for more information. All DistributedEvaluators</span>
+<span class="sd">        need to use the same authkey. Defaults to</span>
+<span class="sd">        `multiprocessing.current_process()`.authkey; however, this will not be the</span>
+<span class="sd">        same for processes on different machines, including virtual machines.</span>
+<span class="sd">        ``eval_function`` should take two arguments (a genome object and the</span>
+<span class="sd">        configuration) and return a single float (the genome&#39;s fitness).</span>
+<span class="sd">        &#39;slave_chunksize&#39; specifies the number of genomes that will be sent to</span>
+<span class="sd">        a slave at any one time.</span>
+<span class="sd">        ``num_workers`` is the number of child processes to use if in slave</span>
+<span class="sd">        mode. It defaults to None, which means `multiprocessing.cpu_count()`</span>
+<span class="sd">        is used to determine this value. If 1 in a slave node, the process creating</span>
+<span class="sd">        the DistributedEvaluator instance will also do the evaulations.</span>
+<span class="sd">        ``worker_timeout`` specifies the timeout (in seconds) for a slave node</span>
+<span class="sd">        getting the results from a worker subprocess; if None, there is no timeout.</span>
+<span class="sd">        ``mode`` specifies the mode to run in; it defaults to MODE_AUTO.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addr</span> <span class="o">=</span> <span class="n">addr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">authkey</span> <span class="o">=</span> <span class="n">authkey</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eval_function</span> <span class="o">=</span> <span class="n">eval_function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slave_chunksize</span> <span class="o">=</span> <span class="n">slave_chunksize</span>
+        <span class="k">if</span> <span class="n">num_workers</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span> <span class="o">=</span> <span class="n">num_workers</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">())</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">RuntimeError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;multiprocessing.cpu_count() gave an error; assuming 1&quot;</span><span class="p">,</span>
+                      <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">worker_timeout</span> <span class="o">=</span> <span class="n">worker_timeout</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">MODE_AUTO</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">host_is_local</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">addr</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="n">mode</span> <span class="o">=</span> <span class="n">MODE_MASTER</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mode</span> <span class="o">=</span> <span class="n">MODE_SLAVE</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">MODE_SLAVE</span><span class="p">,</span> <span class="n">MODE_MASTER</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid mode </span><span class="si">{!r}</span><span class="s2">!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">manager</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inqueue</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outqueue</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">started</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="DistributedEvaluator.is_master"><a class="viewcode-back" href="../module_summaries.html#distributed.DistributedEvaluator.is_master">[docs]</a>    <span class="k">def</span> <span class="nf">is_master</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns True if the caller is the master node&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="n">MODE_MASTER</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DistributedEvaluator.start"><a class="viewcode-back" href="../module_summaries.html#distributed.DistributedEvaluator.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exit_on_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slave_wait</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If the DistributedEvaluator is in master mode, starts the manager</span>
+<span class="sd">        process and returns. In this case, the ``exit_on_stop`` argument will</span>
+<span class="sd">        be ignored.</span>
+<span class="sd">        If the DistributedEvaluator is in slave mode, it connects to the manager</span>
+<span class="sd">        and waits for tasks.</span>
+<span class="sd">        If in slave mode and ``exit_on_stop`` is True, sys.exit() will be called</span>
+<span class="sd">        when the connection is lost.</span>
+<span class="sd">        ``slave_wait`` specifies the time (in seconds) to sleep before actually</span>
+<span class="sd">        starting when in slave mode.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">started</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;DistributedEvaluator already started!&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">started</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="n">MODE_MASTER</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_start_master</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="n">MODE_SLAVE</span><span class="p">:</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">slave_wait</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_start_slave</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_slave_loop</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">exit_on_stop</span><span class="p">:</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid mode </span><span class="si">{!r}</span><span class="s2">!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="DistributedEvaluator.stop"><a class="viewcode-back" href="../module_summaries.html#distributed.DistributedEvaluator.stop">[docs]</a>    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">shutdown</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Stops all slaves.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">!=</span> <span class="n">MODE_MASTER</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">RoleError</span><span class="p">(</span><span class="s2">&quot;Not in master mode!&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">started</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Not yet started!&quot;</span><span class="p">)</span>
+        <span class="n">stopevent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">get_stopevent</span><span class="p">()</span>
+        <span class="n">stopevent</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">wait</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">shutdown</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_start_master</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Start as the master&quot;&quot;&quot;</span>
+        <span class="n">inqueue</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+        <span class="n">outqueue</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+        <span class="n">namespace</span> <span class="o">=</span> <span class="n">Namespace</span><span class="p">()</span>
+        <span class="n">stop_event</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+
+        <span class="k">class</span> <span class="nc">_EvaluatorSyncManager</span><span class="p">(</span><span class="n">managers</span><span class="o">.</span><span class="n">SyncManager</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            A custom SyncManager.</span>
+<span class="sd">            Please see the documentation of `multiprocessing` for more</span>
+<span class="sd">            information.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">pass</span>
+
+        <span class="n">_EvaluatorSyncManager</span><span class="o">.</span><span class="n">register</span><span class="p">(</span>
+            <span class="s2">&quot;get_inqueue&quot;</span><span class="p">,</span>
+            <span class="n">callable</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">inqueue</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">_EvaluatorSyncManager</span><span class="o">.</span><span class="n">register</span><span class="p">(</span>
+            <span class="s2">&quot;get_outqueue&quot;</span><span class="p">,</span>
+            <span class="n">callable</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">outqueue</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">_EvaluatorSyncManager</span><span class="o">.</span><span class="n">register</span><span class="p">(</span>
+            <span class="s2">&quot;get_namespace&quot;</span><span class="p">,</span>
+            <span class="n">callable</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">namespace</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">_EvaluatorSyncManager</span><span class="o">.</span><span class="n">register</span><span class="p">(</span>
+            <span class="s2">&quot;get_stopevent&quot;</span><span class="p">,</span>
+            <span class="n">callable</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">stop_event</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">manager</span> <span class="o">=</span> <span class="n">_EvaluatorSyncManager</span><span class="p">(</span>
+            <span class="n">address</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">addr</span><span class="p">,</span>
+            <span class="n">authkey</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">authkey</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">inqueue</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">get_inqueue</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outqueue</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">get_outqueue</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_start_slave</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Start as a slave&quot;&quot;&quot;</span>
+
+        <span class="k">class</span> <span class="nc">_EvaluatorSyncManager</span><span class="p">(</span><span class="n">managers</span><span class="o">.</span><span class="n">SyncManager</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            A custom SyncManager.</span>
+<span class="sd">            Please see the documentation of `multiprocessing` for more</span>
+<span class="sd">            information.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">pass</span>
+
+        <span class="n">_EvaluatorSyncManager</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;get_inqueue&quot;</span><span class="p">)</span>
+        <span class="n">_EvaluatorSyncManager</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;get_outqueue&quot;</span><span class="p">)</span>
+        <span class="n">_EvaluatorSyncManager</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;get_namespace&quot;</span><span class="p">)</span>
+        <span class="n">_EvaluatorSyncManager</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;get_stopevent&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">manager</span> <span class="o">=</span> <span class="n">_EvaluatorSyncManager</span><span class="p">(</span>
+            <span class="n">address</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">addr</span><span class="p">,</span>
+            <span class="n">authkey</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">authkey</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_slave_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The worker loop for the slave&quot;&quot;&quot;</span>
+        <span class="n">inqueue</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">get_inqueue</span><span class="p">()</span>
+        <span class="n">outqueue</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">get_outqueue</span><span class="p">()</span>
+        <span class="n">stopevent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">get_stopevent</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">pool</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pool</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">stopevent</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">tasks</span> <span class="o">=</span> <span class="n">inqueue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">managers</span><span class="o">.</span><span class="n">RemoteError</span><span class="p">,</span> <span class="n">queue</span><span class="o">.</span><span class="n">Empty</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">pool</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">genome_id</span><span class="p">,</span> <span class="n">genome</span><span class="p">,</span> <span class="n">config</span> <span class="ow">in</span> <span class="n">tasks</span><span class="p">:</span>
+                    <span class="n">fitness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eval_function</span><span class="p">(</span><span class="n">genome</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+                    <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">genome_id</span><span class="p">,</span> <span class="n">fitness</span><span class="p">))</span>
+                <span class="n">outqueue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">genome_ids</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">jobs</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">genome_id</span><span class="p">,</span> <span class="n">genome</span><span class="p">,</span> <span class="n">config</span> <span class="ow">in</span> <span class="n">tasks</span><span class="p">:</span>
+                    <span class="n">genome_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">genome_id</span><span class="p">)</span>
+                    <span class="n">jobs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">pool</span><span class="o">.</span><span class="n">apply_async</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">eval_function</span><span class="p">,</span> <span class="p">(</span><span class="n">genome</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+                            <span class="p">)</span>
+                        <span class="p">)</span>
+                <span class="n">results</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">worker_timeout</span><span class="p">)</span> <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">jobs</span>
+                    <span class="p">]</span>
+                <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">genome_ids</span><span class="p">,</span> <span class="n">results</span><span class="p">)</span>
+                <span class="n">outqueue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">zipped</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DistributedEvaluator.evaluate"><a class="viewcode-back" href="../module_summaries.html#distributed.DistributedEvaluator.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genomes</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Evaluates the genomes.</span>
+<span class="sd">        This method raises a RoleError when this</span>
+<span class="sd">        DistributedEvaluator is not in master mode.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">!=</span> <span class="n">MODE_MASTER</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">RoleError</span><span class="p">(</span><span class="s2">&quot;Not in master mode!&quot;</span><span class="p">)</span>
+        <span class="n">stopevent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">get_stopevent</span><span class="p">()</span>
+        <span class="n">tasks</span> <span class="o">=</span> <span class="p">[(</span><span class="n">genome_id</span><span class="p">,</span> <span class="n">genome</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span> <span class="k">for</span> <span class="n">genome_id</span><span class="p">,</span> <span class="n">genome</span> <span class="ow">in</span> <span class="n">genomes</span><span class="p">]</span>
+        <span class="n">id2genome</span> <span class="o">=</span> <span class="p">{</span><span class="n">genome_id</span><span class="p">:</span> <span class="n">genome</span> <span class="k">for</span> <span class="n">genome_id</span><span class="p">,</span> <span class="n">genome</span> <span class="ow">in</span> <span class="n">genomes</span><span class="p">}</span>
+        <span class="n">tasks</span> <span class="o">=</span> <span class="n">chunked</span><span class="p">(</span><span class="n">tasks</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">slave_chunksize</span><span class="p">)</span>
+        <span class="n">n_tasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tasks</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">tasks</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inqueue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+        <span class="n">tresults</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">tresults</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">n_tasks</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">sr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outqueue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">queue</span><span class="o">.</span><span class="n">Empty</span><span class="p">,</span> <span class="n">managers</span><span class="o">.</span><span class="n">RemoteError</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">stopevent</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+                    <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s2">&quot;Received stop event.&quot;</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="n">tresults</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sr</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">sr</span> <span class="ow">in</span> <span class="n">tresults</span><span class="p">:</span>
+            <span class="n">results</span> <span class="o">+=</span> <span class="n">sr</span>
+        <span class="k">for</span> <span class="n">genome_id</span><span class="p">,</span> <span class="n">fitness</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+            <span class="n">genome</span> <span class="o">=</span> <span class="n">id2genome</span><span class="p">[</span><span class="n">genome_id</span><span class="p">]</span>
+            <span class="n">genome</span><span class="o">.</span><span class="n">fitness</span> <span class="o">=</span> <span class="n">fitness</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015-2017, CodeReclaimers, LLC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

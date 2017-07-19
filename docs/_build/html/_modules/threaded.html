@@ -41,13 +41,22 @@
             
   <h1>Source code for threaded</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Threaded evaluation of genomes&quot;&quot;&quot;</span>
-<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">threading</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">dummy_threading</span> <span class="k">as</span> <span class="nn">threading</span>
+    <span class="n">have_threads</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">have_threads</span> <span class="o">=</span> <span class="kc">True</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">Queue</span> <span class="k">as</span> <span class="nn">queue</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">queue</span>
 
+<span class="kn">from</span> <span class="nn">sys</span> <span class="k">import</span> <span class="n">stderr</span>
 
 <div class="viewcode-block" id="ThreadedEvaluator"><a class="viewcode-back" href="../module_summaries.html#threaded.ThreadedEvaluator">[docs]</a><span class="k">class</span> <span class="nc">ThreadedEvaluator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -65,6 +74,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">working</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">inqueue</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">outqueue</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">have_threads</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No threads available; use ParallelEvaluator, not ThreadedEvaluator&quot;</span><span class="p">,</span>
+                  <span class="n">file</span><span class="o">=</span><span class="n">stderr</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ThreadedEvaluator.__del__"><a class="viewcode-back" href="../module_summaries.html#threaded.ThreadedEvaluator.__del__">[docs]</a>    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>

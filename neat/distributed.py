@@ -1,43 +1,48 @@
 """
 Distributed evaluation of genomes.
 
-About nodes:
+About compute nodes:
 The master node (=the node which creates and mutates genomes) and the slave
 nodes (=the nodes which evaluate genomes) can execute the same script. The
-role of a node is determined using the ``mode`` argument of the
+role of a compute node is determined using the ``mode`` argument of the
 DistributedEvaluator. If the mode is MODE_AUTO, the `host_is_local()` function
 is used to check if the ``addr`` argument points to the localhost. If it does,
-the node starts as a master node, otherwise as a slave node. If ``mode`` is
-MODE_MASTER, the node always starts as a master node. If ``mode`` is MODE_SLAVE,
-the node will always start as a slave node.
+the compute node starts as a master node, otherwise as a slave node. If
+``mode`` is MODE_MASTER, the compute node always starts as a master node. If
+``mode`` is MODE_SLAVE, the compute node will always start as a slave node.
+
 There can only be one master node per NEAT, but any number of slave nodes.
 The master node will not evaluate any genomes, which means you will always need
-at least two nodes.
-You can run any number of nodes on the same physical machine (or VM).
+at least two compute nodes.
+
+You can run any number of compute nodes on the same physical machine (or VM).
+However, if a machine has both a master node and one or more slave nodes,
+MODE_AUTO cannot be used for those slave nodes - MODE_SLAVE will need to be
+specified.
 
 Usage:
 1. Import modules and define the evaluation logic (the eval_genome function).
-(after this, check for ``if __name__ == '__main__'``, and put the rest of the
-code inside the body of the statement.)
-2. Load config and create a population - here, the variable ``p``
-3. If required, create and add reporters
+  (After this, check for ``if __name__ == '__main__'``, and put the rest of
+  the code inside the body of the statement.)
+2. Load config and create a population - here, the variable ``p``.
+3. If required, create and add reporters.
 4. Create a ``DistributedEvaluator(addr_of_master_node, 'some_password',
-eval_function, mode=MODE_AUTO)`` - here, the variable ``de``
-5. Call ``de.start(exit_on_stop=True)``.
-The `start()` call will block on the slave nodes and call `sys.exit(0)` when the
-NEAT evolution finishes. This means that the following code will only be
-executed on the master node.
-6. Start the evaluation using ``p.run(de.evaluate, number_of_generations)``
-7. Stop the slave nodes using ``de.stop()``
-8. You are done. You may want to save the winning genome or show some statistics
+  eval_function, mode=MODE_AUTO)`` - here, the variable ``de``.
+5. Call ``de.start(exit_on_stop=True)``. The `start()` call will block on the
+  slave nodes and call `sys.exit(0)` when the NEAT evolution finishes. This
+  means that the following code will only be executed on the master node.
+6. Start the evaluation using ``p.run(de.evaluate, number_of_generations)``.
+7. Stop the slave nodes using ``de.stop()``.
+8. You are done. You may want to save the winning genome or show some
+  statistics.
 
 See ``examples/xor/evolve-feedforward-distributed.py`` for a complete example.
 
 Utility functions:
 
-``host_is_local(hostname, port=22)`` returns True if ``hostname`` points to the local
-node/host. This can be used to check if a node will run as a master node or as a
-slave node.
+``host_is_local(hostname, port=22)`` returns True if ``hostname`` points to
+the local node/host. This can be used to check if a compute node will run as
+a master node or as a slave node with MODE_AUTO.
 
 ``chunked(data, chunksize)``: splits data into a list of chunks with at most
 ``chunksize`` elements.
@@ -83,7 +88,8 @@ MODE_SLAVE = 2  # enforce slave mode
 class RoleError(RuntimeError):
     """
     An exception raised when a role-specific method is being
-    called without being in the role.
+    called without being in the role (mode) - either a master-specific method
+    called by a slave node or a slave-specific method called by a master node.
     """
     pass
 
@@ -112,7 +118,7 @@ def host_is_local(hostname, port=22): # no port specified, just use the ssh port
 
 def chunked(data, chunksize):
     """
-    Returns a list of chunks containing at most 'chunksize' elements of data.
+    Returns a list of chunks containing at most ``chunksize`` elements of data.
     """
     if chunksize < 1:
         raise ValueError("Chunksize must be at least 1!")
@@ -143,24 +149,26 @@ class DistributedEvaluator(object):
             mode=MODE_AUTO
             ):
         """
-        'addr' should be a tuple of (hostname, port) pointing to the machine
+        ``addr`` should be a tuple of (hostname, port) pointing to the machine
         running the DistributedEvaluator in master mode. If mode is MODE_AUTO,
-        the mode is determined by checking wether the hostname points to this
+        the mode is determined by checking whether the hostname points to this
         host or not.
-        'authkey' is the password used to restrict access to the manager; see
+        ``authkey`` is the password used to restrict access to the manager; see
         `multiprocessing.managers` for more information. All DistributedEvaluators
-        need to use the same authkey.
-        'eval_function' should take two arguments (a genome object and the
+        need to use the same authkey. Defaults to
+        `multiprocessing.current_process()`.authkey; however, this will not be the
+        same for processes on different machines, including virtual machines.
+        ``eval_function`` should take two arguments (a genome object and the
         configuration) and return a single float (the genome's fitness).
-        'slave_chunksize' specifies the number of genomes which will be send to
-        a slave at once.
-        'num_workers' is the number of child processes to use if in client
-        mode. It defaults to None, which means multiprocessing.cpu_count()
-        is used to determine this value. If 1 in a slave, the process creating
+        'slave_chunksize' specifies the number of genomes that will be sent to
+        a slave at any one time.
+        ``num_workers`` is the number of child processes to use if in slave
+        mode. It defaults to None, which means `multiprocessing.cpu_count()`
+        is used to determine this value. If 1 in a slave node, the process creating
         the DistributedEvaluator instance will also do the evaulations.
-        'worker_timeout' specifies the timeout for getting the results from
-        a worker when in slave mode.
-        'mode' specifies the mode to run in; it defaults to MODE_AUTO.
+        ``worker_timeout`` specifies the timeout (in seconds) for a slave node
+        getting the results from a worker subprocess; if None, there is no timeout.
+        ``mode`` specifies the mode to run in; it defaults to MODE_AUTO.
         """
         self.addr = addr
         self.authkey = authkey
@@ -181,12 +189,16 @@ class DistributedEvaluator(object):
                 mode = MODE_MASTER
             else:
                 mode = MODE_SLAVE
+        elif mode not in (MODE_SLAVE, MODE_MASTER):
+            raise ValueError("Invalid mode {!r}!".format(mode))
         self.mode = mode
         self.manager = None
+        self.inqueue = None
+        self.outqueue = None
         self.started = False
 
     def is_master(self):
-        """Returns True if the host is the master"""
+        """Returns True if the caller is the master node"""
         return (self.mode == MODE_MASTER)
 
     def start(self, exit_on_stop=True, slave_wait=0):
@@ -194,8 +206,8 @@ class DistributedEvaluator(object):
         If the DistributedEvaluator is in master mode, starts the manager
         process and returns. In this case, the ``exit_on_stop`` argument will
         be ignored.
-        If the DistributedEvaluator is in slave mode, connect to the manager
-        and wait for tasks.
+        If the DistributedEvaluator is in slave mode, it connects to the manager
+        and waits for tasks.
         If in slave mode and ``exit_on_stop`` is True, sys.exit() will be called
         when the connection is lost.
         ``slave_wait`` specifies the time (in seconds) to sleep before actually
@@ -213,7 +225,7 @@ class DistributedEvaluator(object):
             if exit_on_stop:
                 sys.exit(0)
         else:
-            raise ValueError("Invalid mode!")
+            raise ValueError("Invalid mode {!r}!".format(mode))
 
     def stop(self, wait=1, shutdown=True):
         """Stops all slaves."""
