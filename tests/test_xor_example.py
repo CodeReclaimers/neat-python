@@ -30,7 +30,7 @@ def test_xor_example(uniform=False):
                          config_path)
 
     if uniform:
-        config.weight_init_type = 'uniform'
+        config.genome_config.weight_init_type = 'uniform'
 
     # Create the population, which is the top-level object for a NEAT run.
     p = neat.Population(config)
