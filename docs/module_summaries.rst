@@ -15,7 +15,8 @@ Has the built-in :term:`activation functions <activation function>`, code for us
 
   .. py:exception:: InvalidActivationFunction(TypeError)
 
-    Exception called if an activation function being added is invalid according to the `validate_activation` function.
+    Exception called if an activation function being added is invalid according to the `validate_activation` function, or if an unknown activation
+    function is requested by name via :py:meth:`get <ActivationFunctionSet.get()>`.
 
     .. versionchanged:: 0.91-github
       Base of exception changed to more-precise TypeError.
@@ -99,7 +100,8 @@ Has the built-in :term:`aggregation functions <aggregation function>`, code for 
 
   .. py:exception:: InvalidAggregationFunction(TypeError)
 
-    Exception called if an aggregation function being added is invalid according to the `validate_aggregation` function.
+    Exception called if an aggregation function being added is invalid according to the `validate_aggregation` function, or if an unknown aggregation
+    function is requested by name via :py:meth:`get <AggregationFunctionSet.get()>`.
 
     .. versionadded:: 0.91-config_work
 
@@ -136,6 +138,20 @@ Has the built-in :term:`aggregation functions <aggregation function>`, code for 
       :return: The function of interest
       :rtype: `function`
       :raises InvalidAggregationFunction: If the function is not known.
+
+    .. py:method:: __getitem__(index)
+
+      Present for compatibility with older programs that expect the aggregation functions to be in a `dict`. A wrapper for
+      :py:meth:`get(index) <AggregationFunctionSet.get()>`.
+
+      :param str index: The name of the function.
+      :return: The function of interest.
+      :rtype: `function`
+      :raises InvalidAggregationFunction: If the function is not known.
+      :raises DeprecationWarning: Always.
+
+      .. deprecated:: 0.91-config_work
+        Use :py:meth:`get(index) <AggregationFunctionSet.get()>` instead.
 
     .. py:method:: is_valid(name)
 

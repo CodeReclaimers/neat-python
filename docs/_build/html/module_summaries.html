@@ -50,7 +50,8 @@
 <div><dl class="exception">
 <dt id="activations.InvalidActivationFunction">
 <em class="property">exception </em><code class="descclassname">activations.</code><code class="descname">InvalidActivationFunction</code><span class="sig-paren">(</span><em>TypeError</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/activations.html#InvalidActivationFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#activations.InvalidActivationFunction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Exception called if an activation function being added is invalid according to the <a class="reference internal" href="#activations.validate_activation" title="activations.validate_activation"><code class="xref any py py-func docutils literal"><span class="pre">validate_activation</span></code></a> function.</p>
+<dd><p>Exception called if an activation function being added is invalid according to the <a class="reference internal" href="#activations.validate_activation" title="activations.validate_activation"><code class="xref any py py-func docutils literal"><span class="pre">validate_activation</span></code></a> function, or if an unknown activation
+function is requested by name via <a class="reference internal" href="#activations.ActivationFunctionSet.get" title="activations.ActivationFunctionSet.get"><code class="xref py py-meth docutils literal"><span class="pre">get</span></code></a>.</p>
 <div class="versionchanged">
 <p><span class="versionmodified">Changed in version 0.91-github: </span>Base of exception changed to more-precise TypeError.</p>
 </div>
@@ -202,7 +203,8 @@ by <a class="reference internal" href="#genome.DefaultGenomeConfig.add_activatio
 <dl class="exception">
 <dt id="aggregations.InvalidAggregationFunction">
 <em class="property">exception </em><code class="descclassname">aggregations.</code><code class="descname">InvalidAggregationFunction</code><span class="sig-paren">(</span><em>TypeError</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aggregations.html#InvalidAggregationFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aggregations.InvalidAggregationFunction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Exception called if an aggregation function being added is invalid according to the <a class="reference internal" href="#aggregations.validate_aggregation" title="aggregations.validate_aggregation"><code class="xref any py py-func docutils literal"><span class="pre">validate_aggregation</span></code></a> function.</p>
+<dd><p>Exception called if an aggregation function being added is invalid according to the <a class="reference internal" href="#aggregations.validate_aggregation" title="aggregations.validate_aggregation"><code class="xref any py py-func docutils literal"><span class="pre">validate_aggregation</span></code></a> function, or if an unknown aggregation
+function is requested by name via <a class="reference internal" href="#aggregations.AggregationFunctionSet.get" title="aggregations.AggregationFunctionSet.get"><code class="xref py py-meth docutils literal"><span class="pre">get</span></code></a>.</p>
 <div class="versionadded">
 <p><span class="versionmodified">New in version 0.91-config_work.</span></p>
 </div>
@@ -270,6 +272,37 @@ that will appropriately “wrap” the input function.</p>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="aggregations.AggregationFunctionSet.__getitem__">
+<code class="descname">__getitem__</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aggregations.html#AggregationFunctionSet.__getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aggregations.AggregationFunctionSet.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Present for compatibility with older programs that expect the aggregation functions to be in a <a class="reference external" href="https://docs.python.org/3.5/reference/expressions.html#dict" title="(in Python v3.5)"><code class="docutils literal"><span class="pre">Dictionary</span> <span class="pre">displays</span></code></a>. A wrapper for
+<a class="reference internal" href="#aggregations.AggregationFunctionSet.get" title="aggregations.AggregationFunctionSet.get"><code class="xref py py-meth docutils literal"><span class="pre">get(index)</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>index</strong> (<a class="reference external" href="https://docs.python.org/3.5/library/stdtypes.html#str" title="(in Python v3.5)"><em>str</em></a>) – The name of the function.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The function of interest.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3.5/glossary.html#term-function" title="(in Python v3.5)"><code class="xref any docutils literal"><span class="pre">function</span></code></a></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference internal" href="#aggregations.InvalidAggregationFunction" title="aggregations.InvalidAggregationFunction"><strong>InvalidAggregationFunction</strong></a> – If the function is not known.</li>
+<li><a class="reference external" href="https://docs.python.org/3.5/library/exceptions.html#DeprecationWarning" title="(in Python v3.5)"><strong>DeprecationWarning</strong></a> – Always.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.91-config_work: </span>Use <a class="reference internal" href="#aggregations.AggregationFunctionSet.get" title="aggregations.AggregationFunctionSet.get"><code class="xref py py-meth docutils literal"><span class="pre">get(index)</span></code></a> instead.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
