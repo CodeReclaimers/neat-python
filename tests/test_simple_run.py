@@ -1,10 +1,12 @@
+from __future__ import print_function
 import os
 import neat
 
 
 def eval_dummy_genome_nn(genome, config):
     net = neat.nn.FeedForwardNetwork.create(genome, config)
-    return 1.0
+    ignored_output = net.activate((0.5, 0.5))
+    return 0.0
 
 
 def eval_dummy_genomes_nn(genomes, config):
@@ -30,8 +32,43 @@ def test_serial():
     p.add_reporter(stats)
     p.add_reporter(neat.Checkpointer(1, 5))
 
-    # Run for up to 300 generations.
-    p.run(eval_dummy_genomes_nn, 300)
+    # Run for up to 19 generations.
+    p.run(eval_dummy_genomes_nn, 19)
+
+    stats.save()
+    # stats.save_genome_fitness(with_cross_validation=True)
+
+    stats.get_fitness_stdev()
+    # stats.get_average_cross_validation_fitness()
+    stats.best_unique_genomes(5)
+    stats.best_genomes(5)
+    stats.best_genome()
+
+    p.remove_reporter(stats)
+
+def test_serial_random():
+    """Test basic (dummy fitness function) non-parallel run w/random activation, aggregation init."""
+    # Load configuration.
+    local_dir = os.path.dirname(__file__)
+    config_path = os.path.join(local_dir, 'test_configuration2')
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                         config_path)
+
+    print("config.genome_config.__dict__: {!r}".format(
+        config.genome_config.__dict__))
+
+    # Create the population, which is the top-level object for a NEAT run.
+    p = neat.Population(config)
+
+    # Add a stdout reporter to show progress in the terminal.
+    p.add_reporter(neat.StdOutReporter(True))
+    stats = neat.StatisticsReporter()
+    p.add_reporter(stats)
+    p.add_reporter(neat.Checkpointer(1, 5))
+
+    # Run for up to 45 generations.
+    p.run(eval_dummy_genomes_nn, 45)
 
     stats.save()
     # stats.save_genome_fitness(with_cross_validation=True)
@@ -62,15 +99,15 @@ def test_parallel():
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
 
-    # Run for up to 300 generations.
+    # Run for up to 19 generations.
     pe = neat.ParallelEvaluator(4, eval_dummy_genome_nn)
-    p.run(pe.evaluate, 300)
+    p.run(pe.evaluate, 19)
 
     stats.save()
 
 
 def test_threaded_evaluation():
-    """tests a neat evolution using neat.threaded.ThreadedEvaluator"""
+    """Tests a neat evolution using neat.threaded.ThreadedEvaluator"""
     # Load configuration.
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'test_configuration')
@@ -86,15 +123,15 @@ def test_threaded_evaluation():
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
 
-    # Run for up to 300 generations.
+    # Run for up to 19 generations.
     pe = neat.ThreadedEvaluator(4, eval_dummy_genome_nn)
-    p.run(pe.evaluate, 300)
+    p.run(pe.evaluate, 19)
 
     stats.save()
 
 
 def test_threaded_evaluator():
-    """tests generall functionality of neat.threaded.ThreadedEvaluator"""
+    """Tests general functionality of neat.threaded.ThreadedEvaluator"""
     n_workers = 3
     e = neat.ThreadedEvaluator(n_workers, eval_dummy_genome_nn)
     # ensure workers are not started
@@ -152,7 +189,8 @@ def test_threaded_evaluator():
 def eval_dummy_genomes_nn_recurrent(genomes, config):
     for genome_id, genome in genomes:
         net = neat.nn.RecurrentNetwork.create(genome, config)
-        genome.fitness = 1.0
+        ignored_output = net.activate((0.5,0.5))
+        genome.fitness = 0.0
 
 
 def test_run_nn_recurrent():
@@ -174,8 +212,8 @@ def test_run_nn_recurrent():
     p.add_reporter(stats)
     p.add_reporter(neat.Checkpointer(1, 5))
 
-    # Run for up to 300 generations.
-    p.run(eval_dummy_genomes_nn_recurrent, 30)
+    # Run for up to 19 generations.
+    p.run(eval_dummy_genomes_nn_recurrent, 19)
 
     stats.save()
 
@@ -183,7 +221,11 @@ def test_run_nn_recurrent():
 def eval_dummy_genomes_ctrnn(genomes, config):
     for genome_id, genome in genomes:
         net = neat.ctrnn.CTRNN.create(genome, config, 0.01)
-        genome.fitness = 1.0
+        if genome_id < 150:
+            genome.fitness = 0.0
+        else:
+            net.reset()
+            genome.fitness = 1.0
 
 
 def test_run_ctrnn():
@@ -205,8 +247,8 @@ def test_run_ctrnn():
     p.add_reporter(stats)
     p.add_reporter(neat.Checkpointer(1, 5))
 
-    # Run for up to 300 generations.
-    p.run(eval_dummy_genomes_ctrnn, 30)
+    # Run for up to 19 generations.
+    p.run(eval_dummy_genomes_ctrnn, 19)
 
     stats.save()
 
@@ -233,7 +275,7 @@ def test_run_iznn():
     p = neat.Population(config)
 
     # Add a stdout reporter to show progress in the terminal.
-    p.add_reporter(neat.StdOutReporter(True))
+    p.add_reporter(neat.StdOutReporter(False))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
     p.add_reporter(neat.Checkpointer(1, 5))
@@ -246,4 +288,5 @@ def test_run_iznn():
 
 if __name__ == '__main__':
     test_serial()
+    test_serial_random(main=True)
     test_parallel()

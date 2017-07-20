@@ -47,6 +47,8 @@ def test_xor_example(uniform=False):
     except neat.CompleteExtinctionException as e:
         pass
 
+    assert len(stats.get_fitness_median()), "Nothing returned from get_fitness_median()"
+
     if winner:
         if uniform:
             print('\nUsing uniform weight initialization:')
