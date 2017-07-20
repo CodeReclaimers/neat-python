@@ -64,7 +64,7 @@ single_structural_mutation = True
 # connection weight options
 weight_init_mean        = 0.0
 weight_init_stdev       = 1.0
-weight_init_type.        = uniform
+weight_init_type        = uniform
 weight_max_value        = 30
 weight_min_value        = -30
 weight_mutate_power     = 0.5
