@@ -10,7 +10,7 @@ python:
   - "3.6-dev"
   - "3.7-dev"
   - "nightly"
-  - "pypy"
+  - "pypy2-5.8.0"
   - "pypy3.5-5.8.0"
 install:
     pip install nose coveralls coverage
@@ -21,7 +21,7 @@ matrix:
     - os: osx
       python: 3.5
     - os: osx
-      python: pypy
+      python: pypy2-5.8.0
     - os: osx
       python: pypy3.5-5.8.0
 script:
