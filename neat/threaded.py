@@ -3,7 +3,7 @@ from __future__ import print_function
 
 try:
     import threading
-except ImportError:
+except ImportError: # pragma: no cover
     import dummy_threading as threading
     have_threads = False
 else:
@@ -33,7 +33,7 @@ class ThreadedEvaluator(object):
         self.inqueue = queue.Queue()
         self.outqueue = queue.Queue()
 
-        if not have_threads:
+        if not have_threads: # pragma: no cover
             print("No threads available; use ParallelEvaluator, not ThreadedEvaluator",
                   file=stderr)
 

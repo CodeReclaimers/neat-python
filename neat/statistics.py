@@ -54,7 +54,7 @@ class StatisticsReporter(BaseReporter):
         """Get the per-generation median fitness."""
         return self.get_fitness_stat(median2)
 
-    def get_average_cross_validation_fitness(self):
+    def get_average_cross_validation_fitness(self): # pragma: no cover
         """Get the per-generation average cross_validation fitness."""
         avg_cross_validation_fitness = []
         for stats in self.generation_cross_validation_statistics:
@@ -101,7 +101,7 @@ class StatisticsReporter(BaseReporter):
             best_fitness = [c.fitness for c in self.most_fit_genomes]
             avg_fitness = self.get_fitness_mean()
 
-            if with_cross_validation:
+            if with_cross_validation: # pragma: no cover
                 cv_best_fitness = [c.cross_fitness for c in self.most_fit_genomes]
                 cv_avg_fitness = self.get_average_cross_validation_fitness()
                 for best, avg, cv_best, cv_avg in zip(best_fitness, avg_fitness, cv_best_fitness, cv_avg_fitness):

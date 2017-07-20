@@ -39,11 +39,13 @@ def test_xor_example(uniform=False):
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
+    checkpointer = neat.Checkpointer(25, 10)
+    p.add_reporter(checkpointer)
 
     # Run for up to 300 generations, allowing extinction.
     winner = None
     try:
-        winner = p.run(eval_genomes, 50)
+        winner = p.run(eval_genomes, 100)
     except neat.CompleteExtinctionException as e:
         pass
 
@@ -62,6 +64,25 @@ def test_xor_example(uniform=False):
             output = winner_net.activate(xi)
             print("input {!r}, expected output {!r}, got {!r}".format(xi, xo, output))
 
+    if (checkpointer.last_generation_checkpoint >= 0) and (checkpointer.last_generation_checkpoint < 100):
+        filename = 'neat-checkpoint-{0}'.format(checkpointer.last_generation_checkpoint)
+        print("Restoring from {!s}".format(filename))
+        p2 = neat.checkpoint.Checkpointer.restore_checkpoint(filename)
+        p2.add_reporter(neat.StdOutReporter(True))
+        stats2 = neat.StatisticsReporter()
+        p2.add_reporter(stats2)
+
+        winner2 = None
+        try:
+            winner2 = p2.run(eval_genomes, (100-checkpointer.last_generation_checkpoint))
+        except neat.CompleteExtinctionException:
+            pass
+
+        if winner2:
+            if not winner:
+                raise Exception("Had winner2 without first-try winner")
+        elif winner:
+            raise Exception("Had first-try winner without winner2")
 
 if __name__ == '__main__':
     test_xor_example()
