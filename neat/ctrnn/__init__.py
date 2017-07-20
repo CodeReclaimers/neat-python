@@ -45,6 +45,7 @@ class CTRNN(object):
     def get_max_time_step(self):
         # TODO: Compute max time step that is known to be numerically stable for
         # the current network configuration.
+        # pylint: disable=no-self-use
         raise NotImplementedError()
 
     def advance(self, inputs, advance_time, time_step=None):
