@@ -13,9 +13,10 @@ python:
   - pypy
   - pypy3.5-5.8.0
 install:
-    pip install nose coveralls coverage
+    - pip install nose coveralls coverage
+    - if [[ $TRAVIS_PYTHON_VERSION == 'pypy'* ]]; then export TRAVIS_WAIT=45; else export TRAVIS_WAIT=20; fi
 script:
-    travis_wait nosetests --with-coverage --cover-package=neat
+    travis_wait "${TRAVIS_WAIT}" nosetests --with-coverage --cover-package=neat
 after_success:
     - if [ -a ".coveralls.yml" ]; then
         coveralls
