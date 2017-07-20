@@ -134,16 +134,14 @@ def test_DistributedEvaluator_mode():
             raise Exception(
                 "DistributedEvaluator.__init__(mode=MODE_AUTO) did not automatically determine its mode!"
                 )
-        elif result == MODE_MASTER:
-            if not de.is_master():
-                raise Exception(
-                    "DistributedEvaluator.is_master() returns False even if the evaluator is in master mode!"
-                    )
-        elif result == MODE_SLAVE:
-            if de.is_master():
-                raise Exception(
-                    "DistributedEvaluator.is_master() returns True even if the evaluator is in slave mode!"
-                    )
+        elif (result == MODE_MASTER) and (not de.is_master()):
+            raise Exception(
+                "DistributedEvaluator.is_master() returns False even if the evaluator is in master mode!"
+                )
+        elif (result == MODE_SLAVE) and de.is_master():
+            raise Exception(
+                "DistributedEvaluator.is_master() returns True even if the evaluator is in slave mode!"
+                )
     # test invalid mode error
     try:
         de = neat.DistributedEvaluator(
