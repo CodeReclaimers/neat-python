@@ -288,5 +288,5 @@ def test_run_iznn():
 
 if __name__ == '__main__':
     test_serial()
-    test_serial_random(main=True)
+    test_serial_random()
     test_parallel()
