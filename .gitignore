@@ -1,1 +1,3 @@
 .coveralls.yml
+docs/_build/**
+_build/**
