@@ -1,30 +1,36 @@
 dist: precise
 language: python
-python:
-  - "2.7"
-  - "3.3"
-  - "3.4"
-  - "3.5"
-  - "3.5-dev"
-  - "3.6"
-  - "3.6-dev"
-  - "3.7-dev"
-  - "nightly"
-  - "pypy-2.7"
-  - "pypy3.5-5.8.0"
 install:
     pip install nose coveralls coverage
 matrix:
   include:
     - os: osx
-      python: 2.7.13
-    - os: osx
-      python: 3.6.1
-    - os: osx
-      python: pypy-2.7
-    - os: osx
+    - os: linux
+      python: 2.7
+    - os: linux
+      python: 3.3
+    - os: linux
+      python: 3.4
+    - os: linux
+      python: 3.5
+    - os: linux
+      python: 3.5-dev
+    - os: linux
+      python: 3.6
+    - os: linux
+      python: 3.6-dev
+    - os: linux
+      python: 3.7-dev
+    - os: linux
+      python: nightly
+    - os: linux
+      python: pypy
+    - os: linux
       python: pypy3.5-5.8.0
 script:
     travis_wait nosetests --with-coverage --cover-package=neat
 after_success:
-    coveralls
+    - if [ -a ".coveralls.yml" ]; then
+    	coveralls
+        ;
+      fi
