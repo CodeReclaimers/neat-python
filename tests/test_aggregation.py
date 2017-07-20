@@ -76,6 +76,12 @@ def test_function_set():
 
     assert not s.is_valid('foo')
 
+    try:
+        aggregations.validate_aggregation(1.0)
+    except TypeError:
+        pass
+    else:
+        raise Exception("Should have had a TypeError")
 
 if __name__ == '__main__':
     test_sum()
