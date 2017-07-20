@@ -1,10 +1,11 @@
 dist: precise
 language: python
 install:
-    pip install nose coveralls coverage
+    pip install --user nose coveralls coverage
 matrix:
   include:
     - os: osx
+      language: generic
     - os: linux
       python: 2.7
     - os: linux
@@ -27,6 +28,8 @@ matrix:
       python: pypy
     - os: linux
       python: pypy3.5-5.8.0
+env:
+    - PYTHONPATH=".:~/.local/:${PYTHONPATH:-~}"
 script:
     travis_wait nosetests --with-coverage --cover-package=neat
 after_success:
