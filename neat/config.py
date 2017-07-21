@@ -164,6 +164,8 @@ class Config(object):
                     setattr(self, p.name, p.parse('NEAT', parameters))
                 except Exception:
                     setattr(self, p.name, p.default)
+                    warnings.warn("Using default {!r} for '{!s}'".format(p.default, p.name),
+                                  DeprecationWarning)
             param_list_names.append(p.name)
         param_dict = dict(parameters.items('NEAT'))
         unknown_list = [x for x in iterkeys(param_dict) if not x in param_list_names]
