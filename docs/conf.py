@@ -48,7 +48,9 @@ extlinks = {'pytypes': ('https://docs.python.org/3.5/library/stdtypes.html#%s',
             'pygloss': ('https://docs.python.org/3.5/glossary.html#term-%s',
                         ''),
             'datamodel': ('https://docs.python.org/3.5/reference/datamodel.html#%s',
-                          '')}
+                          ''),
+            'pylib': ('https://docs.python.org/3.5/library/%s',
+                      '')}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

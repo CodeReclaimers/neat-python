@@ -429,14 +429,22 @@ Does general configuration parsing; used by other classes for their configuratio
     :param object config: Configuration object from which parameter values are to be fetched (using `getattr`).
     :param list params: List of :py:class:`ConfigParameter` instances giving the names of interest and the types of parameters.
 
+  .. py:exception:: UnknownConfigItemError(NameError)
+
+    Error for unknown configuration option(s) - partially to catch typos.
+
+    .. versionadded:: 0.91-config_work
+
   .. py:class:: DefaultClassConfig(param_dict, param_list)
 
-    Replaces at least some boilerplate configuration code for reproduction, species_set, and stagnation classes. TODO: Find a way to put `write_config()`
+    Replaces at least some boilerplate configuration code for reproduction, species_set, and stagnation classes. TODO: Find a way to put ``write_config()``
     into this class also. This would be simple if it were a normal method, but it is called as a class method.
 
-    :param dict param_dict: Dictionary of configuration parameters from config file.
+    :param param_dict: Dictionary of configuration parameters from config file.
+    :type param_dict: dict(str, :datamodel:`value <objects-values-and-types>`)
     :param param_list: List of `ConfigParameter` instances; used to know what parameters are of interest to the calling class.
-    :type param_list: list(object)
+    :type param_list: list(:datamodel:`instance <index-48>`)
+    :raises UnknownConfigItemError: If a key in ``param_dict`` is not among the names in ``param_list``.
 
     .. py:method:: save(f)
 
@@ -526,6 +534,7 @@ ctrnn
 
 .. todo::
   The below needs checking! Also, perhaps MODE_SERVER and MODE_CLIENT would be preferable?
+  As well as issues of sensitivity, server/client terms appear more likely to get people to cooperate with borrowing machine time...
 
 .. index:: ! compute node
 .. index:: ! master node
@@ -563,7 +572,7 @@ distributed
   2. Load config and create a :py:class:`population <population.Population>` - here, the variable ``p``.
   3. If required, create and add :py:mod:`reporters <reporting>`.
   4. Create a :py:class:`DistributedEvaluator(addr_of_master_node, 'some_password', eval_function, mode=MODE_AUTO) <distributed.DistributedEvaluator>` - here, the variable ``de``.
-  5. Call :py:meth:`de.start(exit_on_stop=True) <distributed.DistributedEvaluator.start>`. The `start()` call will block on the slave nodes and call `sys.exit(0)` when the NEAT evolution finishes. This means that the following code will only be executed on the master node.
+  5. Call :py:meth:`de.start(exit_on_stop=True) <distributed.DistributedEvaluator.start>`. The ``start()`` call will block on the slave nodes and call :pylib:`sys.exit(0) <sys.html#sys.exit>` when the NEAT evolution finishes. This means that the following code will only be executed on the master node.
   6. Start the evaluation using :py:meth:`p.run(de.evaluate, number_of_generations) <population.Population.run>`.
   7. Stop the slave nodes using py:meth:`de.stop() <distributed.DistributedEvaluator.stop>`.
   8. You are done. You may want to save the winning genome or show some statistics.
@@ -608,18 +617,26 @@ distributed
 
     An evaluator working across multiple machines (:term:`compute nodes <compute node>`).
 
+    .. warning::
+
+      See :pylib:`Authentication Keys <multiprocessing.html#authentication-keys>` for more on the ``authkey`` parameter, used to restrict access to the manager.
+
     :param addr: Should be a tuple of (hostname, port) pointing to the machine running the DistributedEvaluator in master mode. If mode is MODE_AUTO, the mode is determined by checking whether the hostname points to this host or not (via :py:func:`host_is_local()`).
     :type addr: tuple(str, int)
-    :param str authkey:  The password used to restrict access to the manager; see `multiprocessing.managers` for more information. All DistributedEvaluators need to use the same authkey. Defaults to `multiprocessing.current_process()`.authkey; however, this will not be the same for processes on different machines, including virtual machines.
+    :param bytes authkey:  The password used to restrict access to the manager. All DistributedEvaluators need to use the same authkey. Defaults to the :pylib:`authkey attribute <multiprocessing.html#multiprocessing.Process.authkey>` of :pylib:`multiprocessing.current_process() <multiprocessing.html#multiprocessing.current_process>`; however, this will not be the same for processes on different machines, including virtual machines.
     :param eval_function: The eval_function should take two arguments - a genome object and a config object - and return a single :pytypes:`float <typesnumeric>` (the genome's fitness) Note that this is not the same as how a fitness function is called by :py:meth:`Population.run <population.Population.run>`, nor by :py:class:`ParallelEvaluator <parallel.ParallelEvaluator>` (although it is more similar to the latter).
     :type eval_function: `function`
     :param int slave_chunksize: The number of :term:`genomes <genome>` that will be sent to a :term:`slave node` at any one time.
-    :param num_workers: The number of worker processes per :term:`slave node`, used for evaluating genomes. If None, will use `multiprocessing.cpu_count()`  to determine the number of processes. **Note**: Whether this number is appropriate can vary depending on the evaluation function (e.g., whether cpu-bound, memory-bound, i/o-bound...), python implementation, and other factors; experimentation may be needed. If 1 (for a slave node), including if there is no usable result from `multiprocessing.cpu_count()`, then the process creating the DistributedEvaluator instance will also do the evaluations.
+    :param num_workers: The number of worker processes per :term:`slave node`, used for evaluating genomes. If None, will use :pylib:`multiprocessing.cpu_count() <multiprocessing.html#multiprocessing.cpu_count>`  to determine the number of processes (see further below regarding this default). If 1 (for a slave node), including if there is no usable result from ``multiprocessing.cpu_count()``, then the process creating the DistributedEvaluator instance will also do the evaluations.
     :type num_workers: int or None
     :param worker_timeout:  specifies the timeout (in seconds) for a slave node getting the results from a worker subprocess; if None, there is no timeout. Defaults to 60 seconds.
     :type worker_timeout: int or None
     :param int mode: Specifies the mode to run in - must be one of `MODE_AUTO` (the default), `MODE_MASTER`, or `MODE_SLAVE`.
     :raises ValueError: If the mode is not one of the above.
+
+    .. note::
+
+      Whether the default for ``num_workers`` is appropriate can vary depending on the evaluation function (e.g., whether cpu-bound, memory-bound, i/o-bound...), python implementation, and other factors; if unsure and maximal per-machine performance is critical, experimentation will be required.
 
     .. py:method:: is_master()
 
@@ -643,7 +660,7 @@ distributed
       Stops all slaves.
 
       :param int wait: Time (in seconds) to wait after telling the slaves to stop.
-      :param bool shutdown: Whether to shutdown the `multiprocessing.manager.SyncManager` also, after the optional wait.
+      :param bool shutdown: Whether to :pylib:`shutdown <multiprocessing.html#multiprocessing.managers.BaseManager.shutdown>` the :pylib:`multiprocessing.manager.SyncManager <multiprocessing.html#multiprocessing.managers.SyncManager>` also, after the optional wait.
       :raises RoleError: If not the :term:`master node` (not in MODE_MASTER).
       :raises RuntimeError: If not yet :py:meth:`started <start()>`.
 
