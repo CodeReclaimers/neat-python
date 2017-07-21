@@ -105,9 +105,11 @@ class DefaultClassConfig(object):
 
     def __init__(self, param_dict, param_list):
         self._params = param_list
+        param_list_names = []
         for p in param_list:
             setattr(self, p.name, p.interpret(param_dict))
-        unknown_list = [x for x in iterkeys(param_dict) if not x in param_list]
+            param_list_names.append(p.name)
+        unknown_list = [x for x in iterkeys(param_dict) if not x in param_list_names]
         if unknown_list:
             if len(unknown_list) > 1:
                 raise UnknownConfigItemError("Unknown configuration items:\n" +
