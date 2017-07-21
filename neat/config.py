@@ -155,6 +155,7 @@ class Config(object):
         if not parameters.has_section('NEAT'):
             raise RuntimeError("'NEAT' section not found in NEAT configuration file.")
 
+        param_list_names = []
         for p in self.__params:
             if p.default is None:
                 setattr(self, p.name, p.parse('NEAT', parameters))
@@ -163,6 +164,16 @@ class Config(object):
                     setattr(self, p.name, p.parse('NEAT', parameters))
                 except Exception:
                     setattr(self, p.name, p.default)
+            param_list_names.append(p.name)
+        param_dict = dict(parameters.items('NEAT'))
+        unknown_list = [x for x in iterkeys(param_dict) if not x in param_list_names]
+        if unknown_list:
+            if len(unknown_list) > 1:
+                raise UnknownConfigItemError("Unknown (section 'NEAT') configuration items:\n" +
+                                             "\n\t".join(unknown_list))
+            raise UnknownConfigItemError(
+                "Unknown (section 'NEAT') configuration item {!s}".format(unknown_list[0]))
+        
 
         # Parse type sections.
         genome_dict = dict(parameters.items(genome_type.__name__))

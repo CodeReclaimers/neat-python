@@ -39,7 +39,16 @@ def test_bad_config_unknown_option():
     except NameError:
         pass
     else:
-        raise Exception("Did not get a NameError from an unknown activation function")
+        raise Exception("Did not get a NameError from an unknown configuration file option (in the 'DefaultSpeciesSet' section)")
+    config3_path = os.path.join(local_dir, 'bad_configuration3')
+    try:
+        config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                             neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                             config3_path)
+    except NameError:
+        pass
+    else:
+        raise Exception("Did not get a NameError from an unknown configuration file option (in the 'NEAT' section)")
 
 if __name__ == '__main__':
     test_nonexistent_config()

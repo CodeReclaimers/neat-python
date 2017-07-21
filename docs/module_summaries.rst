@@ -468,6 +468,7 @@ Does general configuration parsing; used by other classes for their configuratio
     :param object stagnation_type: Specifies the stagnation class used, such as :py:class:`stagnation.DefaultStagnation`.
     :param str filename: Pathname for configuration file to be opened, read, processed by a parser from the :py:class:`configparser.ConfigParser` class (or, for 2.7, the `ConfigParser.SafeConfigParser class <https://docs.python.org/2.7/library/configparser.html#ConfigParser.SafeConfigParser>`_), the ``NEAT`` section handled by ``Config``, and then other sections passed to the ``parse_config`` methods of the appropriate classes.
     :raises AssertionError: If any of the objects lack a ``parse_config`` method.
+    :raises UnknownConfigItemError: If an option in the ``NEAT`` section of the configuration file is not recognized.
 
     .. versionchanged:: 0.91-config_work
       Added default capabilities.
