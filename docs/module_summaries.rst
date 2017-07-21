@@ -534,9 +534,6 @@ ctrnn
       :param object config: A :py:class:`config.Config` instance.
       :param float time_constant: Used for the :py:class:`CTRNNNodeEval` initializations.
 
-.. todo::
-  The below needs checking! Also, perhaps MODE_SERVER and MODE_CLIENT would be preferable?
-  As well as issues of sensitivity, server/client terms appear more likely to get people to cooperate with borrowing machine time...
 
 .. index:: ! compute node
 .. index:: ! master node
@@ -545,53 +542,58 @@ ctrnn
     see: master compute node; master node
     see: slave compute node; slave node
 
-
 .. py:module:: distributed
    :synopsis: Distributed evaluation of genomes.
-
 
 distributed
 --------------
   Distributed evaluation of genomes.
 
+  .. todo::
+    Perhaps MODE_SERVER and MODE_CLIENT would be preferable? As well as issues of sensitivity, server/client terms appear
+    more likely to get people to cooperate with borrowing machine time... MODE_MASTER and MODE_SLAVE would be kept in as
+    synonyms, and is_master as a wrapper for is_server (or whatever).
+
+
   .. rubric:: About :term:`compute nodes <compute node>`:
 
   The :term:`master compute node` (the node which creates and mutates genomes) and the :term:`slave compute nodes <slave node>` (the nodes which
   evaluate genomes) can execute the same script. The role of a compute node is determined using the ``mode`` argument of the DistributedEvaluator. If the
-  mode is MODE_AUTO, the `host_is_local()` function is used to check if the ``addr`` argument points to the localhost. If it does, the compute node starts
-  as a master node, otherwise as a slave node. If ``mode`` is MODE_MASTER, the compute node always starts as a master node. If ``mode`` is
-  MODE_SLAVE, the compute node will always start as a slave node.
+  mode is :py:data:`MODE_AUTO`, the `host_is_local()` function is used to check if the ``addr`` argument points to the localhost. If it does, the compute
+  node starts as a master node, and otherwise as a slave node. If ``mode`` is :py:data:`MODE_MASTER`, the compute node always starts as a master
+  node. If ``mode`` is :py:data:`MODE_SLAVE`, the compute node will always start as a slave node.
 
   There can only be one master node per NEAT, but any number of slave nodes. The master node will not evaluate any genomes, which means you will
   always need at least two compute nodes (one master and at least one slave).
 
   You can run any number of compute nodes on the same physical machine (or VM). However, if a machine has both a master node and one or more slave
-  nodes, MODE_AUTO cannot be used for those slave nodes - MODE_SLAVE will need to be specified.
+  nodes, :py:data:`MODE_AUTO` cannot be used for those slave nodes - :py:data:`MODE_SLAVE` will need to be specified.
 
   .. rubric:: Usage:
 
   1. Import modules and define the evaluation logic (the ``eval_genome`` function). (After this, check for ``if __name__ == '__main__'``, and put the rest of the code inside the body of the statement, or in subroutines called from it.)
   2. Load config and create a :py:class:`population <population.Population>` - here, the variable ``p``.
   3. If required, create and add :py:mod:`reporters <reporting>`.
-  4. Create a :py:class:`DistributedEvaluator(addr_of_master_node, 'some_password', eval_function, mode=MODE_AUTO) <distributed.DistributedEvaluator>` - here, the variable ``de``.
+  4. Create a :py:class:`DistributedEvaluator(addr_of_master_node, b'some_password', eval_function, mode=MODE_AUTO) <distributed.DistributedEvaluator>` - here, the variable ``de``.
   5. Call :py:meth:`de.start(exit_on_stop=True) <distributed.DistributedEvaluator.start>`. The ``start()`` call will block on the slave nodes and call :pylib:`sys.exit(0) <sys.html#sys.exit>` when the NEAT evolution finishes. This means that the following code will only be executed on the master node.
   6. Start the evaluation using :py:meth:`p.run(de.evaluate, number_of_generations) <population.Population.run>`.
-  7. Stop the slave nodes using py:meth:`de.stop() <distributed.DistributedEvaluator.stop>`.
+  7. Stop the slave nodes using :py:meth:`de.stop() <distributed.DistributedEvaluator.stop>`.
   8. You are done. You may want to save the winning genome or show some statistics.
 
-    See :file:`examples/xor/evolve-feedforward-distributed.py` for a complete example. Note: Contains a number of private methods (starting with ``_``),
-    which are not documented below.
+  See :file:`examples/xor/evolve-feedforward-distributed.py` for a complete example. Note: Contains a number of private methods (starting with ``_``),
+  which are not documented below.
 
   .. py:data:: MODE_AUTO
   .. py:data:: MODE_MASTER
   .. py:data:: MODE_SLAVE
-    Values that are used for the ``mode`` argument of :py:class:`DistributedEvaluator`. MODE_AUTO uses :py:func:`host_is_local()` and the specified
-    ``addr`` of the :term:`master node` to decide the mode; the other two specify it.
 
-  .. py:exception:: RoleError(RuntimeError)
-    An exception raised when a role-specific method is being called without being in the role (mode) - either a master-specific method
-    called by a :term:`slave node` or a slave-specific method called by a :term:`master node`. TODO: Perhaps this should be ModeError, to be
-    clearer?
+    Values - which should be treated as constants - that are used for the ``mode`` argument of :py:class:`DistributedEvaluator`. MODE_AUTO
+    uses :py:func:`host_is_local()` and the specified ``addr`` of the :term:`master node` to decide the mode; the other two specify it.
+
+  .. py:exception:: ModeError(RuntimeError)
+
+    An exception raised when a mode-specific method is being called without being in the mode - either a master-specific method
+    called by a :term:`slave node` or a slave-specific method called by a :term:`master node`.
 
   .. py:function:: host_is_local(hostname, port=22)
 
@@ -623,9 +625,10 @@ distributed
 
       See :pylib:`Authentication Keys <multiprocessing.html#authentication-keys>` for more on the ``authkey`` parameter, used to restrict access to the manager.
 
-    :param addr: Should be a tuple of (hostname, port) pointing to the machine running the DistributedEvaluator in master mode. If mode is MODE_AUTO, the mode is determined by checking whether the hostname points to this host or not (via :py:func:`host_is_local()`).
+    :param addr: Should be a tuple of (hostname, port) pointing to the machine running the DistributedEvaluator in master mode. If mode is :py:data:`MODE_AUTO`, the mode is determined by checking whether the hostname points to this host or not (via :py:func:`host_is_local()`).
     :type addr: tuple(str, int)
-    :param bytes authkey:  The password used to restrict access to the manager. All DistributedEvaluators need to use the same authkey. Defaults to the :pylib:`authkey attribute <multiprocessing.html#multiprocessing.Process.authkey>` of :pylib:`multiprocessing.current_process() <multiprocessing.html#multiprocessing.current_process>`; however, this will not be the same for processes on different machines, including virtual machines.
+    :param authkey:  The password used to restrict access to the manager. All DistributedEvaluators need to use the same authkey. Note that this needs to be a :pytypes:`bytes` object for Python 3.X, and should be in 2.7 for compatibility (identical in 2.7 to a `str` object).
+    :type authkey: :pytypes:`bytes`
     :param eval_function: The eval_function should take two arguments - a genome object and a config object - and return a single :pytypes:`float <typesnumeric>` (the genome's fitness) Note that this is not the same as how a fitness function is called by :py:meth:`Population.run <population.Population.run>`, nor by :py:class:`ParallelEvaluator <parallel.ParallelEvaluator>` (although it is more similar to the latter).
     :type eval_function: `function`
     :param int slave_chunksize: The number of :term:`genomes <genome>` that will be sent to a :term:`slave node` at any one time.
@@ -633,7 +636,7 @@ distributed
     :type num_workers: int or None
     :param worker_timeout:  specifies the timeout (in seconds) for a slave node getting the results from a worker subprocess; if None, there is no timeout.
     :type worker_timeout: float or None
-    :param int mode: Specifies the mode to run in - must be one of `MODE_AUTO` (the default), `MODE_MASTER`, or `MODE_SLAVE`.
+    :param int mode: Specifies the mode to run in - must be one of :py:data:`MODE_AUTO` (the default), :py:data:`MODE_MASTER`, or :py:data:`MODE_SLAVE`.
     :raises ValueError: If the mode is not one of the above.
 
     .. note::
@@ -663,7 +666,7 @@ distributed
 
       :param float wait: Time (in seconds) to wait after telling the slaves to stop.
       :param bool shutdown: Whether to :pylib:`shutdown <multiprocessing.html#multiprocessing.managers.BaseManager.shutdown>` the :pylib:`multiprocessing.manager.SyncManager <multiprocessing.html#multiprocessing.managers.SyncManager>` also (after the wait, if any).
-      :raises RoleError: If not the :term:`master node` (not in MODE_MASTER).
+      :raises ModeError: If not the :term:`master node` (not in :py:data:`MODE_MASTER`).
       :raises RuntimeError: If not yet :py:meth:`started <start()>`.
 
     .. py:method:: evaluate(genomes, config)
@@ -675,9 +678,12 @@ distributed
       :type genomes: dict(int, object)
       :param config: Configuration object.
       :type config: object
-      :raises RoleError: If not the :term:`master node` (not in MODE_MASTER).
+      :raises ModeError: If not the :term:`master node` (not in :py:data:`MODE_MASTER`).
 
   .. versionadded:: 0.91-github
+
+  .. versionchanged:: 0.91-config_work
+    Pylint, documentation, other changes (e.g., RoleError to ModeError).
 
 .. py:module:: genes
    :synopsis: Handles node and connection genes.
@@ -1808,17 +1814,18 @@ Handles creation of genomes, either from scratch or by sexual or asexual reprodu
       :return: New population, as a dict of unique genome :term:`ID/key <key>` vs :term:`genome`.
       :rtype: dict(int, object)
 
-.. todo::
-  Better documentation for the ``kw`` parameter in the below. Internally, these are using ``**kw`` as a **parameter** for
-  keys/items/values/iterkeys/iteritems/itervalues! Is this in case someone puts in a set of key/value pairs instead of a dictionary?
-  The `six documentation <https://pythonhosted.org/six/>`_ just states that this parameter is "passed to the underlying method", which is not helpful.
-
 .. py:module:: six_util
    :synopsis: Provides Python 2/3 portability with three dictionary iterators; copied from the `six` module.
 
 six_util
 ----------
 This Python 2/3 portability code was copied from the `six module <https://pythonhosted.org/six/>`_ to avoid adding it as a dependency.
+
+  .. todo::
+    Better documentation for the ``kw`` parameter in the below. Internally, these are using ``**kw`` as a **parameter** for
+    keys/items/values/iterkeys/iteritems/itervalues! Is this in case someone puts in a set of key/value pairs instead of a dictionary?
+    The `six documentation <https://pythonhosted.org/six/>`_ just states that this parameter is "passed to the underlying method", which is not helpful.
+
 
   .. py:function:: iterkeys(d, **kw)
 
@@ -1959,25 +1966,26 @@ Divides the population into species based on :term:`genomic distances <genomic d
       :return: :py:class:`Species <species.Species>` containing the genome corresponding to the id/key.
       :rtype: :pygloss:`object`
 
-.. index:: ! species_fitness_func
-.. index:: fitness_criterion
-.. index:: fitness_threshold
-.. index:: fitness
-
-.. note::
-
-  TODO: Currently, depending on the settings for :ref:`species_fitness_func <species-fitness-func-label>` and
-  :ref:`fitness_criterion <fitness-criterion-label>`, it is possible for a species with members **above** the :ref:`fitness_threshold <fitness-threshold-label>`
-  level of fitness to be considered "stagnant" (including, most problematically, because they are at the limit of fitness improvement).
+.. index:: ! max_stagnation
+.. index:: ! species_elitism
 
 .. py:module:: stagnation
    :synopsis: Keeps track of whether species are making progress and helps remove ones that are not (for a configurable number of generations).
 
 stagnation
 --------------
+Keeps track of whether species are making progress and helps remove ones that are not.
 
-  .. index:: ! max_stagnation
-  .. index:: ! species_elitism
+  .. index:: ! species_fitness_func
+  .. index:: fitness_criterion
+  .. index:: fitness_threshold
+  .. index:: fitness
+
+  .. note::
+
+    TODO: Currently, depending on the settings for :ref:`species_fitness_func <species-fitness-func-label>` and
+    :ref:`fitness_criterion <fitness-criterion-label>`, it is possible for a species with members **above** the :ref:`fitness_threshold <fitness-threshold-label>`
+    level of fitness to be considered "stagnant" (including, most problematically, because they are at the limit of fitness improvement).
 
   .. py:class:: DefaultStagnation(config, reporters)
 
@@ -2158,10 +2166,6 @@ statistics
 
       A wrapper for :py:meth:`save_genome_fitness`, :py:meth:`save_species_count`, and :py:meth:`save_species_fitness`;
       uses the default values for all three.
-
-.. todo::
-
-  The below needs checking!
 
 .. py:module:: threaded
    :synopsis: Runs evaluation functions in parallel threads in order to evaluate multiple genomes at once.

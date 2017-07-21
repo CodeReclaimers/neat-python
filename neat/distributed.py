@@ -26,15 +26,14 @@ Usage:
   the code inside the body of the statement.)
 2. Load config and create a population - here, the variable ``p``.
 3. If required, create and add reporters.
-4. Create a ``DistributedEvaluator(addr_of_master_node, 'some_password',
+4. Create a ``DistributedEvaluator(addr_of_master_node, b'some_password',
   eval_function, mode=MODE_AUTO)`` - here, the variable ``de``.
 5. Call ``de.start(exit_on_stop=True)``. The `start()` call will block on the
   slave nodes and call `sys.exit(0)` when the NEAT evolution finishes. This
   means that the following code will only be executed on the master node.
 6. Start the evaluation using ``p.run(de.evaluate, number_of_generations)``.
 7. Stop the slave nodes using ``de.stop()``.
-8. You are done. You may want to save the winning genome or show some
-  statistics.
+8. You are done. You may want to save the winning genome or show some statistics.
 
 See ``examples/xor/evolve-feedforward-distributed.py`` for a complete example.
 
@@ -74,18 +73,18 @@ from argparse import Namespace
 # Thanks to Eli Bendersky for making his code open for use.
 
 
-# modes to determine the role of a machine
+# modes to determine the role of a compute node
 # the master handles the evolution of the genomes
 # the slave handles the evaluation of the genomes
-MODE_AUTO = 0  # auto-determine server role
+MODE_AUTO = 0  # auto-determine mode
 MODE_MASTER = 1  # enforce master mode
 MODE_SLAVE = 2  # enforce slave mode
 
 
-class RoleError(RuntimeError):
+class ModeError(RuntimeError):
     """
-    An exception raised when a role-specific method is being
-    called without being in the role (mode) - either a master-specific method
+    An exception raised when a mode-specific method is being
+    called without being in the mode - either a master-specific method
     called by a slave node or a slave-specific method called by a master node.
     """
     pass
@@ -151,10 +150,10 @@ class DistributedEvaluator(object):
         the mode is determined by checking whether the hostname points to this
         host or not.
         ``authkey`` is the password used to restrict access to the manager; see
-        `multiprocessing.managers` for more information. All DistributedEvaluators
-        need to use the same authkey. Defaults to
-        `multiprocessing.current_process()`.authkey; however, this will not be the
-        same for processes on different machines, including virtual machines.
+        ``Authentication Keys`` in the `multiprocessing` manual for more information.
+        All DistributedEvaluators need to use the same authkey. Note that this needs
+        to be a `bytes` object for Python 3.X, and should be in 2.7 for compatibility
+        (identical in 2.7 to a `str` object).
         ``eval_function`` should take two arguments (a genome object and the
         configuration) and return a single float (the genome's fitness).
         'slave_chunksize' specifies the number of genomes that will be sent to
@@ -227,7 +226,7 @@ class DistributedEvaluator(object):
     def stop(self, wait=1, shutdown=True):
         """Stops all slaves."""
         if self.mode != MODE_MASTER:
-            raise RoleError("Not in master mode!")
+            raise ModeError("Not in master mode!")
         if not self.started:
             raise RuntimeError("Not yet started!")
         stopevent = self.manager.get_stopevent()
@@ -342,7 +341,7 @@ class DistributedEvaluator(object):
         DistributedEvaluator is not in master mode.
         """
         if self.mode != MODE_MASTER:
-            raise RoleError("Not in master mode!")
+            raise ModeError("Not in master mode!")
         stopevent = self.manager.get_stopevent()
         tasks = [(genome_id, genome, config) for genome_id, genome in genomes]
         id2genome = {genome_id: genome for genome_id, genome in genomes}
