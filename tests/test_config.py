@@ -82,6 +82,10 @@ def test_bad_config8():
     """Test using bad_configuration8 for a RuntimeError."""
     test_bad_config_RuntimeError(config_file='bad_configuration8')
 
+def test_bad_config9():
+    """Test using bad_configuration9 for a RuntimeError."""
+    test_bad_config_RuntimeError(config_file='bad_configuration9')
+
 if __name__ == '__main__':
     test_nonexistent_config()
     #test_bad_config_activation()
@@ -91,3 +95,4 @@ if __name__ == '__main__':
     test_bad_config6()
     test_bad_config7()
     test_bad_config8()
+    test_bad_config9()
