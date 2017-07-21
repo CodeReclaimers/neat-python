@@ -615,7 +615,7 @@ distributed
   .. index:: fitness function
   .. index:: fitness
 
-  .. py:class:: DistributedEvaluator(addr, authkey, eval_function, slave_chunksize=1, num_workers=None, mode=MODE_AUTO)
+  .. py:class:: DistributedEvaluator(addr, authkey, eval_function, slave_chunksize=1, num_workers=None, worker_timeout=60, mode=MODE_AUTO)
 
     An evaluator working across multiple machines (:term:`compute nodes <compute node>`).
 
@@ -631,7 +631,7 @@ distributed
     :param int slave_chunksize: The number of :term:`genomes <genome>` that will be sent to a :term:`slave node` at any one time.
     :param num_workers: The number of worker processes per :term:`slave node`, used for evaluating genomes. If None, will use :pylib:`multiprocessing.cpu_count() <multiprocessing.html#multiprocessing.cpu_count>`  to determine the number of processes (see further below regarding this default). If 1 (for a slave node), including if there is no usable result from ``multiprocessing.cpu_count()``, then the process creating the DistributedEvaluator instance will also do the evaluations.
     :type num_workers: int or None
-    :param worker_timeout:  specifies the timeout (in seconds) for a slave node getting the results from a worker subprocess; if None, there is no timeout. Defaults to 60 seconds.
+    :param worker_timeout:  specifies the timeout (in seconds) for a slave node getting the results from a worker subprocess; if None, there is no timeout.
     :type worker_timeout: float or None
     :param int mode: Specifies the mode to run in - must be one of `MODE_AUTO` (the default), `MODE_MASTER`, or `MODE_SLAVE`.
     :raises ValueError: If the mode is not one of the above.
