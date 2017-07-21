@@ -632,7 +632,7 @@ distributed
     :param num_workers: The number of worker processes per :term:`slave node`, used for evaluating genomes. If None, will use :pylib:`multiprocessing.cpu_count() <multiprocessing.html#multiprocessing.cpu_count>`  to determine the number of processes (see further below regarding this default). If 1 (for a slave node), including if there is no usable result from ``multiprocessing.cpu_count()``, then the process creating the DistributedEvaluator instance will also do the evaluations.
     :type num_workers: int or None
     :param worker_timeout:  specifies the timeout (in seconds) for a slave node getting the results from a worker subprocess; if None, there is no timeout. Defaults to 60 seconds.
-    :type worker_timeout: int or None
+    :type worker_timeout: float or None
     :param int mode: Specifies the mode to run in - must be one of `MODE_AUTO` (the default), `MODE_MASTER`, or `MODE_SLAVE`.
     :raises ValueError: If the mode is not one of the above.
 
@@ -653,7 +653,7 @@ distributed
       manager and waits for tasks.
 
       :param bool exit_on_stop: If a slave node, whether to exit upon the calling of `stop()` in the :term:`master node`.
-      :param int slave_wait: Specifies the time (in seconds) to sleep before actually starting, if a :term:`slave node`.
+      :param float slave_wait: Specifies the time (in seconds) to sleep before actually starting, if a :term:`slave node`.
       :raises RuntimeError: If already started.
       :raises ValueError: If the mode is invalid.
 
@@ -661,8 +661,8 @@ distributed
 
       Stops all slaves.
 
-      :param int wait: Time (in seconds) to wait after telling the slaves to stop.
-      :param bool shutdown: Whether to :pylib:`shutdown <multiprocessing.html#multiprocessing.managers.BaseManager.shutdown>` the :pylib:`multiprocessing.manager.SyncManager <multiprocessing.html#multiprocessing.managers.SyncManager>` also, after the optional wait.
+      :param float wait: Time (in seconds) to wait after telling the slaves to stop.
+      :param bool shutdown: Whether to :pylib:`shutdown <multiprocessing.html#multiprocessing.managers.BaseManager.shutdown>` the :pylib:`multiprocessing.manager.SyncManager <multiprocessing.html#multiprocessing.managers.SyncManager>` also (after the wait, if any).
       :raises RoleError: If not the :term:`master node` (not in MODE_MASTER).
       :raises RuntimeError: If not yet :py:meth:`started <start()>`.
 
