@@ -9,7 +9,7 @@ import sys
 import threading
 
 import neat
-from neat.distributed import chunked, MODE_AUTO, MODE_MASTER, MODE_SLAVE, RoleError
+from neat.distributed import chunked, MODE_AUTO, MODE_MASTER, MODE_SLAVE, ModeError
 
 
 def eval_dummy_genome_nn(genome, config):
@@ -166,16 +166,16 @@ def test_DistributedEvaluator_master_restrictions():
         )
     try:
         slave.stop()
-    except RoleError:
-        # only ignore RoleErrors
+    except ModeError:
+        # only ignore ModeErrors
         # a RuntimeError should only be raised when in master mode.
         pass
     else:
         raise Exception("A DistributedEvaluator in slave mode could call stop()!")
     try:
         slave.evaluate(None, None)  # we do not need valid values for this test
-    except RoleError:
-        # only ignore RoleErrors
+    except ModeError:
+        # only ignore ModeErrors
         # other errors should only be raised when in master mode.
         pass
     else:
