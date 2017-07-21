@@ -5,9 +5,9 @@ try:
     import threading
 except ImportError: # pragma: no cover
     import dummy_threading as threading
-    have_threads = False
+    HAVE_THREADS = False
 else:
-    have_threads = True
+    HAVE_THREADS = True
 
 try:
     # pylint: disable=import-error
@@ -35,7 +35,7 @@ class ThreadedEvaluator(object):
         self.inqueue = queue.Queue()
         self.outqueue = queue.Queue()
 
-        if not have_threads: # pragma: no cover
+        if not HAVE_THREADS: # pragma: no cover
             print("No threads available; use ParallelEvaluator, not ThreadedEvaluator",
                   file=stderr)
 

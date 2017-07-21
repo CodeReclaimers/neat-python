@@ -1247,6 +1247,16 @@ See http://www.izhikevich.org/publications/spikes.pdf.
 
   .. inheritance-diagram:: iznn
 
+  .. py:data:: REGULAR_SPIKING_PARAMS
+  .. py:data:: INTRINSICALLY_BURSTING_PARAMS
+  .. py:data:: CHATTERING_PARAMS
+  .. py:data:: FAST_SPIKING_PARAMS
+  .. py:data:: THALAMO_CORTICAL_PARAMS
+  .. py:data:: RESONATOR_PARAMS
+  .. py:data:: LOW_THRESHOLD_SPIKING_PARAMS
+
+    Parameter sets (for ``a``, ``b``, ``c``, and ``d``, described below) producing known types of spiking behaviors.
+
   .. index:: node
   .. index:: gene
 
