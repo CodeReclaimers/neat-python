@@ -490,7 +490,7 @@ ctrnn
 
   .. py:class:: CTRNNNodeEval(time_constant, activation, aggregation, bias, response, links)
 
-    Sets up the basic :doc:`ctrnn` (:term:`continuous-time` :term:`recurrent` neural network) :term:`nodes <node>`.
+    Sets up the basic :doc:`ctrnn <ctrnn>` (:term:`continuous-time` :term:`recurrent` neural network) :term:`nodes <node>`.
 
     :param float time_constant: Controls how fast the node responds; :math:`\tau_i` from :doc:`ctrnn`.
     :param activation: :term:`Activation function <activation function>` for the node.
@@ -504,7 +504,7 @@ ctrnn
 
   .. py:class:: CTRNN(inputs, outputs, node_evals)
 
-    Sets up the :doc:`ctrnn` network itself.
+    Sets up the :doc:`ctrnn <ctrnn>` network itself.
 
     .. index:: recurrent
 
