@@ -20,7 +20,8 @@ class BaseAttribute(object):
     def get_config_params(self):
         return [ConfigParameter(self.config_item_name(n),
                                 self.__config_items__[n][0],
-                                self.__config_items__[n][1]) for n in iterkeys(self.__config_items__)]
+                                self.__config_items__[n][1])
+                for n in iterkeys(self.__config_items__)]
 
 class FloatAttribute(BaseAttribute):
     __config_items__ = {"init_mean": [float, None],

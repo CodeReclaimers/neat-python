@@ -10,6 +10,7 @@ try:
 except ImportError:
     from ConfigParser import SafeConfigParser as ConfigParser
 
+from neat.six_util import iterkeys
 
 class ConfigParameter(object):
     """Contains information about one configuration item."""
@@ -92,6 +93,10 @@ def write_pretty_params(f, config, params):
         f.write('{} = {}\n'.format(p.name.ljust(longest_name), p.format(getattr(config, p.name))))
 
 
+class UnknownConfigItemError(NameError):
+    """Error for unknown configuration option - partially to catch typos."""
+    pass
+
 class DefaultClassConfig(object):
     """
     Replaces at least some boilerplate configuration code
@@ -102,6 +107,12 @@ class DefaultClassConfig(object):
         self._params = param_list
         for p in param_list:
             setattr(self, p.name, p.interpret(param_dict))
+        unknown_list = [x for x in iterkeys(param_dict) if not x in param_list]
+        if unknown_list:
+            if len(unknown_list) > 1:
+                raise UnknownConfigItemError("Unknown configuration items:\n" +
+                                             "\n\t".join(unknown_list))
+            raise UnknownConfigItemError("Unknown configuration item {!s}".format(unknown_list[0]))
 
     def save(self, f):
         write_pretty_params(f, self, self._params)

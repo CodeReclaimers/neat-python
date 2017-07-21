@@ -63,7 +63,8 @@ class DefaultGenomeConfig(object):
             self.initial_connection = c
             self.connection_fraction = float(p)
             if not (0 <= self.connection_fraction <= 1):
-                raise RuntimeError("'partial' connection value must be between 0.0 and 1.0, inclusive.")
+                raise RuntimeError(
+                    "'partial' connection value must be between 0.0 and 1.0, inclusive.")
 
         assert self.initial_connection in self.allowed_connectivity
 
@@ -76,7 +77,8 @@ class DefaultGenomeConfig(object):
         elif self.structural_mutation_surer.lower() == 'default':
             self.structural_mutation_surer = 'default'
         else:
-            error_string = "Invalid structural_mutation_surer {!r}".format(self.structural_mutation_surer)
+            error_string = "Invalid structural_mutation_surer {!r}".format(
+                self.structural_mutation_surer)
             raise RuntimeError(error_string)
 
         self.node_indexer = None
@@ -90,7 +92,8 @@ class DefaultGenomeConfig(object):
     def save(self, f):
         if 'partial' in self.initial_connection:
             if not (0 <= self.connection_fraction <= 1):
-                raise RuntimeError("'partial' connection value must be between 0.0 and 1.0, inclusive.")
+                raise RuntimeError(
+                    "'partial' connection value must be between 0.0 and 1.0, inclusive.")
             f.write('initial_connection      = {0} {1}\n'.format(self.initial_connection,
                                                                  self.connection_fraction))
         else:
@@ -98,7 +101,8 @@ class DefaultGenomeConfig(object):
 
         assert self.initial_connection in self.allowed_connectivity
 
-        write_pretty_params(f, self, [p for p in self._params if not 'initial_connection' in p.name])
+        write_pretty_params(f, self, [p for p in self._params
+                                      if not 'initial_connection' in p.name])
 
     def get_new_node_key(self, node_dict):
         if self.node_indexer is None:
@@ -118,7 +122,8 @@ class DefaultGenomeConfig(object):
         elif self.structural_mutation_surer == 'default':
             return self.single_structural_mutation
         else:
-            error_string = "Invalid structural_mutation_surer {!r}".format(self.structural_mutation_surer)
+            error_string = "Invalid structural_mutation_surer {!r}".format(
+                self.structural_mutation_surer)
             raise RuntimeError(error_string)
 
 class DefaultGenome(object):
@@ -188,10 +193,11 @@ class DefaultGenome(object):
                 self.connect_fs_neat_hidden(config)
             else:
                 if config.num_hidden > 0:
-                    print("Warning: initial_connection = fs_neat will not connect to hidden nodes;",
-                          "\tif this is desired, set initial_connection = fs_neat_nohidden;",
-                          "\tif not, set initial_connection = fs_neat_hidden",
-                          sep='\n', file=sys.stderr);
+                    print(
+                        "Warning: initial_connection = fs_neat will not connect to hidden nodes;",
+                        "\tif this is desired, set initial_connection = fs_neat_nohidden;",
+                        "\tif not, set initial_connection = fs_neat_hidden",
+                        sep='\n', file=sys.stderr);
                 self.connect_fs_neat_nohidden(config)
         elif 'full' in config.initial_connection:
             if config.initial_connection == 'full_nodirect':
@@ -200,10 +206,11 @@ class DefaultGenome(object):
                 self.connect_full_direct(config)
             else:
                 if config.num_hidden > 0:
-                    print("Warning: initial_connection = full with hidden nodes will not connect input nodes directly to output nodes;",
-                          "\tif this is desired, set initial_connection = full_nodirect;",
-                          "\tif not, set initial_connection = full_direct",
-                          sep='\n', file=sys.stderr);
+                    print(
+                        "Warning: initial_connection = full with hidden nodes will not connect input nodes directly to output nodes;",
+                        "\tif this is desired, set initial_connection = full_nodirect;",
+                        "\tif not, set initial_connection = full_direct",
+                        sep='\n', file=sys.stderr);
                 self.connect_full_nodirect(config)
         elif 'partial' in config.initial_connection:
             if config.initial_connection == 'partial_nodirect':
@@ -212,10 +219,13 @@ class DefaultGenome(object):
                 self.connect_partial_direct(config)
             else:
                 if config.num_hidden > 0:
-                    print("Warning: initial_connection = partial with hidden nodes will not connect input nodes directly to output nodes;",
-                          "\tif this is desired, set initial_connection = partial_nodirect {0};".format(config.connection_fraction),
-                          "\tif not, set initial_connection = partial_direct {0}".format(config.connection_fraction),
-                          sep='\n', file=sys.stderr);
+                    print(
+                        "Warning: initial_connection = partial with hidden nodes will not connect input nodes directly to output nodes;",
+                        "\tif this is desired, set initial_connection = partial_nodirect {0};".format(
+                            config.connection_fraction),
+                        "\tif not, set initial_connection = partial_direct {0}".format(
+                            config.connection_fraction),
+                        sep='\n', file=sys.stderr);
                 self.connect_partial_nodirect(config)
 
     def configure_crossover(self, genome1, genome2, config):
@@ -330,7 +340,8 @@ class DefaultGenome(object):
 
         # Don't duplicate connections.
         key = (in_node, out_node)
-        if key in self.connections: # TODO: Should this be using mutation to/from rates? Hairy to configure...
+        if key in self.connections:
+            # TODO: Should this be using mutation to/from rates? Hairy to configure...
             if config.check_structural_mutation_surer():
                 self.connections[key].enabled = True
             return
@@ -397,7 +408,9 @@ class DefaultGenome(object):
                     node_distance += n1.distance(n2, config)
 
             max_nodes = max(len(self.nodes), len(other.nodes))
-            node_distance = (node_distance + config.compatibility_disjoint_coefficient * disjoint_nodes) / max_nodes
+            node_distance = (node_distance +
+                             (config.compatibility_disjoint_coefficient *
+                              disjoint_nodes)) / max_nodes
 
         # Compute connection gene differences.
         connection_distance = 0.0
@@ -416,15 +429,19 @@ class DefaultGenome(object):
                     connection_distance += c1.distance(c2, config)
 
             max_conn = max(len(self.connections), len(other.connections))
-            conn_sum = connection_distance + config.compatibility_disjoint_coefficient * disjoint_connections
-            connection_distance = conn_sum / max_conn
+            connection_distance = (connection_distance +
+                                   (config.compatibility_disjoint_coefficient *
+                                    disjoint_connections)) / max_conn
 
         distance = node_distance + connection_distance
         return distance
 
     def size(self):
-        """Returns genome 'complexity', taken to be (number of nodes, number of enabled connections)"""
-        num_enabled_connections = sum([1 for cg in self.connections.values() if cg.enabled is True])
+        """
+        Returns genome 'complexity', taken to be
+        (number of nodes, number of enabled connections)
+        """
+        num_enabled_connections = sum([1 for cg in self.connections.values() if cg.enabled])
         return len(self.nodes), num_enabled_connections
 
     def __str__(self):
@@ -452,7 +469,8 @@ class DefaultGenome(object):
 
     def connect_fs_neat_nohidden(self, config):
         """
-        Randomly connect one input to all output nodes (FS-NEAT without connections to hidden, if any).
+        Randomly connect one input to all output nodes
+        (FS-NEAT without connections to hidden, if any).
         Originally connect_fs_neat.
         """
         input_id = choice(config.input_keys)
@@ -474,8 +492,10 @@ class DefaultGenome(object):
     def compute_full_connections(self, config, direct):
         """
         Compute connections for a fully-connected feed-forward genome--each
-        input connected to all hidden nodes (and output nodes if ``direct`` is set or there are no hidden nodes),
-        each hidden node connected to all output nodes. (Recurrent genomes will also include node self-connections.)
+        input connected to all hidden nodes
+        (and output nodes if ``direct`` is set or there are no hidden nodes),
+        each hidden node connected to all output nodes.
+        (Recurrent genomes will also include node self-connections.)
         """
         hidden = [i for i in iterkeys(self.nodes) if i not in config.output_keys]
         output = [i for i in iterkeys(self.nodes) if i in config.output_keys]
@@ -501,7 +521,10 @@ class DefaultGenome(object):
 
 
     def connect_full_nodirect(self, config):
-        """ Create a fully-connected genome (except without direct input-output unless no hidden nodes). """
+        """
+        Create a fully-connected genome
+        (except without direct input-output unless no hidden nodes).
+        """
         for input_id, output_id in self.compute_full_connections(config, False):
             connection = self.create_connection(config, input_id, output_id)
             self.connections[connection.key] = connection
@@ -513,7 +536,9 @@ class DefaultGenome(object):
             self.connections[connection.key] = connection
 
     def connect_partial_nodirect(self, config):
-        """ Create a partially-connected genome, with (unless no hidden nodes) no direct input-output connections. """
+        """
+        Create a partially-connected genome,
+        with (unless no hidden nodes) no direct input-output connections."""
         assert 0 <= config.connection_fraction <= 1
         all_connections = self.compute_full_connections(config, False)
         shuffle(all_connections)
@@ -523,7 +548,10 @@ class DefaultGenome(object):
             self.connections[connection.key] = connection
 
     def connect_partial_direct(self, config):
-        """ Create a partially-connected genome, including (possibly) direct input-output connections. """
+        """
+        Create a partially-connected genome,
+        including (possibly) direct input-output connections.
+        """
         assert 0 <= config.connection_fraction <= 1
         all_connections = self.compute_full_connections(config, True)
         shuffle(all_connections)

@@ -92,7 +92,7 @@ class DefaultSpeciesSet(object):
                 candidates.append((d, g))
 
             # The new representative is the genome closest to the current representative.
-            rdist, new_rep = min(candidates, key=lambda x: x[0])
+            ignored_rdist, new_rep = min(candidates, key=lambda x: x[0])
             new_rid = new_rep.key
             new_representatives[sid] = new_rid
             new_members[sid] = [new_rid]
@@ -112,7 +112,7 @@ class DefaultSpeciesSet(object):
                     candidates.append((d, sid))
 
             if candidates:
-                sdist, sid = min(candidates, key=lambda x: x[0])
+                ignored_sdist, sid = min(candidates, key=lambda x: x[0])
                 new_members[sid].append(gid)
             else:
                 # No species is similar enough, create a new species, using
@@ -138,7 +138,8 @@ class DefaultSpeciesSet(object):
 
         gdmean = mean(itervalues(distances.distances))
         gdstdev = stdev(itervalues(distances.distances))
-        self.reporters.info('Mean genetic distance {0:.3f}, standard deviation {1:.3f}'.format(gdmean, gdstdev))
+        self.reporters.info(
+            'Mean genetic distance {0:.3f}, standard deviation {1:.3f}'.format(gdmean, gdstdev))
 
     def get_species_id(self, individual_id):
         return self.genome_to_species[individual_id]

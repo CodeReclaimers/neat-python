@@ -49,17 +49,19 @@ a master node or as a slave node with MODE_AUTO.
 """
 from __future__ import print_function
 
-import multiprocessing
 import socket
 import sys
 import threading
 import time
 
 try:
+    # pylint: disable=import-error
     import Queue as queue
 except ImportError:
+    # pylint: disable=import-error
     import queue
 
+import multiprocessing
 from multiprocessing import managers
 from argparse import Namespace
 
@@ -126,7 +128,7 @@ def chunked(data, chunksize):
         if len(cur) >= chunksize:
             res.append(cur)
             cur = []
-    if len(cur) > 0:
+    if cur:
         res.append(cur)
     return res
 
@@ -220,7 +222,7 @@ class DistributedEvaluator(object):
             if exit_on_stop:
                 sys.exit(0)
         else:
-            raise ValueError("Invalid mode {!r}!".format(mode))
+            raise ValueError("Invalid mode {!r}!".format(self.mode))
 
     def stop(self, wait=1, shutdown=True):
         """Stops all slaves."""

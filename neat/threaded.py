@@ -10,8 +10,10 @@ else:
     have_threads = True
 
 try:
+    # pylint: disable=import-error
     import Queue as queue
 except ImportError:
+    # pylint: disable=import-error
     import queue
 
 from sys import stderr
