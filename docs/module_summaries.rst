@@ -57,7 +57,7 @@ Has the built-in :term:`activation functions <activation function>`, code for us
 
       :param str name: The name of the function.
       :return: Whether or not the function is known.
-      :rtype: bool
+      :rtype: :pytypes:`bool <typesnumeric>`
 
 .. index:: ! aggregation function
 
@@ -68,13 +68,45 @@ aggregations
 ---------------
 Has the built-in :term:`aggregation functions <aggregation function>`, code for using them, and code for adding new user-defined ones.
 
+  .. note::
+
+    :term:`Non-enabled <enabled>` :term:`connections <connection>` will, by all methods currently included in NEAT-Python, *not* be included among
+    the numbers input to these functions, even as 0s.
+
   .. py:function:: product_aggregation(x)
 
     An adaptation of the multiplication function to take an :pygloss:`iterable`.
 
     :param x: The numbers to be multiplied together; takes any ``iterable``.
-    :type x: list(float) or tuple(float) or set(float)
+    :type x: list(:pytypes:`float <typesnumeric>`) or tuple(:pytypes:`float <typesnumeric>`) or set(:pytypes:`float <typesnumeric>`)
     :return: :math:`\prod(x)`
+    :rtype: :pytypes:`float <typesnumeric>`
+
+  .. py:function:: sum_aggregation(x)
+
+    Probably the most commonly-used aggregation function.
+
+    :param x: The numbers to find the sum of; takes any :pygloss:`iterable`.
+    :type x: list(:pytypes:`float <typesnumeric>`) or tuple(:pytypes:`float <typesnumeric>`) or set(:pytypes:`float <typesnumeric>`)
+    :return: :math:`\sum(x)`
+    :rtype: :pytypes:`float <typesnumeric>`
+
+  .. py:function:: max_aggregation(x)
+
+    Returns the maximum of the inputs.
+
+    :param x: The numbers to find the greatest of; takes any :pygloss:`iterable`.
+    :type x: list(:pytypes:`float <typesnumeric>`) or tuple(:pytypes:`float <typesnumeric>`) or set(:pytypes:`float <typesnumeric>`)
+    :return: :math:`\max(x)`
+    :rtype: :pytypes:`float <typesnumeric>`
+
+  .. py:function:: min_aggregation(x)
+
+    Returns the minimum of the inputs.
+
+    :param x: The numbers to find the least of; takes any :pygloss:`iterable`.
+    :type x: list(:pytypes:`float <typesnumeric>`) or tuple(:pytypes:`float <typesnumeric>`) or set(:pytypes:`float <typesnumeric>`)
+    :return: :math:`\min(x)`
     :rtype: :pytypes:`float <typesnumeric>`
 
   .. py:function:: maxabs_aggregation(x)
@@ -82,8 +114,19 @@ Has the built-in :term:`aggregation functions <aggregation function>`, code for 
     Returns the maximum by absolute value, which may be positive or negative. Envisioned as suitable for neural network pooling operations.
 
     :param x: The numbers to find the absolute-value maximum of; takes any :pygloss:`iterable`.
-    :type x: list(float) or tuple(float) or set(float)
+    :type x: list(:pytypes:`float <typesnumeric>`) or tuple(:pytypes:`float <typesnumeric>`) or set(:pytypes:`float <typesnumeric>`)
     :return: :math:`x_i, i = \text{argmax}\lvert\mathbf{x}\rvert`
+    :rtype: :pytypes:`float <typesnumeric>`
+
+    .. versionadded:: 0.91-config_work
+
+  .. py:function:: median_aggregation(x)
+
+    Returns the :py:func:`median <math_util.median2>` of the inputs.
+
+    :param x: The numbers to find the median of; takes any :pygloss:`iterable`.
+    :type x: list(:pytypes:`float <typesnumeric>`) or tuple(:pytypes:`float <typesnumeric>`) or set(:pytypes:`float <typesnumeric>`)
+    :return: The median; if there are an even number of inputs, takes the mean of the middle two.
     :rtype: :pytypes:`float <typesnumeric>`
 
     .. versionadded:: 0.91-config_work
@@ -94,9 +137,11 @@ Has the built-in :term:`aggregation functions <aggregation function>`, code for 
     :term:`connections <connection>`, which may be good or bad depending on the circumstances; having both available to the algorithm is advised.
 
     :param x: The numbers to find the mean of; takes any :pygloss:`iterable`.
-    :type x: list(float) or tuple(float) or set(float)
+    :type x: list(:pytypes:`float <typesnumeric>`) or tuple(:pytypes:`float <typesnumeric>`) or set(:pytypes:`float <typesnumeric>`)
     :return: The arithmetic mean.
     :rtype: :pytypes:`float <typesnumeric>`
+
+    .. versionadded:: 0.91-config_work
 
   .. py:exception:: InvalidAggregationFunction(TypeError)
 
@@ -130,6 +175,8 @@ Has the built-in :term:`aggregation functions <aggregation function>`, code for 
       :param function: The function to be added.
       :type function: `function`
 
+      .. versionadded:: 0.91-config_work
+
     .. py:method:: get(name)
 
       Returns the named function, or raises an exception if it is not a known aggregation function.
@@ -139,9 +186,11 @@ Has the built-in :term:`aggregation functions <aggregation function>`, code for 
       :rtype: `function`
       :raises InvalidAggregationFunction: If the function is not known.
 
+      .. versionadded:: 0.91-config_work
+
     .. py:method:: __getitem__(index)
 
-      Present for compatibility with older programs that expect the aggregation functions to be in a `dict`. A wrapper for
+      Present for compatibility with older programs that expect the aggregation functions to be in a `dict <dictionary>`. A wrapper for
       :py:meth:`get(index) <AggregationFunctionSet.get()>`.
 
       :param str index: The name of the function.
@@ -159,27 +208,28 @@ Has the built-in :term:`aggregation functions <aggregation function>`, code for 
 
       :param str name: The name of the function.
       :return: Whether or not the function is known.
-      :rtype: bool
+      :rtype: :pytypes:`bool <typesnumeric>`
 
-  .. versionadded:: 0.91-config_work
-    Moved from :py:mod:`genome` and expanded to match `activations` (plus the ``maxabs`` and ``mean`` functions added).
+      .. versionadded:: 0.91-config_work
+
+  .. versionchanged:: 0.91-config_work
+    Moved from :py:mod:`genome` and expanded to match `activations` (plus the ``maxabs``, ``median``, and ``mean`` functions added).
 
 .. py:module:: attributes
    :synopsis: Deals with attributes used by genes.
 
 attributes
 -------------
-Deals with :term:`attributes` used by :term:`genes <gene>`. TODO: ``__config_items__`` should perhaps be ``_config_items`` instead, since it is not
-a term built into Python?
+Deals with :term:`attributes` used by :term:`genes <gene>`.
 
   .. inheritance-diagram:: attributes
 
   .. py:class:: BaseAttribute(name, **default_dict)
 
     Superclass for the type-specialized attribute subclasses, used by genes (such as via the :py:class:`genes.BaseGene` implementation). Updates
-    ``__config_items__`` with any defaults supplied, then uses `config_item_name` to set up a listing of the names of configuration items using `setattr`.
+    ``_config_items`` with any defaults supplied, then uses `config_item_name` to set up a listing of the names of configuration items using `setattr`.
 
-    :param str name: The name of the attribute.
+    :param str name: The name of the attribute, held in the instance's ``name`` attribute.
     :param default_dict: An optional dictionary of defaults for the configuration items.
     :type default_dict: dict(str, str)
 
@@ -195,23 +245,26 @@ a term built into Python?
       :rtype: str
 
       .. versionchanged:: 0.91-config_work
-        Originally did not take any input and returned a list based on the ``__config_items__`` subclass attribute.
+        Originally did not take any input and returned a list based on the ``_config_items`` subclass attribute.
 
     .. py:method:: get_config_params()
 
       Uses `config_item_name` for each configuration item to get the name, then gets the appropriate type of :py:class:`config.ConfigParameter`
-      instance for each (with any appropriate defaults being set from ``__config_items__``, including as modified by `BaseAttribute`) and returns it.
+      instance for each (with any appropriate defaults being set from ``_config_items``, including as modified by `BaseAttribute`) and returns it.
 
       :return: A list of ``ConfigParameter`` instances.
       :rtype: list(:datamodel:`instance <index-48>`)
 
       .. versionchanged:: 0.91-config_work
-        Was originally specific for the attribute subclass, since it did not pick up the appropriate type from the ``__config_items__`` list; default capability
+        Was originally specific for the attribute subclass, since it did not pick up the appropriate type from the ``_config_items`` list; default capability
         also added.
 
   .. py:class:: FloatAttribute(BaseAttribute)
 
     Class for numeric :term:`attributes` such as the :term:`response` of a :term:`node`; includes code for configuration, creation, and mutation.
+
+    .. index:: ! max_value
+    .. index:: ! min_value
 
     .. py:method:: clamp(value, config)
 
@@ -224,10 +277,14 @@ a term built into Python?
       :return: The value, if it is within the desired range, or the appropriate end of the range, if it is not.
       :rtype: :pytypes:`float <typesnumeric>`
 
+    .. index:: init_mean
+    .. index:: init_stdev
+    .. index:: init_type
+
     .. py:method:: init_value(config)
 
-      Initializes the attribute's value, using either a gaussian distribution with the configured mean and standard deviation, or a uniform distribution,
-      followed by `clamp` to keep the result within the desired range.
+      Initializes the attribute's value, using either a gaussian distribution with the configured mean and standard deviation, followed by `clamp` to
+      keep the result within the desired range, or a uniform distribution, depending on the configuration setting of ``init_type``.
 
       :param config: The configuration object from which the mean, standard deviation, and initialization distribution type values are to be retrieved.
       :type config: :datamodel:`object <objects-values-and-types>`
@@ -238,6 +295,9 @@ a term built into Python?
         Uniform distribution initialization option added.
 
     .. index:: ! mutation
+    .. index:: ! mutate_power
+    .. index:: ! replace_rate
+    .. index:: mutate_rate
 
     .. py:method:: mutate_value(value, config)
 
@@ -255,16 +315,22 @@ a term built into Python?
 
     Class for boolean :term:`attributes` such as whether a :term:`connection` is :term:`enabled` or not; includes code for configuration, creation, and mutation.
 
+    .. index:: ! X_default
+
     .. py:method:: init_value(config)
 
-      Initializes the attribute's value, either using a configured default or (if the default is ``None``) with a 50/50 chance of ``True`` or ``False``.
+      Initializes the attribute's value, either using a configured ``default`` or (if the default is ``None``) with a 50/50 chance of
+      ``True`` or ``False``.
 
       :param config: The configuration object from which the default parameter is to be retrieved.
       :type config: :datamodel:`object <objects-values-and-types>`
       :return: The new value.
-      :rtype: bool
+      :rtype: :pytypes:`bool <typesnumeric>`
 
     .. index:: ! mutation
+    .. index:: mutate_rate
+    .. index:: ! rate_to_false_add
+    .. index:: ! rate_to_true_add
 
     .. py:method:: mutate_value(value, config)
 
@@ -276,7 +342,7 @@ a term built into Python?
       :param config: The configuration object from which the ``mutate_rate`` and other parameters are to be extracted.
       :type config: :datamodel:`object <objects-values-and-types>`
       :return: Either the original value, if unchanged, or the new value.
-      :rtype: bool
+      :rtype: :pytypes:`bool <typesnumeric>`
 
       .. versionchanged:: 0.91-config_work
         Added the ``rate_to_false_add`` and ``rate_to_true_add`` parameters.
@@ -286,10 +352,17 @@ a term built into Python?
     Class for string attributes such as the :term:`aggregation function` of a :term:`node`, which are selected from a list of options;
     includes code for configuration, creation, and mutation.
 
+    .. index:: ! X_default
+    .. index:: X_options
+    .. index::
+      see: default; X_default
+      see: options; X_options
+
     .. py:method:: init_value(config)
 
-      Initializes the attribute's value, either using a configured default or (if the default is either ``None`` or ``random``) with a randomly-chosen member
-      of the ``options`` (each having an equal chance). Note: It is possible for the default value, if specifically configured, to **not** be one of the options.
+      Initializes the attribute's value, either using a configured ``default`` or (if the default is either ``None`` or ``random``) with a
+      randomly-chosen member of the ``options`` (each having an equal chance). Note: It is possible for the default value, if specifically configured, to
+      **not** be one of the options.
 
       :param config: The configuration object from which the default and, if necessary, ``options`` parameters are to be retrieved.
       :type config: :datamodel:`object <objects-values-and-types>`
@@ -297,12 +370,15 @@ a term built into Python?
       :rtype: str
 
     .. index:: ! mutation
+    .. index:: mutate_rate
+    .. index:: ! X_options
 
     .. py:method:: mutate_value(value, config)
 
       With a frequency determined by the ``mutate_rate`` (which is more precisely a ``replace_rate``) configuration parameter, replaces
-      the value with an one of the ``options``, with each having an equal chance; note that this can be the same value as before. (It is possible to crudely
-      alter the chances of what is chosen by listing a given option more than once, although this is inefficient given the use of the `random.choice` function.)
+      the value with one of the ``options``, with each having an equal chance; note that this can be the same value as before.
+      (It is possible to crudely alter the chances of what is chosen by listing a given option more than once, although this is inefficient given the use of the
+      `random.choice` function.)
       TODO: Longer-term, add configurable probabilities of which option is used; eventually, as with the
       improved version of RBF-NEAT, separate genes for the likelihoods of each (but always doing some change, to prevent overly-conservative evolution
       due to its inherent short-sightedness), allowing the genomes to control the distribution of options, will be desirable.
@@ -312,6 +388,9 @@ a term built into Python?
       :type config: :datamodel:`object <objects-values-and-types>`
       :return: The new value.
       :rtype: str
+
+  .. versionchanged:: 0.91-config_work
+    ``__config_items__`` changed to ``_config_items``, since it is not a Python internal variable.
 
 .. py:module:: checkpoint
    :synopsis: Uses `pickle` to save and restore populations (and other aspects of the simulation state).
@@ -324,12 +403,13 @@ Uses :py:mod:`pickle` to save and restore populations (and other aspects of the 
 
     A reporter class that performs checkpointing, saving and restoring the simulation state (including population, randomization, and other aspects).
     It saves the current state every ``generation_interval`` generations or ``time_interval_seconds`` seconds, whichever happens first.
-    Subclasses :py:class:`reporting.BaseReporter`. (The potential save point is at the end of a generation.)
+    Subclasses :py:class:`reporting.BaseReporter`. (The potential save point is at the end of a generation.) If there is a need to check for when the
+    last generation for which a checkpoint was saved, access ``last_generation_checkpoint``; if -1, none have been saved.
 
     :param generation_interval: If not None, maximum number of generations between checkpoints.
-    :type generation_interval: int or None
+    :type generation_interval: :pytypes:`int <typesnumeric>` or None
     :param time_interval_seconds: If not None, maximum number of seconds between checkpoints.
-    :type time_interval_seconds: float or None
+    :type time_interval_seconds: :pytypes:`float <typesnumeric>` or None
 
     .. py:staticmethod:: save_checkpoint(config, population, species, generation)
 
@@ -372,7 +452,7 @@ Does general configuration parsing; used by other classes for their configuratio
     Does initial handling of a particular configuration parameter.
 
     :param str name: The name of the configuration parameter.
-    :param str value_type: The type that the configuration parameter should be; must be one of `str`, :pytypes:`int <typesnumeric>`, `bool`, :pytypes:`float <typesnumeric>`, or `list`.
+    :param str value_type: The type that the configuration parameter should be; must be one of `str`, :pytypes:`int <typesnumeric>`, :pytypes:`bool <typesnumeric>`, :pytypes:`float <typesnumeric>`, or `list`.
     :param default: If given, the default to use for the configuration parameter.
     :type default: str or None
 
@@ -405,12 +485,12 @@ Does general configuration parsing; used by other classes for their configuratio
 
       :param dict config_dict: Configuration parameters as output by the configuration parser.
       :return: The configuration parameter value
-      :rtype: str or int or bool or float or list
+      :rtype: str or :pytypes:`int <typesnumeric>` or :pytypes:`bool <typesnumeric>` or :pytypes:`float <typesnumeric>` or list
       :raises RuntimeError: If there is a problem with the configuration parameter.
       :raises DeprecationWarning: If a default is used.
 
       .. versionchanged:: 0.91-config_work
-        Default capability added; error handling enhanced.
+        Default capability added.
 
     .. py:method:: format(value)
 
@@ -418,7 +498,7 @@ Does general configuration parsing; used by other classes for their configuratio
       (using `str`), of ``value``.
 
       :param value: Configuration parameter value to be formatted.
-      :type value: str or int or bool or float or list
+      :type value: str or :pytypes:`int <typesnumeric>` or :pytypes:`bool <typesnumeric>` or :pytypes:`float <typesnumeric>` or list
 
   .. py:function:: write_pretty_params(f, config, params)
 
@@ -441,7 +521,7 @@ Does general configuration parsing; used by other classes for their configuratio
     into this class also. This would be simple if it were a normal method, but it is called as a class method.
 
     :param param_dict: Dictionary of configuration parameters from config file.
-    :type param_dict: dict(str, :datamodel:`value <objects-values-and-types>`)
+    :type param_dict: dict(`str`, :datamodel:`value <objects-values-and-types>`)
     :param param_list: List of `ConfigParameter` instances; used to know what parameters are of interest to the calling class.
     :type param_list: list(:datamodel:`instance <index-48>`)
     :raises UnknownConfigItemError: If a key in ``param_dict`` is not among the names in ``param_list``.
@@ -455,12 +535,21 @@ Does general configuration parsing; used by other classes for their configuratio
 
     .. versionadded:: 0.91-config_work
 
+  .. index:: fitness criterion
+  .. index:: fitness_threshold
+  .. index:: no_fitness_termination
+  .. index:: pop_size
+  .. index:: reset_on_extinction
+
   .. py:class:: Config(genome_type, reproduction_type, species_set_type, stagnation_type, filename)
 
     A simple container for user-configurable parameters of NEAT. The four parameters ending in ``_type`` may be the built-in ones or user-provided objects,
     which must make available the methods ``parse_config`` and ``write_config``, plus others depending on which object it is. (For more information on the
-    objects, see below and :ref:`customization-label`.) ``Config`` itself takes care of the ``NEAT`` parameters. For a description of the configuration file,
-    see :ref:`configuration-file-description-label`.
+    objects, see below and :ref:`customization-label`.) ``Config`` itself takes care of the :ref:`NEAT parameters <configuration-file-NEAT-section-label>`,
+    which are found as some of its attributes. For a description of the configuration file, see :ref:`configuration-file-description-label`. The
+    :pytypes:`__name__ <definition.__name__>` attributes of the ``_type`` parameters are used for the titles of the configuration file sections. A Config
+    instance's ``genome_config``, ``species_set_config``, ``stagnation_config``, and ``reproduction_config`` attributes hold the configuration objects for the
+    respective classes.
 
     :param object genome_type: Specifies the genome class used, such as :py:class:`genome.DefaultGenome` or :py:class:`iznn.IZGenome`. See :ref:`genome-interface-label` for the needed interface.
     :param object reproduction_type: Specifies the reproduction class used, such as :py:class:`reproduction.DefaultReproduction`. See :ref:`reproduction-interface-label` for the needed interface.
@@ -472,7 +561,7 @@ Does general configuration parsing; used by other classes for their configuratio
     :raises DeprecationWarning: If a default is used for one of the ``NEAT`` section options.
 
     .. versionchanged:: 0.91-config_work
-      Added default capabilities, UnknownConfigItemError.
+      Added default capabilities, UnknownConfigItemError, no_fitness_termination.
 
     .. py:method:: save(filename)
 
@@ -497,8 +586,10 @@ ctrnn
     :type activation: `function`
     :param aggregation: :term:`Aggregation function <aggregation function>` for the node.
     :type aggregation: `function`
-    :param float bias: :term:`Bias <bias>` for the node.
-    :param float response: :term:`Response <response>` multiplier for the node.
+    :param bias: :term:`Bias <bias>` for the node.
+    :type bias: :pytypes:`float <typesnumeric>`
+    :param response: :term:`Response <response>` multiplier for the node.
+    :type response: :pytypes:`float <typesnumeric>`
     :param links: List of other nodes providing input, as tuples of (input :term:`key`, :term:`weight`)
     :type links: list(tuple(int,float))
 
@@ -519,11 +610,14 @@ ctrnn
       Advance the simulation by the given amount of time, assuming that inputs are
       constant at the given values during the simulated time.
 
-      :param list inputs: The values for the :term:`input nodes <input node>`.
-      :param float advance_time: How much time to advance the network before returning the resulting outputs.
-      :param float time_step: How much time per step to advance the network; the default of ``None`` will currently result in an error, but it is planned to determine it automatically.
+      :param inputs: The values for the :term:`input nodes <input node>`.
+      :type inputs: list(float)
+      :param advance_time: How much time to advance the network before returning the resulting outputs.
+      :type advance_time: :pytypes:`float <typesnumeric>`
+      :param time_step: How much time per step to advance the network; the default of ``None`` will currently result in an error, but it is planned to determine it automatically.
+      :type time_step: :pytypes:`float <typesnumeric>` or None
       :return: The values for the :term:`output nodes <output node>`.
-      :rtype: list
+      :rtype: list(float)
       :raises NotImplementedError: If a ``time_step`` is not given.
 
     .. py:staticmethod:: create(genome, config, time_constant)
@@ -532,7 +626,8 @@ ctrnn
 
       :param object genome: A :py:class:`genome.DefaultGenome` instance.
       :param object config: A :py:class:`config.Config` instance.
-      :param float time_constant: Used for the :py:class:`CTRNNNodeEval` initializations.
+      :param time_constant: Used for the :py:class:`CTRNNNodeEval` initializations.
+      :type time_constant: :pytypes:`float <typesnumeric>`
 
 
 .. index:: ! compute node
@@ -600,9 +695,10 @@ distributed
     Returns True if the hostname points to the localhost (including shares addresses), otherwise False.
 
     :param str hostname: The hostname to be checked; will be put through `socket.getfqdn`.
-    :param int port: The optional port for `socket` functions requiring one. Defaults to 22, the ssh port.
+    :param port: The optional port for `socket` functions requiring one. Defaults to 22, the ssh port.
+    :type port: :pytypes:`int <typesnumeric>`
     :return: Whether the hostname appears to be equivalent to that of the localhost.
-    :rtype: bool
+    :rtype: :pytypes:`bool <typesnumeric>`
 
   .. py:function:: chunked(data, chunksize)
 
@@ -610,7 +706,8 @@ distributed
 
     :param data: The data to split up; takes any :pygloss:`iterable`.
     :type data: list(object) or tuple(object) or set(object)
-    :param int chunksize: The maximum number of elements per chunk.
+    :param chunksize: The maximum number of elements per chunk.
+    :type chunksize: :pytypes:`int <typesnumeric>`
     :return: A list of chunks containing (as a list) at most ``chunksize`` elements of data.
     :rtype: list(list(object))
 
@@ -631,11 +728,12 @@ distributed
     :type authkey: :pytypes:`bytes`
     :param eval_function: The eval_function should take two arguments - a genome object and a config object - and return a single :pytypes:`float <typesnumeric>` (the genome's fitness) Note that this is not the same as how a fitness function is called by :py:meth:`Population.run <population.Population.run>`, nor by :py:class:`ParallelEvaluator <parallel.ParallelEvaluator>` (although it is more similar to the latter).
     :type eval_function: `function`
-    :param int slave_chunksize: The number of :term:`genomes <genome>` that will be sent to a :term:`slave node` at any one time.
+    :param slave_chunksize: The number of :term:`genomes <genome>` that will be sent to a :term:`slave node` at any one time.
+    :type slave_chunksize: :pytypes:`int <typesnumeric>`
     :param num_workers: The number of worker processes per :term:`slave node`, used for evaluating genomes. If None, will use :pylib:`multiprocessing.cpu_count() <multiprocessing.html#multiprocessing.cpu_count>`  to determine the number of processes (see further below regarding this default). If 1 (for a slave node), including if there is no usable result from ``multiprocessing.cpu_count()``, then the process creating the DistributedEvaluator instance will also do the evaluations.
-    :type num_workers: int or None
+    :type num_workers: :pytypes:`int <typesnumeric>` or None
     :param worker_timeout:  specifies the timeout (in seconds) for a slave node getting the results from a worker subprocess; if None, there is no timeout.
-    :type worker_timeout: float or None
+    :type worker_timeout: :pytypes:`float <typesnumeric>` or None
     :param int mode: Specifies the mode to run in - must be one of :py:data:`MODE_AUTO` (the default), :py:data:`MODE_MASTER`, or :py:data:`MODE_SLAVE`.
     :raises ValueError: If the mode is not one of the above.
 
@@ -647,16 +745,18 @@ distributed
 
       Returns True if the caller is the :term:`master node`; otherwise False.
 
-      :return: True if master, False if slave
-      :rtype: bool
+      :return: `True` if master, `False` if slave
+      :rtype: :pytypes:`bool <typesnumeric>`
 
     .. py:method:: start(exit_on_stop=True, slave_wait=0)
 
       If the DistributedEvaluator is in master mode, starts the manager process and returns. If the DistributedEvaluator is in slave mode, it connects to the
       manager and waits for tasks.
 
-      :param bool exit_on_stop: If a slave node, whether to exit upon the calling of `stop()` in the :term:`master node`.
-      :param float slave_wait: Specifies the time (in seconds) to sleep before actually starting, if a :term:`slave node`.
+      :param exit_on_stop: If a slave node, whether to exit upon the calling of `stop()` in the :term:`master node`.
+      :type exit_on_stop: :pytypes:`bool <typesnumeric>`
+      :param slave_wait: Specifies the time (in seconds) to sleep before actually starting, if a :term:`slave node`.
+      :type slave_wait: :pytypes:`float <typesnumeric>`
       :raises RuntimeError: If already started.
       :raises ValueError: If the mode is invalid.
 
@@ -664,8 +764,10 @@ distributed
 
       Stops all slaves.
 
-      :param float wait: Time (in seconds) to wait after telling the slaves to stop.
-      :param bool shutdown: Whether to :pylib:`shutdown <multiprocessing.html#multiprocessing.managers.BaseManager.shutdown>` the :pylib:`multiprocessing.manager.SyncManager <multiprocessing.html#multiprocessing.managers.SyncManager>` also (after the wait, if any).
+      :param wait: Time (in seconds) to wait after telling the slaves to stop.
+      :type wait: :pytypes:`float <typesnumeric>`
+      :param shutdown: Whether to :pylib:`shutdown <multiprocessing.html#multiprocessing.managers.BaseManager.shutdown>` the :pylib:`multiprocessing.manager.SyncManager <multiprocessing.html#multiprocessing.managers.SyncManager>` also (after the wait, if any).
+      :type shutdown: :pytypes:`bool <typesnumeric>`
       :raises ModeError: If not the :term:`master node` (not in :py:data:`MODE_MASTER`).
       :raises RuntimeError: If not yet :py:meth:`started <start()>`.
 
@@ -691,7 +793,7 @@ distributed
 genes
 --------
 
-  .. inheritance-diagram:: genes iznn
+  .. inheritance-diagram:: genes iznn.IZNodeGene
 
   .. index:: key
   .. index:: ! gene
@@ -701,7 +803,8 @@ genes
     Handles functions shared by multiple types of genes (both :term:`node` and :term:`connection`), including :term:`crossover` and
     calling :term:`mutation` methods.
 
-    :param int key: The gene :term:`identifier <key>`. Note: For connection genes, determining whether they are :term:`homologous` (for :term:`genomic distance` and :term:`crossover` determination) uses the identifiers of the connected nodes, not the connection gene's identifier.
+    :param key: The gene :term:`identifier <key>`. Note: For connection genes, determining whether they are :term:`homologous` (for :term:`genomic distance` and :term:`crossover` determination) uses the identifiers of the connected nodes, not the connection gene's identifier.
+    :type key: :pytypes:`int <typesnumeric>`
 
     .. py:method:: __str__()
 
@@ -716,7 +819,7 @@ genes
 
       :param object other: The other `BaseGene` object.
       :return: Whether the calling instance's key is less than that of the ``other`` instance.
-      :rtype: bool
+      :rtype: :pytypes:`bool <typesnumeric>`
 
     .. py:classmethod:: parse_config(config, param_dict)
 
@@ -724,7 +827,7 @@ genes
 
     .. py:classmethod:: get_config_params()
 
-      Fetches configuration parameters from each gene class' ``__gene_attributes__`` list (using
+      Fetches configuration parameters from each gene class' ``_gene_attributes`` list (using
       :py:meth:`BaseAttribute.get_config_params <attributes.BaseAttribute.get_config_params>`).
       Used by :py:class:`genome.DefaultGenomeConfig` to include gene parameters in its configuration parameters.
 
@@ -757,7 +860,7 @@ genes
       Makes a copy of itself, including its subclass, :term:`key`, and all gene attributes.
 
       :return: A copied gene
-      :rtype: :pygloss:`object`
+      :rtype: :datamodel:`instance <index-48>`
 
     .. index:: ! crossover
 
@@ -766,7 +869,8 @@ genes
       Creates a new gene via :term:`crossover` - randomly inheriting attributes from its parents. The two genes must be :term:`homologous`, having
       the same :term:`key`/id.
 
-      :param object gene2: The other gene.
+      :param gene2: The other gene.
+      :type gene2: :datamodel:`instance <index-48>`
       :return: A new gene, with the same key/id, with other attributes being copied randomly (50/50 chance) from each parent gene.
       :rtype: :pygloss:`object`
 
@@ -785,7 +889,8 @@ genes
       Determines the degree of differences between node genes using their 4 :term:`attributes`;
       the final result is multiplied by the configured :ref:`compatibility_weight_coefficient <compatibility-weight-coefficient-label>`.
 
-      :param object other: The other ``DefaultNodeGene``.
+      :param other: The other ``DefaultNodeGene``.
+      :type other: :datamodel:`instance <index-48>`
       :param object config: The genome configuration object.
       :return: The contribution of this pair to the :term:`genomic distance` between the source genomes.
       :rtype: :pytypes:`float <typesnumeric>`
@@ -805,10 +910,15 @@ genes
       Determines the degree of differences between connection genes using their 2 :term:`attributes`;
       the final result is multiplied by the configured :ref:`compatibility_weight_coefficient <compatibility-weight-coefficient-label>`.
 
-      :param object other: The other ``DefaultConnectionGene``.
+      :param other: The other ``DefaultConnectionGene``.
+      :type other: :datamodel:`instance <index-48>`
       :param object config: The genome configuration object.
       :return: The contribution of this pair to the :term:`genomic distance` between the source genomes.
       :rtype: :pytypes:`float <typesnumeric>`
+
+    .. versionchanged:: 0.91-config_work
+      ``__gene_attributes__`` changed to ``_gene_attributes``, since it is not a Python internal variable. Other changes made due to addition of
+      default capabilities to :py:mod:`attributes`.
 
 .. py:module:: genome
    :synopsis: Handles genomes (individuals in the population).
@@ -816,7 +926,7 @@ genes
 genome
 -----------
 
-  .. inheritance-diagram:: genome iznn
+  .. inheritance-diagram:: genome iznn.IZGenome
 
   .. index:: initial_connection
   .. index:: structural_mutation_surer
@@ -890,7 +1000,7 @@ genome
       changes from the former should happen.
 
       :returns: If should have a structural mutation under a wider set of circumstances.
-      :rtype: bool
+      :rtype: :pytypes:`bool <typesnumeric>`
 
       .. versionadded:: 0.91-config_work
 
@@ -1184,7 +1294,7 @@ Directed graph algorithm implementations.
     :param test: Possible connection to be checked for causing a cycle.
     :type test: tuple(int, int)
     :return: True if a cycle would be created; false if not.
-    :rtype: bool
+    :rtype: :pytypes:`bool <typesnumeric>`
 
   .. py:function:: required_for_output(inputs, outputs, connections)
 
@@ -1313,7 +1423,7 @@ See http://www.izhikevich.org/publications/spikes.pdf.
       Assigns input voltages.
 
       :param inputs: The input voltages for the :term:`input nodes <input node>`.
-      :type inputs: list(float)
+      :type inputs: list(:pytypes:`float <typesnumeric>`)
 
     .. py:method:: reset()
 
@@ -1332,7 +1442,7 @@ See http://www.izhikevich.org/publications/spikes.pdf.
 
       :param float dt_msec: How many milliseconds to advance the network.
       :return: The values for the :term:`output nodes <output node>`.
-      :rtype: list(float)
+      :rtype: list(:pytypes:`float <typesnumeric>`)
 
     .. py:staticmethod:: create(genome, config)
 
@@ -1561,7 +1671,7 @@ Implements the core evolution algorithm.
 reporting
 -----------
 
-  .. inheritance-diagram:: reporting checkpoint statistics
+  .. inheritance-diagram:: reporting checkpoint.Checkpointer statistics.StatisticsReporter
 
   .. py:class:: ReporterSet
 
@@ -1782,7 +1892,7 @@ Handles creation of genomes, either from scratch or by sexual or asexual reprodu
       desired population size.
 
       :param adjusted_fitness: Mean fitness for species members, adjusted to 0-1 scale (see below).
-      :type adjusted_fitness: list(float)
+      :type adjusted_fitness: list(:pytypes:`float <typesnumeric>`)
       :param previous_sizes: Number of members of species in population prior to reproduction.
       :type previous_sizes: list(int)
       :param int pop_size: Desired population size, as input to :py:meth:`reproduce` and :ref:`set <pop-size-label>` in the configuration file.
@@ -1880,7 +1990,7 @@ Divides the population into species based on :term:`genomic distances <genomic d
       Required interface method (used by :py:class:`stagnation.DefaultStagnation`, for instance). Retrieves the fitnesses of each member genome.
 
       :return: List of fitnesses of member genomes.
-      :rtype: list(float)
+      :rtype: list(:pytypes:`float <typesnumeric>`)
 
   .. index:: ! genomic distance
 
@@ -2079,7 +2189,7 @@ statistics
       Gets the per-generation mean fitness. A wrapper for :py:meth:`get_fitness_stat` with the function being ``mean``.
 
       :return: List of mean genome fitnesses for each generation.
-      :rtype: list(float)
+      :rtype: list(:pytypes:`float <typesnumeric>`)
 
     .. py:method:: get_fitness_median()
 
@@ -2090,7 +2200,7 @@ statistics
       Gets the per-generation standard deviation of the fitness. A wrapper for :py:meth:`get_fitness_stat` with the function being ``stdev``.
 
       :return: List of standard deviations of genome fitnesses for each generation.
-      :rtype: list(float)
+      :rtype: list(:pytypes:`float <typesnumeric>`)
 
     .. py:method:: best_unique_genomes(n)
 
@@ -2188,7 +2298,8 @@ Runs evaluation functions in parallel threads (using the python library module `
     .. py:method:: __del__()
 
       Attempts to take care of removing each worker thread, but deliberately calling ``self.stop()`` in the threads may be needed.
-      TODO: Avoid reference cycles to ensure this method is called. (Perhaps use `weakref`, depending on what the cycles are?)
+      TODO: Avoid reference cycles to ensure this method is called. (Perhaps use `weakref`, depending on what the cycles are?
+      Note that weakref is not compatible with saving via `pickle`, so all of them will need to be removed prior to any save.)
 
     .. py:method:: start()
 

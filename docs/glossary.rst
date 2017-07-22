@@ -16,7 +16,8 @@ Glossary
   response
     These are the :term:`attributes` of a :term:`node`. They determine the output of a node as follows:
     :math:`\begin{equation}\operatorname{activation}(bias + (response * \operatorname{aggregation}(inputs)))\end{equation}`
-    For available activation functions, see :ref:`activation-functions-label`; for adding new ones, see :ref:`customization-label`.
+    For available activation functions, see :ref:`activation-functions-label`; for adding new ones, see :ref:`customization-label`. For the available
+    aggregation functions, see the :py:mod:`aggregations module <aggregations>`.
 
   node
     Also known as a neuron (as in a *neural* network). They are of three types:

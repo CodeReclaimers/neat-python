@@ -10,8 +10,8 @@ class BaseAttribute(object):
     def __init__(self, name, **default_dict):
         self.name = name
         for n, default in iteritems(default_dict):
-            self.__config_items__[n] = [self.__config_items__[n][0], default]
-        for n in iterkeys(self.__config_items__):
+            self._config_items[n] = [self._config_items[n][0], default]
+        for n in iterkeys(self._config_items):
             setattr(self, n + "_name", self.config_item_name(n))
 
     def config_item_name(self, config_item_base_name):
@@ -19,19 +19,19 @@ class BaseAttribute(object):
 
     def get_config_params(self):
         return [ConfigParameter(self.config_item_name(n),
-                                self.__config_items__[n][0],
-                                self.__config_items__[n][1])
-                for n in iterkeys(self.__config_items__)]
+                                self._config_items[n][0],
+                                self._config_items[n][1])
+                for n in iterkeys(self._config_items)]
 
 class FloatAttribute(BaseAttribute):
-    __config_items__ = {"init_mean": [float, None],
-                        "init_stdev": [float, None],
-                        "init_type": [str, 'gaussian'],
-                        "replace_rate": [float, None],
-                        "mutate_rate": [float, None],
-                        "mutate_power": [float, None],
-                        "max_value": [float, None],
-                        "min_value": [float, None]}
+    _config_items = {"init_mean": [float, None],
+                     "init_stdev": [float, None],
+                     "init_type": [str, 'gaussian'],
+                     "replace_rate": [float, None],
+                     "mutate_rate": [float, None],
+                     "mutate_power": [float, None],
+                     "max_value": [float, None],
+                     "min_value": [float, None]}
 
     def clamp(self, value, config):
         min_value = getattr(config, self.min_value_name)
@@ -79,10 +79,10 @@ class FloatAttribute(BaseAttribute):
 
 
 class BoolAttribute(BaseAttribute):
-    __config_items__ = {"default": [bool, None],
-                        "mutate_rate": [float, None],
-                        "rate_to_true_add": [float, 0.0],
-                        "rate_to_false_add": [float, 0.0]}
+    _config_items = {"default": [bool, None],
+                     "mutate_rate": [float, None],
+                     "rate_to_true_add": [float, 0.0],
+                     "rate_to_false_add": [float, 0.0]}
 
     def init_value(self, config):
         default = getattr(config, self.default_name)
@@ -116,9 +116,9 @@ class BoolAttribute(BaseAttribute):
 
 
 class StringAttribute(BaseAttribute):
-    __config_items__ = {"default": [str, 'random'],
-                        "options": [list, None],
-                        "mutate_rate": [float, None]}
+    _config_items = {"default": [str, 'random'],
+                     "options": [list, None],
+                     "mutate_rate": [float, None]}
 
     def init_value(self, config):
         default = getattr(config, self.default_name)

@@ -24,6 +24,7 @@ class DefaultGenomeConfig(object):
         self.activation_defs = ActivationFunctionSet()
         # ditto for aggregation functions - name difference for backward compatibility
         self.aggregation_function_defs = AggregationFunctionSet()
+        self.aggregation_defs = self.aggregation_function_defs
 
         self._params = [ConfigParameter('num_inputs', int),
                         ConfigParameter('num_outputs', int),

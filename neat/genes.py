@@ -10,7 +10,7 @@ class BaseGene(object):
         self.key = key
 
     def __str__(self):
-        attrib = ['key'] + [a.name for a in self.__gene_attributes__]
+        attrib = ['key'] + [a.name for a in self._gene_attributes]
         attrib = ['{0}={1}'.format(a, getattr(self, a)) for a in attrib]
         return '{0}({1})'.format(self.__class__.__name__, ", ".join(attrib))
 
@@ -24,22 +24,22 @@ class BaseGene(object):
     @classmethod
     def get_config_params(cls):
         params = []
-        for a in cls.__gene_attributes__:
+        for a in cls._gene_attributes:
             params += a.get_config_params()
         return params
 
     def init_attributes(self, config):
-        for a in self.__gene_attributes__:
+        for a in self._gene_attributes:
             setattr(self, a.name, a.init_value(config))
 
     def mutate(self, config):
-        for a in self.__gene_attributes__:
+        for a in self._gene_attributes:
             v = getattr(self, a.name)
             setattr(self, a.name, a.mutate_value(v, config))
 
     def copy(self):
         new_gene = self.__class__(self.key)
-        for a in self.__gene_attributes__:
+        for a in self._gene_attributes:
             setattr(new_gene, a.name, getattr(self, a.name))
 
         return new_gene
@@ -51,7 +51,7 @@ class BaseGene(object):
         # Note: we use "a if random() > 0.5 else b" instead of choice((a, b))
         # here because `choice` is substantially slower.
         new_gene = self.__class__(self.key)
-        for a in self.__gene_attributes__:
+        for a in self._gene_attributes:
             if random() > 0.5:
                 setattr(new_gene, a.name, getattr(self, a.name))
             else:
@@ -64,10 +64,10 @@ class BaseGene(object):
 
 
 class DefaultNodeGene(BaseGene):
-    __gene_attributes__ = [FloatAttribute('bias'),
-                           FloatAttribute('response'),
-                           StringAttribute('activation', options='sigmoid'),
-                           StringAttribute('aggregation', options='sum')]
+    _gene_attributes = [FloatAttribute('bias'),
+                        FloatAttribute('response'),
+                        StringAttribute('activation', options='sigmoid'),
+                        StringAttribute('aggregation', options='sum')]
 
     def distance(self, other, config):
         d = abs(self.bias - other.bias) + abs(self.response - other.response)
@@ -82,8 +82,8 @@ class DefaultNodeGene(BaseGene):
 # important--presumably mutations that set the weight to near zero could
 # provide a similar effect depending on the weight range and mutation rate.
 class DefaultConnectionGene(BaseGene):
-    __gene_attributes__ = [FloatAttribute('weight'),
-                           BoolAttribute('enabled')]
+    _gene_attributes = [FloatAttribute('weight'),
+                        BoolAttribute('enabled')]
 
     def distance(self, other, config):
         d = abs(self.weight - other.weight)
