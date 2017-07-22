@@ -60,7 +60,7 @@ class CTRNN(object):
             time_step = 0.5 * self.get_max_time_step()
 
         if len(self.input_nodes) != len(inputs):
-            raise Exception("Expected {0} inputs, got {1}".format(len(self.input_nodes), len(inputs)))
+            raise RuntimeError("Expected {0} inputs, got {1}".format(len(self.input_nodes), len(inputs)))
 
         while self.time_seconds < final_time_seconds:
             dt = min(time_step, final_time_seconds - self.time_seconds)

@@ -273,7 +273,7 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
       :param value: The value to be clamped.
       :type value: :pytypes:`float <typesnumeric>`
       :param config: The configuration object from which the minimum and maximum desired values are to be retrieved.
-      :type config: :datamodel:`object <objects-values-and-types>`
+      :type config: :datamodel:`instance <index-48>`
       :return: The value, if it is within the desired range, or the appropriate end of the range, if it is not.
       :rtype: :pytypes:`float <typesnumeric>`
 
@@ -287,7 +287,7 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
       keep the result within the desired range, or a uniform distribution, depending on the configuration setting of ``init_type``.
 
       :param config: The configuration object from which the mean, standard deviation, and initialization distribution type values are to be retrieved.
-      :type config: :datamodel:`object <objects-values-and-types>`
+      :type config: :datamodel:`instance <index-48>`
       :return: The new value.
       :rtype: :pytypes:`float <typesnumeric>`
 
@@ -307,7 +307,7 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
       :param value: The current value of the attribute.
       :type value: :pytypes:`float <typesnumeric>`
       :param config: The configuration object from which the parameters are to be extracted.
-      :type config: :datamodel:`object <objects-values-and-types>`
+      :type config: :datamodel:`instance <index-48>`
       :return: Either the original value, if unchanged, or the new value.
       :rtype: :pytypes:`float <typesnumeric>`
 
@@ -323,7 +323,7 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
       ``True`` or ``False``.
 
       :param config: The configuration object from which the default parameter is to be retrieved.
-      :type config: :datamodel:`object <objects-values-and-types>`
+      :type config: :datamodel:`instance <index-48>`
       :return: The new value.
       :rtype: :pytypes:`bool <typesnumeric>`
 
@@ -340,7 +340,7 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
 
       :param bool value: The current value of the attribute.
       :param config: The configuration object from which the ``mutate_rate`` and other parameters are to be extracted.
-      :type config: :datamodel:`object <objects-values-and-types>`
+      :type config: :datamodel:`instance <index-48>`
       :return: Either the original value, if unchanged, or the new value.
       :rtype: :pytypes:`bool <typesnumeric>`
 
@@ -365,7 +365,7 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
       **not** be one of the options.
 
       :param config: The configuration object from which the default and, if necessary, ``options`` parameters are to be retrieved.
-      :type config: :datamodel:`object <objects-values-and-types>`
+      :type config: :datamodel:`instance <index-48>`
       :return: The new value.
       :rtype: str
 
@@ -379,13 +379,13 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
       the value with one of the ``options``, with each having an equal chance; note that this can be the same value as before.
       (It is possible to crudely alter the chances of what is chosen by listing a given option more than once, although this is inefficient given the use of the
       `random.choice` function.)
-      TODO: Longer-term, add configurable probabilities of which option is used; eventually, as with the
+      TODO: Add configurable probabilities of which option is used. Longer-term, as with the
       improved version of RBF-NEAT, separate genes for the likelihoods of each (but always doing some change, to prevent overly-conservative evolution
       due to its inherent short-sightedness), allowing the genomes to control the distribution of options, will be desirable.
 
       :param str value: The current value of the attribute.
       :param config: The configuration object from which the ``options`` and other parameters are to be extracted.
-      :type config: :datamodel:`object <objects-values-and-types>`
+      :type config: :datamodel:`instance <index-48>`
       :return: The new value.
       :rtype: str
 
@@ -477,16 +477,17 @@ Does general configuration parsing; used by other classes for their configuratio
       :param config_parser: The configuration parser to be used.
       :type config_parser: :datamodel:`instance <index-48>`
       :return: The configuration parameter value, in stringified form unless a list.
-      :rtype: str or list
+      :rtype: str or list(str)
 
     .. py:method:: interpret(config_dict)
 
       Takes a `dictionary <dict>` of configuration parameters, as output by the configuration parser called in :py:meth:`parse`, and interprets them into the
       proper type, with some error-checking.
 
-      :param dict config_dict: Configuration parameters as output by the configuration parser.
+      :param config_dict: Configuration parameters as output by the configuration parser.
+      :type config_dict: dict(str, str)
       :return: The configuration parameter value
-      :rtype: str or :pytypes:`int <typesnumeric>` or :pytypes:`bool <typesnumeric>` or :pytypes:`float <typesnumeric>` or list
+      :rtype: str or :pytypes:`int <typesnumeric>` or :pytypes:`bool <typesnumeric>` or :pytypes:`float <typesnumeric>` or list(str)
       :raises RuntimeError: If there is a problem with the configuration parameter.
       :raises DeprecationWarning: If a default is used.
 
@@ -500,6 +501,8 @@ Does general configuration parsing; used by other classes for their configuratio
 
       :param value: Configuration parameter value to be formatted.
       :type value: str or :pytypes:`int <typesnumeric>` or :pytypes:`bool <typesnumeric>` or :pytypes:`float <typesnumeric>` or list
+      :return: String version.
+      :rtype: str
 
   .. py:function:: write_pretty_params(f, config, params)
 
@@ -507,8 +510,10 @@ Does general configuration parsing; used by other classes for their configuratio
 
     :param f: File object to be written to.
     :type f: :pygloss:`file <file-object>`
-    :param object config: Configuration object from which parameter values are to be fetched (using `getattr`).
-    :param list params: List of :py:class:`ConfigParameter` instances giving the names of interest and the types of parameters.
+    :param config: Configuration object from which parameter values are to be fetched (using `getattr`).
+    :type config: :datamodel:`instance <index-48>`
+    :param params: List of :py:class:`ConfigParameter` instances giving the names of interest and the types of parameters.
+    :type params: list(:datamodel:`instance <index-48>`)
 
   .. py:exception:: UnknownConfigItemError(NameError)
 
@@ -519,10 +524,11 @@ Does general configuration parsing; used by other classes for their configuratio
   .. py:class:: DefaultClassConfig(param_dict, param_list)
 
     Replaces at least some boilerplate configuration code for reproduction, species_set, and stagnation classes. TODO: Find a way to put ``write_config()``
-    into this class also. This would be simple if it were a normal method, but it is called as a class method.
+    into this class also. This would be simple if it were a normal method, but it is called as a class method; perhaps inheriting from DefaultClassConfig
+    would work?
 
     :param param_dict: Dictionary of configuration parameters from config file.
-    :type param_dict: dict(`str`, :datamodel:`value <objects-values-and-types>`)
+    :type param_dict: dict(str, str)
     :param param_list: List of `ConfigParameter` instances; used to know what parameters are of interest to the calling class.
     :type param_list: list(:datamodel:`instance <index-48>`)
     :raises UnknownConfigItemError: If a key in ``param_dict`` is not among the names in ``param_list``.
@@ -552,12 +558,16 @@ Does general configuration parsing; used by other classes for their configuratio
     instance's ``genome_config``, ``species_set_config``, ``stagnation_config``, and ``reproduction_config`` attributes hold the configuration objects for the
     respective classes.
 
-    :param object genome_type: Specifies the genome class used, such as :py:class:`genome.DefaultGenome` or :py:class:`iznn.IZGenome`. See :ref:`genome-interface-label` for the needed interface.
-    :param object reproduction_type: Specifies the reproduction class used, such as :py:class:`reproduction.DefaultReproduction`. See :ref:`reproduction-interface-label` for the needed interface.
-    :param object species_set_type: Specifies the species set class used, such as :py:class:`species.DefaultSpeciesSet`.
-    :param object stagnation_type: Specifies the stagnation class used, such as :py:class:`stagnation.DefaultStagnation`.
+    :param genome_type: Specifies the genome class used, such as :py:class:`genome.DefaultGenome` or :py:class:`iznn.IZGenome`. See :ref:`genome-interface-label` for the needed interface.
+    :type genome_type: :pygloss:`class`
+    :param reproduction_type: Specifies the reproduction class used, such as :py:class:`reproduction.DefaultReproduction`. See :ref:`reproduction-interface-label` for the needed interface.
+    :type reproduction_type: :pygloss:`class`
+    :param species_set_type: Specifies the species set class used, such as :py:class:`species.DefaultSpeciesSet`.
+    :type species_set_type: :pygloss:`class`
+    :param stagnation_type: Specifies the stagnation class used, such as :py:class:`stagnation.DefaultStagnation`.
+    :type stagnation_type: :pygloss:`class`
     :param str filename: Pathname for configuration file to be opened, read, processed by a parser from the :py:class:`configparser.ConfigParser` class (or, for 2.7, the `ConfigParser.SafeConfigParser class <https://docs.python.org/2.7/library/configparser.html#ConfigParser.SafeConfigParser>`_), the ``NEAT`` section handled by ``Config``, and then other sections passed to the ``parse_config`` methods of the appropriate classes.
-    :raises AssertionError: If any of the objects lack a ``parse_config`` method.
+    :raises AssertionError: If any of the ``_type`` classes lack a ``parse_config`` method.
     :raises UnknownConfigItemError: If an option in the ``NEAT`` section of the configuration file is not recognized.
     :raises DeprecationWarning: If a default is used for one of the ``NEAT`` section options.
 
@@ -620,13 +630,19 @@ ctrnn
       :return: The values for the :term:`output nodes <output node>`.
       :rtype: list(float)
       :raises NotImplementedError: If a ``time_step`` is not given.
+      :raises RuntimeError: If the number of ``inputs`` does not match the number of :term:`input nodes <input node>`
+
+      .. versionchanged:: 0.91-config_work
+        Exception changed to more-specific RuntimeError.
 
     .. py:staticmethod:: create(genome, config, time_constant)
 
       Receives a genome and returns its phenotype (a :py:class:`CTRNN` with :py:class:`CTRNNNodeEval` :term:`nodes <node>`).
 
-      :param object genome: A :py:class:`genome.DefaultGenome` instance.
-      :param object config: A :py:class:`config.Config` instance.
+      :param genome: A :py:class:`genome.DefaultGenome` instance.
+      :type genome: :datamodel:`instance <index-48>`
+      :param config: A :py:class:`config.Config` instance.
+      :type config: :datamodel:`instance <index-48>`
       :param time_constant: Used for the :py:class:`CTRNNNodeEval` initializations.
       :type time_constant: :pytypes:`float <typesnumeric>`
 
@@ -711,6 +727,7 @@ distributed
     :type chunksize: :pytypes:`int <typesnumeric>`
     :return: A list of chunks containing (as a list) at most ``chunksize`` elements of data.
     :rtype: list(list(object))
+    :raises ValueError: If ``chunksize`` is not 1+ or is not an integer
 
   .. index:: fitness function
   .. index:: fitness
@@ -778,9 +795,9 @@ distributed
       genomes. Must not be called by :term:`slave nodes <slave node>`.
 
       :param genomes: Dictionary of (:term:`genome_id <key>`, genome) 
-      :type genomes: dict(int, instance)
+      :type genomes: dict(int, :datamodel:`instance <index-48>`)
       :param config: Configuration object.
-      :type config: object
+      :type config: :datamodel:`instance <index-48>`
       :raises ModeError: If not the :term:`master node` (not in :py:data:`MODE_MASTER`).
 
   .. versionadded:: 0.91-github
@@ -834,7 +851,7 @@ genes
       Used by :py:class:`genome.DefaultGenomeConfig` to include gene parameters in its configuration parameters.
 
       :return: List of configuration parameters (as :py:class:`config.ConfigParameter` instances) for the gene attributes.
-      :rtype: list(instance)
+      :rtype: list(:datamodel:`instance <index-48>`)
 
     .. py:method:: init_attributes(config)
 
@@ -842,7 +859,8 @@ genes
       :py:meth:`BoolAttribute.init_value <attributes.BoolAttribute.init_value>`, or
       :py:meth:`StringAttribute.init_value <attributes.StringAttribute.init_value>` as appropriate.
 
-      :param object config: Configuration object to be used by the appropriate :py:mod:`attributes` class.
+      :param config: Configuration object to be used by the appropriate :py:mod:`attributes` class.
+      :type config: :datamodel:`instance <index-48>`
 
     .. index::
       see: mutate; mutation
@@ -855,7 +873,8 @@ genes
       :py:meth:`BoolAttribute.init_value <attributes.BoolAttribute.mutate_value>`, or
       :py:meth:`StringAttribute.init_value <attributes.StringAttribute.mutate_value>` as appropriate.
 
-      :param object config: Configuration object to be used by the appropriate :py:mod:`attributes` class.
+      :param config: Configuration object to be used by the appropriate :py:mod:`attributes` class.
+      :type config: :datamodel:`instance <index-48>`
 
     .. py:method:: copy()
 
@@ -874,7 +893,7 @@ genes
       :param gene2: The other gene.
       :type gene2: :datamodel:`instance <index-48>`
       :return: A new gene, with the same key/id, with other attributes being copied randomly (50/50 chance) from each parent gene.
-      :rtype: :pygloss:`object`
+      :rtype: :datamodel:`instance <index-48>`
 
   .. index:: node
   .. index:: ! genetic distance
@@ -893,7 +912,8 @@ genes
 
       :param other: The other ``DefaultNodeGene``.
       :type other: :datamodel:`instance <index-48>`
-      :param object config: The genome configuration object.
+      :param config: The genome configuration object.
+      :type config: :datamodel:`instance <index-48>`
       :return: The contribution of this pair to the :term:`genomic distance` between the source genomes.
       :rtype: :pytypes:`float <typesnumeric>`
 
@@ -914,12 +934,13 @@ genes
 
       :param other: The other ``DefaultConnectionGene``.
       :type other: :datamodel:`instance <index-48>`
-      :param object config: The genome configuration object.
+      :param config: The genome configuration object.
+      :type config: :datamodel:`instance <index-48>`
       :return: The contribution of this pair to the :term:`genomic distance` between the source genomes.
       :rtype: :pytypes:`float <typesnumeric>`
 
     .. versionchanged:: 0.91-config_work
-      ``__gene_attributes__`` changed to ``_gene_attributes``, since it is not a Python internal variable. Other changes made due to addition of
+      ``__gene_attributes__`` changed to ``_gene_attributes``, since it is not a Python internal variable. Updates also made due to addition of
       default capabilities to :py:mod:`attributes`.
 
 .. py:module:: genome
@@ -951,9 +972,10 @@ genome
     as :py:class:`genes.DefaultNodeGene`, :py:class:`genes.DefaultConnectionGene`, or :py:class:`iznn.IZNodeGene`. The
     :py:class:`activations.ActivationFunctionSet` instance is available via its ``activation_defs`` attribute, and the
     :py:class:`aggregations.AggregationFunctionSet` instance is available via its ``aggregation_defs`` - or, for compatibility,
-    ``aggregation_function_defs`` - attributes.
+    ``aggregation_function_defs`` - attributes. TODO: Check for unused configuration parameters from the config file.
 
-    :param dict params: Parameters from configuration file and DefaultGenome initialization (by parse_config).
+    :param params: Parameters from configuration file and DefaultGenome initialization (by parse_config).
+    :type params: dict(str, str)
     :raises RuntimeError: If ``initial_connection`` or :ref:`structural_mutation_surer <structural-mutation-surer-label>` is invalid.
 
     .. versionchanged:: 0.91-config_work
@@ -1001,10 +1023,10 @@ genome
       versus node keys).
 
       :param node_dict: A dictionary of node keys vs nodes
-      :type node_dict: dict(int, instance)
+      :type node_dict: dict(int, :datamodel:`instance <index-48>`)
       :return: A currently-unused node key.
       :rtype: :pytypes:`int <typesnumeric>`
-      :raises AssertionError: If the new id is already in the node_dict.
+      :raises AssertionError: If a newly-created id is already in the node_dict.
 
       .. versionchanged:: 0.91-github
         Moved from DefaultGenome so no longer only single-genome-instance unique.
@@ -1460,7 +1482,7 @@ See http://www.izhikevich.org/publications/spikes.pdf.
     Sets up the network itself and simulates it using the connections and neurons.
 
     :param neurons: The :py:class:`IZNeuron` instances needed.
-    :type neurons: list(instance)
+    :type neurons: list(:datamodel:`instance <index-48>`)
     :param inputs: The :term:`input node` keys.
     :type inputs: list(int)
     :param outputs: The :term:`output node` keys.
@@ -1498,7 +1520,8 @@ See http://www.izhikevich.org/publications/spikes.pdf.
 
       :param genome: An IZGenome instance.
       :type genome: :datamodel:`instance <index-48>`
-      :param object config: Configuration object.
+      :param config: Configuration object.
+      :type config: :datamodel:`instance <index-48>`
       :return: An IZNN instance.
       :rtype: :datamodel:`instance <index-48>`
 
@@ -1685,7 +1708,7 @@ Runs evaluation functions in parallel subprocesses in order to evaluate multiple
       Distributes the evaluation jobs among the subprocesses, then assigns each fitness back to the appropriate genome.
 
       :param genomes: A dictionary of :term:`genome_id <key>` (not used) to genome instances.
-      :type genomes: dict(int, instance)
+      :type genomes: dict(int, :datamodel:`instance <index-48>`)
       :param config: A `config.Config` instance.
       :type config: :datamodel:`instance <index-48>`
       
@@ -1725,7 +1748,7 @@ Implements the core evolution algorithm.
     :param config: The :py:class:`Config <config.Config>` configuration object.
     :type config: :datamodel:`instance <index-48>`
     :param initial_state: If supplied (such as by a method of the :py:class:`Checkpointer <checkpoint.Checkpointer>` class), a tuple of (``Population``, ``Species``, generation number)
-    :type initial_state: None or tuple(instance, instance, int)
+    :type initial_state: None or tuple(:datamodel:`instance <index-48>`, :datamodel:`instance <index-48>`, int)
     :raises RuntimeError: If the :ref:`fitness_criterion <fitness-criterion-label>` function is invalid.
 
     .. index:: ! no_fitness_termination
@@ -1802,7 +1825,7 @@ reporting
       :param config: :py:class:`Config <config.Config>` configuration instance.
       :type config: :datamodel:`instance <index-48>`
       :param population: Current population, as a dict of unique genome :term:`ID/key <key>` vs genome.
-      :type population: dict(int, instance)
+      :type population: dict(int, :datamodel:`instance <index-48>`)
       :param species: Current species set object, such as a :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>` instance.
       :type species: :datamodel:`instance <index-48>`
 
@@ -1813,7 +1836,7 @@ reporting
       :param config: :py:class:`Config <config.Config>` configuration instance.
       :type config: :datamodel:`instance <index-48>`
       :param population: Current population, as a dict of unique genome :term:`ID/key <key>` vs genome.
-      :type population: dict(int, instance)
+      :type population: dict(int, :datamodel:`instance <index-48>`)
       :param species: Current species set object, such as a :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>` instance.
       :type species: :datamodel:`instance <index-48>`
       :param best_genome: The currently highest-fitness :term:`genome`. (Ties are resolved pseudorandomly, by `dictionary <dict>` ordering.)
@@ -1873,7 +1896,7 @@ reporting
       :param config: :py:class:`Config <config.Config>` configuration instance.
       :type config: :datamodel:`instance <index-48>`
       :param population: Current population, as a dict of unique genome :term:`ID/key <key>` vs genome.
-      :type population: dict(int, instance)
+      :type population: dict(int, :datamodel:`instance <index-48>`)
       :param species: Current species set object, such as a :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>` instance.
       :type species: :datamodel:`instance <index-48>`
 
@@ -1886,7 +1909,7 @@ reporting
       :param config: :py:class:`Config <config.Config>` configuration instance.
       :type config: :datamodel:`instance <index-48>`
       :param population: Current population, as a dict of unique genome :term:`ID/key <key>` vs genome.
-      :type population: dict(int, instance)
+      :type population: dict(int, :datamodel:`instance <index-48>`)
       :param species: Current species set object, such as a :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>` instance.
       :type species: :datamodel:`instance <index-48>`
       :param best_genome: The currently highest-fitness :term:`genome`. (Ties are resolved pseudorandomly, by `dictionary <dict>` ordering.)
@@ -2000,7 +2023,7 @@ Handles creation of genomes, either from scratch or by sexual or asexual reprodu
       :type genome_config: :datamodel:`instance <index-48>`
       :param int num_genomes: How many new genomes to create.
       :return: A dictionary (with the unique genome identifier as the key) of the genomes created.
-      :rtype: dict(int, instance)
+      :rtype: dict(int, :datamodel:`instance <index-48>`)
 
     .. index:: ! pop_size
     .. index:: min_species_size
@@ -2043,7 +2066,7 @@ Handles creation of genomes, either from scratch or by sexual or asexual reprodu
       :param int pop_size: Population size desired, such as set in the :ref:`configuration file <pop-size-label>`.
       :param int generation: :term:`Generation <generation>` count.
       :return: New population, as a dict of unique genome :term:`ID/key <key>` vs :term:`genome`.
-      :rtype: dict(int, instance)
+      :rtype: dict(int, :datamodel:`instance <index-48>`)
 
 .. py:module:: six_util
    :synopsis: Provides Python 2/3 portability with three dictionary iterators; copied from the `six` module.
@@ -2094,7 +2117,7 @@ Divides the population into species based on :term:`genomic distances <genomic d
     Note: :py:class:`stagnation.DefaultStagnation` manipulates many of these.
 
     :param int key: :term:`Identifier/key <key>`
-    :param int generation: Initial generation of appearance
+    :param int generation: Initial :term:`generation` of appearance
 
     .. index:: genomic distance
 
@@ -2106,7 +2129,7 @@ Divides the population into species based on :term:`genomic distances <genomic d
       :param representative: A genome instance.
       :type representative: :datamodel:`instance <index-48>`
       :param members: A `dictionary <dict>` of genome :term:`id <key>` vs genome instance.
-      :type members: dict(int, instance)
+      :type members: dict(int, :datamodel:`instance <index-48>`)
 
     .. py:method:: get_fitnesses()
 
@@ -2142,7 +2165,8 @@ Divides the population into species based on :term:`genomic distances <genomic d
     Encapsulates the default speciation scheme by configuring it and performing the speciation function (placing genomes into species by genetic similarity).
     :py:class:`reproduction.DefaultReproduction` currently depends on this having a ``species`` attribute consisting of a dictionary of species keys to species.
 
-    :param object config: A configuration object (currently unused).
+    :param config: A configuration object (currently unused).
+    :type config: :datamodel:`instance <index-48>`
     :param reporters: A :py:class:`ReporterSet <reporting.ReporterSet>` instance giving reporters to be notified about :term:`genomic distance` statistics.
     :type reporters: :datamodel:`instance <index-48>`
 
@@ -2185,7 +2209,7 @@ Divides the population into species based on :term:`genomic distances <genomic d
       :param config: :py:class:`Config <config.Config>` instance.
       :type config: :datamodel:`instance <index-48>`
       :param population: Population as per the output of :py:meth:`DefaultReproduction.reproduce <reproduction.DefaultReproduction.reproduce>`.
-      :type population: dict(int, instance)
+      :type population: dict(int, :datamodel:`instance <index-48>`)
       :param int generation: Current :term:`generation` number.
 
     .. py:method:: get_species_id(individual_id)
@@ -2231,8 +2255,10 @@ Keeps track of whether species are making progress and helps remove ones that ar
     Keeps track of whether species are making progress and helps remove ones that, for a
     :ref:`configurable number of generations <max-stagnation-label>`, are not.
 
-    :param object config: Configuration object; in this implementation, a :py:class:`config.DefaultClassConfig` instance, but should be treated as opaque outside this class.
-    :param object reporters: A :py:class:`ReporterSet <reporting.ReporterSet>` instance with reporters that may need activating; not currently used.
+    :param config: Configuration object; in this implementation, a :py:class:`config.DefaultClassConfig` instance, but should be treated as opaque outside this class.
+    :type config: :datamodel:`instance <index-48>`
+    :param reporters: A :py:class:`ReporterSet <reporting.ReporterSet>` instance with reporters that may need activating; not currently used.
+    :type reporters: :datamodel:`instance <index-48>`
 
     .. py:classmethod:: parse_config(param_dict)
 
@@ -2240,7 +2266,8 @@ Keeps track of whether species are making progress and helps remove ones that ar
       :ref:`max_stagnation <max-stagnation-label>`, and :ref:`species_elitism <species-elitism-label>` parameters and updates them
       from the configuration file, in this implementation using :py:class:`config.DefaultClassConfig`.
 
-      :param dict param_dict: Dictionary of parameters from configuration file.
+      :param param_dict: Dictionary of parameters from configuration file.
+      :type param_dict: dict(str, str)
       :return: Stagnation configuration object; considered opaque by rest of code, so current type returned is not required for interface.
       :rtype: DefaultClassConfig :datamodel:`instance <index-48>`
 
@@ -2273,10 +2300,11 @@ Keeps track of whether species are making progress and helps remove ones that ar
       fitness gotten from the ``species_fitness_func`` (and thus may miss high-fitness members of overall low-fitness species, depending on the
       function in use).
 
-      :param object species_set: A :py:class:`species.DefaultSpeciesSet` or compatible object.
+      :param species_set: A :py:class:`species.DefaultSpeciesSet` or compatible object.
+      :type species_set: :datamodel:`instance <index-48>`
       :param int generation: The current generation.
-      :return: A list of tuples of (species :term:`id/key <key>`, :py:class:`Species <species.Species>` object, is_stagnant).
-      :rtype: list(tuple(int, object, bool))
+      :return: A list of tuples of (species :term:`id/key <key>`, :py:class:`Species <species.Species>` instance, is_stagnant).
+      :rtype: list(tuple(int, :datamodel:`instance <index-48>`, bool))
 
       .. versionchanged:: 0.91-github
         Species sorted to avoid marking best-performing as stagnant even with ``species_elitism``.
@@ -2289,8 +2317,10 @@ statistics
 
   .. note::
     There are two design decisions to be aware of:
+
     * The most-fit genomes are based on the highest-fitness member of each generation; other genomes are not saved by this module (if they were, it would far worsen existing potential memory problems - see below), and it is assumed that fitnesses (as given by the :index:`fitness function <single: fitness function>`) are not relative to others in the generation (also assumed by the use of the :ref:`fitness threshold <fitness-threshold-label>` as a signal for exiting). Code violating this assumption (e.g., with competitive coevolution) will need to use different statistical gathering methods.
     * Generally reports or records a per-generation list of values; the numeric position in the list may not correspond to the generation number if there has been a restart, such as via the :py:mod:`checkpoint` module.
+
     There is also a TODO item: Currently keeps accumulating information in memory, which may be a problem in long runs.
 
   .. py:class:: StatisticsReporter(BaseReporter)
@@ -2337,23 +2367,23 @@ statistics
       fitness order.
 
       :param int n: Number of most-fit genomes to return.
-      :return: List of ``n`` most-fit genomes (as genome objects).
-      :rtype: list(object)
+      :return: List of ``n`` most-fit genomes (as genome instances).
+      :rtype: list(:datamodel:`instance <index-48>`)
 
     .. py:method:: best_genomes(n)
 
       Returns the ``n`` most-fit genomes, possibly with duplicates, sorted in decreasing fitness order.
 
       :param int n: Number of most-fit genomes to return.
-      :return: List of ``n`` most-fit genomes (as genome objects).
-      :rtype: list(object)
+      :return: List of ``n`` most-fit genomes (as genome instances).
+      :rtype: list(:datamodel:`instance <index-48>`)
 
     .. py:method:: best_genome()
 
       Returns the most-fit genome ever seen. A wrapper around :py:meth:`best_genomes`.
 
       :return: The most-fit genome.
-      :rtype: :pygloss:`object`
+      :rtype: :datamodel:`instance <index-48>`
 
     .. py:method:: get_species_sizes()
 
@@ -2446,9 +2476,9 @@ Runs evaluation functions in parallel threads (using the python library module `
 
       Starts the worker threads if need be, queues the evaluation jobs for the worker threads, then assigns each fitness back to the appropriate genome.
 
-      :param genomes: A dictionary of :term:`genome_id <key>` to genome objects.
-      :type genomes: dict(int, object)
-      :param object config: A `config.Config` object.
-
+      :param genomes: A dictionary of :term:`genome_id <key>` to genome instances.
+      :type genomes: dict(int, :datamodel:`instance <index-48>`)
+      :param config: A `config.Config` instance.
+      :type config: :datamodel:`instance <index-48>`
 
 :ref:`Table of Contents <toc-label>`
