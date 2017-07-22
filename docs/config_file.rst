@@ -300,11 +300,15 @@ required for your particular implementation.
 
 .. index:: mutation
 .. index:: connection
+.. index:: conn_add_prob
 
 .. _conn-add-prob-label:
 
 * *conn_add_prob*
     The probability that :term:`mutation` will add a :term:`connection` between existing :term:`nodes <node>`. Valid values are in [0.0, 1.0].
+
+.. index:: conn_delete_prob
+
 * *conn_delete_prob*
     The probability that :term:`mutation` will delete an existing connection. Valid values are in [0.0, 1.0].
 
@@ -383,28 +387,35 @@ required for your particular implementation.
 
 .. index:: mutation
 .. index:: node
+.. index:: node_add_prob
 
 .. _node-add-prob-label:
 
 * *node_add_prob*
     The probability that :term:`mutation` will add a new :term:`node` (essentially replacing an existing connection,
     the :term:`enabled` status of which will be set to ``False``). Valid values are in [0.0, 1.0].
+
+.. index:: node_delete_prob
+
 * *node_delete_prob*
     The probability that :term:`mutation` will delete an existing node (and all connections to it). Valid values are in [0.0, 1.0].
 
 .. _num-nodes-config-label:
 
 .. index:: hidden node
+.. index:: ! num_hidden
 
 * *num_hidden*
     The number of :term:`hidden nodes <hidden node>` to add to each genome in the initial population.
 
 .. index:: input node
+.. index:: ! num_inputs
 
 * *num_inputs*
     The number of :term:`input nodes <input node>`, through which the network receives inputs.
 
 .. index:: output node
+.. index:: ! num_outputs
 
 * *num_outputs*
     The number of :term:`output nodes <output node>`, to which the network delivers outputs.

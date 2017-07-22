@@ -35,13 +35,14 @@ Glossary
 
   hidden node
     These are the :term:`nodes <node>` other than :term:`input nodes <input node>` and :term:`output nodes <output node>`. In the original
-    NEAT (NeuroEvolution of Augmenting Topologies) :doc:`algorithm <neat_overview>`, networks start with no hidden nodes, and evolve
+    NEAT (NeuroEvolution of Augmenting Topologies) :ref:`algorithm <neat-overview-label>`, networks start with no hidden nodes, and evolve
     more complexity as necessary - thus "Augmenting Topologies".
 
   homologous
     Descended from a common ancestor; two genes in NEAT from different genomes are either homologous or :term:`disjoint`/excess. In NEAT, two
-    genes that are homologous will have the same :term:`key`/id. For :term:`node` genes, the key is an `int` incremented with each newly-created node;
-    for :term:`connection` genes, the key is a `tuple` of the keys of the nodes being connected. For further discussion, see the :ref:`neat-overview-label`.
+    genes that are homologous will have the same :term:`key`/id. For :term:`node` genes, the key is an :pytypes:`int <typesnumeric>` incremented with
+    each newly-created node; for :term:`connection` genes, the key is a `tuple` of the keys of the nodes being connected. For further discussion,
+    see the :ref:`neat-overview-label`.
 
   disjoint
   excess
@@ -126,9 +127,9 @@ Glossary
 
   id
   key
-    Various of the objects used by the library are indexed by an key (id); for most, this is an `int`, which is either unique in the library as a whole
-    (as with :term:`species` and :term:`genomes <genome>`), or within a genome (as with :term:`node` :term:`genes <gene>`).
-    For :term:`connection` genes, this is a `tuple` of two `ints <int>`, the keys of the connected nodes.
+    Various of the objects used by the library are indexed by an key (id); for most, this is an :pytypes:`int <typesnumeric>`, which is either
+    unique in the library as a whole (as with :term:`species` and :term:`genomes <genome>`), or within a genome (as with :term:`node` :term:`genes <gene>`).
+    For :term:`connection` genes, this is a `tuple` of two :pytypes:`ints <typesnumeric>`, the keys of the connected nodes.
 
   generation
     This implementation of NEAT uses, like most, multiple semi-separated generations (some genomes may survive multiple generations via

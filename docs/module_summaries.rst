@@ -169,7 +169,7 @@ Has the built-in :term:`aggregation functions <aggregation function>`, code for 
       After validating the function (via `validate_aggregation`), adds it to the available activation functions under the given name. Used
       by :py:meth:`DefaultGenomeConfig.add_activation <genome.DefaultGenomeConfig.add_activation>`. TODO: Check for whether
       the function needs `reduce <functools.reduce>`, or at least offer a form of this function (or extra argument for it, defaulting to false)
-      that will appropriately "wrap" the input function.
+      and/or its interface in :py:mod:`genome`, that will appropriately "wrap" the input function.
 
       :param str name: The name by which the function is to be known in the :ref:`configuration file <aggregation-function-config-label>`.
       :param function: The function to be added.
@@ -403,8 +403,9 @@ Uses :py:mod:`pickle` to save and restore populations (and other aspects of the 
 
     A reporter class that performs checkpointing, saving and restoring the simulation state (including population, randomization, and other aspects).
     It saves the current state every ``generation_interval`` generations or ``time_interval_seconds`` seconds, whichever happens first.
-    Subclasses :py:class:`reporting.BaseReporter`. (The potential save point is at the end of a generation.) If there is a need to check for when the
-    last generation for which a checkpoint was saved, access ``last_generation_checkpoint``; if -1, none have been saved.
+    Subclasses :py:class:`reporting.BaseReporter`. (The potential save point is at the end of a generation.) If there is a need to check the
+    last generation for which a checkpoint was saved, such as to determine which file to load, access ``last_generation_checkpoint``; if -1, none have
+    been saved.
 
     :param generation_interval: If not None, maximum number of generations between checkpoints.
     :type generation_interval: :pytypes:`int <typesnumeric>` or None
@@ -777,7 +778,7 @@ distributed
       genomes. Must not be called by :term:`slave nodes <slave node>`.
 
       :param genomes: Dictionary of (:term:`genome_id <key>`, genome) 
-      :type genomes: dict(int, object)
+      :type genomes: dict(int, instance)
       :param config: Configuration object.
       :type config: object
       :raises ModeError: If not the :term:`master node` (not in :py:data:`MODE_MASTER`).
@@ -803,8 +804,8 @@ genes
     Handles functions shared by multiple types of genes (both :term:`node` and :term:`connection`), including :term:`crossover` and
     calling :term:`mutation` methods.
 
-    :param key: The gene :term:`identifier <key>`. Note: For connection genes, determining whether they are :term:`homologous` (for :term:`genomic distance` and :term:`crossover` determination) uses the identifiers of the connected nodes, not the connection gene's identifier.
-    :type key: :pytypes:`int <typesnumeric>`
+    :param key: The gene :term:`identifier <key>`. Note: For connection genes, determining whether they are :term:`homologous` (for :term:`genomic distance` and :term:`crossover` determination) uses the (ordered) identifiers of the connected nodes.
+    :type key: :pytypes:`int <typesnumeric>` or tuple(int, int)
 
     .. py:method:: __str__()
 
@@ -817,7 +818,8 @@ genes
 
       Allows sorting genes by :term:`keys <key>`.
 
-      :param object other: The other `BaseGene` object.
+      :param other: The other `BaseGene` instance.
+      :type other: :datamodel:`instance <index-48>`
       :return: Whether the calling instance's key is less than that of the ``other`` instance.
       :rtype: :pytypes:`bool <typesnumeric>`
 
@@ -832,7 +834,7 @@ genes
       Used by :py:class:`genome.DefaultGenomeConfig` to include gene parameters in its configuration parameters.
 
       :return: List of configuration parameters (as :py:class:`config.ConfigParameter` instances) for the gene attributes.
-      :rtype: list(object)
+      :rtype: list(instance)
 
     .. py:method:: init_attributes(config)
 
@@ -929,13 +931,27 @@ genome
   .. inheritance-diagram:: genome iznn.IZGenome
 
   .. index:: initial_connection
+  .. index:: compatibility_disjoint_coefficient
+  .. index:: compatibility_weight_coefficient
+  .. index:: conn_add_prob
+  .. index:: conn_delete_prob
+  .. index:: node_add_prob
+  .. index:: node_delete_prob
   .. index:: structural_mutation_surer
+  .. index:: single_structural_mutation
+  .. index:: feed_forward
+  .. index:: num_hidden
+  .. index:: num_outputs
+  .. index:: num_inputs
 
   .. py:class:: DefaultGenomeConfig(params)
 
     Does the configuration for the DefaultGenome class. Has the `list <list>` ``allowed_connectivity``, which defines the available
     values for :ref:`initial_connection <initial-connection-config-label>`. Includes parameters taken from the configured gene classes, such
-    as :py:class:`genes.DefaultNodeGene`, :py:class:`genes.DefaultConnectionGene`, or :py:class:`iznn.IZNodeGene`.
+    as :py:class:`genes.DefaultNodeGene`, :py:class:`genes.DefaultConnectionGene`, or :py:class:`iznn.IZNodeGene`. The
+    :py:class:`activations.ActivationFunctionSet` instance is available via its ``activation_defs`` attribute, and the
+    :py:class:`aggregations.AggregationFunctionSet` instance is available via its ``aggregation_defs`` - or, for compatibility,
+    ``aggregation_function_defs`` - attributes.
 
     :param dict params: Parameters from configuration file and DefaultGenome initialization (by parse_config).
     :raises RuntimeError: If ``initial_connection`` or :ref:`structural_mutation_surer <structural-mutation-surer-label>` is invalid.
@@ -984,9 +1000,11 @@ genome
       one genome in the same generation (use a :py:meth:`reporting.BaseReporter.end_generation` method to wipe a dictionary of connection tuples
       versus node keys).
 
-      :param dict node_dict: A dictionary of node keys vs nodes
+      :param node_dict: A dictionary of node keys vs nodes
+      :type node_dict: dict(int, instance)
       :return: A currently-unused node key.
       :rtype: :pytypes:`int <typesnumeric>`
+      :raises AssertionError: If the new id is already in the node_dict.
 
       .. versionchanged:: 0.91-github
         Moved from DefaultGenome so no longer only single-genome-instance unique.
@@ -1028,9 +1046,10 @@ genome
       Required interface method. Provides default :term:`node` and :term:`connection` :term:`gene` specifications (from :py:mod:`genes`) and
       uses `DefaultGenomeConfig` to do the rest of the configuration.
 
-      :param dict param_dict: Dictionary of parameters from configuration file.
+      :param param_dict: Dictionary of parameters from configuration file.
+      :type param_dict: dict(str, str)
       :return: Configuration object; considered opaque by rest of code, so type may vary by implementation (here, a `DefaultGenomeConfig` instance).
-      :rtype: :pygloss:`object`
+      :rtype: :datamodel:`instance <index-48>`
 
     .. py:classmethod:: write_config(f, config)
 
@@ -1038,7 +1057,8 @@ genome
 
       :param f: File object to write to.
       :type f: :pygloss:`file <file-object>`
-      :param object config: Configuration object (here, a `DefaultGenomeConfig` instance).
+      :param config: Configuration object (here, a `DefaultGenomeConfig` instance).
+      :type config: :datamodel:`instance <index-48>`
 
     .. index:: ! initial_connection
     .. index:: hidden node
@@ -1052,7 +1072,8 @@ genome
       starting :term:`nodes <node>` (as defined by :term:`num_hidden <hidden node>`, :term:`num_inputs <input node>`, and
       :term:`num_outputs <output node>` in the :ref:`configuration file <num-nodes-config-label>`.
 
-      :param object config: Genome configuration object.
+      :param config: Genome configuration object.
+      :type config: :datamodel:`instance <index-48>`
 
     .. index:: ! crossover
 
@@ -1062,12 +1083,19 @@ genome
       or :term:`excess` genes are inherited from the fitter of the two parents, while :term:`homologous` genes use the gene class' crossover function
       (e.g., :py:meth:`genes.BaseGene.crossover`).
 
-      :param object genome1: The first parent genome.
-      :param object genome2: The second parent genome.
-      :param object config: Genome configuration object.
+      :param genome1: The first parent genome.
+      :type genome1: :datamodel:`instance <index-48>`
+      :param genome2: The second parent genome.
+      :type genome2: :datamodel:`instance <index-48>`
+      :param config: Genome configuration object.
+      :type config: :datamodel:`instance <index-48>`
 
     .. index:: ! mutation
     .. index:: ! single_structural_mutation
+    .. index:: node_add_prob
+    .. index:: node_delete_prob
+    .. index:: conn_add_prob
+    .. index:: conn_delete_prob
 
     .. py:method:: mutate(config)
 
@@ -1078,7 +1106,8 @@ genome
       Non-structural mutations (to gene :term:`attributes`) are performed by calling the appropriate ``mutate`` method(s) for
       connection and node genes (generally :py:meth:`genes.BaseGene.mutate`).
 
-      :param object config: Genome configuration object.
+      :param config: Genome configuration object.
+      :type config: :datamodel:`instance <index-48>`
 
       .. versionchanged:: 0.91-config_work
         ``single_structural_mutation`` config parameter added.
@@ -1095,7 +1124,8 @@ genome
       :term:`response` multiplier of the new node. If there are no connections available, may call :py:meth:`mutate_add_connection` instead,
       depending on the result from :py:meth:`check_structural_mutation_surer <genome.DefaultGenomeConfig.check_structural_mutation_surer>`.
 
-      :param object config: Genome configuration object.
+      :param config: Genome configuration object.
+      :type config: :datamodel:`instance <index-48>`
 
       .. versionchanged:: 0.91-config_work
         Potential addition of connection instead added.
@@ -1106,9 +1136,10 @@ genome
 
       Adds a specified new connection; its :term:`key` is the `tuple` of ``(input_key, output_key)``. TODO: Add validation of this connection addition.
 
-      :param object config: Genome configuration object
-      :param int input_key: :term:`Key <key>` of the input node.
-      :param int output_key: Key of the output node.
+      :param config: Genome configuration object.
+      :type config: :datamodel:`instance <index-48>`
+      :param int input_key: :term:`Key <key>` of the connection's input-side node.
+      :param int output_key: Key of the connection's output-side node.
       :param float weight: The :term:`weight` the new connection should have.
       :param bool enabled: The :term:`enabled` attribute the new connection should have.
 
@@ -1125,7 +1156,8 @@ genome
       3. Two :term:`output nodes <output node>` cannot be connected together.
       4. If :ref:`feed_forward <feed-forward-config-label>` is set to ``True`` in the configuration file, connections cannot create :py:func:`cycles <graphs.creates_cycle>`.
 
-      :param object config: Genome configuration object
+      :param config: Genome configuration object
+      :type config: :datamodel:`instance <index-48>`
 
       .. versionchanged:: 0.91-github
         Output nodes not allowed to be connected together.
@@ -1136,7 +1168,8 @@ genome
 
       Deletes a randomly-chosen (non-:term:`output <output node>`/input) node along with its connections.
 
-      :param object config: Genome configuration object
+      :param config: Genome configuration object
+      :type config: :datamodel:`instance <index-48>`
 
     .. py:method:: mutate_delete_connection()
 
@@ -1156,8 +1189,10 @@ genome
       disjoint/excess genes. (Note that this is one of the most time-consuming portions of the library; optimization - such as using
       `cython <http://cython.org>`_ - may be needed if using an unusually fast fitness function and/or an unusually large population.)
 
-      :param object other: The other DefaultGenome instance (genome) to be compared to.
-      :param object config: The genome configuration object.
+      :param other: The other DefaultGenome instance (genome) to be compared to.
+      :type other: :datamodel:`instance <index-48>`
+      :param config: The genome configuration object.
+      :type config: :datamodel:`instance <index-48>`
       :return: The genomic distance.
       :rtype: :pytypes:`float <typesnumeric>`
 
@@ -1165,6 +1200,9 @@ genome
 
       Required interface method. Returns genome ``complexity``, taken to be (number of nodes, number of enabled connections); currently only used
       for reporters - some retrieve this information for the highest-fitness genome at the end of each generation.
+
+      :return: Genome complexity
+      :rtype: tuple(int, int)
 
     .. py:method:: __str__()
 
@@ -1180,10 +1218,11 @@ genome
       Creates a new node with the specified :term:`id <key>` (including for its :term:`gene`), using the specified configuration object to retrieve the proper
       node gene type and how to initialize its attributes.
 
-      :param object config: The genome configuration object.
+      :param config: The genome configuration object.
+      :type config: :datamodel:`instance <index-48>`
       :param int node_id: The key for the new node.
-      :return: The new node object.
-      :rtype: :pygloss:`object`
+      :return: The new node instance.
+      :rtype: :datamodel:`instance <index-48>`
 
     .. index:: connection
 
@@ -1192,11 +1231,12 @@ genome
       Creates a new connection with the specified :term:`id <key>` pair as its key (including for its :term:`gene`, as a `tuple`), using the specified
       configuration object to retrieve the proper connection gene type and how to initialize its attributes.
 
-      :param object config: The genome configuration object.
-      :param int input_id: The input end's key.
-      :param int output_id: The output end's key.
-      :return: The new connection object.
-      :rtype: :pygloss:`object`
+      :param config: The genome configuration object.
+      :type config: :datamodel:`instance <index-48>`
+      :param int input_id: The input end node's key.
+      :param int output_id: The output end node's key.
+      :return: The new connection instance.
+      :rtype: :datamodel:`instance <index-48>`
 
     .. index:: ! initial_connection
 
@@ -1205,7 +1245,8 @@ genome
       Connect one randomly-chosen input to all :term:`output nodes <output node>` (FS-NEAT without connections to :term:`hidden nodes <hidden node>`,
       if any). Previously called ``connect_fs_neat``. Implements the ``fs_neat_nohidden`` setting for :ref:`initial_connection <initial-connection-config-label>`.
 
-      :param object config: The genome configuration object.
+      :param config: The genome configuration object.
+      :type config: :datamodel:`instance <index-48>`
 
       .. versionchanged:: 0.91-github
         Connect_fs_neat, connect_full, connect_partial split up - documentation vs program conflict.
@@ -1215,7 +1256,8 @@ genome
       Connect one randomly-chosen input to all :term:`hidden nodes <hidden node>` and :term:`output nodes <output node>` (FS-NEAT with
       connections to hidden nodes, if any). Implements the ``fs_neat_hidden`` setting for :ref:`initial_connection <initial-connection-config-label>`.
 
-      :param object config: The genome configuration object.
+      :param config: The genome configuration object.
+      :type config: :datamodel:`instance <index-48>`
 
       .. versionchanged:: 0.91-github
         Connect_fs_neat, connect_full, connect_partial split up - documentation vs program conflict.
@@ -1225,29 +1267,32 @@ genome
       Compute connections for a fully-connected feed-forward genome--each input connected to all hidden nodes (and output nodes if ``direct`` is set or
       there are no hidden nodes), each hidden node connected to all output nodes. (Recurrent genomes will also include node self-connections.)
 
-      :param object config: The genome configuration object.
+      :param config: The genome configuration object.
+      :type config: :datamodel:`instance <index-48>`
       :param bool direct: Whether or not, if there are :term:`hidden nodes <hidden node>`, to include links directly from input to output.
       :return: The list of connections, as (input :term:`key`, output key) tuples
       :rtype: list(tuple(int,int))
 
       .. versionchanged:: 0.91-github
-        "Direct" added to help with documentation vs program conflict.
+        "Direct" added to help with documentation vs program conflict for ``initial_connection`` of ``full`` or ``partial``.
 
     .. py:method:: connect_full_nodirect(config)
 
       Create a fully-connected genome (except no direct :term:`input <input node>` to :term:`output <output node>` connections unless there are no
       :term:`hidden nodes <hidden node>`).
 
-      :param object config: The genome configuration object.
+      :param config: The genome configuration object.
+      :type config: :datamodel:`instance <index-48>`
 
       .. versionchanged:: 0.91-github
         Connect_fs_neat, connect_full, connect_partial split up - documentation vs program conflict.
 
     .. py:method:: connect_full_direct(config)
 
-      Create a fully-connected genome, including direct input-output connections.
+      Create a fully-connected genome, including direct input-output connections even if there are hidden nodes.
 
-      :param object config: The genome configuration object.
+      :param config: The genome configuration object.
+      :type config: :datamodel:`instance <index-48>`
 
       .. versionchanged:: 0.91-github
         Connect_fs_neat, connect_full, connect_partial split up - documentation vs program conflict.
@@ -1256,16 +1301,18 @@ genome
 
       Create a partially-connected genome, with (unless there are no :term:`hidden nodes <hidden node>`) no direct input-output connections.
 
-      :param object config: The genome configuration object.
+      :param config: The genome configuration object.
+      :type config: :datamodel:`instance <index-48>`
 
       .. versionchanged:: 0.91-github
         Connect_fs_neat, connect_full, connect_partial split up - documentation vs program conflict.
 
     .. py:method:: connect_partial_direct(config)
 
-      Create a partially-connected genome, possibly including direct input-output connections.
+      Create a partially-connected genome, possibly including direct input-output connections even if there are hidden nodes.
 
-      :param object config: The genome configuration object.
+      :param config: The genome configuration object.
+      :type config: :datamodel:`instance <index-48>`
 
       .. versionchanged:: 0.91-github
         Connect_fs_neat, connect_full, connect_partial split up - documentation vs program conflict.
@@ -1344,7 +1391,7 @@ Helps with creating new :term:`identifiers/keys <key>`.
       If ``result`` is not `None`, then we return it unmodified.  Otherwise, we return the next ID and increment our internal counter.
 
       :param result: Returned unmodified unless `None`.
-      :type result: int or None
+      :type result: :pytypes:`int <typesnumeric>` or None
       :return: Identifier/:term:`key` to use.
       :rtype: :pytypes:`int <typesnumeric>`
 
@@ -1412,7 +1459,8 @@ See http://www.izhikevich.org/publications/spikes.pdf.
 
     Sets up the network itself and simulates it using the connections and neurons.
 
-    :param list neurons: The :py:class:`IZNeuron` instances needed.
+    :param neurons: The :py:class:`IZNeuron` instances needed.
+    :type neurons: list(instance)
     :param inputs: The :term:`input node` keys.
     :type inputs: list(int)
     :param outputs: The :term:`output node` keys.
@@ -1448,10 +1496,11 @@ See http://www.izhikevich.org/publications/spikes.pdf.
 
       Receives a genome and returns its phenotype (a neural network).
 
-      :param object genome: An IZGenome instance.
+      :param genome: An IZGenome instance.
+      :type genome: :datamodel:`instance <index-48>`
       :param object config: Configuration object.
       :return: An IZNN instance.
-      :rtype: :pygloss:`object`
+      :rtype: :datamodel:`instance <index-48>`
 
 .. py:module:: math_util
    :synopsis: Contains some mathematical functions not found in the Python2 standard library, plus a mechanism for looking up some commonly used functions (such as for the species_fitness_func) by name.
@@ -1476,13 +1525,28 @@ functions (such as for the :ref:`species_fitness_func <species-fitness-func-labe
 
     Returns the arithmetic mean.
 
+    :param values: Numbers to take the mean of.
+    :type values: list(float) or set(float) or tuple(float)
+    :return: The arithmetic mean.
+    :rtype: :pytypes:`float <typesnumeric>`
+
   .. py:function:: median(values)
 
     Returns the median for odd numbers of values; returns the higher of the middle two values for even numbers of values.
 
+    :param values: Numbers to take the median of.
+    :type values: list(float) or set(float) or tuple(float)
+    :return: The median.
+    :rtype: :pytypes:`float <typesnumeric>`
+
   .. py:function:: median2(values)
 
     Returns the median for odd numbers of values; returns the mean of the middle two values for even numbers of values.
+
+    :param values: Numbers to take the median of.
+    :type values: list(float) or set(float) or tuple(float)
+    :return: The median.
+    :rtype: :pytypes:`float <typesnumeric>`
 
     .. versionadded:: 0.91-config_work
 
@@ -1490,14 +1554,28 @@ functions (such as for the :ref:`species_fitness_func <species-fitness-func-labe
 
     Returns the (population) variance.
 
+    :param values: Numbers to get the variance of.
+    :type values: list(float) or set(float) or tuple(float)
+    :return: The variance.
+    :rtype: :pytypes:`float <typesnumeric>`
+
   .. py:function:: stdev(values)
 
     Returns the (population) standard deviation. *Note spelling.*
 
+    :param values: Numbers to get the standard deviation of.
+    :type values: list(float) or set(float) or tuple(float)
+    :return: The standard deviation.
+    :rtype: :pytypes:`float <typesnumeric>`
+
   .. py:function:: softmax(values)
 
     Compute the softmax (a differentiable/smooth approximization of the maximum function) of the given value set.
-    The softmax is defined as follows: :math:`\begin{equation}v_i = \exp(v_i) / s \text{, where } s = \sum(\exp(v_0), \exp(v_1), \dotsc)\end{equation}`.
+
+    :param values: Numbers to get the softmax of.
+    :type values: list(float) or set(float) or tuple(float)
+    :return: :math:`\begin{equation}v_i = \exp(v_i) / s \text{, where } s = \sum(\exp(v_0), \exp(v_1), \dotsc)\end{equation}`
+    :rtype: :pytypes:`float <typesnumeric>`
 
 .. py:module:: nn.feed_forward
    :synopsis: A straightforward feed-forward neural network NEAT implementation.
@@ -1520,13 +1598,21 @@ nn.feed_forward
 
       Feeds the inputs into the network and returns the resulting outputs.
 
-      :param list inputs: The values for the :term:`input nodes <input node>`.
+      :param inputs: The values for the :term:`input nodes <input node>`.
+      :type inputs: list(float)
       :return: The values for the :term:`output nodes <output node>`.
-      :rtype: list
+      :rtype: list(float)
 
     .. py:staticmethod:: create(genome, config)
 
-      Receives a genome and returns its phenotype (a :py:class:`FeedForwardNetwork`).
+      Receives a genome and returns its phenotype.
+
+      :param genome: Genome to return phenotype for.
+      :type genome: :datamodel:`instance <index-48>`
+      :param config: Configuration object.
+      :type config: :datamodel:`instance <index-48>`
+      :return: A :py:class:`FeedForwardNetwork` instance.
+      :rtype: :datamodel:`instance <index-48>`
 
 .. py:module:: nn.recurrent
    :synopsis: A recurrent (but otherwise straightforward) neural network NEAT implementation.
@@ -1553,13 +1639,21 @@ nn.recurrent
 
       Feeds the inputs into the network and returns the resulting outputs.
 
-      :param list inputs: The values for the :term:`input nodes <input node>`.
+      :param inputs: The values for the :term:`input nodes <input node>`.
+      :type inputs: list(float)
       :return: The values for the :term:`output nodes <output node>`.
-      :rtype: list
+      :rtype: list(float)
 
     .. py:staticmethod:: create(genome, config)
 
-      Receives a genome and returns its phenotype (a :py:class:`RecurrentNetwork`).
+      Receives a genome and returns its phenotype.
+
+      :param genome: Genome to return phenotype for.
+      :type genome: :datamodel:`instance <index-48>`
+      :param config: Configuration object.
+      :type config: :datamodel:`instance <index-48>`
+      :return: A :py:class:`RecurrentNetwork` instance.
+      :rtype: :datamodel:`instance <index-48>`
 
 .. py:module:: parallel
    :synopsis: Runs evaluation functions in parallel subprocesses in order to evaluate multiple genomes at once.
@@ -1580,7 +1674,7 @@ Runs evaluation functions in parallel subprocesses in order to evaluate multiple
     :param eval_function: The eval_function should take one argument - a `tuple` of (genome object, config object) - and return a single :pytypes:`float <typesnumeric>` (the genome's fitness) Note that this is not the same as how a fitness function is called by :py:meth:`Population.run <population.Population.run>`, nor by :py:class:`ThreadedEvaluator <threaded.ThreadedEvaluator>` (although it is more similar to the latter).
     :type eval_function: `function`
     :param timeout: How long (in seconds) each subprocess will be given before an exception is raised (unlimited if `None`).
-    :type timeout: int or None
+    :type timeout: :pytypes:`int <typesnumeric>` or None
 
     .. py:method:: __del__()
 
@@ -1590,9 +1684,10 @@ Runs evaluation functions in parallel subprocesses in order to evaluate multiple
 
       Distributes the evaluation jobs among the subprocesses, then assigns each fitness back to the appropriate genome.
 
-      :param genomes: A dictionary of :term:`genome_id <key>` (not used) to genome objects.
-      :type genomes: dict(int, object)
-      :param object config: A `config.Config` object.
+      :param genomes: A dictionary of :term:`genome_id <key>` (not used) to genome instances.
+      :type genomes: dict(int, instance)
+      :param config: A `config.Config` instance.
+      :type config: :datamodel:`instance <index-48>`
       
 .. py:module:: population
    :synopsis: Implements the core evolution algorithm.
@@ -1627,9 +1722,10 @@ Implements the core evolution algorithm.
     4. Partition the new generation into species based on :term:`genetic similarity <genomic distance>`.
     5. Go to 1.
 
-    :param object config: The :py:class:`Config <config.Config>` configuration object.
+    :param config: The :py:class:`Config <config.Config>` configuration object.
+    :type config: :datamodel:`instance <index-48>`
     :param initial_state: If supplied (such as by a method of the :py:class:`Checkpointer <checkpoint.Checkpointer>` class), a tuple of (``Population``, ``Species``, generation number)
-    :type initial_state: None or tuple(object, object, int)
+    :type initial_state: None or tuple(instance, instance, int)
     :raises RuntimeError: If the :ref:`fitness_criterion <fitness-criterion-label>` function is invalid.
 
     .. index:: ! no_fitness_termination
@@ -1661,7 +1757,7 @@ Implements the core evolution algorithm.
       :param n: The maximum number of generations to run (unlimited if ``None``).
       :type n: int or None
       :return: The best genome seen.
-      :rtype: :pygloss:`object`
+      :rtype: :datamodel:`instance <index-48>`
       :raises RuntimeError: If ``None`` for n but :ref:`no_fitness_termination <no-fitness-termination-label>` is ``True``.
       :raises CompleteExtinctionException: If all species go extinct due to `stagnation` but :ref:`reset_on_extinction <reset-on-extinction-label>` is ``False``.
 
@@ -1681,13 +1777,15 @@ reporting
 
       Adds a reporter to those to be called via :py:class:`ReporterSet` methods.
 
-      :param object reporter: A reporter instance.
+      :param reporter: A reporter instance.
+      :type reporter: :datamodel:`instance <index-48>`
 
     .. py:method:: remove(reporter)
 
       Removes a reporter from those to be called via :py:class:`ReporterSet` methods.
 
-      :param object reporter: A reporter instance.
+      :param reporter: A reporter instance.
+      :type reporter: :datamodel:`instance <index-48>`
 
     .. index:: generation
 
@@ -1701,20 +1799,25 @@ reporting
 
       Calls :py:meth:`end_generation <BaseReporter.end_generation>` on each reporter in the set.
 
-      :param object config: :py:class:`Config <config.Config>` configuration object.
+      :param config: :py:class:`Config <config.Config>` configuration instance.
+      :type config: :datamodel:`instance <index-48>`
       :param population: Current population, as a dict of unique genome :term:`ID/key <key>` vs genome.
-      :type population: dict(int, object)
-      :param object species: Current species set object, such as a :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>`.
+      :type population: dict(int, instance)
+      :param species: Current species set object, such as a :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>` instance.
+      :type species: :datamodel:`instance <index-48>`
 
     .. py:method:: post_evaluate(config, population, species)
 
       Calls :py:meth:`post_evaluate <BaseReporter.post_evaluate>` on each reporter in the set.
 
-      :param object config: :py:class:`Config <config.Config>` configuration object.
+      :param config: :py:class:`Config <config.Config>` configuration instance.
+      :type config: :datamodel:`instance <index-48>`
       :param population: Current population, as a dict of unique genome :term:`ID/key <key>` vs genome.
-      :type population: dict(int, object)
-      :param object species: Current species set object, such as a :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>`.
-      :param object best_genome: The currently highest-fitness :term:`genome`. (Ties are resolved pseudorandomly, by `dictionary <dict>` ordering.)
+      :type population: dict(int, instance)
+      :param species: Current species set object, such as a :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>` instance.
+      :type species: :datamodel:`instance <index-48>`
+      :param best_genome: The currently highest-fitness :term:`genome`. (Ties are resolved pseudorandomly, by `dictionary <dict>` ordering.)
+      :type best_genome: :datamodel:`instance <index-48>`
 
     .. py:method:: post_reproduction(config, population, species)
 
@@ -1728,16 +1831,19 @@ reporting
 
       Calls :py:meth:`found_solution <BaseReporter.found_solution>` on each reporter in the set.
 
-      :param object config: :py:class:`Config <config.Config>` configuration object.
+      :param config: :py:class:`Config <config.Config>` configuration instance.
+      :type config: :datamodel:`instance <index-48>`
       :param int generation: Generation number.
-      :param object best: The currently highest-fitness :term:`genome`. (Ties are resolved pseudorandomly by `dictionary <dict>` ordering.)
+      :param best: The currently highest-fitness :term:`genome`. (Ties are resolved pseudorandomly by `dictionary <dict>` ordering.)
+      :type best: :datamodel:`instance <index-48>`
 
     .. py:method:: species_stagnant(sid, species)
 
       Calls :py:meth:`species_stagnant <BaseReporter.species_stagnant>` on each reporter in the set.
 
       :param int sid: The species :term:`id/key <key>`.
-      :param object species: The :py:class:`Species <species.Species>` object.
+      :param species: The :py:class:`Species <species.Species>` instance.
+      :type species: :datamodel:`instance <index-48>`
 
     .. py:method:: info(msg)
 
@@ -1764,10 +1870,12 @@ reporting
 
       Called via :py:class:`ReporterSet` (by :py:meth:`population.Population.run`) at the end of each :term:`generation`, after reproduction and speciation.
 
-      :param object config: :py:class:`Config <config.Config>` configuration object.
+      :param config: :py:class:`Config <config.Config>` configuration instance.
+      :type config: :datamodel:`instance <index-48>`
       :param population: Current population, as a dict of unique genome :term:`ID/key <key>` vs genome.
-      :type population: dict(int, object)
-      :param object species: Current species set object, such as a :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>`.
+      :type population: dict(int, instance)
+      :param species: Current species set object, such as a :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>` instance.
+      :type species: :datamodel:`instance <index-48>`
 
     .. index:: fitness function
 
@@ -1775,11 +1883,14 @@ reporting
 
       Called via :py:class:`ReporterSet` (by :py:meth:`population.Population.run`) after the fitness function is finished.
 
-      :param object config: :py:class:`Config <config.Config>` configuration object.
+      :param config: :py:class:`Config <config.Config>` configuration instance.
+      :type config: :datamodel:`instance <index-48>`
       :param population: Current population, as a dict of unique genome :term:`ID/key <key>` vs genome.
-      :type population: dict(int, object)
-      :param object species: Current species set object, such as a :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>`.
-      :param object best_genome: The currently highest-fitness :term:`genome`. (Ties are resolved pseudorandomly, by `dictionary <dict>` ordering.)
+      :type population: dict(int, instance)
+      :param species: Current species set object, such as a :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>` instance.
+      :type species: :datamodel:`instance <index-48>`
+      :param best_genome: The currently highest-fitness :term:`genome`. (Ties are resolved pseudorandomly, by `dictionary <dict>` ordering.)
+      :type best_genome: :datamodel:`instance <index-48>`
 
     .. py:method:: post_reproduction(config, population, species)
 
@@ -1804,9 +1915,11 @@ reporting
       :ref:`fitness threshold <fitness-threshold-label>` is met, unless :ref:`no_fitness_termination <no-fitness-termination-label>` is set; if
       it is set, then called upon reaching the generation maximum - set when calling :py:meth:`population.Population.run` - and exiting for this reason.)
 
-      :param object config: :py:class:`Config <config.Config>` configuration object.
-      :param int generation: :term:`Generation` number.
-      :param object best: The currently highest-fitness :term:`genome`. (Ties are resolved pseudorandomly by `dictionary <dict>` ordering.)
+      :param config: :py:class:`Config <config.Config>` configuration instance.
+      :type config: :datamodel:`instance <index-48>`
+      :param int generation: :term:`Generation <generation>` number.
+      :param best: The currently highest-fitness :term:`genome`. (Ties are resolved pseudorandomly by `dictionary <dict>` ordering.)
+      :type best: :datamodel:`instance <index-48>`
 
     .. py:method:: species_stagnant(sid, species)
 
@@ -1814,7 +1927,8 @@ reporting
       stagnation class (such as :py:class:`stagnation.DefaultStagnation`).
 
       :param int sid: The species :term:`id/key <key>`.
-      :param object species: The :py:class:`Species <species.Species>` object.
+      :param species: The :py:class:`Species <species.Species>` instance.
+      :type species: :datamodel:`instance <index-48>`
 
     .. py:method:: info(msg)
 
@@ -1824,7 +1938,7 @@ reporting
 
   .. py:class:: StdOutReporter(show_species_detail)
 
-    Uses print to output information about the run; an example reporter class.
+    Uses `print` to output information about the run; an example reporter class.
 
     :param bool show_species_detail: Whether or not to show additional details about each species in the population.
 
@@ -1841,16 +1955,20 @@ Handles creation of genomes, either from scratch or by sexual or asexual reprodu
     optional cross-species performance criteria, which are then used to control stagnation and possibly the mutation rate configuration. This scheme should be
     adaptive so that species do not evolve to become "cautious" and only make very slow progress.
 
-    :param dict config: Configuration object, in this implementation a :py:class:`config.DefaultClassConfig` :datamodel:`instance <index-48>`.
-    :param object reporters: A :py:class:`ReporterSet <reporting.ReporterSet>` object.
-    :param object stagnation: A :py:class:`DefaultStagnation <stagnation.DefaultStagnation>` object - the current code partially depends on internals of this class (a TODO is noted to correct this).
+    :param config: Configuration object, in this implementation a :py:class:`config.DefaultClassConfig` :datamodel:`instance <index-48>`.
+    :type config: :datamodel:`instance <index-48>`
+    :param reporters: A :py:class:`ReporterSet <reporting.ReporterSet>` instance.
+    :type reporters: :datamodel:`instance <index-48>`
+    :param stagnation: A :py:class:`DefaultStagnation <stagnation.DefaultStagnation>` instance - the current code partially depends on internals of this class (a TODO is noted to correct this).
+    :type stagnation: :datamodel:`instance <index-48>`
 
     .. py:classmethod:: parse_config(param_dict)
 
       Required interface method. Provides defaults for :index:`elitism`, :index:`survival_threshold`, and :index:`min_species_size` parameters and updates
       them from the :ref:`configuration file <reproduction-config-label>`, in this implementation using :py:class:`config.DefaultClassConfig`.
 
-      :param dict param_dict: Dictionary of parameters from configuration file.
+      :param param_dict: Dictionary of parameters from configuration file.
+      :type param_dict: dict(str, str)
       :return: Reproduction configuration object; considered opaque by rest of code, so current type returned is not required for interface.
       :rtype: DefaultClassConfig :datamodel:`instance <index-48>`
 
@@ -1878,10 +1996,11 @@ Handles creation of genomes, either from scratch or by sexual or asexual reprodu
 
       :param genome_type: Genome class (such as :py:class:`DefaultGenome <genome.DefaultGenome>` or :py:class:`iznn.IZGenome`) of which to create instances.
       :type genome_type: `class`
-      :param object genome_config: Opaque genome configuration object.
+      :param genome_config: Opaque genome configuration object.
+      :type genome_config: :datamodel:`instance <index-48>`
       :param int num_genomes: How many new genomes to create.
       :return: A dictionary (with the unique genome identifier as the key) of the genomes created.
-      :rtype: dict(int, object)
+      :rtype: dict(int, instance)
 
     .. index:: ! pop_size
     .. index:: min_species_size
@@ -1917,12 +2036,14 @@ Handles creation of genomes, either from scratch or by sexual or asexual reprodu
       range may be less than 0-1, as a check against dividing by a too-small number. TODO: Make minimum difference configurable (defaulting to 1 to
       preserve compatibility).
 
-      :param object config: A :py:class:`Config <config.Config>` instance.
-      :param object species: A :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>` instance. As well as depending on some of the :py:class:`DefaultStagnation <stagnation.DefaultStagnation>` internals, this method also depends on some of those of the ``DefaultSpeciesSet`` and its referenced species objects.
+      :param config: A :py:class:`Config <config.Config>` instance.
+      :type config: :datamodel:`instance <index-48>`
+      :param species: A :py:class:`DefaultSpeciesSet <species.DefaultSpeciesSet>` instance. As well as depending on some of the :py:class:`DefaultStagnation <stagnation.DefaultStagnation>` internals, this method also depends on some of those of the ``DefaultSpeciesSet`` and its referenced species objects.
+      :type species: :datamodel:`instance <index-48>`
       :param int pop_size: Population size desired, such as set in the :ref:`configuration file <pop-size-label>`.
-      :param int generation: :term:`Generation` count.
+      :param int generation: :term:`Generation <generation>` count.
       :return: New population, as a dict of unique genome :term:`ID/key <key>` vs :term:`genome`.
-      :rtype: dict(int, object)
+      :rtype: dict(int, instance)
 
 .. py:module:: six_util
    :synopsis: Provides Python 2/3 portability with three dictionary iterators; copied from the `six` module.
@@ -1982,8 +2103,10 @@ Divides the population into species based on :term:`genomic distances <genomic d
       Required interface method. Updates a species instance with the current members and most-representative member (from which
       :term:`genomic distances <genomic distance>` are measured).
 
-      :param object representative: A genome instance.
+      :param representative: A genome instance.
+      :type representative: :datamodel:`instance <index-48>`
       :param members: A `dictionary <dict>` of genome :term:`id <key>` vs genome instance.
+      :type members: dict(int, instance)
 
     .. py:method:: get_fitnesses()
 
@@ -2000,14 +2123,17 @@ Divides the population into species based on :term:`genomic distances <genomic d
     :py:meth:`distance function <genome.DefaultGenome.distance>`, memoized by this class, is among the most time-consuming parts of the
     library, although many fitness functions are likely to far outweigh this for moderate-size populations.)
 
-    :param object config: A genome configuration instance; later used by the genome distance function.
+    :param config: A genome configuration instance; later used by the genome distance function.
+    :type config: :datamodel:`instance <index-48>`
 
     .. py:method:: __call__(genome0, genome1)
 
       GenomeDistanceCache is called as a method with a pair of genomes to retrieve the distance.
 
-      :param object genome0: The first genome instance.
-      :param object genome1: The second genome instance.
+      :param genome0: The first genome instance.
+      :type genome0: :datamodel:`instance <index-48>`
+      :param genome1: The second genome instance.
+      :type genome1: :datamodel:`instance <index-48>`
       :return: The :term:`genomic distance`.
       :rtype: :pytypes:`float <typesnumeric>`
 
@@ -2017,14 +2143,16 @@ Divides the population into species based on :term:`genomic distances <genomic d
     :py:class:`reproduction.DefaultReproduction` currently depends on this having a ``species`` attribute consisting of a dictionary of species keys to species.
 
     :param object config: A configuration object (currently unused).
-    :param object reporters: A :py:class:`ReporterSet <reporting.ReporterSet>` instance giving reporters to be notified about :term:`genomic distance` statistics.
+    :param reporters: A :py:class:`ReporterSet <reporting.ReporterSet>` instance giving reporters to be notified about :term:`genomic distance` statistics.
+    :type reporters: :datamodel:`instance <index-48>`
 
     .. py:classmethod:: parse_config(param_dict)
 
       Required interface method. Currently, the only configuration parameter is the :ref:`compatibility_threshold <compatibility-threshold-label>`; this
       method provides a default for it and updates it from the configuration file, in this implementation using :py:class:`config.DefaultClassConfig`.
 
-      :param dict param_dict: Dictionary of parameters from configuration file.
+      :param param_dict: Dictionary of parameters from configuration file.
+      :type param_dict: dict(str, str)
       :return: SpeciesSet configuration object; considered opaque by rest of code, so current type returned is not required for interface.
       :rtype: DefaultClassConfig :datamodel:`instance <index-48>`
 
@@ -2054,9 +2182,10 @@ Divides the population into species based on :term:`genomic distances <genomic d
       code in :py:meth:`reproduction.DefaultReproduction.reproduce`, such as for :ref:`elitism <elitism-label>`. TODO: Check if sorting the unspeciated
       genomes by fitness will improve speciation (by making the highest-fitness member of a species its representative).
 
-      :param object config: :py:class:`Config <config.Config>` object.
+      :param config: :py:class:`Config <config.Config>` instance.
+      :type config: :datamodel:`instance <index-48>`
       :param population: Population as per the output of :py:meth:`DefaultReproduction.reproduce <reproduction.DefaultReproduction.reproduce>`.
-      :type population: dict(int, object)
+      :type population: dict(int, instance)
       :param int generation: Current :term:`generation` number.
 
     .. py:method:: get_species_id(individual_id)
@@ -2074,7 +2203,7 @@ Divides the population into species based on :term:`genomic distances <genomic d
 
       :param int individual_id: Genome id/:term:`key`.
       :return: :py:class:`Species <species.Species>` containing the genome corresponding to the id/key.
-      :rtype: :pygloss:`object`
+      :rtype: :datamodel:`instance <index-48>`
 
 .. index:: ! max_stagnation
 .. index:: ! species_elitism
