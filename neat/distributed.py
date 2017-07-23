@@ -2,22 +2,22 @@
 Distributed evaluation of genomes.
 
 About compute nodes:
-The master node (=the node which creates and mutates genomes) and the slave
+The primary node (=the node which creates and mutates genomes) and the secondary
 nodes (=the nodes which evaluate genomes) can execute the same script. The
 role of a compute node is determined using the ``mode`` argument of the
 DistributedEvaluator. If the mode is MODE_AUTO, the `host_is_local()` function
 is used to check if the ``addr`` argument points to the localhost. If it does,
-the compute node starts as a master node, otherwise as a slave node. If
-``mode`` is MODE_MASTER, the compute node always starts as a master node. If
-``mode`` is MODE_SLAVE, the compute node will always start as a slave node.
+the compute node starts as a primary node, otherwise as a secondary node. If
+``mode`` is MODE_PRIMARY, the compute node always starts as a primary node. If
+``mode`` is MODE_SECONDARY, the compute node will always start as a secondary node.
 
-There can only be one master node per NEAT, but any number of slave nodes.
-The master node will not evaluate any genomes, which means you will always need
+There can only be one primary node per NEAT, but any number of secondary nodes.
+The primary node will not evaluate any genomes, which means you will always need
 at least two compute nodes.
 
 You can run any number of compute nodes on the same physical machine (or VM).
-However, if a machine has both a master node and one or more slave nodes,
-MODE_AUTO cannot be used for those slave nodes - MODE_SLAVE will need to be
+However, if a machine has both a primary node and one or more secondary nodes,
+MODE_AUTO cannot be used for those secondary nodes - MODE_SECONDARY will need to be
 specified.
 
 Usage:
@@ -26,13 +26,13 @@ Usage:
   the code inside the body of the statement.)
 2. Load config and create a population - here, the variable ``p``.
 3. If required, create and add reporters.
-4. Create a ``DistributedEvaluator(addr_of_master_node, b'some_password',
+4. Create a ``DistributedEvaluator(addr_of_primary_node, b'some_password',
   eval_function, mode=MODE_AUTO)`` - here, the variable ``de``.
 5. Call ``de.start(exit_on_stop=True)``. The `start()` call will block on the
-  slave nodes and call `sys.exit(0)` when the NEAT evolution finishes. This
-  means that the following code will only be executed on the master node.
+  secondary nodes and call `sys.exit(0)` when the NEAT evolution finishes. This
+  means that the following code will only be executed on the primary node.
 6. Start the evaluation using ``p.run(de.evaluate, number_of_generations)``.
-7. Stop the slave nodes using ``de.stop()``.
+7. Stop the secondary nodes using ``de.stop()``.
 8. You are done. You may want to save the winning genome or show some statistics.
 
 See ``examples/xor/evolve-feedforward-distributed.py`` for a complete example.
@@ -41,7 +41,7 @@ Utility functions:
 
 ``host_is_local(hostname, port=22)`` returns True if ``hostname`` points to
 the local node/host. This can be used to check if a compute node will run as
-a master node or as a slave node with MODE_AUTO.
+a primary node or as a secondary node with MODE_AUTO.
 
 ``chunked(data, chunksize)``: splits data into a list of chunks with at most
 ``chunksize`` elements.
@@ -52,6 +52,7 @@ import socket
 import sys
 import threading
 import time
+import warnings
 
 try:
     # pylint: disable=import-error
@@ -74,18 +75,19 @@ from argparse import Namespace
 
 
 # modes to determine the role of a compute node
-# the master handles the evolution of the genomes
-# the slave handles the evaluation of the genomes
+# the primary handles the evolution of the genomes
+# the secondary handles the evaluation of the genomes
 MODE_AUTO = 0  # auto-determine mode
-MODE_MASTER = 1  # enforce master mode
-MODE_SLAVE = 2  # enforce slave mode
-
+MODE_PRIMARY = 1  # enforce primary mode
+MODE_SECONDARY = 2  # enforce secondary mode
+MODE_MASTER = MODE_PRIMARY # backward compatibility
+MODE_SLAVE = MODE_SECONDARY # ditto
 
 class ModeError(RuntimeError):
     """
     An exception raised when a mode-specific method is being
-    called without being in the mode - either a master-specific method
-    called by a slave node or a slave-specific method called by a master node.
+    called without being in the mode - either a primary-specific method
+    called by a secondary node or a secondary-specific method called by a primary node.
     """
     pass
 
@@ -139,14 +141,14 @@ class DistributedEvaluator(object):
             addr,
             authkey,
             eval_function,
-            slave_chunksize=1,
+            secondary_chunksize=1,
             num_workers=None,
             worker_timeout=60,
-            mode=MODE_AUTO
+            mode=MODE_AUTO,
             ):
         """
         ``addr`` should be a tuple of (hostname, port) pointing to the machine
-        running the DistributedEvaluator in master mode. If mode is MODE_AUTO,
+        running the DistributedEvaluator in primary mode. If mode is MODE_AUTO,
         the mode is determined by checking whether the hostname points to this
         host or not.
         ``authkey`` is the password used to restrict access to the manager; see
@@ -156,20 +158,21 @@ class DistributedEvaluator(object):
         (identical in 2.7 to a `str` object).
         ``eval_function`` should take two arguments (a genome object and the
         configuration) and return a single float (the genome's fitness).
-        'slave_chunksize' specifies the number of genomes that will be sent to
-        a slave at any one time.
-        ``num_workers`` is the number of child processes to use if in slave
+        'secondary_chunksize' specifies the number of genomes that will be sent to
+        a secondary at any one time.
+        ``num_workers`` is the number of child processes to use if in secondary
         mode. It defaults to None, which means `multiprocessing.cpu_count()`
-        is used to determine this value. If 1 in a slave node, the process creating
+        is used to determine this value. If 1 in a secondary node, the process creating
         the DistributedEvaluator instance will also do the evaulations.
-        ``worker_timeout`` specifies the timeout (in seconds) for a slave node
+        ``worker_timeout`` specifies the timeout (in seconds) for a secondary node
         getting the results from a worker subprocess; if None, there is no timeout.
         ``mode`` specifies the mode to run in; it defaults to MODE_AUTO.
         """
         self.addr = addr
         self.authkey = authkey
         self.eval_function = eval_function
-        self.slave_chunksize = slave_chunksize
+        self.secondary_chunksize = secondary_chunksize
+        self.slave_chunksize = secondary_chunksize # backward compatibility
         if num_workers:
             self.num_workers = num_workers
         else:
@@ -182,10 +185,10 @@ class DistributedEvaluator(object):
         self.worker_timeout = worker_timeout
         if mode == MODE_AUTO:
             if host_is_local(self.addr[0]):
-                mode = MODE_MASTER
+                mode = MODE_PRIMARY
             else:
-                mode = MODE_SLAVE
-        elif mode not in (MODE_SLAVE, MODE_MASTER):
+                mode = MODE_SECONDARY
+        elif mode not in (MODE_SECONDARY, MODE_PRIMARY):
             raise ValueError("Invalid mode {!r}!".format(mode))
         self.mode = mode
         self.manager = None
@@ -193,40 +196,45 @@ class DistributedEvaluator(object):
         self.outqueue = None
         self.started = False
 
-    def is_master(self):
-        """Returns True if the caller is the master node"""
-        return (self.mode == MODE_MASTER)
+    def is_primary(self):
+        """Returns True if the caller is the primary node"""
+        return (self.mode == MODE_PRIMARY)
 
-    def start(self, exit_on_stop=True, slave_wait=0):
+    def is_master(self):
+        """Returns True if the caller is the primary (master) node"""
+        warnings.warn("Use is_primary, not is_master", DeprecationWarning)
+        return self.is_primary()
+
+    def start(self, exit_on_stop=True, secondary_wait=0):
         """
-        If the DistributedEvaluator is in master mode, starts the manager
+        If the DistributedEvaluator is in primary mode, starts the manager
         process and returns. In this case, the ``exit_on_stop`` argument will
         be ignored.
-        If the DistributedEvaluator is in slave mode, it connects to the manager
+        If the DistributedEvaluator is in secondary mode, it connects to the manager
         and waits for tasks.
-        If in slave mode and ``exit_on_stop`` is True, sys.exit() will be called
+        If in secondary mode and ``exit_on_stop`` is True, sys.exit() will be called
         when the connection is lost.
-        ``slave_wait`` specifies the time (in seconds) to sleep before actually
-        starting when in slave mode.
+        ``secondary_wait`` specifies the time (in seconds) to sleep before actually
+        starting when in secondary mode.
         """
         if self.started:
             raise RuntimeError("DistributedEvaluator already started!")
         self.started = True
-        if self.mode == MODE_MASTER:
-            self._start_master()
-        elif self.mode == MODE_SLAVE:
-            time.sleep(slave_wait)
-            self._start_slave()
-            self._slave_loop()
+        if self.mode == MODE_PRIMARY:
+            self._start_primary()
+        elif self.mode == MODE_SECONDARY:
+            time.sleep(secondary_wait)
+            self._start_secondary()
+            self._secondary_loop()
             if exit_on_stop:
                 sys.exit(0)
         else:
             raise ValueError("Invalid mode {!r}!".format(self.mode))
 
     def stop(self, wait=1, shutdown=True):
-        """Stops all slaves."""
-        if self.mode != MODE_MASTER:
-            raise ModeError("Not in master mode!")
+        """Stops all secondaries."""
+        if self.mode != MODE_PRIMARY:
+            raise ModeError("Not in primary mode!")
         if not self.started:
             raise RuntimeError("Not yet started!")
         stopevent = self.manager.get_stopevent()
@@ -234,9 +242,10 @@ class DistributedEvaluator(object):
         time.sleep(wait)
         if shutdown:
             self.manager.shutdown()
+        self.started = False
 
-    def _start_master(self):
-        """Start as the master"""
+    def _start_primary(self):
+        """Start as the primary"""
         inqueue = queue.Queue()
         outqueue = queue.Queue()
         namespace = Namespace()
@@ -267,6 +276,9 @@ class DistributedEvaluator(object):
             callable=lambda: stop_event,
             )
 
+        if self.manager:
+            self.manager.shutdown()
+
         self.manager = _EvaluatorSyncManager(
             address=self.addr,
             authkey=self.authkey,
@@ -276,8 +288,8 @@ class DistributedEvaluator(object):
         self.inqueue = self.manager.get_inqueue()
         self.outqueue = self.manager.get_outqueue()
 
-    def _start_slave(self):
-        """Start as a slave"""
+    def _start_secondary(self):
+        """Start as a secondary."""
 
         class _EvaluatorSyncManager(managers.SyncManager):
             """
@@ -292,14 +304,17 @@ class DistributedEvaluator(object):
         _EvaluatorSyncManager.register("get_namespace")
         _EvaluatorSyncManager.register("get_stopevent")
 
+        if self.manager: # XXX - not sure if this is right - drallensmith
+            self.manager.shutdown()
+
         self.manager = _EvaluatorSyncManager(
             address=self.addr,
             authkey=self.authkey,
             )
         self.manager.connect()
 
-    def _slave_loop(self):
-        """The worker loop for the slave"""
+    def _secondary_loop(self):
+        """The worker loop for the secondary"""
         inqueue = self.manager.get_inqueue()
         outqueue = self.manager.get_outqueue()
         stopevent = self.manager.get_stopevent()
@@ -338,14 +353,14 @@ class DistributedEvaluator(object):
         """
         Evaluates the genomes.
         This method raises a RoleError when this
-        DistributedEvaluator is not in master mode.
+        DistributedEvaluator is not in primary mode.
         """
-        if self.mode != MODE_MASTER:
-            raise ModeError("Not in master mode!")
+        if self.mode != MODE_PRIMARY:
+            raise ModeError("Not in primary mode!")
         stopevent = self.manager.get_stopevent()
         tasks = [(genome_id, genome, config) for genome_id, genome in genomes]
         id2genome = {genome_id: genome for genome_id, genome in genomes}
-        tasks = chunked(tasks, self.slave_chunksize)
+        tasks = chunked(tasks, self.secondary_chunksize)
         n_tasks = len(tasks)
         for task in tasks:
             self.inqueue.put(task)

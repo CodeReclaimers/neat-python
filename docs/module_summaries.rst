@@ -657,11 +657,11 @@ ctrnn
 
 
 .. index:: ! compute node
-.. index:: ! master node
-.. index:: ! slave node
+.. index:: ! primary node
+.. index:: ! secondary node
 .. index::
-    see: master compute node; master node
-    see: slave compute node; slave node
+    see: primary compute node; primary node
+    see: secondary compute node; secondary node
 
 .. py:module:: distributed
    :synopsis: Distributed evaluation of genomes.
@@ -670,51 +670,48 @@ distributed
 --------------
   Distributed evaluation of genomes.
 
-  .. todo::
-    Perhaps MODE_PRIMARY and MODE_SECONDARY would be preferable? As well as issues of sensitivity, these terms appear
-    more likely to get people to cooperate with borrowing machine time... MODE_MASTER and MODE_SLAVE would be kept in as
-    synonyms, and is_master as a wrapper for is_primary (or whatever).
-
+  .. versionchanged:: 0.91-config_work
+    
 
   .. rubric:: About :term:`compute nodes <compute node>`:
 
-  The :term:`master compute node` (the node which creates and mutates genomes) and the :term:`slave compute nodes <slave node>` (the nodes which
+  The :term:`primary compute node` (the node which creates and mutates genomes) and the :term:`secondary compute nodes <secondary node>` (the nodes which
   evaluate genomes) can execute the same script. The role of a compute node is determined using the ``mode`` argument of the DistributedEvaluator. If the
   mode is :py:data:`MODE_AUTO`, the `host_is_local()` function is used to check if the ``addr`` argument points to the localhost. If it does, the compute
-  node starts as a master node, and otherwise as a slave node. If ``mode`` is :py:data:`MODE_MASTER`, the compute node always starts as a master
-  node. If ``mode`` is :py:data:`MODE_SLAVE`, the compute node will always start as a slave node.
+  node starts as a primary node, and otherwise as a secondary node. If ``mode`` is :py:data:`MODE_PRIMARY`, the compute node always starts as a primary
+  node. If ``mode`` is :py:data:`MODE_SECONDARY`, the compute node will always start as a secondary node.
 
-  There can only be one master node per NEAT, but any number of slave nodes. The master node will not evaluate any genomes, which means you will
-  always need at least two compute nodes (one master and at least one slave).
+  There can only be one primary node per NEAT, but any number of secondary nodes. The primary node will not evaluate any genomes, which means you will
+  always need at least two compute nodes (one primary and at least one secondary).
 
-  You can run any number of compute nodes on the same physical machine (or VM). However, if a machine has both a master node and one or more slave
-  nodes, :py:data:`MODE_AUTO` cannot be used for those slave nodes - :py:data:`MODE_SLAVE` will need to be specified.
+  You can run any number of compute nodes on the same physical machine (or VM). However, if a machine has both a primary node and one or more secondary
+  nodes, :py:data:`MODE_AUTO` cannot be used for those secondary nodes - :py:data:`MODE_SECONDARY` will need to be specified.
 
   .. rubric:: Usage:
 
   1. Import modules and define the evaluation logic (the ``eval_genome`` function). (After this, check for ``if __name__ == '__main__'``, and put the rest of the code inside the body of the statement, or in subroutines called from it.)
   2. Load config and create a :py:class:`population <population.Population>` - here, the variable ``p``.
   3. If required, create and add :py:mod:`reporters <reporting>`.
-  4. Create a :py:class:`DistributedEvaluator(addr_of_master_node, b'some_password', eval_function, mode=MODE_AUTO) <distributed.DistributedEvaluator>` - here, the variable ``de``.
-  5. Call :py:meth:`de.start(exit_on_stop=True) <distributed.DistributedEvaluator.start>`. The ``start()`` call will block on the slave nodes and call :pylib:`sys.exit(0) <sys.html#sys.exit>` when the NEAT evolution finishes. This means that the following code will only be executed on the master node.
+  4. Create a :py:class:`DistributedEvaluator(addr_of_primary_node, b'some_password', eval_function, mode=MODE_AUTO) <distributed.DistributedEvaluator>` - here, the variable ``de``.
+  5. Call :py:meth:`de.start(exit_on_stop=True) <distributed.DistributedEvaluator.start>`. The ``start()`` call will block on the secondary nodes and call :pylib:`sys.exit(0) <sys.html#sys.exit>` when the NEAT evolution finishes. This means that the following code will only be executed on the primary node.
   6. Start the evaluation using :py:meth:`p.run(de.evaluate, number_of_generations) <population.Population.run>`.
-  7. Stop the slave nodes using :py:meth:`de.stop() <distributed.DistributedEvaluator.stop>`.
+  7. Stop the secondary nodes using :py:meth:`de.stop() <distributed.DistributedEvaluator.stop>`.
   8. You are done. You may want to save the winning genome or show some statistics.
 
   See :file:`examples/xor/evolve-feedforward-distributed.py` for a complete example. Note: Contains a number of private methods (starting with ``_``),
   which are not documented below.
 
   .. py:data:: MODE_AUTO
-  .. py:data:: MODE_MASTER
-  .. py:data:: MODE_SLAVE
+  .. py:data:: MODE_PRIMARY
+  .. py:data:: MODE_SECONDARY
 
     Values - which should be treated as constants - that are used for the ``mode`` argument of :py:class:`DistributedEvaluator`. MODE_AUTO
-    uses :py:func:`host_is_local()` and the specified ``addr`` of the :term:`master node` to decide the mode; the other two specify it.
+    uses :py:func:`host_is_local()` and the specified ``addr`` of the :term:`primary node` to decide the mode; the other two specify it.
 
   .. py:exception:: ModeError(RuntimeError)
 
-    An exception raised when a mode-specific method is being called without being in the mode - either a master-specific method
-    called by a :term:`slave node` or a slave-specific method called by a :term:`master node`.
+    An exception raised when a mode-specific method is being called without being in the mode - either a primary-specific method
+    called by a :term:`secondary node` or a secondary-specific method called by a :term:`primary node`.
 
   .. py:function:: host_is_local(hostname, port=22)
 
@@ -741,7 +738,7 @@ distributed
   .. index:: fitness function
   .. index:: fitness
 
-  .. py:class:: DistributedEvaluator(addr, authkey, eval_function, slave_chunksize=1, num_workers=None, worker_timeout=60, mode=MODE_AUTO)
+  .. py:class:: DistributedEvaluator(addr, authkey, eval_function, secondary_chunksize=1, num_workers=None, worker_timeout=60, mode=MODE_AUTO)
 
     An evaluator working across multiple machines (:term:`compute nodes <compute node>`).
 
@@ -749,70 +746,82 @@ distributed
 
       See :pylib:`Authentication Keys <multiprocessing.html#authentication-keys>` for more on the ``authkey`` parameter, used to restrict access to the manager.
 
-    :param addr: Should be a tuple of (hostname, port) pointing to the machine running the DistributedEvaluator in master mode. If mode is :py:data:`MODE_AUTO`, the mode is determined by checking whether the hostname points to this host or not (via :py:func:`host_is_local()`).
+    :param addr: Should be a tuple of (hostname, port) pointing to the machine running the DistributedEvaluator in primary mode. If mode is :py:data:`MODE_AUTO`, the mode is determined by checking whether the hostname points to this host or not (via :py:func:`host_is_local()`).
     :type addr: tuple(str, int)
     :param authkey:  The password used to restrict access to the manager. All DistributedEvaluators need to use the same authkey. Note that this needs to be a :pytypes:`bytes` object for Python 3.X, and should be in 2.7 for compatibility (identical in 2.7 to a `str` object).
     :type authkey: :pytypes:`bytes`
     :param eval_function: The eval_function should take two arguments - a genome object and a config object - and return a single :pytypes:`float <typesnumeric>` (the genome's fitness) Note that this is not the same as how a fitness function is called by :py:meth:`Population.run <population.Population.run>`, nor by :py:class:`ParallelEvaluator <parallel.ParallelEvaluator>` (although it is more similar to the latter).
     :type eval_function: `function`
-    :param slave_chunksize: The number of :term:`genomes <genome>` that will be sent to a :term:`slave node` at any one time.
-    :type slave_chunksize: :pytypes:`int <typesnumeric>`
-    :param num_workers: The number of worker processes per :term:`slave node`, used for evaluating genomes. If None, will use :pylib:`multiprocessing.cpu_count() <multiprocessing.html#multiprocessing.cpu_count>`  to determine the number of processes (see further below regarding this default). If 1 (for a slave node), including if there is no usable result from ``multiprocessing.cpu_count()``, then the process creating the DistributedEvaluator instance will also do the evaluations.
+    :param secondary_chunksize: The number of :term:`genomes <genome>` that will be sent to a :term:`secondary node` at any one time.
+    :type secondary_chunksize: :pytypes:`int <typesnumeric>`
+    :param num_workers: The number of worker processes per :term:`secondary node`, used for evaluating genomes. If None, will use :pylib:`multiprocessing.cpu_count() <multiprocessing.html#multiprocessing.cpu_count>`  to determine the number of processes (see further below regarding this default). If 1 (for a secondary node), including if there is no usable result from ``multiprocessing.cpu_count()``, then the process creating the DistributedEvaluator instance will also do the evaluations.
     :type num_workers: :pytypes:`int <typesnumeric>` or None
-    :param worker_timeout:  specifies the timeout (in seconds) for a slave node getting the results from a worker subprocess; if None, there is no timeout.
+    :param worker_timeout:  specifies the timeout (in seconds) for a secondary node getting the results from a worker subprocess; if None, there is no timeout.
     :type worker_timeout: :pytypes:`float <typesnumeric>` or None
-    :param int mode: Specifies the mode to run in - must be one of :py:data:`MODE_AUTO` (the default), :py:data:`MODE_MASTER`, or :py:data:`MODE_SLAVE`.
+    :param int mode: Specifies the mode to run in - must be one of :py:data:`MODE_AUTO` (the default), :py:data:`MODE_PRIMARY`, or :py:data:`MODE_SECONDARY`.
     :raises ValueError: If the mode is not one of the above.
 
     .. note::
 
       Whether the default for ``num_workers`` is appropriate can vary depending on the evaluation function (e.g., whether cpu-bound, memory-bound, i/o-bound...), python implementation, and other factors; if unsure and maximal per-machine performance is critical, experimentation will be required.
 
-    .. py:method:: is_master()
+    .. py:method:: is_primary()
 
-      Returns True if the caller is the :term:`master node`; otherwise False.
+      Returns True if the caller is the :term:`primary node`; otherwise False.
 
-      :return: `True` if master, `False` if slave
+      :return: `True` if primary, `False` if :term:`secondary <secondary node>`
       :rtype: :pytypes:`bool <typesnumeric>`
 
-    .. py:method:: start(exit_on_stop=True, slave_wait=0)
+    .. py:method:: is_master()
 
-      If the DistributedEvaluator is in master mode, starts the manager process and returns. If the DistributedEvaluator is in slave mode, it connects to the
+      A backward-compatibility wrapper for :py:meth:`is_primary`.
+
+      :return: `True` if primary, `False` if :term:`secondary <secondary node>`
+      :rtype: :pytypes:`bool <typesnumeric>`
+      :raises DeprecationWarning: Always.
+
+      .. deprecated:: 0.91-config_work
+
+    .. py:method:: start(exit_on_stop=True, secondary_wait=0)
+
+      If the DistributedEvaluator is in primary mode, starts the manager process and returns. If the DistributedEvaluator is in secondary mode, it connects to the
       manager and waits for tasks.
 
-      :param exit_on_stop: If a slave node, whether to exit upon the calling of `stop()` in the :term:`master node`.
+      :param exit_on_stop: If a secondary node, whether to exit upon the calling of `stop()` in the :term:`primary node`.
       :type exit_on_stop: :pytypes:`bool <typesnumeric>`
-      :param slave_wait: Specifies the time (in seconds) to sleep before actually starting, if a :term:`slave node`.
-      :type slave_wait: :pytypes:`float <typesnumeric>`
+      :param secondary_wait: Specifies the time (in seconds) to sleep before actually starting, if a :term:`secondary node`.
+      :type secondary_wait: :pytypes:`float <typesnumeric>`
       :raises RuntimeError: If already started.
       :raises ValueError: If the mode is invalid.
 
     .. py:method:: stop(wait=1, shutdown=True)
 
-      Stops all slaves.
+      Stops all secondaries.
 
-      :param wait: Time (in seconds) to wait after telling the slaves to stop.
+      :param wait: Time (in seconds) to wait after telling the secondaries to stop.
       :type wait: :pytypes:`float <typesnumeric>`
       :param shutdown: Whether to :pylib:`shutdown <multiprocessing.html#multiprocessing.managers.BaseManager.shutdown>` the :pylib:`multiprocessing.manager.SyncManager <multiprocessing.html#multiprocessing.managers.SyncManager>` also (after the wait, if any).
       :type shutdown: :pytypes:`bool <typesnumeric>`
-      :raises ModeError: If not the :term:`master node` (not in :py:data:`MODE_MASTER`).
+      :raises ModeError: If not the :term:`primary node` (not in :py:data:`MODE_PRIMARY`).
       :raises RuntimeError: If not yet :py:meth:`started <start()>`.
 
     .. py:method:: evaluate(genomes, config)
 
-      Evaluates the genomes. Distributes the genomes to the slave nodes, then gathers the fitnesses from the slave nodes and assigns them to the
-      genomes. Must not be called by :term:`slave nodes <slave node>`.
+      Evaluates the genomes. Distributes the genomes to the secondary nodes, then gathers the fitnesses from the secondary nodes and assigns them to the
+      genomes. Must not be called by :term:`secondary nodes <secondary node>`.
 
       :param genomes: Dictionary of (:term:`genome_id <key>`, genome) 
       :type genomes: dict(int, :datamodel:`instance <index-48>`)
       :param config: Configuration object.
       :type config: :datamodel:`instance <index-48>`
-      :raises ModeError: If not the :term:`master node` (not in :py:data:`MODE_MASTER`).
+      :raises ModeError: If not the :term:`primary node` (not in :py:data:`MODE_PRIMARY`).
 
   .. versionadded:: 0.91-github
 
   .. versionchanged:: 0.91-config_work
     Pylint, documentation, other changes (e.g., RoleError to ModeError).
+    Master/Slave terminology changed to Primary/Secondary, to keep up with more modern usage
+    (according to a google search) plus issues of sensitivity.
 
 .. py:module:: genes
    :synopsis: Handles node and connection genes.
@@ -2456,7 +2465,7 @@ Runs evaluation functions in parallel threads (using the python library module `
 
     .. py:method:: start()
 
-      Starts the worker threads, if in the master thread.
+      Starts the worker threads, if in the primary thread.
 
     .. py:method:: stop()
 

@@ -6,16 +6,23 @@ import os
 import multiprocessing
 import random
 import sys
-import threading
+
+try:
+    import threading
+except ImportError:
+    import dummy_threading as threading
+    HAVE_THREADING = False
+else:
+    HAVE_THREADING = True
 
 import neat
-from neat.distributed import chunked, MODE_AUTO, MODE_MASTER, MODE_SLAVE, ModeError
+from neat.distributed import chunked, MODE_AUTO, MODE_PRIMARY, MODE_SECONDARY, ModeError
 
 
 def eval_dummy_genome_nn(genome, config):
     """dummy evaluation function"""
     net = neat.nn.FeedForwardNetwork.create(genome, config)
-    return 1.0
+    return 0.0
 
 
 def test_chunked():
@@ -32,7 +39,7 @@ def test_chunked():
     for e in d110c:
         rec += e
     if rec != d110:
-        raise Exception("neat.distributed.chunked(range(110), 10) did create wrong chunks!")
+        raise Exception("neat.distributed.chunked(range(110), 10) created incorrect chunks!")
     # test invalid argument checking
     try:
         chunked(range(10), 0)
@@ -55,12 +62,12 @@ def test_chunked():
     if len(d13c[0]) != 3:
         raise Exception("neat.distributed.chunked(range(13), 3) did not create chunks of length 3!")
     if len(d13c[-1]) != 1:
-        raise Exception("neat.distributed.chunked(range(13), 3) did not create  a last chunk of length 1!")
+        raise Exception("neat.distributed.chunked(range(13), 3) did not create a last chunk of length 1!")
     rec = []
     for e in d13c:
         rec += e
     if rec != d13:
-        raise Exception("neat.distributed.chunked(range(13), 3) did create wrong chunks!")
+        raise Exception("neat.distributed.chunked(range(13), 3) created incorrect chunks!")
 
 
 def test_host_is_local():
@@ -79,7 +86,7 @@ def test_host_is_local():
     for hostname, islocal in tests:
         try:
             result = neat.host_is_local(hostname)
-        except EnvironmentError:
+        except EnvironmentError: # give more feedback
             print("test_host_is_local: Error with hostname {0!r} (expected {1!r})".format(hostname,
                                                                                           islocal))
             raise
@@ -93,22 +100,21 @@ def test_host_is_local():
 
 
 def test_DistributedEvaluator_mode():
-    """tests for the mode determination of DistributedEvaluator"""
+    """Tests for the mode determination of DistributedEvaluator"""
     # test auto mode setting
     # we also test that the mode is not
-    # automatically determined when explicitly
-    # given
+    # automatically determined when explicitly given.
     tests = (
         # (hostname or ip, mode to pass, expected mode)
-        ("localhost", MODE_MASTER, MODE_MASTER),
-        ("0.0.0.0", MODE_MASTER, MODE_MASTER),
-        ("localhost", MODE_SLAVE, MODE_SLAVE),
-        ("example.org", MODE_MASTER, MODE_MASTER),
-        (socket.gethostname(), MODE_SLAVE, MODE_SLAVE),
-        ("localhost", MODE_AUTO, MODE_MASTER),
-        (socket.gethostname(), MODE_AUTO, MODE_MASTER),
-        (socket.getfqdn(), MODE_AUTO, MODE_MASTER),
-        ("example.org", MODE_AUTO, MODE_SLAVE),
+        ("localhost", MODE_PRIMARY, MODE_PRIMARY),
+        ("0.0.0.0", MODE_PRIMARY, MODE_PRIMARY),
+        ("localhost", MODE_SECONDARY, MODE_SECONDARY),
+        ("example.org", MODE_PRIMARY, MODE_PRIMARY),
+        (socket.gethostname(), MODE_SECONDARY, MODE_SECONDARY),
+        ("localhost", MODE_AUTO, MODE_PRIMARY),
+        (socket.gethostname(), MODE_AUTO, MODE_PRIMARY),
+        (socket.getfqdn(), MODE_AUTO, MODE_PRIMARY),
+        ("example.org", MODE_AUTO, MODE_SECONDARY),
         )
     for hostname, mode, expected in tests:
         addr = (hostname, 80)
@@ -134,13 +140,13 @@ def test_DistributedEvaluator_mode():
             raise Exception(
                 "DistributedEvaluator.__init__(mode=MODE_AUTO) did not automatically determine its mode!"
                 )
-        elif (result == MODE_MASTER) and (not de.is_master()):
+        elif (result == MODE_PRIMARY) and (not de.is_primary()):
             raise Exception(
-                "DistributedEvaluator.is_master() returns False even if the evaluator is in master mode!"
+                "DistributedEvaluator.is_primary() returns False even if the evaluator is in primary mode!"
                 )
-        elif (result == MODE_SLAVE) and de.is_master():
+        elif (result == MODE_SECONDARY) and de.is_primary():
             raise Exception(
-                "DistributedEvaluator.is_master() returns True even if the evaluator is in slave mode!"
+                "DistributedEvaluator.is_primary() returns True even if the evaluator is in secondary mode!"
                 )
     # test invalid mode error
     try:
@@ -156,30 +162,30 @@ def test_DistributedEvaluator_mode():
     else:
         raise Exception("Passing an invalid mode did not cause an exception to be raised on start()!")
 
-def test_DistributedEvaluator_master_restrictions():
-    """tests that some master-exclusive methods fail when called  by the slaves"""
-    slave = neat.DistributedEvaluator(
+def test_DistributedEvaluator_primary_restrictions():
+    """Tests that some primary-exclusive methods fail when called by the secondaries"""
+    secondary = neat.DistributedEvaluator(
         ("localhost", 80),
         authkey=b"abcd1234",
         eval_function=eval_dummy_genome_nn,
-        mode=MODE_SLAVE,
+        mode=MODE_SECONDARY,
         )
     try:
-        slave.stop()
+        secondary.stop()
     except ModeError:
         # only ignore ModeErrors
-        # a RuntimeError should only be raised when in master mode.
+        # a RuntimeError should only be raised when in primary mode.
         pass
     else:
-        raise Exception("A DistributedEvaluator in slave mode could call stop()!")
+        raise Exception("A DistributedEvaluator in secondary mode could call stop()!")
     try:
-        slave.evaluate(None, None)  # we do not need valid values for this test
+        secondary.evaluate(None, None)  # we do not need valid values for this test
     except ModeError:
         # only ignore ModeErrors
-        # other errors should only be raised when in master mode.
+        # other errors should only be raised when in primary mode.
         pass
     else:
-        raise Exception("A DistributedEvaluator in slave mode could call evaluate()!")
+        raise Exception("A DistributedEvaluator in secondary mode could call evaluate()!")
 
 
 def test_distributed_evaluation_multiprocessing():
@@ -187,40 +193,40 @@ def test_distributed_evaluation_multiprocessing():
     Full test run using the Distributed Evaluator.
     Note that this is not a very good test for the
     DistributedEvaluator, because we still work on
-    one machine, not accross multiple machines.
+    one machine, not across multiple machines.
     We emulate the other machines using subprocesses
     created using the multiprocessing module.
     """
     addr = ("localhost", random.randint(12000, 30000))
     authkey = b"abcd1234"
     mp = multiprocessing.Process(
-        name="Master evaluation process",
-        target=run_master,
-        args=(addr, authkey, 300),
+        name="Primary evaluation process",
+        target=run_primary,
+        args=(addr, authkey, 19), # 19 because stagnation is at 20
         )
     mp.start()
     mwcp = multiprocessing.Process(
         name="Child evaluation process (multiple workers)",
-        target=run_slave,
+        target=run_secondary,
         args=(addr, authkey, 2),
         )
     swcp = multiprocessing.Process(
         name="Child evaluation process (direct evaluation)",
-        target=run_slave,
+        target=run_secondary,
         args=(addr, authkey, 1),
         )
-    swcp.daemon = True  # we cant set this on mwcp
+    swcp.daemon = True  # we cannot set this on mwcp
     mwcp.start()
     swcp.start()
     mp.join()
     mwcp.join()
     swcp.join()
     if mp.exitcode != 0:
-        raise Exception("Master-process exited with status {s}!".format(s=mp.exitcode))
+        raise Exception("Primary-process exited with status {s}!".format(s=mp.exitcode))
     if mwcp.exitcode != 0:
-        raise Exception("Multiworker-slave-process exited with status {s}!".format(s=mwcp.exitcode))
+        raise Exception("Multiworker-secondary-process exited with status {s}!".format(s=mwcp.exitcode))
     if swcp.exitcode != 0:
-        raise Exception("Singleworker-slave-process exited with status {s}!".format(s=swcp.exitcode))
+        raise Exception("Singleworker-secondary-process exited with status {s}!".format(s=swcp.exitcode))
 
 
 def test_distributed_evaluation_threaded():
@@ -228,38 +234,40 @@ def test_distributed_evaluation_threaded():
     Full test run using the Distributed Evaluator.
     Note that this is not a very good test for the
     DistributedEvaluator, because we still work on
-    one machine, not accross multiple machines.
+    one machine, not across multiple machines.
     We emulate the other machines using threads.
     This test is like test_distributed_evaluation_multiprocessing,
     but uses threads instead of processes.
-    We use this to get the coverage correctly.
+    We use this to get better coverage.
     """
+    if not HAVE_THREADING:
+        return
     addr = ("localhost", random.randint(12000, 30000))
     authkey = b"abcd1234"
     mp = threading.Thread(
-        name="Master evaluation thread",
-        target=run_master,
-        args=(addr, authkey, 30),
+        name="Primary evaluation thread",
+        target=run_primary,
+        args=(addr, authkey, 19), # 19 because stagnation is set at 20
         )
     mp.start()
     mwcp = threading.Thread(
         name="Child evaluation thread (multiple workers)",
-        target=run_slave,
+        target=run_secondary,
         args=(addr, authkey, 2),
         )
     swcp = threading.Thread(
         name="Child evaluation thread (direct evaluation)",
-        target=run_slave,
+        target=run_secondary,
         args=(addr, authkey, 1),
         )
-    swcp.daemon = True  # we cant set this on mwcp
+    swcp.daemon = True  # we cannot set this on mwcp
     mwcp.start()
     swcp.start()
     mp.join()
     mwcp.join()
     swcp.join()
     
-    # we cant check for exceptions in the threads.
+    # we cannot check for exceptions in the threads.
     # however, these checks are also done in
     # test_distributed_evaluationmultiprocessing,
     # so they should not fail here.
@@ -267,8 +275,8 @@ def test_distributed_evaluation_threaded():
 
     
 
-def run_master(addr, authkey, generations):
-    """starts a DistributedEvaluator in master mode."""
+def run_primary(addr, authkey, generations):
+    """Starts a DistributedEvaluator in primary mode."""
     # Load configuration.
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'test_configuration')
@@ -283,13 +291,14 @@ def run_master(addr, authkey, generations):
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
+    p.add_reporter(neat.Checkpointer(1, 5))
 
-    # Run for up to 300 generations.
+    # Run for the specified number of generations.
     de = neat.DistributedEvaluator(
         addr,
         authkey=authkey,
         eval_function=eval_dummy_genome_nn,
-        mode=MODE_MASTER,
+        mode=MODE_PRIMARY,
         )
     de.start()
     p.run(de.evaluate, generations)
@@ -298,8 +307,8 @@ def run_master(addr, authkey, generations):
     stats.save()
 
 
-def run_slave(addr, authkey, num_workers=1):
-    """starts a DistributedEvaluator in slave mode."""
+def run_secondary(addr, authkey, num_workers=1):
+    """Starts a DistributedEvaluator in secondary mode."""
     # Load configuration.
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'test_configuration')
@@ -315,17 +324,26 @@ def run_slave(addr, authkey, num_workers=1):
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
 
-    # Run for up to 300 generations.
+    # Run for the specified number of generations.
     de = neat.DistributedEvaluator(
         addr,
         authkey=authkey,
         eval_function=eval_dummy_genome_nn,
-        mode=MODE_SLAVE,
+        mode=MODE_SECONDARY,
         num_workers=num_workers,
         )
     try:
-        de.start(slave_wait=3, exit_on_stop=True)
+        de.start(secondary_wait=3, exit_on_stop=True)
     except SystemExit:
         pass
     else:
-        raise Exception("DistributedEvaluator in slave mode did not try to exit!")
+        raise Exception("DistributedEvaluator in secondary mode did not try to exit!")
+
+if __name__ == '__main__':
+    test_chunked()
+    test_host_is_local()
+    test_DistributedEvaluator_mode()
+    test_DistributedEvaluator_primary_restrictions()
+    test_distributed_evaluation_multiprocessing()
+    if HAVE_THREADING:
+        test_distributed_evaluation_threaded()

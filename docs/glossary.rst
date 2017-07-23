@@ -140,17 +140,18 @@ Glossary
 
   compute node
     Using the :py:mod:`distributed` module, genomes can be evaluated on multiple machines (including virtual machines) at once. Each such
-    machine/host is called a ``compute node``.
+    machine/host is called a ``compute node``. These are of two types, :term:`primary nodes <primary node>` and
+    :term:`secondary nodes <secondary node>`.
 
-  master node
-  master compute node
-    If using the :py:mod:`distributed` module, you will need one master :term:`compute node` and at least one :term:`slave node`. The master node
-    creates and mutates genomes, then distributes them to the slave nodes for evaluation. (It does not do any evaluations itself; thus, at least
-    one slave node is required.)
+  primary node
+  primary compute node
+    If using the :py:mod:`distributed` module, you will need one primary :term:`compute node` and at least one :term:`secondary node`. The primary node
+    creates and mutates genomes, then distributes them to the secondary nodes for evaluation. (It does not do any evaluations itself; thus, at least
+    one secondary node is required.)
 
-  slave node
-  slave compute node
-    If using the :py:mod:`distributed` module, you will need at least one slave :term:`compute node`, as well as a :term:`master node`. The slave nodes
-    evaluate genomes, distributed to them by the master node.
+  secondary node
+  secondary compute node
+    If using the :py:mod:`distributed` module, you will need at least one secondary :term:`compute node`, as well as a :term:`primary node`. The secondary
+    nodes evaluate genomes, distributed to them by the primary node.
 
 :ref:`Table of Contents <toc-label>`

@@ -258,6 +258,7 @@ def test_parallel():
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
+    p.add_reporter(neat.Checkpointer(1, 5))
 
     # Run for up to 19 generations.
     pe = neat.ParallelEvaluator(4, eval_dummy_genome_nn)
@@ -282,6 +283,7 @@ def test_threaded_evaluation():
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
+    p.add_reporter(neat.Checkpointer(1, 5))
 
     # Run for up to 19 generations.
     pe = neat.ThreadedEvaluator(4, eval_dummy_genome_nn)
