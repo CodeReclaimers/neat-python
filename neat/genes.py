@@ -1,3 +1,5 @@
+"""Handles node and connection genes."""
+import warnings
 from random import random
 from neat.attributes import FloatAttribute, BoolAttribute, StringAttribute
 
@@ -6,6 +8,10 @@ from neat.attributes import FloatAttribute, BoolAttribute, StringAttribute
 
 
 class BaseGene(object):
+    """
+    Handles functions shared by multiple types of genes (both node and connection),
+    including crossover and calling mutation methods.
+    """
     def __init__(self, key):
         self.key = key
 
@@ -24,6 +30,12 @@ class BaseGene(object):
     @classmethod
     def get_config_params(cls):
         params = []
+        if not hasattr(cls, '_gene_attributes'):
+            setattr(cls, '_gene_attributes', getattr(cls, '__gene_attributes__'))
+            warnings.warn(
+                "Class '{!s}' {!r} needs '_gene_attributes' not '__gene_attributes__'".format(
+                    cls.__name__,cls),
+                DeprecationWarning)
         for a in cls._gene_attributes:
             params += a.get_config_params()
         return params
@@ -41,6 +53,7 @@ class BaseGene(object):
         new_gene = self.__class__(self.key)
         for a in self._gene_attributes:
             setattr(new_gene, a.name, getattr(self, a.name))
+            
 
         return new_gene
 

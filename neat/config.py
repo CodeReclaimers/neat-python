@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 import os
-import sys
+#import sys
 import warnings
 
 try:
@@ -115,8 +115,10 @@ class DefaultClassConfig(object):
                                              "\n\t".join(unknown_list))
             raise UnknownConfigItemError("Unknown configuration item {!s}".format(unknown_list[0]))
 
-    def save(self, f):
-        write_pretty_params(f, self, self._params)
+    @classmethod
+    def write_config(cls, f, config):
+        # pylint: disable=protected-access
+        write_pretty_params(f, config, config._params)
 
 
 class Config(object):

@@ -1,3 +1,4 @@
+"""Keeps track of whether species are making progress and helps remove ones that are not."""
 import sys
 
 from neat.config import ConfigParameter, DefaultClassConfig
@@ -6,7 +7,8 @@ from neat.math_util import stat_functions
 
 # TODO: Add a method for the user to change the "is stagnant" computation.
 
-class DefaultStagnation(object):
+class DefaultStagnation(DefaultClassConfig):
+    """Keeps track of whether species are making progress and helps remove ones that are not."""
     @classmethod
     def parse_config(cls, param_dict):
         return DefaultClassConfig(param_dict,
@@ -14,20 +16,26 @@ class DefaultStagnation(object):
                                    ConfigParameter('max_stagnation', int, 15),
                                    ConfigParameter('species_elitism', int, 0)])
 
-    @classmethod
-    def write_config(cls, f, config):
-        config.save(f)
-
     def __init__(self, config, reporters):
+        # pylint: disable=super-init-not-called
         self.stagnation_config = config
 
         self.species_fitness_func = stat_functions.get(config.species_fitness_func)
         if self.species_fitness_func is None:
-            raise RuntimeError("Unexpected species fitness func: {0!r}".format(config.species_fitness_func))
+            raise RuntimeError(
+                "Unexpected species fitness func: {0!r}".format(config.species_fitness_func))
 
         self.reporters = reporters
 
     def update(self, species_set, generation):
+        """
+        Required interface method. Updates species fitness history information,
+        checking for ones that have not improved in max_stagnation generations,
+        and - unless it would result in the number of species dropping below the configured
+        species_elitism parameter if they were removed,
+        in which case the highest-fitness species are spared -
+        returns a list with stagnant species marked for removal.
+        """
         species_data = []
         for sid, s in iteritems(species_set.species):
             if s.fitness_history:

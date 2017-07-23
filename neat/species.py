@@ -46,10 +46,11 @@ class GenomeDistanceCache(object):
 
         return d
 
-class DefaultSpeciesSet(object):
+class DefaultSpeciesSet(DefaultClassConfig):
     """ Encapsulates the default speciation scheme. """
 
     def __init__(self, config, reporters):
+        # pylint: disable=super-init-not-called
         self.species_set_config = config
         self.reporters = reporters
         self.indexer = Indexer(1)
@@ -60,10 +61,6 @@ class DefaultSpeciesSet(object):
     def parse_config(cls, param_dict):
         return DefaultClassConfig(param_dict,
                                   [ConfigParameter('compatibility_threshold', float)])
-
-    @classmethod
-    def write_config(cls, f, config):
-        config.save(f)
 
     def speciate(self, config, population, generation):
         """

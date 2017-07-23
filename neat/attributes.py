@@ -7,6 +7,7 @@ from neat.six_util import iterkeys, iteritems
 
 
 class BaseAttribute(object):
+    """Superclass for the type-specialized attribute subclasses, used by genes."""
     def __init__(self, name, **default_dict):
         self.name = name
         for n, default in iteritems(default_dict):
@@ -24,6 +25,10 @@ class BaseAttribute(object):
                 for n in iterkeys(self._config_items)]
 
 class FloatAttribute(BaseAttribute):
+    """
+    Class for numeric attributes,
+    such as the response of a node or the weight of a connection.
+    """
     _config_items = {"init_mean": [float, None],
                      "init_stdev": [float, None],
                      "init_type": [str, 'gaussian'],
@@ -79,6 +84,7 @@ class FloatAttribute(BaseAttribute):
 
 
 class BoolAttribute(BaseAttribute):
+    """Class for boolean attributes such as whether a connection is enabled or not."""
     _config_items = {"default": [bool, None],
                      "mutate_rate": [float, None],
                      "rate_to_true_add": [float, 0.0],
@@ -116,6 +122,10 @@ class BoolAttribute(BaseAttribute):
 
 
 class StringAttribute(BaseAttribute):
+    """
+    Class for string attributes such as the aggregation function of a node,
+    which are selected from a list of options.
+    """
     _config_items = {"default": [str, 'random'],
                      "options": [list, None],
                      "mutate_rate": [float, None]}

@@ -1,3 +1,8 @@
+"""
+Makes possible reporter classes,
+which are triggered on particular events and may provide information to the user,
+may do something else such as checkpointing, or may do both.
+"""
 from __future__ import division, print_function
 
 import time
@@ -9,6 +14,10 @@ from neat.six_util import itervalues, iterkeys
 
 
 class ReporterSet(object):
+    """
+    Keeps track of the set of reporters
+    and gives methods to dispatch them at appropriate points.
+    """
     def __init__(self):
         self.reporters = []
 
@@ -107,7 +116,8 @@ class StdOutReporter(BaseReporter):
                 f = "--" if s.fitness is None else "{:.1f}".format(s.fitness)
                 af = "--" if s.adjusted_fitness is None else "{:.3f}".format(s.adjusted_fitness)
                 st = self.generation - s.last_improved
-                print("  {: >4}  {: >3}  {: >4}  {: >7}  {: >7}  {: >4}".format(sid, a, n, f, af, st))
+                print(
+                    "  {: >4}  {: >3}  {: >4}  {: >7}  {: >7}  {: >4}".format(sid, a, n, f, af, st))
         else:
             print('Population of {0:d} members in {1:d} species'.format(ng, ns))
 
@@ -128,8 +138,11 @@ class StdOutReporter(BaseReporter):
         fit_std = stdev(fitnesses)
         best_species_id = species.get_species_id(best_genome.key)
         print('Population\'s average fitness: {0:3.5f} stdev: {1:3.5f}'.format(fit_mean, fit_std))
-        print('Best fitness: {0:3.5f} - size: {1!r} - species {2} - id {3}'.format(best_genome.fitness, best_genome.size(),
-                                                                                   best_species_id, best_genome.key))
+        print(
+            'Best fitness: {0:3.5f} - size: {1!r} - species {2} - id {3}'.format(best_genome.fitness,
+                                                                                 best_genome.size(),
+                                                                                 best_species_id,
+                                                                                 best_genome.key))
 
     def complete_extinction(self):
         self.num_extinctions += 1

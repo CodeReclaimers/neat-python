@@ -1,3 +1,4 @@
+"""Handles genomes (individuals in the population)."""
 from __future__ import division, print_function
 
 from random import choice, random, shuffle
@@ -208,7 +209,7 @@ class DefaultGenome(object):
             else:
                 if config.num_hidden > 0:
                     print(
-                        "Warning: initial_connection = full with hidden nodes will not connect input nodes directly to output nodes;",
+                        "Warning: initial_connection = full with hidden nodes will not do direct input-output connections;",
                         "\tif this is desired, set initial_connection = full_nodirect;",
                         "\tif not, set initial_connection = full_direct",
                         sep='\n', file=sys.stderr);
@@ -221,7 +222,7 @@ class DefaultGenome(object):
             else:
                 if config.num_hidden > 0:
                     print(
-                        "Warning: initial_connection = partial with hidden nodes will not connect input nodes directly to output nodes;",
+                        "Warning: initial_connection = partial with hidden nodes will not do direct input-output connections;",
                         "\tif this is desired, set initial_connection = partial_nodirect {0};".format(
                             config.connection_fraction),
                         "\tif not, set initial_connection = partial_direct {0}".format(

@@ -96,6 +96,10 @@ def validate_activation(function):
 
 
 class ActivationFunctionSet(object):
+    """
+    Contains the list of current valid activation functions,
+    including methods for adding and getting them.
+    """
     def __init__(self):
         self.functions = {}
         self.add('sigmoid', sigmoid_activation)

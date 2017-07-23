@@ -17,7 +17,7 @@ from neat.six_util import iteritems, itervalues
 # configuration. This scheme should be adaptive so that species do not evolve
 # to become "cautious" and only make very slow progress.
 
-class DefaultReproduction(object):
+class DefaultReproduction(DefaultClassConfig):
     """
     Implements the default NEAT-python reproduction scheme:
     explicit fitness sharing with fixed-time species stagnation.
@@ -30,11 +30,8 @@ class DefaultReproduction(object):
                                    ConfigParameter('survival_threshold', float, 0.2),
                                    ConfigParameter('min_species_size', int, 2)])
 
-    @classmethod
-    def write_config(cls, f, config):
-        config.save(f)
-
     def __init__(self, config, reporters, stagnation):
+        # pylint: disable=super-init-not-called
         self.reproduction_config = config
         self.reporters = reporters
         self.genome_indexer = Indexer(1)
@@ -54,6 +51,7 @@ class DefaultReproduction(object):
 
     @staticmethod
     def compute_spawn(adjusted_fitness, previous_sizes, pop_size, min_species_size):
+        """Compute the proper number of offspring per species (proportional to fitness)."""
         af_sum = sum(adjusted_fitness)
 
         spawn_amounts = []
@@ -84,6 +82,10 @@ class DefaultReproduction(object):
         return spawn_amounts
 
     def reproduce(self, config, species, pop_size, generation):
+        """
+        Handles creation of genomes, either from scratch or by sexual or
+        asexual reproduction from parents.
+        """
         # TODO: I don't like this modification of the species and stagnation objects,
         # because it requires internal knowledge of the objects.
 
@@ -154,7 +156,8 @@ class DefaultReproduction(object):
                 continue
 
             # Only use the survival threshold fraction to use as parents for the next generation.
-            repro_cutoff = int(math.ceil(self.reproduction_config.survival_threshold * len(old_members)))
+            repro_cutoff = int(math.ceil(self.reproduction_config.survival_threshold *
+                                         len(old_members)))
             # Use at least two parents no matter what the threshold fraction result is.
             repro_cutoff = max(repro_cutoff, 2)
             old_members = old_members[:repro_cutoff]

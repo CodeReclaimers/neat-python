@@ -523,9 +523,7 @@ Does general configuration parsing; used by other classes for their configuratio
 
   .. py:class:: DefaultClassConfig(param_dict, param_list)
 
-    Replaces at least some boilerplate configuration code for reproduction, species_set, and stagnation classes. TODO: Find a way to put ``write_config()``
-    into this class also. This would be simple if it were a normal method, but it is called as a class method; perhaps inheriting from DefaultClassConfig
-    would work?
+    Replaces at least some boilerplate configuration code for reproduction, species_set, and stagnation classes.
 
     :param param_dict: Dictionary of configuration parameters from config file.
     :type param_dict: dict(str, str)
@@ -533,12 +531,14 @@ Does general configuration parsing; used by other classes for their configuratio
     :type param_list: list(:datamodel:`instance <index-48>`)
     :raises UnknownConfigItemError: If a key in ``param_dict`` is not among the names in ``param_list``.
 
-    .. py:method:: save(f)
+    .. py:classmethod:: write_config(f, config)
 
-      Uses :py:func:`write_pretty_params` to output parameters of interest to the calling class.
+      Required method (inherited by calling classes). Uses :py:func:`write_pretty_params` to output parameters of interest to the calling class.
 
       :param f: File object to be written to.
       :type f: :pygloss:`file <file-object>`
+      :param config: DefaultClassConfig instance.
+      :type config: :datamodel:`instance <index-48>`
 
     .. versionadded:: 0.91-config_work
 
@@ -810,6 +810,7 @@ distributed
 
 genes
 --------
+Handles node and connection genes.
 
   .. inheritance-diagram:: genes iznn.IZNodeGene
 
@@ -852,6 +853,7 @@ genes
 
       :return: List of configuration parameters (as :py:class:`config.ConfigParameter` instances) for the gene attributes.
       :rtype: list(:datamodel:`instance <index-48>`)
+      :raises DeprecationWarning: If the gene class uses ``__gene_attributes__`` instead of ``_gene_attributes``
 
     .. py:method:: init_attributes(config)
 
@@ -948,6 +950,7 @@ genes
 
 genome
 -----------
+Handles genomes (individuals in the population).
 
   .. inheritance-diagram:: genome iznn.IZGenome
 
@@ -1109,7 +1112,7 @@ genome
       :type genome1: :datamodel:`instance <index-48>`
       :param genome2: The second parent genome.
       :type genome2: :datamodel:`instance <index-48>`
-      :param config: Genome configuration object.
+      :param config: Genome configuration object; currently ignored.
       :type config: :datamodel:`instance <index-48>`
 
     .. index:: ! mutation
@@ -1525,6 +1528,9 @@ See http://www.izhikevich.org/publications/spikes.pdf.
       :return: An IZNN instance.
       :rtype: :datamodel:`instance <index-48>`
 
+    .. versionchanged:: 0.91-config_work
+      ``__gene_attributes__`` changed to ``_gene_attributes``, since it is not a Python internal variable. 
+
 .. py:module:: math_util
    :synopsis: Contains some mathematical functions not found in the Python2 standard library, plus a mechanism for looking up some commonly used functions (such as for the species_fitness_func) by name.
 
@@ -1789,6 +1795,7 @@ Implements the core evolution algorithm.
 
 reporting
 -----------
+Makes possible reporter classes, which are triggered on particular events and may provide information to the user, may do something else such as checkpointing, or may do both.
 
   .. inheritance-diagram:: reporting checkpoint.Checkpointer statistics.StatisticsReporter
 
@@ -1974,9 +1981,10 @@ Handles creation of genomes, either from scratch or by sexual or asexual reprodu
 
   .. py:class:: DefaultReproduction(config, reporters, stagnation)
 
-    Implements the default NEAT-python reproduction scheme: explicit fitness sharing with fixed-time species stagnation. TODO: Provide some sort of
-    optional cross-species performance criteria, which are then used to control stagnation and possibly the mutation rate configuration. This scheme should be
-    adaptive so that species do not evolve to become "cautious" and only make very slow progress.
+    Implements the default NEAT-python reproduction scheme: explicit fitness sharing with fixed-time species stagnation. Inherits
+    from :py:class:`config.DefaultClassConfig` the required class method :py:meth:`write_config <config.DefaultClassConfig.write_config>`.
+    TODO: Provide some sort of optional cross-species performance criteria, which are then used to control stagnation and possibly the mutation
+    rate configuration. This scheme should be adaptive so that species do not evolve to become "cautious" and only make very slow progress. 
 
     :param config: Configuration object, in this implementation a :py:class:`config.DefaultClassConfig` :datamodel:`instance <index-48>`.
     :type config: :datamodel:`instance <index-48>`
@@ -1984,6 +1992,9 @@ Handles creation of genomes, either from scratch or by sexual or asexual reprodu
     :type reporters: :datamodel:`instance <index-48>`
     :param stagnation: A :py:class:`DefaultStagnation <stagnation.DefaultStagnation>` instance - the current code partially depends on internals of this class (a TODO is noted to correct this).
     :type stagnation: :datamodel:`instance <index-48>`
+
+    .. versionchanged:: 0.91-config_work
+      Configuration changed to use DefaultClassConfig, instead of a dictionary, and inherit write_config.
 
     .. py:classmethod:: parse_config(param_dict)
 
@@ -1994,18 +2005,6 @@ Handles creation of genomes, either from scratch or by sexual or asexual reprodu
       :type param_dict: dict(str, str)
       :return: Reproduction configuration object; considered opaque by rest of code, so current type returned is not required for interface.
       :rtype: DefaultClassConfig :datamodel:`instance <index-48>`
-
-      .. versionchanged:: 0.91-config_work
-        Configuration changed to use DefaultClassConfig instead of a dictionary.
-
-    .. py:classmethod:: write_config(f, config)
-
-      Required interface method. Saves configuration parameters to a new config file, in this implementation via :py:meth:`config.DefaultClassConfig.save`.
-
-      :param f: File object to write to.
-      :type f: :pygloss:`file <file-object>`
-      :param config: Reproduction config object; considered opaque by rest of code, so current type is not required for interface.
-      :type config: :py:class:`config.DefaultClassConfig` :datamodel:`instance <index-48>`
 
       .. versionchanged:: 0.91-config_work
         Configuration changed to use DefaultClassConfig instead of a dictionary.
@@ -2164,11 +2163,15 @@ Divides the population into species based on :term:`genomic distances <genomic d
 
     Encapsulates the default speciation scheme by configuring it and performing the speciation function (placing genomes into species by genetic similarity).
     :py:class:`reproduction.DefaultReproduction` currently depends on this having a ``species`` attribute consisting of a dictionary of species keys to species.
+    Inherits from :py:class:`config.DefaultClassConfig` the required class method :py:meth:`write_config <config.DefaultClassConfig.write_config>`.
 
-    :param config: A configuration object (currently unused).
+    :param config: A configuration object, in this implementation a :py:class:`config.DefaultClassConfig` :datamodel:`instance <index-48>`.
     :type config: :datamodel:`instance <index-48>`
     :param reporters: A :py:class:`ReporterSet <reporting.ReporterSet>` instance giving reporters to be notified about :term:`genomic distance` statistics.
     :type reporters: :datamodel:`instance <index-48>`
+
+    .. versionchanged:: 0.91-config_work
+      Configuration changed to use DefaultClassConfig, instead of a dictionary, and inherit write_config.
 
     .. py:classmethod:: parse_config(param_dict)
 
@@ -2179,18 +2182,6 @@ Divides the population into species based on :term:`genomic distances <genomic d
       :type param_dict: dict(str, str)
       :return: SpeciesSet configuration object; considered opaque by rest of code, so current type returned is not required for interface.
       :rtype: DefaultClassConfig :datamodel:`instance <index-48>`
-
-      .. versionchanged:: 0.91-config_work
-        Configuration changed to use DefaultClassConfig instead of a dictionary.
-
-    .. py:classmethod:: write_config(f, config)
-
-      Required interface method. Saves configuration parameters to a new config file, in this implementation via :py:meth:`config.DefaultClassConfig.save`.
-
-      :param f: File object to write to.
-      :type f: :pygloss:`file <file-object>`
-      :param config: SpeciesSet config object; considered opaque by rest of code, so current type is not required for interface.
-      :type config: :py:class:`config.DefaultClassConfig` :datamodel:`instance <index-48>`
 
       .. versionchanged:: 0.91-config_work
         Configuration changed to use DefaultClassConfig instead of a dictionary.
@@ -2229,6 +2220,8 @@ Divides the population into species based on :term:`genomic distances <genomic d
       :return: :py:class:`Species <species.Species>` containing the genome corresponding to the id/key.
       :rtype: :datamodel:`instance <index-48>`
 
+
+
 .. index:: ! max_stagnation
 .. index:: ! species_elitism
 
@@ -2253,12 +2246,16 @@ Keeps track of whether species are making progress and helps remove ones that ar
   .. py:class:: DefaultStagnation(config, reporters)
 
     Keeps track of whether species are making progress and helps remove ones that, for a
-    :ref:`configurable number of generations <max-stagnation-label>`, are not.
+    :ref:`configurable number of generations <max-stagnation-label>`, are not. Inherits from :py:class:`config.DefaultClassConfig` the required class
+    method :py:meth:`write_config <config.DefaultClassConfig.write_config>`.
 
     :param config: Configuration object; in this implementation, a :py:class:`config.DefaultClassConfig` instance, but should be treated as opaque outside this class.
     :type config: :datamodel:`instance <index-48>`
     :param reporters: A :py:class:`ReporterSet <reporting.ReporterSet>` instance with reporters that may need activating; not currently used.
     :type reporters: :datamodel:`instance <index-48>`
+
+    .. versionchanged:: 0.91-config_work
+      Configuration changed to use DefaultClassConfig, instead of a dictionary, and inherit write_config.
 
     .. py:classmethod:: parse_config(param_dict)
 
@@ -2270,18 +2267,6 @@ Keeps track of whether species are making progress and helps remove ones that ar
       :type param_dict: dict(str, str)
       :return: Stagnation configuration object; considered opaque by rest of code, so current type returned is not required for interface.
       :rtype: DefaultClassConfig :datamodel:`instance <index-48>`
-
-      .. versionchanged:: 0.91-config_work
-        Configuration changed to use DefaultClassConfig instead of a dictionary.
-
-    .. py:classmethod:: write_config(f, config)
-
-      Required interface method. Saves configuration parameters to a new config file, in this implementation via :py:meth:`config.DefaultClassConfig.save`.
-
-      :param f: File object to write to.
-      :type f: :pygloss:`file <file-object>`
-      :param config: Stagnation config object; considered opaque by rest of code, so current type is not required for interface.
-      :type config: :py:class:`config.DefaultClassConfig` :datamodel:`instance <index-48>`
 
       .. versionchanged:: 0.91-config_work
         Configuration changed to use DefaultClassConfig instead of a dictionary.

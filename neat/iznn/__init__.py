@@ -37,7 +37,7 @@ LOW_THRESHOLD_SPIKING_PARAMS  = {'a': 0.02, 'b': 0.25, 'c': -65.0, 'd': 2.00}
 class IZNodeGene(BaseGene):
     """Contains attributes for the iznn node genes and determines genomic distances."""
     
-    __gene_attributes__ = [FloatAttribute('bias'),
+    _gene_attributes = [FloatAttribute('bias'),
                            FloatAttribute('a'),
                            FloatAttribute('b'),
                            FloatAttribute('c'),
