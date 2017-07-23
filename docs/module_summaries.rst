@@ -319,8 +319,8 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
 
     .. py:method:: init_value(config)
 
-      Initializes the attribute's value, either using a configured ``default`` or (if the default is ``None``) with a 50/50 chance of
-      ``True`` or ``False``.
+      Initializes the attribute's value using a configured ``default``. TODO: Enable a random default with a 50/50 chance of ``True`` or ``False``.
+      (A default of `None` will not work, since this will be taken as no default.)
 
       :param config: The configuration object from which the default parameter is to be retrieved.
       :type config: :datamodel:`instance <index-48>`
@@ -360,7 +360,7 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
 
     .. py:method:: init_value(config)
 
-      Initializes the attribute's value, either using a configured ``default`` or (if the default is either ``None`` or ``random``) with a
+      Initializes the attribute's value, either using a configured ``default`` or (if the default is ``random``) with a
       randomly-chosen member of the ``options`` (each having an equal chance). Note: It is possible for the default value, if specifically configured, to
       **not** be one of the options.
 
@@ -662,9 +662,9 @@ distributed
   Distributed evaluation of genomes.
 
   .. todo::
-    Perhaps MODE_SERVER and MODE_CLIENT would be preferable? As well as issues of sensitivity, server/client terms appear
+    Perhaps MODE_PRIMARY and MODE_SECONDARY would be preferable? As well as issues of sensitivity, these terms appear
     more likely to get people to cooperate with borrowing machine time... MODE_MASTER and MODE_SLAVE would be kept in as
-    synonyms, and is_master as a wrapper for is_server (or whatever).
+    synonyms, and is_master as a wrapper for is_primary (or whatever).
 
 
   .. rubric:: About :term:`compute nodes <compute node>`:

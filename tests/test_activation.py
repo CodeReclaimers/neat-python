@@ -16,7 +16,7 @@ def assert_almost_equal(a, b):
         max_abs = max(abs(a), abs(b))
         abs_rel_err = abs(a - b) / max_abs
         if abs_rel_err > 1e-6:
-            raise NotAlmostEqualException("{0:.4f} !~= {1:.4f}".format(a, b))
+            raise NotAlmostEqualException("{0:.6f} !~= {1:.6f}".format(a, b))
 
 
 def test_sigmoid():
@@ -41,6 +41,12 @@ def test_relu():
     assert activations.relu_activation(-1.0) == 0.0
     assert activations.relu_activation(0.0) == 0.0
     assert activations.relu_activation(1.0) == 1.0
+
+
+def test_softplus():
+    assert_almost_equal(activations.softplus_activation(-5.0),0.0)
+    assert 0.0 < activations.softplus_activation(0.0) < 0.25
+    assert_almost_equal(activations.softplus_activation(5.0),5.0)
 
 
 def test_identity():
@@ -184,6 +190,7 @@ if __name__ == '__main__':
     test_sin()
     test_gauss()
     test_relu()
+    test_softplus()
     test_identity()
     test_clamped()
     test_inv()

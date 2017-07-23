@@ -93,8 +93,8 @@ class BoolAttribute(BaseAttribute):
     def init_value(self, config):
         default = getattr(config, self.default_name)
 
-        if default is None:
-            return random() < 0.5
+##        if default is None:
+##            return random() < 0.5
 
         return default
 
@@ -133,7 +133,7 @@ class StringAttribute(BaseAttribute):
     def init_value(self, config):
         default = getattr(config, self.default_name)
 
-        if default in (None, 'random'):
+        if default.lower() == 'random':
             options = getattr(config, self.options_name)
             return choice(options)
 

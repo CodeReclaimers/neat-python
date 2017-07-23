@@ -9,7 +9,7 @@ no_fitness_termination = True
 # node activation options
 activation_default      = random
 activation_mutate_rate  = 0.5
-activation_options      = sigmoid tanh relu
+activation_options      = sigmoid tanh relu softplus
 
 # node aggregation options
 aggregation_default     = random
