@@ -129,7 +129,9 @@ Glossary
   key
     Various of the objects used by the library are indexed by an key (id); for most, this is an :pytypes:`int <typesnumeric>`, which is either
     unique in the library as a whole (as with :term:`species` and :term:`genomes <genome>`), or within a genome (as with :term:`node` :term:`genes <gene>`).
-    For :term:`connection` genes, this is a `tuple` of two :pytypes:`ints <typesnumeric>`, the keys of the connected nodes.
+    For :term:`connection` genes, this is a `tuple` of two :pytypes:`ints <typesnumeric>`, the keys of the connected nodes. For
+    :term:`input nodes <input node>` (or input :term:`pins <pin>`), it is the input's (list or tuple) index plus one, then multiplied by negative one; for
+    :term:`output nodes <output node>`, it is equal to the output's (list or tuple) index.
 
   generation
     This implementation of NEAT uses, like most, multiple semi-separated generations (some genomes may survive multiple generations via
