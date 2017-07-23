@@ -37,7 +37,11 @@ class ConfigParameter(object):
         if list == self.value_type:
             v = config_parser.get(section, self.name)
             return v.split(" ")
-        return config_parser.get(section, self.name)
+        if str == self.value_type:
+            return config_parser.get(section, self.name)
+
+        raise RuntimeError("Unexpected configuration type: "
+                           + repr(self.value_type))
 
     def interpret(self, config_dict):
         """

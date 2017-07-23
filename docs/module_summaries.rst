@@ -319,13 +319,19 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
 
     .. py:method:: init_value(config)
 
-      Initializes the attribute's value using a configured ``default``. TODO: Enable a random default with a 50/50 chance of ``True`` or ``False``.
-      (A default of `None` will not work, since this will be taken as no default.)
+      Initializes the attribute's value, either using a configured ``default``, or (if the default is "random") with a 50/50 chance of `True` or `False`.
+
+      .. deprecated:: 0.91-config_work
+        While it is possible to use "None" as an equivalent to "random", this is too easily confusable with an actual `None`.
+
+      .. versionchanged:: 0.91-config_work
+        Ability to use "random" for a 50/50 chance of `True` or `False` added.
 
       :param config: The configuration object from which the default parameter is to be retrieved.
       :type config: :datamodel:`instance <index-48>`
       :return: The new value.
       :rtype: :pytypes:`bool <typesnumeric>`
+      :raises RuntimeError: If the default value is not recognized as standing for any of `True`, `False`, "random", or "none".
 
     .. index:: ! mutation
     .. index:: mutate_rate
@@ -334,7 +340,7 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
 
     .. py:method:: mutate_value(value, config)
 
-      With a frequency determined by the ``mutate_rate`` (which is more precisely a ``replace_rate``) and ``rate_to_false_add`` or
+      With a frequency determined by the ``mutate_rate`` and ``rate_to_false_add`` or
       ``rate_to_true_add`` configuration parameters, replaces the value with a 50/50 chance of ``True`` or ``False``; note that this has a
       50% chance of leaving the value unchanged.
 
@@ -360,9 +366,12 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
 
     .. py:method:: init_value(config)
 
-      Initializes the attribute's value, either using a configured ``default`` or (if the default is ``random``) with a
+      Initializes the attribute's value, either using a configured ``default`` or (if the default is "random") with a
       randomly-chosen member of the ``options`` (each having an equal chance). Note: It is possible for the default value, if specifically configured, to
       **not** be one of the options.
+
+      .. deprecated:: 0.91-config_work
+        While it is possible to use "None" as an equivalent to "random", this is too easily confusable with an actual `None`.
 
       :param config: The configuration object from which the default and, if necessary, ``options`` parameters are to be retrieved.
       :type config: :datamodel:`instance <index-48>`
@@ -375,7 +384,7 @@ Deals with :term:`attributes` used by :term:`genes <gene>`.
 
     .. py:method:: mutate_value(value, config)
 
-      With a frequency determined by the ``mutate_rate`` (which is more precisely a ``replace_rate``) configuration parameter, replaces
+      With a frequency determined by the ``mutate_rate`` configuration parameter, replaces
       the value with one of the ``options``, with each having an equal chance; note that this can be the same value as before.
       (It is possible to crudely alter the chances of what is chosen by listing a given option more than once, although this is inefficient given the use of the
       `random.choice` function.)
@@ -453,7 +462,7 @@ Does general configuration parsing; used by other classes for their configuratio
     Does initial handling of a particular configuration parameter.
 
     :param str name: The name of the configuration parameter.
-    :param str value_type: The type that the configuration parameter should be; must be one of `str`, :pytypes:`int <typesnumeric>`, :pytypes:`bool <typesnumeric>`, :pytypes:`float <typesnumeric>`, or `list`.
+    :param value_type: The type that the configuration parameter should be; must be one of `str`, :pytypes:`int <typesnumeric>`, :pytypes:`bool <typesnumeric>`, :pytypes:`float <typesnumeric>`, or `list`.
     :param default: If given, the default to use for the configuration parameter.
     :type default: str or None
 

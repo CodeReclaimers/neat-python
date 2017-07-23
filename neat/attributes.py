@@ -85,18 +85,23 @@ class FloatAttribute(BaseAttribute):
 
 class BoolAttribute(BaseAttribute):
     """Class for boolean attributes such as whether a connection is enabled or not."""
-    _config_items = {"default": [bool, None],
+    _config_items = {"default": [str, None],
                      "mutate_rate": [float, None],
                      "rate_to_true_add": [float, 0.0],
                      "rate_to_false_add": [float, 0.0]}
 
     def init_value(self, config):
-        default = getattr(config, self.default_name)
+        default = str(getattr(config, self.default_name)).lower()
 
-##        if default is None:
-##            return random() < 0.5
+        if default in ('1', 'on', 'yes', 'true'):
+            return True
+        elif default in ('0', 'off', 'no', 'false'):
+            return False
+        elif default in ('random', 'none'):
+            return bool(random() < 0.5)
 
-        return default
+        raise RuntimeError("Unknown default value {!r} for {!s}".format(default,
+                                                                        self.name))
 
     def mutate_value(self, value, config):
         mutate_rate = getattr(config, self.mutate_rate_name)
@@ -133,7 +138,7 @@ class StringAttribute(BaseAttribute):
     def init_value(self, config):
         default = getattr(config, self.default_name)
 
-        if default.lower() == 'random':
+        if default.lower() in ('none','random'):
             options = getattr(config, self.options_name)
             return choice(options)
 
