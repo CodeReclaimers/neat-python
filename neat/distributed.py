@@ -63,8 +63,9 @@ except ImportError:
 
 import multiprocessing
 from multiprocessing import managers
-from argparse import Namespace
+from argparse import Namespace # why not from SyncManager?
 
+from ctypes import c_bool
 
 # Some of this code is based on
 # http://eli.thegreenplace.net/2012/01/24/distributed-computing-in-python-with-multiprocessing
@@ -194,6 +195,7 @@ class DistributedEvaluator(object):
         self.manager = None
         self.inqueue = None
         self.outqueue = None
+        self.namespace = None
         self.started = False
 
     def is_primary(self):
@@ -237,8 +239,7 @@ class DistributedEvaluator(object):
             raise ModeError("Not in primary mode!")
         if not self.started:
             raise RuntimeError("Not yet started!")
-        stopevent = self.manager.get_stopevent()
-        stopevent.set()
+        self.namespace._do_stop = True
         time.sleep(wait)
         if shutdown:
             self.manager.shutdown()
@@ -249,7 +250,6 @@ class DistributedEvaluator(object):
         inqueue = queue.Queue()
         outqueue = queue.Queue()
         namespace = Namespace()
-        stop_event = threading.Event()
 
         class _EvaluatorSyncManager(managers.SyncManager):
             """
@@ -271,12 +271,8 @@ class DistributedEvaluator(object):
             "get_namespace",
             callable=lambda: namespace,
             )
-        _EvaluatorSyncManager.register(
-            "get_stopevent",
-            callable=lambda: stop_event,
-            )
 
-        if self.manager:
+        if self.manager: # making sure
             self.manager.shutdown()
 
         self.manager = _EvaluatorSyncManager(
@@ -287,6 +283,10 @@ class DistributedEvaluator(object):
 
         self.inqueue = self.manager.get_inqueue()
         self.outqueue = self.manager.get_outqueue()
+        self.namespace = self.manager.get_namespace()
+
+        self.namespace._do_stop = False
+
 
     def _start_secondary(self):
         """Start as a secondary."""
@@ -302,10 +302,8 @@ class DistributedEvaluator(object):
         _EvaluatorSyncManager.register("get_inqueue")
         _EvaluatorSyncManager.register("get_outqueue")
         _EvaluatorSyncManager.register("get_namespace")
-        _EvaluatorSyncManager.register("get_stopevent")
 
-        if self.manager: # XXX - not sure if this is right - drallensmith
-            self.manager.shutdown()
+        # if already have manager, below should result in it getting garbage-collected
 
         self.manager = _EvaluatorSyncManager(
             address=self.addr,
@@ -317,12 +315,12 @@ class DistributedEvaluator(object):
         """The worker loop for the secondary"""
         inqueue = self.manager.get_inqueue()
         outqueue = self.manager.get_outqueue()
-        stopevent = self.manager.get_stopevent()
+        namespace = self.manager.get_namespace()
         if self.num_workers > 1:
             pool = multiprocessing.Pool(self.num_workers)
         else:
             pool = None
-        while not stopevent.is_set():
+        while not namespace._do_stop:
             try:
                 tasks = inqueue.get(block=True, timeout=0.2)
             except (managers.RemoteError, queue.Empty):
@@ -352,12 +350,11 @@ class DistributedEvaluator(object):
     def evaluate(self, genomes, config):
         """
         Evaluates the genomes.
-        This method raises a RoleError when this
+        This method raises a ModeError when this
         DistributedEvaluator is not in primary mode.
         """
         if self.mode != MODE_PRIMARY:
             raise ModeError("Not in primary mode!")
-        stopevent = self.manager.get_stopevent()
         tasks = [(genome_id, genome, config) for genome_id, genome in genomes]
         id2genome = {genome_id: genome for genome_id, genome in genomes}
         tasks = chunked(tasks, self.secondary_chunksize)
@@ -369,8 +366,8 @@ class DistributedEvaluator(object):
             try:
                 sr = self.outqueue.get(block=True, timeout=0.2)
             except (queue.Empty, managers.RemoteError):
-                if stopevent.is_set():
-                    raise SystemExit("Received stop event.")
+                if self.namespace._do_stop:
+                    raise SystemExit("Received stop.")
                 continue
             tresults.append(sr)
         results = []
