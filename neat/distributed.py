@@ -195,8 +195,10 @@ class DistributedEvaluator(object):
         self.manager = None
         self.inqueue = None
         self.outqueue = None
+        self.eventqueue = None
         self.namespace = None
         self.started = False
+        self.do_stop = None
 
     def is_primary(self):
         """Returns True if the caller is the primary node"""
@@ -228,6 +230,9 @@ class DistributedEvaluator(object):
             time.sleep(secondary_wait)
             self._start_secondary()
             self._secondary_loop()
+##            print("Finished secondary loop; self.do_stop is {0!r} ({1!r})".format(self.do_stop,
+##                                                                                  self.do_stop.__dict__))
+##            sys.stdout.flush()
             if exit_on_stop:
                 sys.exit(0)
         else:
@@ -239,9 +244,13 @@ class DistributedEvaluator(object):
             raise ModeError("Not in primary mode!")
         if not self.started:
             raise RuntimeError("Not yet started!")
-        self.namespace._do_stop = True
+##        print("Setting do_stop to True")
+##        sys.stdout.flush()
+        self.do_stop = True
         time.sleep(wait)
         if shutdown:
+##            print("Shutting down manager")
+##            sys.stdout.flush()
             self.manager.shutdown()
         self.started = False
 
@@ -249,6 +258,7 @@ class DistributedEvaluator(object):
         """Start as the primary"""
         inqueue = queue.Queue()
         outqueue = queue.Queue()
+        eventqueue = queue.Queue()
         namespace = Namespace()
 
         class _EvaluatorSyncManager(managers.SyncManager):
@@ -268,6 +278,10 @@ class DistributedEvaluator(object):
             callable=lambda: outqueue,
             )
         _EvaluatorSyncManager.register(
+            "get_eventqueue",
+            callable=lambda: eventqueue,
+            )
+        _EvaluatorSyncManager.register(
             "get_namespace",
             callable=lambda: namespace,
             )
@@ -283,9 +297,15 @@ class DistributedEvaluator(object):
 
         self.inqueue = self.manager.get_inqueue()
         self.outqueue = self.manager.get_outqueue()
+        self.eventqueue = self.manager.get_eventqueue()
         self.namespace = self.manager.get_namespace()
 
-        self.namespace._do_stop = False
+        self.do_stop = self.manager.Value(c_bool, False)
+##        print("Putting do_stop on eventqueue")
+##        sys.stdout.flush()
+        eventqueue.put(self.do_stop)
+##        print("Put do_stop on eventqueue")
+##        sys.stdout.flush()
 
 
     def _start_secondary(self):
@@ -301,6 +321,7 @@ class DistributedEvaluator(object):
 
         _EvaluatorSyncManager.register("get_inqueue")
         _EvaluatorSyncManager.register("get_outqueue")
+        _EvaluatorSyncManager.register("get_eventqueue")
         _EvaluatorSyncManager.register("get_namespace")
 
         # if already have manager, below should result in it getting garbage-collected
@@ -311,16 +332,34 @@ class DistributedEvaluator(object):
             )
         self.manager.connect()
 
+        eventqueue = self.manager.get_eventqueue()
+        while self.do_stop is None:
+            try:
+                self.do_stop = eventqueue.get(block=True,timeout=0.2)
+            except (managers.RemoteError, queue.Empty):
+##                print("Blocked on eventqueue")
+##                sys.stdout.flush()
+                continue
+##        print("Putting do_stop back on eventqueue")
+##        sys.stdout.flush()
+        eventqueue.put(self.do_stop) # for others to have a copy
+##        print("Put do_stop back on eventqueue")
+##        sys.stdout.flush()
+##        print("Secondary: self.do_stop is {!r} ({!r}".format(self.do_stop,
+##                                                             self.do_stop.__dict__))
+        sys.stdout.flush()
+
     def _secondary_loop(self):
         """The worker loop for the secondary"""
         inqueue = self.manager.get_inqueue()
         outqueue = self.manager.get_outqueue()
         namespace = self.manager.get_namespace()
+
         if self.num_workers > 1:
             pool = multiprocessing.Pool(self.num_workers)
         else:
             pool = None
-        while not namespace._do_stop:
+        while not self.do_stop._value:
             try:
                 tasks = inqueue.get(block=True, timeout=0.2)
             except (managers.RemoteError, queue.Empty):
@@ -362,12 +401,21 @@ class DistributedEvaluator(object):
         for task in tasks:
             self.inqueue.put(task)
         tresults = []
+##        print("Self.do_stop is {0!r} ({1!r})".format(self.do_stop,
+##                                                     self.do_stop.__dict__))
+##        sys.stdout.flush()
         while len(tresults) < n_tasks:
             try:
                 sr = self.outqueue.get(block=True, timeout=0.2)
             except (queue.Empty, managers.RemoteError):
-                if self.namespace._do_stop:
+                if hasattr(self.do_stop, '_value') and getattr(self.do_stop, '_value'):
                     raise SystemExit("Received stop.")
+                elif self.eventqueue.empty():
+##                    print("Putting do_stop on eventqueue again")
+##                    sys.stdout.flush()
+                    self.eventqueue.put(self.do_stop)
+##                    print("Put do_stop on eventqueue again")
+##                    sys.stdout.flush()
                 continue
             tresults.append(sr)
         results = []
@@ -376,3 +424,5 @@ class DistributedEvaluator(object):
         for genome_id, fitness in results:
             genome = id2genome[genome_id]
             genome.fitness = fitness
+##        print("Finished with de.evaluate")
+##        sys.stdout.flush()

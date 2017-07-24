@@ -188,7 +188,7 @@ def test_DistributedEvaluator_primary_restrictions():
         raise Exception("A DistributedEvaluator in secondary mode could call evaluate()!")
 
 
-def test_distributed_evaluation_multiprocessing():
+def test_distributed_evaluation_multiprocessing(do_mwcp=True):
     """
     Full test run using the Distributed Evaluator.
     Note that this is not a very good test for the
@@ -205,28 +205,52 @@ def test_distributed_evaluation_multiprocessing():
         args=(addr, authkey, 19), # 19 because stagnation is at 20
         )
     mp.start()
-    mwcp = multiprocessing.Process(
-        name="Child evaluation process (multiple workers)",
-        target=run_secondary,
-        args=(addr, authkey, 2),
-        )
+    if do_mwcp:
+        mwcp = multiprocessing.Process(
+            name="Child evaluation process (multiple workers)",
+            target=run_secondary,
+            args=(addr, authkey, 2),
+            )
     swcp = multiprocessing.Process(
         name="Child evaluation process (direct evaluation)",
         target=run_secondary,
         args=(addr, authkey, 1),
         )
     swcp.daemon = True  # we cannot set this on mwcp
-    mwcp.start()
+    if do_mwcp:
+        mwcp.start()
     swcp.start()
-    mp.join()
-    mwcp.join()
-    swcp.join()
-    if mp.exitcode != 0:
-        raise Exception("Primary-process exited with status {s}!".format(s=mp.exitcode))
-    if mwcp.exitcode != 0:
-        raise Exception("Multiworker-secondary-process exited with status {s}!".format(s=mwcp.exitcode))
-    if swcp.exitcode != 0:
-        raise Exception("Singleworker-secondary-process exited with status {s}!".format(s=swcp.exitcode))
+    try:
+        print("Joining primary process")
+        sys.stdout.flush()
+        mp.join()
+        if mp.exitcode != 0:
+            raise Exception("Primary-process exited with status {s}!".format(s=mp.exitcode))
+        if do_mwcp:
+            print("Joining multiworker-secondary process")
+            sys.stdout.flush()
+            mwcp.join()
+            if mwcp.exitcode != 0:
+                raise Exception("Multiworker-secondary-process exited with status {s}!".format(s=mwcp.exitcode))
+        if swcp.is_alive():
+            print("Joining singleworker-secondary process")
+            sys.stdout.flush()
+            swcp.join()
+            if swcp.exitcode != 0:
+                raise Exception("Singleworker-secondary-process exited with status {s}!".format(s=swcp.exitcode))
+        else:
+            print("swcp is not 'alive'")
+            sys.stdout.flush()
+            if swcp.exitcode != 0:
+                raise Exception("Singleworker-secondary-process exited with status {s}!".format(s=swcp.exitcode))
+            
+    finally:
+        if mp.is_alive():
+            mp.terminate()
+        if do_mwcp and mwcp.is_alive():
+            mwcp.terminate()
+        if swcp.is_alive():
+            swcp.terminate()
 
 
 def test_distributed_evaluation_threaded():
@@ -300,9 +324,17 @@ def run_primary(addr, authkey, generations):
         eval_function=eval_dummy_genome_nn,
         mode=MODE_PRIMARY,
         )
+    print("Starting DistributedEvaluator")
+    sys.stdout.flush()
     de.start()
+    print("Running evaluate")
+    sys.stdout.flush()
     p.run(de.evaluate, generations)
+    print("Evaluated")
+    sys.stdout.flush()
     de.stop(wait=3)
+    print("Did de.stop")
+    sys.stdout.flush()
 
     stats.save()
 
@@ -344,6 +376,6 @@ if __name__ == '__main__':
     test_host_is_local()
     test_DistributedEvaluator_mode()
     test_DistributedEvaluator_primary_restrictions()
-    test_distributed_evaluation_multiprocessing()
+    test_distributed_evaluation_multiprocessing(do_mwcp=False)
     if HAVE_THREADING:
         test_distributed_evaluation_threaded()
