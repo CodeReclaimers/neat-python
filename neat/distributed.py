@@ -400,7 +400,7 @@ class DistributedEvaluator(object):
                 if ('Empty' in repr(e)) or ('TimeoutError' in repr(e)):
                     continue
                 if (('EOFError' in repr(e)) or ('PipeError' in repr(e)) or
-                    ('AuthenticationError' in repr(e)): # Second for Python 3.X, Third for 3.6+
+                    ('AuthenticationError' in repr(e))): # Second for Python 3.X, Third for 3.6+
                     self.saw_EOFError = True
                     break
                 raise
