@@ -227,22 +227,20 @@ def test_distributed_evaluation_multiprocessing(do_mwcp=True):
         if mp.exitcode != 0:
             raise Exception("Primary-process exited with status {s}!".format(s=mp.exitcode))
         if do_mwcp:
+            if not mwcp.is_alive():
+                print("mwcp is not 'alive'")
             print("Joining multiworker-secondary process")
             sys.stdout.flush()
             mwcp.join()
             if mwcp.exitcode != 0:
                 raise Exception("Multiworker-secondary-process exited with status {s}!".format(s=mwcp.exitcode))
-        if swcp.is_alive():
-            print("Joining singleworker-secondary process")
-            sys.stdout.flush()
-            swcp.join()
-            if swcp.exitcode != 0:
-                raise Exception("Singleworker-secondary-process exited with status {s}!".format(s=swcp.exitcode))
-        else:
+        if not swcp.is_alive():
             print("swcp is not 'alive'")
-            sys.stdout.flush()
-            if swcp.exitcode != 0:
-                raise Exception("Singleworker-secondary-process exited with status {s}!".format(s=swcp.exitcode))
+        print("Joining singleworker-secondary process")
+        sys.stdout.flush()
+        swcp.join()
+        if swcp.exitcode != 0:
+            raise Exception("Singleworker-secondary-process exited with status {s}!".format(s=swcp.exitcode))
             
     finally:
         if mp.is_alive():
@@ -376,6 +374,6 @@ if __name__ == '__main__':
     test_host_is_local()
     test_DistributedEvaluator_mode()
     test_DistributedEvaluator_primary_restrictions()
-    test_distributed_evaluation_multiprocessing(do_mwcp=False)
+    test_distributed_evaluation_multiprocessing(do_mwcp=True)
     if HAVE_THREADING:
         test_distributed_evaluation_threaded()

@@ -50,10 +50,10 @@ from __future__ import print_function
 
 import socket
 import sys
-import threading
 import time
 import warnings
 
+# below still needed for queue.Empty
 try:
     # pylint: disable=import-error
     import Queue as queue
@@ -62,7 +62,7 @@ except ImportError:
     import queue
 
 import multiprocessing
-from multiprocessing import managers
+from multiprocessing import managers, Queue
 from argparse import Namespace # why not from SyncManager?
 
 from ctypes import c_bool
@@ -199,6 +199,7 @@ class DistributedEvaluator(object):
         self.namespace = None
         self.started = False
         self.do_stop = None
+        self.saw_EOFError = False
 
     def is_primary(self):
         """Returns True if the caller is the primary node"""
@@ -251,14 +252,23 @@ class DistributedEvaluator(object):
         if shutdown:
 ##            print("Shutting down manager")
 ##            sys.stdout.flush()
+##            if self.inqueue:
+##                self.inqueue.close()
+##            if self.outqueue:
+##                self.outqueue.close()
+##            if self.eventqueue:
+##                self.eventqueue.close()
             self.manager.shutdown()
         self.started = False
+        self.saw_EOFError = False
+        if multiprocessing.active_children() == 0:
+            self.do_stop = None
 
     def _start_primary(self):
         """Start as the primary"""
-        inqueue = queue.Queue()
-        outqueue = queue.Queue()
-        eventqueue = queue.Queue()
+        inqueue = Queue()
+        outqueue = Queue()
+        eventqueue = Queue()
         namespace = Namespace()
 
         class _EvaluatorSyncManager(managers.SyncManager):
@@ -286,7 +296,13 @@ class DistributedEvaluator(object):
             callable=lambda: namespace,
             )
 
-        if self.manager: # making sure
+        if self.manager: # making sure does properly
+##            if self.inqueue:
+##                self.inqueue.close()
+##            if self.outqueue:
+##                self.outqueue.close()
+##            if self.eventqueue:
+##                self.eventqueue.close()
             self.manager.shutdown()
 
         self.manager = _EvaluatorSyncManager(
@@ -332,25 +348,34 @@ class DistributedEvaluator(object):
             )
         self.manager.connect()
 
+        self.saw_EOFError = False
+
         eventqueue = self.manager.get_eventqueue()
-        while self.do_stop is None:
+        while (self.do_stop is None) and not self.saw_EOFError:
             try:
                 self.do_stop = eventqueue.get(block=True,timeout=0.2)
-            except (managers.RemoteError, queue.Empty):
-##                print("Blocked on eventqueue")
+            except queue.Empty:
+##                print("Blocked on eventqueue with queue.Empty")
 ##                sys.stdout.flush()
                 continue
-##        print("Putting do_stop back on eventqueue")
-##        sys.stdout.flush()
-        eventqueue.put(self.do_stop) # for others to have a copy
-##        print("Put do_stop back on eventqueue")
-##        sys.stdout.flush()
-##        print("Secondary: self.do_stop is {!r} ({!r}".format(self.do_stop,
-##                                                             self.do_stop.__dict__))
-        sys.stdout.flush()
+            except (EOFError, IOError):
+                self.saw_EOFError = True
+                break
+            except manager.RemoteError as e:
+                if ('Empty' in repr(e)) or ('TimeoutError' in repr(e)):
+##                    print("Blocked on eventqueue with {!r}".format(e))
+##                    sys.stdout.flush()
+                    continue
+                if ('EOFError' in repr(e)) or ('PipeError' in repr(e)): # Latter for Python 3.X
+                    self.saw_EOFError = True
+                    break
+                raise
 
     def _secondary_loop(self):
         """The worker loop for the secondary"""
+        if self.saw_EOFError:
+            return
+
         inqueue = self.manager.get_inqueue()
         outqueue = self.manager.get_outqueue()
         namespace = self.manager.get_namespace()
@@ -359,11 +384,21 @@ class DistributedEvaluator(object):
             pool = multiprocessing.Pool(self.num_workers)
         else:
             pool = None
-        while not self.do_stop._value:
+        while not (self.do_stop._value or self.saw_EOFError):
             try:
                 tasks = inqueue.get(block=True, timeout=0.2)
-            except (managers.RemoteError, queue.Empty):
+            except queue.Empty:
                 continue
+            except (EOFError, IOError):
+                self.saw_EOFError = True
+                break
+            except managers.RemoteError as e:
+                if ('Empty' in repr(e)) or ('TimeoutError' in repr(e)):
+                    continue
+                if ('EOFError' in repr(e)) or ('PipeError' in repr(e)): # Latter for Python 3.X
+                    self.saw_EOFError = True
+                    break
+                raise
             if pool is None:
                 res = []
                 for genome_id, genome, config in tasks:
