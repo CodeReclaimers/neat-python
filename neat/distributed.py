@@ -226,6 +226,8 @@ class DistributedEvaluator(object):
             raise RuntimeError("DistributedEvaluator already started!")
         self.started = True
         if self.mode == MODE_PRIMARY:
+            if self.do_stop:
+                self.do_stop = None
             self._start_primary()
         elif self.mode == MODE_SECONDARY:
             time.sleep(secondary_wait)
@@ -236,6 +238,8 @@ class DistributedEvaluator(object):
 ##            sys.stdout.flush()
             if exit_on_stop:
                 sys.exit(0)
+            self.saw_EOFError = False
+            self.do_stop = None
         else:
             raise ValueError("Invalid mode {!r}!".format(self.mode))
 
@@ -260,7 +264,6 @@ class DistributedEvaluator(object):
 ##                self.eventqueue.close()
             self.manager.shutdown()
         self.started = False
-        self.saw_EOFError = False
         if multiprocessing.active_children() == 0:
             self.do_stop = None
 
@@ -361,7 +364,7 @@ class DistributedEvaluator(object):
             except (EOFError, IOError):
                 self.saw_EOFError = True
                 break
-            except manager.RemoteError as e:
+            except managers.RemoteError as e:
                 if ('Empty' in repr(e)) or ('TimeoutError' in repr(e)):
 ##                    print("Blocked on eventqueue with {!r}".format(e))
 ##                    sys.stdout.flush()
