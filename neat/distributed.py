@@ -364,7 +364,7 @@ class DistributedEvaluator(object):
             except (EOFError, IOError):
                 self.saw_EOFError = True
                 break
-            except managers.RemoteError as e:
+            except (managers.RemoteError, multiprocessing.ProcessError) as e:
                 if ('Empty' in repr(e)) or ('TimeoutError' in repr(e)):
 ##                    print("Blocked on eventqueue with {!r}".format(e))
 ##                    sys.stdout.flush()
@@ -396,7 +396,7 @@ class DistributedEvaluator(object):
             except (EOFError, IOError):
                 self.saw_EOFError = True
                 break
-            except managers.RemoteError as e:
+            except (managers.RemoteError, multiprocessing.ProcessError) as e:
                 if ('Empty' in repr(e)) or ('TimeoutError' in repr(e)):
                     continue
                 if (('EOFError' in repr(e)) or ('PipeError' in repr(e)) or
