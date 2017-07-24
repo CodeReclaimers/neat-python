@@ -369,7 +369,8 @@ class DistributedEvaluator(object):
 ##                    print("Blocked on eventqueue with {!r}".format(e))
 ##                    sys.stdout.flush()
                     continue
-                if ('EOFError' in repr(e)) or ('PipeError' in repr(e)): # Latter for Python 3.X
+                if (('EOFError' in repr(e)) or ('PipeError' in repr(e)) or
+                    ('AuthenticationError' in repr(e))): # Second for Python 3.X, Third for Python 3.6+
                     self.saw_EOFError = True
                     break
                 raise
@@ -398,7 +399,8 @@ class DistributedEvaluator(object):
             except managers.RemoteError as e:
                 if ('Empty' in repr(e)) or ('TimeoutError' in repr(e)):
                     continue
-                if ('EOFError' in repr(e)) or ('PipeError' in repr(e)): # Latter for Python 3.X
+                if (('EOFError' in repr(e)) or ('PipeError' in repr(e)) or
+                    ('AuthenticationError' in repr(e)): # Second for Python 3.X, Third for 3.6+
                     self.saw_EOFError = True
                     break
                 raise
