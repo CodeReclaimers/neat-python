@@ -71,11 +71,11 @@ def run(config_file, addr, authkey, mode, workers):
         addr,  # connect to addr
         authkey,  # use authkey to authenticate
         eval_genome,  # use eval_genome() to evaluate a genome
-        slave_chunksize=4,  # send 4 genomes at once
-        num_workers=workers,  # when in slave mode, use this many workers
-        worker_timeout=10,  # when in slave mode and workers > 1,
+        secondary_chunksize=4,  # send 4 genomes at once
+        num_workers=workers,  # when in secondary mode, use this many workers
+        worker_timeout=10,  # when in secondary mode and workers > 1,
                             # wait at most 10 seconds for the result
-        mode=mode,  # wether this is the master or a slave node
+        mode=mode,  # wether this is the primary or a secondary node
                     # in most case you can simply pass
                     # 'neat.distributed.MODE_AUTO' as the mode.
                     # This causes the DistributedEvaluator to
@@ -85,12 +85,12 @@ def run(config_file, addr, authkey, mode, workers):
 
     # start the DistributedEvaluator
     de.start(
-        exit_on_stop=True,  # if this is a slave node, call sys.exit(0) when
+        exit_on_stop=True,  # if this is a secondary node, call sys.exit(0) when
                             # when finished. All code after this line will only
-                            # be executed by the master node.
-        slave_wait=3,  # when a slave, sleep this many seconds before continuing
-                       # this is useful when the master node may need more time
-                       # to start than the slave nodes.
+                            # be executed by the primary node.
+        secondary_wait=3,  # when a secondary, sleep this many seconds before continuing
+                       # this is useful when the primary node may need more time
+                       # to start than the secondary nodes.
         )
 
     # Run for up to 500 generations.
@@ -157,11 +157,11 @@ if __name__ == '__main__':
         dest="authkey",
         )
     parser.add_argument(
-        "--force-slave",
+        "--force-secondary","--force-slave",
         action="store_const",
-        const=neat.distributed.MODE_SLAVE,
+        const=neat.distributed.MODE_SECONDARY,
         default=neat.distributed.MODE_AUTO,
-        help="Force slave mode (useful for debugging)",
+        help="Force secondary mode (useful for debugging)",
         dest="mode",
         )
     ns = parser.parse_args()
@@ -172,7 +172,7 @@ if __name__ == '__main__':
     authkey = ns.authkey
     mode = ns.mode
 
-    if host in ("0.0.0.0", "localhost", ""):
+    if (host in ("0.0.0.0", "localhost", "") and (mode == neat.distributed.MODE_AUTO):
         # print an error message
         # we are using auto-mode determination in this example,
         # which does not work well with '0.0.0.0' or 'localhost'.

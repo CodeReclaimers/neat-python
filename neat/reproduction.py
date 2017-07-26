@@ -1,46 +1,38 @@
+"""
+Handles creation of genomes, either from scratch or by sexual or
+asexual reproduction from parents.
+"""
 from __future__ import division
 
 import math
 import random
 
+from neat.config import ConfigParameter, DefaultClassConfig
 from neat.indexer import Indexer
 from neat.math_util import mean
 from neat.six_util import iteritems, itervalues
 
 # TODO: Provide some sort of optional cross-species performance criteria, which
-# are then used to control stagnation and possibly the mutation rate configuration.
-# This scheme should be adaptive so that species do not evolve to become "cautious"
-# and only make very slow progress.
+# are then used to control stagnation and possibly the mutation rate
+# configuration. This scheme should be adaptive so that species do not evolve
+# to become "cautious" and only make very slow progress.
 
-
-class DefaultReproduction(object):
+class DefaultReproduction(DefaultClassConfig):
     """
-    Handles creation of genomes, either from scratch or by sexual or asexual
-    reproduction from parents. Implements the default NEAT-python reproduction
-    scheme: explicit fitness sharing with fixed-time species stagnation.
+    Implements the default NEAT-python reproduction scheme:
+    explicit fitness sharing with fixed-time species stagnation.
     """
 
-    # TODO: Create a separate configuration class instead of using a dict (for consistency with other types).
     @classmethod
     def parse_config(cls, param_dict):
-        config = {'elitism': 0,
-                  'survival_threshold': 0.2,
-                  'min_species_size': 2}
-        config.update(param_dict)
-
-        return config
-
-    @classmethod
-    def write_config(cls, f, param_dict):
-        elitism = param_dict['elitism']
-        f.write('elitism            = {}\n'.format(elitism))
-        survival_threshold = param_dict['survival_threshold']
-        f.write('survival_threshold = {}\n'.format(survival_threshold))
+        return DefaultClassConfig(param_dict,
+                                  [ConfigParameter('elitism', int, 0),
+                                   ConfigParameter('survival_threshold', float, 0.2),
+                                   ConfigParameter('min_species_size', int, 2)])
 
     def __init__(self, config, reporters, stagnation):
-        self.elitism = int(config.get('elitism'))
-        self.survival_threshold = float(config.get('survival_threshold'))
-
+        # pylint: disable=super-init-not-called
+        self.reproduction_config = config
         self.reporters = reporters
         self.genome_indexer = Indexer(1)
         self.stagnation = stagnation
@@ -59,6 +51,7 @@ class DefaultReproduction(object):
 
     @staticmethod
     def compute_spawn(adjusted_fitness, previous_sizes, pop_size, min_species_size):
+        """Compute the proper number of offspring per species (proportional to fitness)."""
         af_sum = sum(adjusted_fitness)
 
         spawn_amounts = []
@@ -89,6 +82,10 @@ class DefaultReproduction(object):
         return spawn_amounts
 
     def reproduce(self, config, species, pop_size, generation):
+        """
+        Handles creation of genomes, either from scratch or by sexual or
+        asexual reproduction from parents.
+        """
         # TODO: I don't like this modification of the species and stagnation objects,
         # because it requires internal knowledge of the objects.
 
@@ -129,7 +126,7 @@ class DefaultReproduction(object):
 
         # Compute the number of new memebers for each species in the new generation.
         previous_sizes = [len(s.members) for s in remaining_species]
-        min_species_size = float(config.reproduction_config['min_species_size'])
+        min_species_size = self.reproduction_config.min_species_size
         spawn_amounts = self.compute_spawn(adjusted_fitnesses, previous_sizes,
                                            pop_size, min_species_size)
 
@@ -137,7 +134,7 @@ class DefaultReproduction(object):
         species.species = {}
         for spawn, s in zip(spawn_amounts, remaining_species):
             # If elitism is enabled, each species always at least gets to retain its elites.
-            spawn = max(spawn, self.elitism)
+            spawn = max(spawn, self.reproduction_config.elitism)
 
             assert spawn > 0
 
@@ -150,8 +147,8 @@ class DefaultReproduction(object):
             old_members.sort(reverse=True, key=lambda x: x[1].fitness)
 
             # Transfer elites to new generation.
-            if self.elitism > 0:
-                for i, m in old_members[:self.elitism]:
+            if self.reproduction_config.elitism > 0:
+                for i, m in old_members[:self.reproduction_config.elitism]:
                     new_population[i] = m
                     spawn -= 1
 
@@ -159,7 +156,8 @@ class DefaultReproduction(object):
                 continue
 
             # Only use the survival threshold fraction to use as parents for the next generation.
-            repro_cutoff = int(math.ceil(self.survival_threshold * len(old_members)))
+            repro_cutoff = int(math.ceil(self.reproduction_config.survival_threshold *
+                                         len(old_members)))
             # Use at least two parents no matter what the threshold fraction result is.
             repro_cutoff = max(repro_cutoff, 2)
             old_members = old_members[:repro_cutoff]

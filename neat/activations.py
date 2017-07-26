@@ -1,6 +1,11 @@
+"""
+Has the built-in activation functions,
+code for using them,
+and code for adding new user-defined ones
+"""
 from __future__ import division
-import inspect
 import math
+import types
 
 
 def sigmoid_activation(z):
@@ -41,10 +46,12 @@ def clamped_activation(z):
 
 
 def inv_activation(z):
-    if z == 0:
+    try:
+        z = 1.0 / z
+    except ArithmeticError: # handle overflows
         return 0.0
-
-    return 1.0 / z
+    else:
+        return z
 
 
 def log_activation(z):
@@ -73,20 +80,26 @@ def cube_activation(z):
     return z ** 3
 
 
-class InvalidActivationFunction(Exception):
+class InvalidActivationFunction(TypeError):
     pass
 
 
 def validate_activation(function):
-    if not inspect.isfunction(function):
+    if not isinstance(function,
+                      (types.BuiltinFunctionType,
+                       types.FunctionType,
+                       types.LambdaType)):
         raise InvalidActivationFunction("A function object is required.")
 
-    args = inspect.getargspec(function)
-    if len(args[0]) != 1:
+    if function.__code__.co_argcount != 1: # avoid deprecated use of `inspect`
         raise InvalidActivationFunction("A single-argument function is required.")
 
 
 class ActivationFunctionSet(object):
+    """
+    Contains the list of current valid activation functions,
+    including methods for adding and getting them.
+    """
     def __init__(self):
         self.functions = {}
         self.add('sigmoid', sigmoid_activation)

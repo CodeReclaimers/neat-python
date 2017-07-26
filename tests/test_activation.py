@@ -1,3 +1,6 @@
+import os
+
+import neat
 from neat import activations
 
 
@@ -13,7 +16,7 @@ def assert_almost_equal(a, b):
         max_abs = max(abs(a), abs(b))
         abs_rel_err = abs(a - b) / max_abs
         if abs_rel_err > 1e-6:
-            raise NotAlmostEqualException("{0:.4f} !~= {1:.4f}".format(a, b))
+            raise NotAlmostEqualException("{0:.6f} !~= {1:.6f}".format(a, b))
 
 
 def test_sigmoid():
@@ -38,6 +41,12 @@ def test_relu():
     assert activations.relu_activation(-1.0) == 0.0
     assert activations.relu_activation(0.0) == 0.0
     assert activations.relu_activation(1.0) == 1.0
+
+
+def test_softplus():
+    assert_almost_equal(activations.softplus_activation(-5.0),0.0)
+    assert 0.0 < activations.softplus_activation(0.0) < 0.25
+    assert_almost_equal(activations.softplus_activation(5.0),5.0)
 
 
 def test_identity():
@@ -96,6 +105,22 @@ def test_cube():
     assert activations.cube_activation(0.5) == 0.125
     assert activations.cube_activation(1.0) == 1.0
 
+def plus_activation(x):
+    """ Not useful - just a check. """
+    return abs(x+1)
+
+def test_add_plus():
+    local_dir = os.path.dirname(__file__)
+    config_path = os.path.join(local_dir, 'test_configuration')
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                         config_path)
+    config.genome_config.add_activation('plus', plus_activation)
+    assert config.genome_config.activation_defs.get('plus') is not None
+    assert config.genome_config.activation_defs.is_valid('plus')
+
+def dud_function():
+    return 0.0
 
 def test_function_set():
     s = activations.ActivationFunctionSet()
@@ -131,6 +156,33 @@ def test_function_set():
 
     assert not s.is_valid('foo')
 
+def test_bad_add1():
+    local_dir = os.path.dirname(__file__)
+    config_path = os.path.join(local_dir, 'test_configuration')
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                         config_path)
+    
+    try:
+        config.genome_config.add_activation('1.0',1.0)
+    except TypeError:
+        pass
+    else:
+        raise Exception("Should have had a TypeError/derived for 'function' 1.0")
+
+def test_bad_add2():
+    local_dir = os.path.dirname(__file__)
+    config_path = os.path.join(local_dir, 'test_configuration')
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                         config_path)
+    
+    try:
+        config.genome_config.add_activation('dud_function',dud_function)
+    except TypeError:
+        pass
+    else:
+        raise Exception("Should have had a TypeError/derived for dud_function")
 
 if __name__ == '__main__':
     test_sigmoid()
@@ -138,6 +190,7 @@ if __name__ == '__main__':
     test_sin()
     test_gauss()
     test_relu()
+    test_softplus()
     test_identity()
     test_clamped()
     test_inv()

@@ -3,12 +3,13 @@ fitness_criterion     = max
 fitness_threshold     = 0.9
 pop_size              = 150
 reset_on_extinction   = False
+bad_config_item = True
 
 [DefaultGenome]
 # node activation options
-activation_default      = squanchy
+activation_default      = sigmoid
 activation_mutate_rate  = 0.0
-activation_options      = sigmoid squanchy
+activation_options      = sigmoid
 
 # node aggregation options
 aggregation_default     = sum
@@ -72,8 +73,9 @@ compatibility_threshold = 3.0
 [DefaultStagnation]
 species_fitness_func = max
 max_stagnation       = 20
+species_elitism        = 0
 
 [DefaultReproduction]
 elitism            = 2
 survival_threshold = 0.2
-
+min_species_size = 2

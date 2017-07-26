@@ -1,0 +1,7 @@
+.coveralls.yml
+docs/_build/**
+_build/**
+cover
+.coverage
+neat-checkpoint-*
+*.csv

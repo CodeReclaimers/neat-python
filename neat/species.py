@@ -1,3 +1,5 @@
+"""Divides the population into species based on genomic distances."""
+from neat.config import ConfigParameter, DefaultClassConfig
 from neat.indexer import Indexer
 from neat.math_util import mean, stdev
 from neat.six_util import iteritems, iterkeys, itervalues
@@ -44,25 +46,21 @@ class GenomeDistanceCache(object):
 
         return d
 
-
-class DefaultSpeciesSet(object):
+class DefaultSpeciesSet(DefaultClassConfig):
     """ Encapsulates the default speciation scheme. """
 
     def __init__(self, config, reporters):
+        # pylint: disable=super-init-not-called
+        self.species_set_config = config
         self.reporters = reporters
         self.indexer = Indexer(1)
         self.species = {}
         self.genome_to_species = {}
 
-    # TODO: Create a separate configuration class instead of using a dict (for consistency with other types).
     @classmethod
     def parse_config(cls, param_dict):
-        return {'compatibility_threshold': float(param_dict['compatibility_threshold'])}
-
-    @classmethod
-    def write_config(cls, f, param_dict):
-        compatibility_threshold = param_dict['compatibility_threshold']
-        f.write('compatibility_threshold = {}\n'.format(compatibility_threshold))
+        return DefaultClassConfig(param_dict,
+                                  [ConfigParameter('compatibility_threshold', float)])
 
     def speciate(self, config, population, generation):
         """
@@ -74,9 +72,9 @@ class DefaultSpeciesSet(object):
         assumption, you should make sure other necessary parts of the code are updated to reflect
         the new behavior.
         """
-        assert type(population) is dict
+        assert isinstance(population, dict)
 
-        compatibility_threshold = config.species_set_config['compatibility_threshold']
+        compatibility_threshold = self.species_set_config.compatibility_threshold
 
         # Find the best representatives for each existing species.
         unspeciated = set(iterkeys(population))
@@ -91,7 +89,7 @@ class DefaultSpeciesSet(object):
                 candidates.append((d, g))
 
             # The new representative is the genome closest to the current representative.
-            rdist, new_rep = min(candidates, key=lambda x: x[0])
+            ignored_rdist, new_rep = min(candidates, key=lambda x: x[0])
             new_rid = new_rep.key
             new_representatives[sid] = new_rid
             new_members[sid] = [new_rid]
@@ -111,7 +109,7 @@ class DefaultSpeciesSet(object):
                     candidates.append((d, sid))
 
             if candidates:
-                sdist, sid = min(candidates, key=lambda x: x[0])
+                ignored_sdist, sid = min(candidates, key=lambda x: x[0])
                 new_members[sid].append(gid)
             else:
                 # No species is similar enough, create a new species, using
@@ -137,7 +135,8 @@ class DefaultSpeciesSet(object):
 
         gdmean = mean(itervalues(distances.distances))
         gdstdev = stdev(itervalues(distances.distances))
-        self.reporters.info('Mean genetic distance {0:.3f}, standard deviation {1:.3f}'.format(gdmean, gdstdev))
+        self.reporters.info(
+            'Mean genetic distance {0:.3f}, standard deviation {1:.3f}'.format(gdmean, gdstdev))
 
     def get_species_id(self, individual_id):
         return self.genome_to_species[individual_id]

@@ -1,4 +1,4 @@
-'''Commonly used functions not available in the Python2 standard library.'''
+"""Commonly used functions not available in the Python2 standard library."""
 from __future__ import division
 
 from math import sqrt, exp
@@ -14,6 +14,16 @@ def median(values):
     values.sort()
     return values[len(values) // 2]
 
+def median2(values):
+    values = list(values)
+    n = len(values)
+    if n <= 2:
+        return mean(values)
+    values.sort()
+    if (n % 2) == 1:
+        return values[n//2]
+    i = n//2
+    return (values[i - 1] + values[i])/2.0
 
 def variance(values):
     values = list(values)
@@ -36,4 +46,5 @@ def softmax(values):
 
 
 # Lookup table for commonly used {value} -> value functions.
-stat_functions = {'min': min, 'max': max, 'mean': mean, 'median': median}
+stat_functions = {'min': min, 'max': max, 'mean': mean, 'median': median,
+                  'median2': median2}
