@@ -62,10 +62,8 @@ except ImportError:
     import queue
 
 import multiprocessing
-from multiprocessing import managers, Queue
-from argparse import Namespace # why not from SyncManager?
-
-from ctypes import c_bool
+from multiprocessing import managers
+from argparse import Namespace
 
 # Some of this code is based on
 # http://eli.thegreenplace.net/2012/01/24/distributed-computing-in-python-with-multiprocessing
@@ -79,10 +77,9 @@ from ctypes import c_bool
 # the primary handles the evolution of the genomes
 # the secondary handles the evaluation of the genomes
 MODE_AUTO = 0  # auto-determine mode
-MODE_PRIMARY = 1  # enforce primary mode
-MODE_SECONDARY = 2  # enforce secondary mode
-MODE_MASTER = MODE_PRIMARY # backward compatibility
-MODE_SLAVE = MODE_SECONDARY # ditto
+MODE_PRIMARY = MODE_MASTER = 1  # enforce primary mode
+MODE_SECONDARY = MODE_SLAVE = 2  # enforce secondary mode
+
 
 class ModeError(RuntimeError):
     """
@@ -115,6 +112,31 @@ def host_is_local(hostname, port=22): # no port specified, just use the ssh port
     return False
 
 
+def determine_mode(addr, mode):
+    """
+    Returns the mode which should be used.
+    If mode is MODE_AUTO, this is determined by checking if 'addr' points to the
+    local host. If it does, return MODE_PRIMARY, else return MODE_SECONDARY.
+    If mode is either MODE_PRIMARY or MODE_SECONDARY,
+    return the 'mode' argument. Otherwise, a ValueError is raised.
+    """
+    if isinstance(addr, tuple):
+        host = addr[0]
+    elif type(addr) == type(b"binary_string"):
+        host = addr
+    else:
+        raise TypeError("'addr' needs to be a tuple or an bytestring!")
+    if mode == MODE_AUTO:
+        if host_is_local(host):
+            return MODE_PRIMARY
+        else:
+            return MODE_SECONDARY
+    elif mode in (MODE_SECONDARY, MODE_PRIMARY):
+        return mode
+    else:
+        raise ValueError("Invalid mode {!r}!".format(mode))
+
+
 def chunked(data, chunksize):
     """
     Returns a list of chunks containing at most ``chunksize`` elements of data.
@@ -133,6 +155,146 @@ def chunked(data, chunksize):
     if cur:
         res.append(cur)
     return res
+
+
+class ExtendedManager(object):
+    """A class for managing the multiprocessing.managers.SyncManager"""
+    __safe_for_unpickling__ = True  # this may not be safe for unpickling,
+                                    # but this is required by pickle.
+
+    def __init__(self, addr, authkey, mode, start=False):
+        self.addr = addr
+        self.authkey = authkey
+        self.mode = determine_mode(addr, mode)
+        self.manager = None
+        self._secondaries_running = multiprocessing.managers.Value(bool, True)
+        if start:
+            self.start()
+
+    def __reduce__(self):
+        """
+        This method is used by pickle to serialize instances of this class.
+        """
+        return (
+            self.__class__,
+            (self.addr, self.authkey, self.mode, True),
+            )
+
+    def start(self):
+        """starts or connects to the manager"""
+        if self.mode == MODE_PRIMARY:
+            i = self._start()
+        else:
+            i = self._connect()
+        self.manager = i
+
+    def stop(self):
+        """stops the manager"""
+        print("--> manager.shutdown() <--")
+        self.manager.shutdown()
+        
+    def set_secondaries_running(self, value):
+        """sets the value for 'secondaries_running'"""
+        # self._secondaries_running.set(value)
+        self.manager.set_running(value)
+        print("new value for _secondaries_running: {v}".format(v=self.secondaries_running))
+
+    def _get_secondaries_running(self):
+        """
+        Returns the value for 'secondaries_running'.
+        This is required for the manager.
+        """
+        print ("_get_secondaries_running() -> {sr}".format(sr=self._secondaries_running))
+        return self._secondaries_running
+
+    def _get_manager_class(self, register_callables=False):
+        """
+        Returns a new 'Manager' subclass with registered methods.
+        If 'register_callable', define the 'callable' arguments.
+        """
+        
+        class _EvaluatorSyncManager(managers.BaseManager):
+            """
+            A custom BaseManager.
+            Please see the documentation of `multiprocessing` for more
+            information.
+            """
+            pass
+
+        inqueue = queue.Queue()
+        outqueue = queue.Queue()
+        namespace = Namespace()
+
+        if register_callables:
+            _EvaluatorSyncManager.register(
+                "get_inqueue",
+                callable=lambda: inqueue,
+                )
+            _EvaluatorSyncManager.register(
+                "get_outqueue",
+                callable=lambda: outqueue,
+                )
+            _EvaluatorSyncManager.register(
+                "is_running",
+                callable=self._get_secondaries_running,
+                )
+            _EvaluatorSyncManager.register(
+                "set_running",
+                callable=lambda v: self._secondaries_running.set(v),
+                )
+            _EvaluatorSyncManager.register(
+                "get_namespace",
+                callable=lambda: namespace,
+                )
+            
+
+        else:
+            _EvaluatorSyncManager.register(
+                "get_inqueue",
+                )
+            _EvaluatorSyncManager.register(
+                "get_outqueue",
+                )
+            _EvaluatorSyncManager.register(
+                "is_running",
+                )
+            _EvaluatorSyncManager.register(
+                "get_namespace",
+                )
+        return _EvaluatorSyncManager
+
+    def _connect(self):
+        """connects to the manager"""
+        cls = self._get_manager_class(register_callables=False)
+        ins = cls(address=self.addr, authkey=self.authkey)
+        ins.connect()
+        return ins
+
+    def _start(self):
+        """starts the manager"""
+        cls = self._get_manager_class(register_callables=True)
+        ins = cls(address=self.addr, authkey=self.authkey)
+        ins.start()
+        return ins
+
+    @property
+    def secondaries_running(self):
+        """wether the secondary nodes should still process elements"""
+        v = self.manager.is_running()
+        print("secondaries_running -> {sr}".format(sr=v))
+        return v.get()
+
+    def get_inqueue(self):
+        """returns the inqueue"""
+        return self.manager.get_inqueue()
+
+    def get_outqueue(self):
+        """returns the outqueue"""
+        return self.manager.get_outqueue()
+
+    def get_namespace(self):
+        """returns the namespace"""
+        return self.manager.get_namespace()
 
 
 class DistributedEvaluator(object):
@@ -184,21 +346,12 @@ class DistributedEvaluator(object):
                       file=sys.stderr)
                 self.num_workers = 1
         self.worker_timeout = worker_timeout
-        if mode == MODE_AUTO:
-            if host_is_local(self.addr[0]):
-                mode = MODE_PRIMARY
-            else:
-                mode = MODE_SECONDARY
-        elif mode not in (MODE_SECONDARY, MODE_PRIMARY):
-            raise ValueError("Invalid mode {!r}!".format(mode))
-        self.mode = mode
-        self.manager = None
+        self.mode = determine_mode(self.addr, mode)
+        self.em = ExtendedManager(self.addr, self.authkey, mode=self.mode, start=False)
         self.inqueue = None
         self.outqueue = None
-        self.eventqueue = None
         self.namespace = None
         self.started = False
-        self.do_stop = None
         self.saw_EOFError = False
 
     def is_primary(self):
@@ -210,7 +363,7 @@ class DistributedEvaluator(object):
         warnings.warn("Use is_primary, not is_master", DeprecationWarning)
         return self.is_primary()
 
-    def start(self, exit_on_stop=True, secondary_wait=0):
+    def start(self, exit_on_stop=True, secondary_wait=0, reconnect=False):
         """
         If the DistributedEvaluator is in primary mode, starts the manager
         process and returns. In this case, the ``exit_on_stop`` argument will
@@ -221,25 +374,25 @@ class DistributedEvaluator(object):
         when the connection is lost.
         ``secondary_wait`` specifies the time (in seconds) to sleep before actually
         starting when in secondary mode.
+        If 'reconnect' is True, the secondary nodes will try to reconnect when
+        the connection is lost.
         """
+        if reconnect and exit_on_stop:
+            # we should raise an exception because the arguments are conflicting
+            raise ValueError(
+                "Both 'reconnect' and 'exit_on_stop' have a nonzero value!"
+                )
         if self.started:
             raise RuntimeError("DistributedEvaluator already started!")
         self.started = True
         if self.mode == MODE_PRIMARY:
-            if self.do_stop:
-                self.do_stop = None
             self._start_primary()
         elif self.mode == MODE_SECONDARY:
             time.sleep(secondary_wait)
             self._start_secondary()
-            self._secondary_loop()
-##            print("Finished secondary loop; self.do_stop is {0!r} ({1!r})".format(self.do_stop,
-##                                                                                  self.do_stop.__dict__))
-##            sys.stdout.flush()
+            self._secondary_loop(reconnect=reconnect)
             if exit_on_stop:
                 sys.exit(0)
-            self.saw_EOFError = False
-            self.do_stop = None
         else:
             raise ValueError("Invalid mode {!r}!".format(self.mode))
 
@@ -249,182 +402,95 @@ class DistributedEvaluator(object):
             raise ModeError("Not in primary mode!")
         if not self.started:
             raise RuntimeError("Not yet started!")
-##        print("Setting do_stop to True")
-##        sys.stdout.flush()
-        self.do_stop = True
+        self.em.set_secondaries_running(False)
         time.sleep(wait)
         if shutdown:
-##            print("Shutting down manager")
-##            sys.stdout.flush()
-##            if self.inqueue:
-##                self.inqueue.close()
-##            if self.outqueue:
-##                self.outqueue.close()
-##            if self.eventqueue:
-##                self.eventqueue.close()
-            self.manager.shutdown()
+            self.em.stop()
         self.started = False
-        if multiprocessing.active_children() == 0:
-            self.do_stop = None
+        self.inqeueu = self.outqueue = self.namespace = None
 
     def _start_primary(self):
         """Start as the primary"""
-        inqueue = Queue()
-        outqueue = Queue()
-        eventqueue = Queue()
-        namespace = Namespace()
-
-        class _EvaluatorSyncManager(managers.SyncManager):
-            """
-            A custom SyncManager.
-            Please see the documentation of `multiprocessing` for more
-            information.
-            """
-            pass
-
-        _EvaluatorSyncManager.register(
-            "get_inqueue",
-            callable=lambda: inqueue,
-            )
-        _EvaluatorSyncManager.register(
-            "get_outqueue",
-            callable=lambda: outqueue,
-            )
-        _EvaluatorSyncManager.register(
-            "get_eventqueue",
-            callable=lambda: eventqueue,
-            )
-        _EvaluatorSyncManager.register(
-            "get_namespace",
-            callable=lambda: namespace,
-            )
-
-        if self.manager: # making sure does properly
-##            if self.inqueue:
-##                self.inqueue.close()
-##            if self.outqueue:
-##                self.outqueue.close()
-##            if self.eventqueue:
-##                self.eventqueue.close()
-            self.manager.shutdown()
-
-        self.manager = _EvaluatorSyncManager(
-            address=self.addr,
-            authkey=self.authkey,
-            )
-        self.manager.start()
-
-        self.inqueue = self.manager.get_inqueue()
-        self.outqueue = self.manager.get_outqueue()
-        self.eventqueue = self.manager.get_eventqueue()
-        self.namespace = self.manager.get_namespace()
-
-        self.do_stop = self.manager.Value(c_bool, False)
-##        print("Putting do_stop on eventqueue")
-##        sys.stdout.flush()
-        eventqueue.put(self.do_stop)
-##        print("Put do_stop on eventqueue")
-##        sys.stdout.flush()
-
+        self.em.start()
+        self.em.set_secondaries_running(True)
+        self._set_shared_instances()
 
     def _start_secondary(self):
         """Start as a secondary."""
+        self.em.start()
+        self._set_shared_instances()
 
-        class _EvaluatorSyncManager(managers.SyncManager):
-            """
-            A custom SyncManager.
-            Please see the documentation of `multiprocessing` for more
-            information.
-            """
-            pass
+    def _set_shared_instances(self):
+        """sets the attributes to the shared instances"""
+        self.inqueue = self.em.get_inqueue()
+        self.outqueue = self.em.get_outqueue()
+        self.namespace = self.em.get_namespace()
 
-        _EvaluatorSyncManager.register("get_inqueue")
-        _EvaluatorSyncManager.register("get_outqueue")
-        _EvaluatorSyncManager.register("get_eventqueue")
-        _EvaluatorSyncManager.register("get_namespace")
-
-        # if already have manager, below should result in it getting garbage-collected
-
-        self.manager = _EvaluatorSyncManager(
-            address=self.addr,
-            authkey=self.authkey,
-            )
-        self.manager.connect()
-
-        self.saw_EOFError = False
-
-        eventqueue = self.manager.get_eventqueue()
-        while (self.do_stop is None) and not self.saw_EOFError:
-            try:
-                self.do_stop = eventqueue.get(block=True,timeout=0.2)
-            except queue.Empty:
-##                print("Blocked on eventqueue with queue.Empty")
-##                sys.stdout.flush()
-                continue
-            except (EOFError, IOError):
-                self.saw_EOFError = True
-                break
-            except (managers.RemoteError, multiprocessing.ProcessError) as e:
-                if ('Empty' in repr(e)) or ('TimeoutError' in repr(e)):
-##                    print("Blocked on eventqueue with {!r}".format(e))
-##                    sys.stdout.flush()
-                    continue
-                if (('EOFError' in repr(e)) or ('PipeError' in repr(e)) or
-                    ('AuthenticationError' in repr(e))): # Second for Python 3.X, Third for Python 3.6+
-                    self.saw_EOFError = True
-                    break
-                raise
-
-    def _secondary_loop(self):
+    def _secondary_loop(self, reconnect=False):
         """The worker loop for the secondary"""
-        if self.saw_EOFError:
-            return
-
-        inqueue = self.manager.get_inqueue()
-        outqueue = self.manager.get_outqueue()
-        namespace = self.manager.get_namespace()
-
         if self.num_workers > 1:
             pool = multiprocessing.Pool(self.num_workers)
         else:
             pool = None
-        while not (self.do_stop._value or self.saw_EOFError):
-            try:
-                tasks = inqueue.get(block=True, timeout=0.2)
-            except queue.Empty:
-                continue
-            except (EOFError, IOError):
-                self.saw_EOFError = True
-                break
-            except (managers.RemoteError, multiprocessing.ProcessError) as e:
-                if ('Empty' in repr(e)) or ('TimeoutError' in repr(e)):
+        saw_EOFError = False
+        while True:
+            i = 0
+            running = True
+            while running:
+                i += 1
+                if i % 5 == 0:
+                    # for better performance, only check every 5 cycles
+                    print("checking running status...")
+                    running = self.em.secondaries_running
+                    print("got status: {s} type: {t}".format(s=running, t=type(running)))
+                    if not running:
+                        print("leaving loop...")
+                        continue
+                try:
+                    tasks = self.inqueue.get(block=True, timeout=0.2)
+                except queue.Empty:
                     continue
-                if (('EOFError' in repr(e)) or ('PipeError' in repr(e)) or
-                    ('AuthenticationError' in repr(e))): # Second for Python 3.X, Third for 3.6+
-                    self.saw_EOFError = True
+                except (EOFError, IOError):
+                    saw_EOFError = True
                     break
-                raise
-            if pool is None:
-                res = []
-                for genome_id, genome, config in tasks:
-                    fitness = self.eval_function(genome, config)
-                    res.append((genome_id, fitness))
-                outqueue.put(res)
-            else:
-                genome_ids = []
-                jobs = []
-                for genome_id, genome, config in tasks:
-                    genome_ids.append(genome_id)
-                    jobs.append(
-                        pool.apply_async(
-                            self.eval_function, (genome, config)
+                except (managers.RemoteError, multiprocessing.ProcessError) as e:
+                    if ('Empty' in repr(e)) or ('TimeoutError' in repr(e)):
+                        continue
+                    if (('EOFError' in repr(e)) or ('PipeError' in repr(e)) or
+                        ('AuthenticationError' in repr(e))): # Second for Python 3.X, Third for 3.6+
+                        saw_EOFError = True
+                        break
+                    raise
+                if pool is None:
+                    res = []
+                    for genome_id, genome, config in tasks:
+                        fitness = self.eval_function(genome, config)
+                        res.append((genome_id, fitness))
+                    self.outqueue.put(res)
+                else:
+                    genome_ids = []
+                    jobs = []
+                    for genome_id, genome, config in tasks:
+                        genome_ids.append(genome_id)
+                        jobs.append(
+                            pool.apply_async(
+                                self.eval_function, (genome, config)
+                                )
                             )
-                        )
-                results = [
-                    job.get(timeout=self.worker_timeout) for job in jobs
-                    ]
-                zipped = zip(genome_ids, results)
-                outqueue.put(zipped)
+                    results = [
+                        job.get(timeout=self.worker_timeout) for job in jobs
+                        ]
+                    zipped = zip(genome_ids, results)
+                    self.outqueue.put(zipped)
+            if not reconnect:
+                break
+            if not saw_EOFError:
+                break
+        print("left loop")
+        if pool is not None:
+            print("terminating childs...")
+            pool.terminate()
+        print("exited...")
 
     def evaluate(self, genomes, config):
         """
@@ -434,35 +500,27 @@ class DistributedEvaluator(object):
         """
         if self.mode != MODE_PRIMARY:
             raise ModeError("Not in primary mode!")
+        print("preparing tasks...")
         tasks = [(genome_id, genome, config) for genome_id, genome in genomes]
         id2genome = {genome_id: genome for genome_id, genome in genomes}
         tasks = chunked(tasks, self.secondary_chunksize)
         n_tasks = len(tasks)
+        print("sharing tasks...")
         for task in tasks:
             self.inqueue.put(task)
+        print("shared. waiting for results...")
         tresults = []
-##        print("Self.do_stop is {0!r} ({1!r})".format(self.do_stop,
-##                                                     self.do_stop.__dict__))
-##        sys.stdout.flush()
         while len(tresults) < n_tasks:
             try:
                 sr = self.outqueue.get(block=True, timeout=0.2)
             except (queue.Empty, managers.RemoteError):
-                if hasattr(self.do_stop, '_value') and getattr(self.do_stop, '_value'):
-                    raise SystemExit("Received stop.")
-                elif self.eventqueue.empty():
-##                    print("Putting do_stop on eventqueue again")
-##                    sys.stdout.flush()
-                    self.eventqueue.put(self.do_stop)
-##                    print("Put do_stop on eventqueue again")
-##                    sys.stdout.flush()
                 continue
             tresults.append(sr)
+            print("got results. left : {l}".format(l=n_tasks - len(tresults)))
+        print("got all results. postprocessing...")
         results = []
         for sr in tresults:
             results += sr
         for genome_id, fitness in results:
             genome = id2genome[genome_id]
             genome.fitness = fitness
-##        print("Finished with de.evaluate")
-##        sys.stdout.flush()
