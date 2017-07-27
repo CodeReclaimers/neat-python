@@ -80,6 +80,11 @@ MODE_AUTO = 0  # auto-determine mode
 MODE_PRIMARY = MODE_MASTER = 1  # enforce primary mode
 MODE_SECONDARY = MODE_SLAVE = 2  # enforce secondary mode
 
+# states to determine the shutdown states
+STATE_RUNNING = 0
+STATE_SHUTDOWN = 1
+STATE_FORCED_SHUTDOWN = 2
+
 
 class ModeError(RuntimeError):
     """
@@ -167,7 +172,7 @@ class ExtendedManager(object):
         self.authkey = authkey
         self.mode = determine_mode(addr, mode)
         self.manager = None
-        self._secondaries_running = multiprocessing.managers.Value(bool, True)
+        self._secondary_state= multiprocessing.managers.Value(int, STATE_RUNNING)
         if start:
             self.start()
 
@@ -193,19 +198,18 @@ class ExtendedManager(object):
         print("--> manager.shutdown() <--")
         self.manager.shutdown()
         
-    def set_secondaries_running(self, value):
-        """sets the value for 'secondaries_running'"""
-        # self._secondaries_running.set(value)
-        self.manager.set_running(value)
-        print("new value for _secondaries_running: {v}".format(v=self.secondaries_running))
+    def set_secondary_state(self, value):
+        """sets the value for 'secondary_state'"""
+        self.manager.set_state(value)
+        print("new value for _secondaries_running: {v}".format(v=self.secondary_state))
 
-    def _get_secondaries_running(self):
+    def _get_secondary_state(self):
         """
         Returns the value for 'secondaries_running'.
         This is required for the manager.
         """
-        print ("_get_secondaries_running() -> {sr}".format(sr=self._secondaries_running))
-        return self._secondaries_running
+        print ("_get_secondaries_running() -> {sr}".format(sr=self._secondary_state))
+        return self._secondary_state
 
     def _get_manager_class(self, register_callables=False):
         """
@@ -235,12 +239,12 @@ class ExtendedManager(object):
                 callable=lambda: outqueue,
                 )
             _EvaluatorSyncManager.register(
-                "is_running",
-                callable=self._get_secondaries_running,
+                "get_state",
+                callable=self._get_secondary_state,
                 )
             _EvaluatorSyncManager.register(
-                "set_running",
-                callable=lambda v: self._secondaries_running.set(v),
+                "set_state",
+                callable=lambda v: self._secondary_state.set(v),
                 )
             _EvaluatorSyncManager.register(
                 "get_namespace",
@@ -256,7 +260,10 @@ class ExtendedManager(object):
                 "get_outqueue",
                 )
             _EvaluatorSyncManager.register(
-                "is_running",
+                "get_state",
+                )
+            _EvaluatorSyncManager.register(
+                "set_state",
                 )
             _EvaluatorSyncManager.register(
                 "get_namespace",
@@ -278,10 +285,10 @@ class ExtendedManager(object):
         return ins
 
     @property
-    def secondaries_running(self):
+    def secondary_state(self):
         """wether the secondary nodes should still process elements"""
-        v = self.manager.is_running()
-        print("secondaries_running -> {sr}".format(sr=v))
+        v = self.manager.get_state()
+        print("secondary_state -> {sr}".format(sr=v))
         return v.get()
 
     def get_inqueue(self):
@@ -354,6 +361,16 @@ class DistributedEvaluator(object):
         self.started = False
         self.saw_EOFError = False
 
+    def __getstate__(self):
+        """part of the pickle protocol"""
+        # we do not actuall save any state, but we need __getstate__ to be
+        # called.
+        return True  # return some nonzero value
+
+    def __setstate__(self, state):
+        """called when instances of this class are unpickled."""
+        self._set_shared_instances()
+
     def is_primary(self):
         """Returns True if the caller is the primary node"""
         return (self.mode == MODE_PRIMARY)
@@ -375,13 +392,10 @@ class DistributedEvaluator(object):
         ``secondary_wait`` specifies the time (in seconds) to sleep before actually
         starting when in secondary mode.
         If 'reconnect' is True, the secondary nodes will try to reconnect when
-        the connection is lost.
+        the connection is lost. In this case, sys.exit() will only be called
+        when 'exit_on_stop' is True and the primary node send a forced shutdown
+        command.
         """
-        if reconnect and exit_on_stop:
-            # we should raise an exception because the arguments are conflicting
-            raise ValueError(
-                "Both 'reconnect' and 'exit_on_stop' have a nonzero value!"
-                )
         if self.started:
             raise RuntimeError("DistributedEvaluator already started!")
         self.started = True
@@ -396,13 +410,24 @@ class DistributedEvaluator(object):
         else:
             raise ValueError("Invalid mode {!r}!".format(self.mode))
 
-    def stop(self, wait=1, shutdown=True):
-        """Stops all secondaries."""
+    def stop(self, wait=1, shutdown=True, force_secondary_shutdown=False):
+        """
+        Stops all secondaries.
+        'wait' specifies the time (in seconds) to wait before shutting down the
+        manager or returning.
+        If 'shutdown', shutdown the manager.
+        If 'force_secondary_shutdown', shutdown the secondary nodes even if
+        they are started with 'reconnect=True'.
+        """
         if self.mode != MODE_PRIMARY:
             raise ModeError("Not in primary mode!")
         if not self.started:
             raise RuntimeError("Not yet started!")
-        self.em.set_secondaries_running(False)
+        if force_secondary_shutdown:
+            state = STATE_FORCED_SHUTDOWN
+        else:
+            state = STATE_SHUTDOWN
+        self.em.set_secondary_state(state)
         time.sleep(wait)
         if shutdown:
             self.em.stop()
@@ -412,7 +437,7 @@ class DistributedEvaluator(object):
     def _start_primary(self):
         """Start as the primary"""
         self.em.start()
-        self.em.set_secondaries_running(True)
+        self.em.set_secondary_state(STATE_RUNNING)
         self._set_shared_instances()
 
     def _start_secondary(self):
@@ -426,6 +451,12 @@ class DistributedEvaluator(object):
         self.outqueue = self.em.get_outqueue()
         self.namespace = self.em.get_namespace()
 
+    def _reset_em(self):
+        """resets self.em and the shared instances"""
+        self.em = ExtendedManager(self.addr, self.authkey, mode=self.mode, start=False)
+        self.em.start()
+        self._set_shared_instances()
+
     def _secondary_loop(self, reconnect=False):
         """The worker loop for the secondary"""
         if self.num_workers > 1:
@@ -433,16 +464,36 @@ class DistributedEvaluator(object):
         else:
             pool = None
         saw_EOFError = False
-        while True:
+        should_reconnect = True
+        while should_reconnect:
             i = 0
             running = True
+            try:
+                self._reset_em()
+            except socket.error:
+                continue
             while running:
                 i += 1
                 if i % 5 == 0:
                     # for better performance, only check every 5 cycles
                     print("checking running status...")
-                    running = self.em.secondaries_running
-                    print("got status: {s} type: {t}".format(s=running, t=type(running)))
+                    try:
+                        state = self.em.secondary_state
+                    except EOFError:
+                        if not reconnect:
+                            raise
+                        else:
+                            break
+                    if state == STATE_FORCED_SHUTDOWN:
+                        running = False
+                        should_reconnect = False
+                    elif state == STATE_SHUTDOWN:
+                        running = False
+                    print(
+                        "got status: {s} type: {t} -> running: {r}".format(
+                            s=state, t=type(state), r=running
+                            )
+                        )
                     if not running:
                         print("leaving loop...")
                         continue
@@ -450,7 +501,7 @@ class DistributedEvaluator(object):
                     tasks = self.inqueue.get(block=True, timeout=0.2)
                 except queue.Empty:
                     continue
-                except (EOFError, IOError):
+                except (EOFError, IOError, OSError):
                     saw_EOFError = True
                     break
                 except (managers.RemoteError, multiprocessing.ProcessError) as e:
@@ -466,7 +517,6 @@ class DistributedEvaluator(object):
                     for genome_id, genome, config in tasks:
                         fitness = self.eval_function(genome, config)
                         res.append((genome_id, fitness))
-                    self.outqueue.put(res)
                 else:
                     genome_ids = []
                     jobs = []
@@ -480,12 +530,29 @@ class DistributedEvaluator(object):
                     results = [
                         job.get(timeout=self.worker_timeout) for job in jobs
                         ]
-                    zipped = zip(genome_ids, results)
-                    self.outqueue.put(zipped)
+                    res = zip(genome_ids, results)
+                try:
+                    self.outqueue.put(res)
+                except (EOFError, IOError, OSError):
+                    saw_EOFError = True
+                    break
+                except (managers.RemoteError, multiprocessing.ProcessError) as e:
+                    if ('Empty' in repr(e)) or ('TimeoutError' in repr(e)):
+                        continue
+                    if (('EOFError' in repr(e)) or ('PipeError' in repr(e)) or
+                        ('AuthenticationError' in repr(e))): # Second for Python 3.X, Third for 3.6+
+                        saw_EOFError = True
+                        break
+                    raise
+                
+            # print("should_reconnect: {sr} reconnect: {r}".format(sr=should_reconnect, r=reconnect))
             if not reconnect:
+                should_reconnect = False
+                print("breaking loop...")
                 break
             if not saw_EOFError:
-                break
+                print("saw EOF error.")
+                # break
         print("left loop")
         if pool is not None:
             print("terminating childs...")
