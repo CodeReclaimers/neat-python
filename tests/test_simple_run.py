@@ -552,6 +552,37 @@ def test_run_ctrnn():
     p.remove_reporter(stats)
 
 
+def eval_dummy_genomes_ctrnn_bad(genomes, config):
+    for genome_id, genome in genomes:
+        net = neat.ctrnn.CTRNN.create(genome, config, 0.01)
+        net.advance([0.5,0.5,0.5], 0.01, 0.05)
+        if genome_id <= 150:
+            genome.fitness = 0.0
+        else:
+            net.reset()
+            genome.fitness = 1.0
+
+def test_run_ctrnn_bad():
+    """Make sure ctrnn gives error on bad input."""
+    # Load configuration.
+    local_dir = os.path.dirname(__file__)
+    config_path = os.path.join(local_dir, 'test_configuration')
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                         config_path)
+    config.feed_forward = False
+
+    # Create the population, which is the top-level object for a NEAT run.
+    p = neat.Population(config)
+
+    try:
+        p.run(eval_dummy_genomes_ctrnn_bad, 19)
+    except RuntimeError:
+        pass
+    else:
+        raise Exception("Did not get RuntimeError for bad input to ctrnn")
+
+
 def eval_dummy_genomes_iznn(genomes, config):
     for genome_id, genome in genomes:
         net = neat.iznn.IZNN.create(genome, config)
@@ -562,7 +593,6 @@ def eval_dummy_genomes_iznn(genomes, config):
             genome.fitness = 0.5
         else:
             genome.fitness = 1.0
-
 
 def test_run_iznn():
     """
@@ -600,6 +630,37 @@ def test_run_iznn():
 
     p.remove_reporter(stats)
 
+def eval_dummy_genomes_iznn_bad(genomes, config):
+    for genome_id, genome in genomes:
+        net = neat.iznn.IZNN.create(genome, config)
+        net.set_inputs([0.5,0.5,0.5])
+        if genome_id < 10:
+            net.reset()
+            genome.fitness = 0.0
+        elif genome_id <= 150:
+            genome.fitness = 0.5
+        else:
+            genome.fitness = 1.0
+
+def test_run_iznn_bad():
+    """Make sure iznn gives error on bad input."""
+    # Load configuration.
+    local_dir = os.path.dirname(__file__)
+    config_path = os.path.join(local_dir, 'test_configuration_iznn')
+    config = neat.Config(neat.iznn.IZGenome, neat.DefaultReproduction,
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                         config_path)
+
+    # Create the population, which is the top-level object for a NEAT run.
+    p = neat.Population(config)
+
+    try:
+        p.run(eval_dummy_genomes_iznn_bad, 19)
+    except RuntimeError:
+        pass
+    else:
+        raise Exception("Did not get RuntimeError for bad input to iznn")
+
 if __name__ == '__main__':
     VERBOSE = False
     test_serial()
@@ -617,4 +678,6 @@ if __name__ == '__main__':
     test_run_nn_recurrent()
     test_run_nn_recurrent_bad()
     test_run_ctrnn()
+    test_run_ctrnn_bad()
     test_run_iznn()
+    test_run_iznn_bad()
