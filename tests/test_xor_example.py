@@ -4,25 +4,10 @@ import os
 
 import neat
 
-def test_xor_example_multiparam_relu():
-    test_xor_example(activation_default='multiparam_relu')
-
-def test_xor_example_multiparam_sigmoid_or_relu():
-    test_xor_example(uniform_weights=True,
-                     activation_default='random',
-                     activation_options=['multiparam_sigmoid','relu'])
-
-def test_xor_example_multiparam_aggregation():
-    test_xor_example(uniform_weights=True,
-                     activation_default='multiparam_sigmoid',
-                     aggregation_default='random',
-                     aggregation_options=['sum','max_median_min','maxabs_mean'])
-
 def test_xor_example_uniform_weights():
     test_xor_example(uniform_weights=True)
 
-def test_xor_example(uniform_weights=False, activation_default=None, activation_options=None,
-                     aggregation_default=None, aggregation_options=None):
+def test_xor_example(uniform_weights=False):
     # 2-input XOR inputs and expected outputs.
     xor_inputs = [(0.0, 0.0), (0.0, 1.0), (1.0, 0.0), (1.0, 1.0)]
     xor_outputs = [(0.0,), (1.0,), (1.0,), (0.0,)]
@@ -48,26 +33,6 @@ def test_xor_example(uniform_weights=False, activation_default=None, activation_
 
     if uniform_weights:
         config.genome_config.weight_init_type = 'uniform'
-
-    if activation_default is not None:
-        config.genome_config.activation_default = activation_default
-        if activation_options is None:
-            config.genome_config.activation_options = [activation_default]
-
-    if activation_options is not None:
-        config.genome_config.activation_options = activation_options
-        if len(activation_options) > 1:
-            config.genome_config.activation_mutate_rate = 0.1
-
-    if aggregation_default is not None:
-        config.genome_config.aggregation_default = aggregation_default
-        if aggregation_options is None:
-            config.genome_config.aggregation_options = [aggregation_default]
-
-    if aggregation_options is not None:
-        config.genome_config.aggregation_options = aggregation_options
-        if len(aggregation_options) > 1:
-            config.genome_config.aggregation_mutate_rate = 0.1
 
     # Create the population, which is the top-level object for a NEAT run.
     p = neat.Population(config)
