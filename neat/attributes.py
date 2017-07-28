@@ -79,7 +79,7 @@ class FloatAttribute(BaseAttribute):
 
         return value
 
-    def validate(self, config):
+    def validate(self, config): # pragma: no cover
         pass
 
 
@@ -122,7 +122,7 @@ class BoolAttribute(BaseAttribute):
 
         return value
 
-    def validate(self, config):
+    def validate(self, config): # pragma: no cover
         pass
 
 
@@ -155,5 +155,5 @@ class StringAttribute(BaseAttribute):
 
         return value
 
-    def validate(self, config):
+    def validate(self, config): # pragma: no cover
         pass
