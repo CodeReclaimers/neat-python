@@ -466,7 +466,7 @@ class DistributedEvaluator(object):
             running = True
             try:
                 self._reset_em()
-            except (socket.error, EOFError, IOError, OSError, socket.gaierror):
+            except (socket.error, EOFError, IOError, OSError, socket.gaierror, TypeError):
                 continue
             while running:
                 i += 1
@@ -474,7 +474,7 @@ class DistributedEvaluator(object):
                     # for better performance, only check every 5 cycles
                     try:
                         state = self.em.secondary_state
-                    except (EOFError, IOError, OSError, socket.gaierror):
+                    except (socket.error, EOFError, IOError, OSError, socket.gaierror, TypeError):
                         if not reconnect:
                             raise
                         else:
@@ -490,7 +490,7 @@ class DistributedEvaluator(object):
                     tasks = self.inqueue.get(block=True, timeout=0.2)
                 except queue.Empty:
                     continue
-                except (EOFError, IOError, OSError, socket.gaierror):
+                except (socket.error, EOFError, IOError, OSError, socket.gaierror, TypeError):
                     saw_EOFError = True
                     break
                 except (managers.RemoteError, multiprocessing.ProcessError) as e:
@@ -522,7 +522,7 @@ class DistributedEvaluator(object):
                     res = zip(genome_ids, results)
                 try:
                     self.outqueue.put(res)
-                except (EOFError, IOError, OSError, socket.gaierror):
+                except (socket.error, EOFError, IOError, OSError, socket.gaierror, TypeError):
                     saw_EOFError = True
                     break
                 except (managers.RemoteError, multiprocessing.ProcessError) as e:
