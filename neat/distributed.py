@@ -466,7 +466,7 @@ class DistributedEvaluator(object):
             running = True
             try:
                 self._reset_em()
-            except socket.error:
+            except (socket.error, EOFError, IOError, OSError, socket.gaierror):
                 continue
             while running:
                 i += 1
