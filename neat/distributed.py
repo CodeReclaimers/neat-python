@@ -195,20 +195,17 @@ class ExtendedManager(object):
 
     def stop(self):
         """stops the manager"""
-        print("--> manager.shutdown() <--")
         self.manager.shutdown()
         
     def set_secondary_state(self, value):
         """sets the value for 'secondary_state'"""
         self.manager.set_state(value)
-        print("new value for _secondaries_running: {v}".format(v=self.secondary_state))
 
     def _get_secondary_state(self):
         """
         Returns the value for 'secondaries_running'.
         This is required for the manager.
         """
-        print ("_get_secondaries_running() -> {sr}".format(sr=self._secondary_state))
         return self._secondary_state
 
     def _get_manager_class(self, register_callables=False):
@@ -288,7 +285,6 @@ class ExtendedManager(object):
     def secondary_state(self):
         """wether the secondary nodes should still process elements"""
         v = self.manager.get_state()
-        print("secondary_state -> {sr}".format(sr=v))
         return v.get()
 
     def get_inqueue(self):
@@ -476,10 +472,9 @@ class DistributedEvaluator(object):
                 i += 1
                 if i % 5 == 0:
                     # for better performance, only check every 5 cycles
-                    print("checking running status...")
                     try:
                         state = self.em.secondary_state
-                    except EOFError:
+                    except (EOFError, IOError, OSError, socket.gaierror):
                         if not reconnect:
                             raise
                         else:
@@ -489,19 +484,13 @@ class DistributedEvaluator(object):
                         should_reconnect = False
                     elif state == STATE_SHUTDOWN:
                         running = False
-                    print(
-                        "got status: {s} type: {t} -> running: {r}".format(
-                            s=state, t=type(state), r=running
-                            )
-                        )
                     if not running:
-                        print("leaving loop...")
                         continue
                 try:
                     tasks = self.inqueue.get(block=True, timeout=0.2)
                 except queue.Empty:
                     continue
-                except (EOFError, IOError, OSError):
+                except (EOFError, IOError, OSError, socket.gaierror):
                     saw_EOFError = True
                     break
                 except (managers.RemoteError, multiprocessing.ProcessError) as e:
@@ -533,7 +522,7 @@ class DistributedEvaluator(object):
                     res = zip(genome_ids, results)
                 try:
                     self.outqueue.put(res)
-                except (EOFError, IOError, OSError):
+                except (EOFError, IOError, OSError, socket.gaierror):
                     saw_EOFError = True
                     break
                 except (managers.RemoteError, multiprocessing.ProcessError) as e:
@@ -545,19 +534,11 @@ class DistributedEvaluator(object):
                         break
                     raise
                 
-            # print("should_reconnect: {sr} reconnect: {r}".format(sr=should_reconnect, r=reconnect))
             if not reconnect:
                 should_reconnect = False
-                print("breaking loop...")
                 break
-            if not saw_EOFError:
-                print("saw EOF error.")
-                # break
-        print("left loop")
         if pool is not None:
-            print("terminating childs...")
             pool.terminate()
-        print("exited...")
 
     def evaluate(self, genomes, config):
         """
@@ -567,15 +548,12 @@ class DistributedEvaluator(object):
         """
         if self.mode != MODE_PRIMARY:
             raise ModeError("Not in primary mode!")
-        print("preparing tasks...")
         tasks = [(genome_id, genome, config) for genome_id, genome in genomes]
         id2genome = {genome_id: genome for genome_id, genome in genomes}
         tasks = chunked(tasks, self.secondary_chunksize)
         n_tasks = len(tasks)
-        print("sharing tasks...")
         for task in tasks:
             self.inqueue.put(task)
-        print("shared. waiting for results...")
         tresults = []
         while len(tresults) < n_tasks:
             try:
@@ -583,8 +561,6 @@ class DistributedEvaluator(object):
             except (queue.Empty, managers.RemoteError):
                 continue
             tresults.append(sr)
-            print("got results. left : {l}".format(l=n_tasks - len(tresults)))
-        print("got all results. postprocessing...")
         results = []
         for sr in tresults:
             results += sr
