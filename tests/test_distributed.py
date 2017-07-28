@@ -162,6 +162,7 @@ def test_DistributedEvaluator_mode():
     else:
         raise Exception("Passing an invalid mode did not cause an exception to be raised on start()!")
 
+
 def test_DistributedEvaluator_primary_restrictions():
     """Tests that some primary-exclusive methods fail when called by the secondaries"""
     secondary = neat.DistributedEvaluator(
@@ -190,7 +191,7 @@ def test_DistributedEvaluator_primary_restrictions():
 
 def test_distributed_evaluation_multiprocessing(do_mwcp=True):
     """
-    Full test run using the Distributed Evaluator.
+    Full test run using the Distributed Evaluator (fake nodes using processes).
     Note that this is not a very good test for the
     DistributedEvaluator, because we still work on
     one machine, not across multiple machines.
@@ -229,6 +230,7 @@ def test_distributed_evaluation_multiprocessing(do_mwcp=True):
         if do_mwcp:
             if not mwcp.is_alive():
                 print("mwcp is not 'alive'")
+            print("children: {c}".format(c=multiprocessing.active_children()))
             print("Joining multiworker-secondary process")
             sys.stdout.flush()
             mwcp.join()
@@ -253,7 +255,7 @@ def test_distributed_evaluation_multiprocessing(do_mwcp=True):
 
 def test_distributed_evaluation_threaded():
     """
-    Full test run using the Distributed Evaluator.
+    Full test run using the Distributed Evaluator (fake nodes using threads).
     Note that this is not a very good test for the
     DistributedEvaluator, because we still work on
     one machine, not across multiple machines.
@@ -321,6 +323,7 @@ def run_primary(addr, authkey, generations):
         authkey=authkey,
         eval_function=eval_dummy_genome_nn,
         mode=MODE_PRIMARY,
+        secondary_chunksize=15,
         )
     print("Starting DistributedEvaluator")
     sys.stdout.flush()
@@ -330,7 +333,7 @@ def run_primary(addr, authkey, generations):
     p.run(de.evaluate, generations)
     print("Evaluated")
     sys.stdout.flush()
-    de.stop(wait=3)
+    de.stop(wait=5)
     print("Did de.stop")
     sys.stdout.flush()
 

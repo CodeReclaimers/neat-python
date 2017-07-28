@@ -48,11 +48,13 @@ def run_primary(addr, authkey, generations):
         addr,
         authkey=authkey,
         eval_function=eval_genome_distributed,
+        secondary_chunksize=15,
         mode=MODE_PRIMARY,
         )
-    de.start(exit_on_stop=False)
+    de.start()
     winner = p.run(de.evaluate, generations)
-    de.stop(wait=3)
+    print("===== stopping DistributedEvaluator =====")
+    de.stop(wait=3, shutdown=True, force_secondary_shutdown=False)
 
     if winner:
         # Display the winning genome.
@@ -77,7 +79,8 @@ def run_primary(addr, authkey, generations):
         time.sleep(3)
         de.start()
         winner2 = p2.run(de.evaluate, (100-checkpointer.last_generation_checkpoint))
-        de.stop(wait=3)
+        print ("===== stopping DistributedEvaluator (forced) =====")
+        de.stop(wait=3, shutdown=True, force_secondary_shutdown=True)
 
         if winner2:
             if not winner:
@@ -114,7 +117,7 @@ def run_secondary(addr, authkey, num_workers=1):
         num_workers=num_workers,
         )
     try:
-        de.start(secondary_wait=3, exit_on_stop=True)
+        de.start(secondary_wait=3, exit_on_stop=True, reconnect=True)
     except SystemExit:
         pass
     else:
