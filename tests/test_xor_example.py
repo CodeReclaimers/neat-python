@@ -33,6 +33,9 @@ def test_xor_example(uniform_weights=False):
 
     if uniform_weights:
         config.genome_config.weight_init_type = 'uniform'
+        filename_prefix = 'neat-checkpoint-test_xor_uniform-'
+    else:
+        filename_prefix = 'neat-checkpoint-test_xor-'
 
     # Create the population, which is the top-level object for a NEAT run.
     p = neat.Population(config)
@@ -41,7 +44,7 @@ def test_xor_example(uniform_weights=False):
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
-    checkpointer = neat.Checkpointer(25, 10)
+    checkpointer = neat.Checkpointer(25, 10, filename_prefix)
     p.add_reporter(checkpointer)
 
     # Run for up to 100 generations, allowing extinction.
@@ -67,7 +70,7 @@ def test_xor_example(uniform_weights=False):
             print("input {!r}, expected output {!r}, got {!r}".format(xi, xo, output))
 
     if (checkpointer.last_generation_checkpoint >= 0) and (checkpointer.last_generation_checkpoint < 100):
-        filename = 'neat-checkpoint-{0}'.format(checkpointer.last_generation_checkpoint)
+        filename = '{0}{1}'.format(filename_prefix,checkpointer.last_generation_checkpoint)
         print("Restoring from {!s}".format(filename))
         p2 = neat.checkpoint.Checkpointer.restore_checkpoint(filename)
         p2.add_reporter(neat.StdOutReporter(True))
