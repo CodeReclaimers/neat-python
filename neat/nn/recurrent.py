@@ -13,7 +13,7 @@ class RecurrentNetwork(object):
             for k in inputs + outputs:
                 v[k] = 0.0
 
-            for node, activation, aggregation, bias, response, links in self.node_evals:
+            for node, ignored_activation, ignored_aggregation, ignored_bias, ignored_response, links in self.node_evals:
                 v[node] = 0.0
                 for i, w in links:
                     v[i] = 0.0
@@ -25,7 +25,7 @@ class RecurrentNetwork(object):
 
     def activate(self, inputs):
         if len(self.input_nodes) != len(inputs):
-            raise Exception("Expected {0} inputs, got {1}".format(len(self.input_nodes), len(inputs)))
+            raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.input_nodes), len(inputs)))
 
         ivalues = self.values[self.active]
         ovalues = self.values[1 - self.active]

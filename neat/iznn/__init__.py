@@ -126,6 +126,7 @@ class IZNeuron(object):
 
 
 class IZNN(object):
+    """Basic iznn network object."""
     def __init__(self, neurons, inputs, outputs):
         self.neurons = neurons
         self.inputs = inputs
@@ -140,7 +141,7 @@ class IZNN(object):
 
     def reset(self):
         """Reset all neurons to their default state."""
-        for i, n in self.neurons.items():
+        for n in itervalues(self.neurons):
             n.reset()
 
     def get_time_step_msec(self):

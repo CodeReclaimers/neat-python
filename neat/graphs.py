@@ -2,8 +2,8 @@
 
 def creates_cycle(connections, test):
     """
-    Returns true if the addition of the "test" connection would create a cycle,
-    assuming that no cycle already exists in the graph represented by "connections".
+    Returns true if the addition of the 'test' connection would create a cycle,
+    assuming that no cycle already exists in the graph represented by 'connections'.
     """
     i, o = test
     if i == o:
@@ -25,7 +25,7 @@ def creates_cycle(connections, test):
 
 
 def required_for_output(inputs, outputs, connections):
-    '''
+    """
     Collect the nodes whose state is required to compute the final network output(s).
     :param inputs: list of the input identifiers
     :param outputs: list of the output node identifiers
@@ -33,8 +33,8 @@ def required_for_output(inputs, outputs, connections):
     NOTE: It is assumed that the input identifier set and the node identifier set are disjoint.
     By convention, the output node ids are always the same as the output index.
 
-    Returns a list of layers, with each layer consisting of a set of identifiers.
-    '''
+    Returns a set of identifiers of required nodes.
+    """
 
     required = set(outputs)
     s = set(outputs)
@@ -56,7 +56,7 @@ def required_for_output(inputs, outputs, connections):
 
 
 def feed_forward_layers(inputs, outputs, connections):
-    '''
+    """
     Collect the layers whose members can be evaluated in parallel in a feed-forward network.
     :param inputs: list of the network input nodes
     :param outputs: list of the output node identifiers
@@ -65,7 +65,7 @@ def feed_forward_layers(inputs, outputs, connections):
     Returns a list of layers, with each layer consisting of a set of node identifiers.
     Note that the returned layers do not contain nodes whose output is ultimately
     never used to compute the final network output.
-    '''
+    """
 
     required = required_for_output(inputs, outputs, connections)
 
