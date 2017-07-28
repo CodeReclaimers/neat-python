@@ -14,9 +14,10 @@ bias_mutate_power       = 5.0
 bias_mutate_rate        = 0.7
 bias_replace_rate       = 0.1
 
-# genome compatibility options
+# genome compatibility options - using 1.0 for the weight coefficient, given that the range is much larger, leads to a set of "species" of minimum
+# size (2 by default). NOTE: Bias is left out of the distance determination?!?
 compatibility_disjoint_coefficient = 1.0
-compatibility_weight_coefficient   = 1.0
+compatibility_weight_coefficient   = 0.125
 
 # connection add/remove rates
 conn_add_prob           = 0.2
