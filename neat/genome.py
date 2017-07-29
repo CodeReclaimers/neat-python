@@ -1,6 +1,8 @@
 """Handles genomes (individuals in the population)."""
 from __future__ import division, print_function
 
+
+from itertools import count
 from random import choice, random, shuffle
 
 import sys
@@ -10,7 +12,6 @@ from neat.aggregations import AggregationFunctionSet
 from neat.config import ConfigParameter, write_pretty_params
 from neat.genes import DefaultConnectionGene, DefaultNodeGene
 from neat.graphs import creates_cycle
-from neat.indexer import Indexer
 from neat.six_util import iteritems, iterkeys
 
 
@@ -108,9 +109,9 @@ class DefaultGenomeConfig(object):
 
     def get_new_node_key(self, node_dict):
         if self.node_indexer is None:
-            self.node_indexer = Indexer(max(list(iterkeys(node_dict)))+1)
+            self.node_indexer = count(max(list(iterkeys(node_dict))) + 1)
 
-        new_id = self.node_indexer.get_next()
+        new_id = next(self.node_indexer)
 
         assert new_id not in node_dict
 
