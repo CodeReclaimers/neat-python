@@ -6,9 +6,9 @@ from __future__ import division
 
 import math
 import random
+from itertools import count
 
 from neat.config import ConfigParameter, DefaultClassConfig
-from neat.indexer import Indexer
 from neat.math_util import mean
 from neat.six_util import iteritems, itervalues
 
@@ -34,14 +34,14 @@ class DefaultReproduction(DefaultClassConfig):
         # pylint: disable=super-init-not-called
         self.reproduction_config = config
         self.reporters = reporters
-        self.genome_indexer = Indexer(1)
+        self.genome_indexer = count(1)
         self.stagnation = stagnation
         self.ancestors = {}
 
     def create_new(self, genome_type, genome_config, num_genomes):
         new_genomes = {}
         for i in range(num_genomes):
-            key = self.genome_indexer.get_next()
+            key = next(self.genome_indexer)
             g = genome_type(key)
             g.configure_new(genome_config)
             new_genomes[key] = g
@@ -178,7 +178,7 @@ class DefaultReproduction(DefaultClassConfig):
 
                 # Note that if the parents are not distinct, crossover will produce a
                 # genetically identical clone of the parent (but with a different ID).
-                gid = self.genome_indexer.get_next()
+                gid = next(self.genome_indexer)
                 child = config.genome_type(gid)
                 child.configure_crossover(parent1, parent2, config.genome_config)
                 child.mutate(config.genome_config)

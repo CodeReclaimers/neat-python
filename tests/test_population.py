@@ -2,7 +2,6 @@ import os
 import unittest
 
 import neat
-from neat.indexer import Indexer
 
 
 class PopulationTests(unittest.TestCase):
@@ -123,18 +122,7 @@ class PopulationTests(unittest.TestCase):
 #     # assert id(pop.statistics.generation_statistics) != id(pop2.statistics.generation_statistics)
 
 
-def test_indexer():
-    indexer0 = Indexer(0)
-    assert indexer0.get_next() == 0
-    assert indexer0.get_next() == 1
-    assert indexer0.get_next() == 2
-
-
-    indexer17 = Indexer(17)
-    assert indexer17.get_next() == 17
-    assert indexer17.get_next() == 18
-    assert indexer17.get_next() == 19
 
 
 if __name__ == '__main__':
-    test_indexer()
+    pass
