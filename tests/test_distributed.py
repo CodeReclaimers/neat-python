@@ -194,7 +194,7 @@ def test_DistributedEvaluator_primary_restrictions():
         raise Exception("A DistributedEvaluator in secondary mode could call evaluate()!")
 
 
-@unittest.skipIf(ON_PYPY)
+@unittest.skipIf(ON_PYPY, "This test fails on pypy during travis build but works locally.")
 def test_distributed_evaluation_multiprocessing(do_mwcp=True):
     """
     Full test run using the Distributed Evaluator (fake nodes using processes).
@@ -259,7 +259,7 @@ def test_distributed_evaluation_multiprocessing(do_mwcp=True):
             swcp.terminate()
 
 
-@unittest.skipIf(ON_PYPY)
+@unittest.skipIf(ON_PYPY, "This test fails on pypy during travis build but works locally.")
 def test_distributed_evaluation_threaded():
     """
     Full test run using the Distributed Evaluator (fake nodes using threads).
