@@ -677,9 +677,10 @@ distributed
 
   .. note::
 
-    This module is in a **beta** state, and still *unstable* even in single-machine testing. Reliability is likely to vary, including depending on the Python version in use;
-    :py:mod:`checkpointing <checkpoint>` is particularly uncertain, as is any possibility of reconnecting between :term:`primary <primary node>` and
-    :term:`secondary <secondary node>` nodes.
+    This module is in a **beta** state, and still *unstable* even in single-machine testing. Reliability is likely to vary, including depending on the Python version
+    and implementation (e.g., cpython vs pypy) in use; :py:mod:`checkpointing <checkpoint>` is particularly uncertain, as is any possibility of reconnecting
+    between :term:`primary <primary node>` and :term:`secondary <secondary node>` nodes. Note also that this module is not responsible for starting the
+    script copies on the different :term:`compute nodes <compute node>`, since this is very site/configuration-dependent.
 
   .. rubric:: About :term:`compute nodes <compute node>`:
 
@@ -740,9 +741,9 @@ distributed
 
   .. py:function:: determine_mode(addr, mode)
 
-    Returns the mode that should be used.  If ``mode`` is :py:data:`MODE_AUTO`, this is determined by checking (via :py:func:`host_is_local()`) if `'addr' points to the
-    localhost; if it does, it returns :py:data:`MODE_PRIMARY`, else it returns :py:data:`MODE_SECONDARY`. If mode is either MODE_PRIMARY or
-    MODE_SECONDARY, it returns the 'mode' argument. Otherwise, a ValueError is raised.
+    Returns the mode that should be used.  If ``mode`` is :py:data:`MODE_AUTO`, this is determined by checking (via :py:func:`host_is_local()`) if ``addr`` points
+    to the localhost; if it does, it returns :py:data:`MODE_PRIMARY`, else it returns :py:data:`MODE_SECONDARY`. If mode is either MODE_PRIMARY or
+    MODE_SECONDARY, it returns the ``mode`` argument. Otherwise, a ValueError is raised.
 
     :param addr: A tuple of (hostname, port) pointing to the machine that has the :term:`primary node`.
     :type addr: tuple(str, int)
@@ -761,7 +762,7 @@ distributed
     :rtype: list(list(object))
     :raises ValueError: If ``chunksize`` is not 1+ or is not an integer
 
-  .. py:class:: ExtendedManager(addr, authkey, mode, start=False):
+  .. py:class:: ExtendedManager(addr, authkey, mode, start=False)
 
     Manages the :pylib:`multiprocessing.managers.SyncManager <multiprocessing.html#multiprocessing.managers.SyncManager>` instance. Initializes
     ``self._secondary_state`` to :py:data:`STATE_RUNNING`.
@@ -779,8 +780,8 @@ distributed
 
     .. py:method:: __reduce__()
 
-      Used by `pickle` to serialize instances of this class. TODO: Appears to assume that ``start`` (for initialization) should be true; perhaps ``self.manager`` should be
-      checked? (This may require :py:meth::`stop()` setting ``self.manager`` to ``None``, incidentally.)
+      Used by `pickle` to serialize instances of this class. TODO: Appears to assume that ``start`` (for initialization) should be true; perhaps ``self.manager``
+      should be checked? (This may require :py:meth::`stop()` to set ``self.manager`` to ``None``, incidentally.)
 
       :return: Information about the class instance; a tuple of (class name, tuple(addr, authkey, mode, True)).
       :rtype: tuple(str, tuple(tuple(str, int), bytes, int, bool))
@@ -796,9 +797,43 @@ distributed
 
     .. py:method:: set_secondary_state(value)
 
-      Sets the value for ``self._secondary_state``, shared between the nodes via `multiprocessing.managers.Value`.
+      Sets the value for the ``secondary_state``, shared between the nodes via :pylib:`multiprocessing.managers.Value <multiprocessing.html#multiprocessing.managers.SyncManager.Value>`.
 
-      :param int value: The desired secondary state; should be one of :py:data:`STATE_RUNNING`, :py:data:`STATE_SHUTDOWN`, or :py:data:`STATE_FORCED_SHUTDOWN`.
+      :param int value: The desired secondary state; must be one of :py:data:`STATE_RUNNING`, :py:data:`STATE_SHUTDOWN`, or :py:data:`STATE_FORCED_SHUTDOWN`.
+      :raises ValueError: If the ``value`` is not one of the above.
+      :raises RuntimeError: If the manager has not been :py:meth:`started <start()>`.
+
+    .. py:method:: secondary_state()
+
+      Retrieves the :pylib:`property <functions.html#property>` ``secondary_state`` - whether the secondary nodes should still be processing elements.
+
+      :return: The current secondary_state.
+      :rtype: :pytypes:`int <typesnumeric>`
+
+    .. py:method:: get_inqueue()
+
+      Returns the inqueue.
+
+      :return: The incoming :pylib:`queue <multiprocessing.html#multiprocessing.Queue>`.
+      :rtype: :datamodel:`instance <index-48>`
+      :raises RuntimeError: If the manager has not been :py:meth:`started <start()>`.
+
+    .. py:method:: get_outqueue()
+
+      Returns the outqueue.
+
+      :return: The outgoing :pylib:`queue <multiprocessing.html#multiprocessing.Queue>`.
+      :rtype: :datamodel:`instance <index-48>`
+      :raises RuntimeError: If the manager has not been :py:meth:`started <start()>`.
+
+    .. py:method:: get_namespace()
+
+      Returns the manager's namespace instance.
+
+      :return: The :pylib:`namespace <argparse.html#argparse.Namespace>`.
+      :rtype: :datamodel:`instance <index-48>`
+      :raises RuntimeError: If the manager has not been :py:meth:`started <start()>`.
+
 
   .. index:: fitness function
   .. index:: fitness
@@ -843,19 +878,20 @@ distributed
 
       .. deprecated:: 0.92
 
-    .. py:method:: start(exit_on_stop=True, secondary_wait=0)
+    .. py:method:: start(exit_on_stop=True, secondary_wait=0, reconnect=False)
 
       If the DistributedEvaluator is in primary mode, starts the manager process and returns. If the DistributedEvaluator is in secondary mode, it connects to the
       manager and waits for tasks.
 
-      :param exit_on_stop: If a secondary node, whether to exit upon the calling of `stop()` in the :term:`primary node`.
+      :param exit_on_stop: If a secondary node, whether to exit if the connection is lost (unless reconnect is True) or the primary calls for a forced shutdown (via setting the ``secondary_state`` to :py:data:`STATE_FORCED_SHUTDOWN` instead of :py:data:`STATE_SHUTDOWN`)
       :type exit_on_stop: :pytypes:`bool <typesnumeric>`
       :param secondary_wait: Specifies the time (in seconds) to sleep before actually starting, if a :term:`secondary node`.
       :type secondary_wait: :pytypes:`float <typesnumeric>`
+      :param bool reconnect: If a secondary node, whether it should try to reconnect if the connection is lost.
       :raises RuntimeError: If already started.
       :raises ValueError: If the mode is invalid.
 
-    .. py:method:: stop(wait=1, shutdown=True)
+    .. py:method:: stop(wait=1, shutdown=True, force_secondary_shutdown=False)
 
       Stops all secondaries.
 
@@ -863,6 +899,7 @@ distributed
       :type wait: :pytypes:`float <typesnumeric>`
       :param shutdown: Whether to :pylib:`shutdown <multiprocessing.html#multiprocessing.managers.BaseManager.shutdown>` the :pylib:`multiprocessing.managers.SyncManager <multiprocessing.html#multiprocessing.managers.SyncManager>` also (after the wait, if any).
       :type shutdown: :pytypes:`bool <typesnumeric>`
+      :param bool force_secondary_shutdown: If true, the ``secondary_state`` will be set to :py:data:`STATE_FORCED_SHUTDOWN` instead of :py:data:`STATE_SHUTDOWN`, causing the secondaries to shutdown even if started with ``reconnect`` true.
       :raises ModeError: If not the :term:`primary node` (not in :py:data:`MODE_PRIMARY`).
       :raises RuntimeError: If not yet :py:meth:`started <start()>`.
 

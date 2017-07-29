@@ -18,9 +18,9 @@ else:
     HAVE_THREADING = True
 
 import neat
-from neat.distributed import chunked, MODE_AUTO, MODE_PRIMARY, MODE_SECONDARY, ModeError
+from neat.distributed import chunked, MODE_AUTO, MODE_PRIMARY, MODE_SECONDARY, ModeError, STATE_RUNNING
 
-ON_PYPY = (platform.python_implementation().upper() == "PYPY")
+ON_PYPY = platform.python_implementation().upper().startswith("PYPY")
 
 
 
@@ -31,20 +31,18 @@ def eval_dummy_genome_nn(genome, config):
 
 
 def test_chunked():
-    """test for neat.distributed.chunked"""
+    """Test for neat.distributed.chunked"""
     # test chunked(range(110), 10)
     # => 11 chunks of 10 elements
     d110 = list(range(110))
     d110c = chunked(d110, 10)
-    if len(d110c) != 11:
-        raise Exception("neat.distributed.chunked(range(110), 10) did not create 11 chunks!")
-    if len(d110c[0]) != 10:
-        raise Exception("neat.distributed.chunked(range(110), 10) did not create chunks of length 10!")
+    assert len(d110c) == 11, "chunked(range(110), 10) created {0:n} chunks, not 11 chunks!".format(len(d110c))
+    assert len(d110c[0]) == 10, "chunked(range(110), 10) did not create chunks of length 10 (first chunk len is {0:n})!".format(
+        len(d110c[0]))
     rec = []
     for e in d110c:
         rec += e
-    if rec != d110:
-        raise Exception("neat.distributed.chunked(range(110), 10) created incorrect chunks!")
+    assert rec == d110, "chunked(range(110), 10) created incorrect chunks ({0!r} vs expected {1!r})".format(rec, d110)
     # test invalid argument checking
     try:
         chunked(range(10), 0)
@@ -62,17 +60,14 @@ def test_chunked():
     # => 4 chunks of 3 elements, 1 chunk of 1 element
     d13 = list(range(13))
     d13c = chunked(d13, 3)
-    if len(d13c) != 5:
-        raise Exception("neat.distributed.chunked(range(13), 3) did not create 5 chunks!")
-    if len(d13c[0]) != 3:
-        raise Exception("neat.distributed.chunked(range(13), 3) did not create chunks of length 3!")
-    if len(d13c[-1]) != 1:
-        raise Exception("neat.distributed.chunked(range(13), 3) did not create a last chunk of length 1!")
+    assert len(d13c) == 5, "chunked(range(13), 3) created {0:n} chunks, not 5!".format(len(d13c))
+    assert len(d13c[0]) == 3, "chunked(range(13), 3) did not create chunks of length 3 (first chunk len is {0:n})!".format(
+        len(d13c[0]))
+    assert len(d13c[-1]) == 1, "chunked(range(13), 3) created a last chunk of length {0:n}, not 1!".format(len(d13c[-1]))
     rec = []
     for e in d13c:
         rec += e
-    if rec != d13:
-        raise Exception("neat.distributed.chunked(range(13), 3) created incorrect chunks!")
+    assert rec == d13, "chunked(range(13), 3) created incorrect chunks ({0!r} vs expected {1!r})".format(rec, d13)
 
 
 def test_host_is_local():
@@ -96,12 +91,8 @@ def test_host_is_local():
                                                                                           islocal))
             raise
         else: # if do not want to do 'raise' above for some cases
-            if result != islocal:
-                raise Exception(
-                    "Hostname/IP: {h}; Expected: {e}; Got: {r}".format(
-                        h=hostname, e=islocal, r=result,
-                        )
-                    )
+            assert result == islocal, "Hostname/IP: {h}; Expected: {e}; Got: {r!r}".format(
+                h=hostname, e=islocal, r=result)
 
 
 def test_DistributedEvaluator_mode():
@@ -122,7 +113,7 @@ def test_DistributedEvaluator_mode():
         ("example.org", MODE_AUTO, MODE_SECONDARY),
         )
     for hostname, mode, expected in tests:
-        addr = (hostname, 80)
+        addr = (hostname, 8022)
         try:
             de = neat.DistributedEvaluator(
                 addr,
@@ -135,12 +126,9 @@ def test_DistributedEvaluator_mode():
                   "{!r}".format(hostname))
             raise
         result = de.mode
-        if result != expected:
-            raise Exception(
-                "Mode determination failed! Hostname: {h}; expected: {e}; got: {r}!".format(
-                    h=hostname, e=expected, r=result,
-                    )
-                )
+        assert result == expected, "Mode determination failed! Hostname: {h}; expected: {e}; got: {r!r}!".format(
+            h=hostname, e=expected, r=result)
+        
         if result == MODE_AUTO:
             raise Exception(
                 "DistributedEvaluator.__init__(mode=MODE_AUTO) did not automatically determine its mode!"
@@ -171,7 +159,7 @@ def test_DistributedEvaluator_mode():
 def test_DistributedEvaluator_primary_restrictions():
     """Tests that some primary-exclusive methods fail when called by the secondaries"""
     secondary = neat.DistributedEvaluator(
-        ("localhost", 80),
+        ("localhost", 8022),
         authkey=b"abcd1234",
         eval_function=eval_dummy_genome_nn,
         mode=MODE_SECONDARY,
@@ -193,8 +181,84 @@ def test_DistributedEvaluator_primary_restrictions():
     else:
         raise Exception("A DistributedEvaluator in secondary mode could call evaluate()!")
 
+def test_DistributedEvaluator_state_error1():
+    """Tests that attempts to use an unstarted manager for set_secondary_state cause an error."""
+    primary = neat.DistributedEvaluator(
+        ("localhost", 8022),
+        authkey=b"abcd1234",
+        eval_function=eval_dummy_genome_nn,
+        mode=MODE_PRIMARY,
+        )
+    try:
+        primary.em.set_secondary_state(STATE_RUNNING)
+    except RuntimeError:
+        pass
+    else:
+        raise Exception("primary.em.set_secondary_state with unstarted manager did not raise a RuntimeError!")
 
-@unittest.skipIf(ON_PYPY, "This test fails on pypy during travis build but works locally.")
+def test_DistributedEvaluator_state_error2():
+    """Tests that attempts to use an unstarted manager for get_inqueue cause an error."""
+    primary = neat.DistributedEvaluator(
+        ("localhost", 8022),
+        authkey=b"abcd1234",
+        eval_function=eval_dummy_genome_nn,
+        mode=MODE_PRIMARY,
+        )
+    try:
+        ignored = primary.em.get_inqueue()
+    except RuntimeError:
+        pass
+    else:
+        raise Exception("primary.em.get_inqueue() with unstarted manager did not raise a RuntimeError!")
+
+def test_DistributedEvaluator_state_error3():
+    """Tests that attempts to use an unstarted manager for get_outqueue cause an error."""
+    primary = neat.DistributedEvaluator(
+        ("localhost", 8022),
+        authkey=b"abcd1234",
+        eval_function=eval_dummy_genome_nn,
+        mode=MODE_PRIMARY,
+        )
+    try:
+        ignored = primary.em.get_outqueue()
+    except RuntimeError:
+        pass
+    else:
+        raise Exception("primary.em.get_outqueue() with unstarted manager did not raise a RuntimeError!")
+
+def test_DistributedEvaluator_state_error4():
+    """Tests that attempts to use an unstarted manager for get_namespace cause an error."""
+    primary = neat.DistributedEvaluator(
+        ("localhost", 8022),
+        authkey=b"abcd1234",
+        eval_function=eval_dummy_genome_nn,
+        mode=MODE_PRIMARY,
+        )
+    try:
+        ignored = primary.em.get_namespace()
+    except RuntimeError:
+        pass
+    else:
+        raise Exception("primary.em.get_namespace() with unstarted manager did not raise a RuntimeError!")
+
+def test_DistributedEvaluator_state_error5():
+    """Tests that attempts to set an invalid state cause an error."""
+    primary = neat.DistributedEvaluator(
+        ("localhost", 8022),
+        authkey=b"abcd1234",
+        eval_function=eval_dummy_genome_nn,
+        mode=MODE_PRIMARY,
+        )
+    primary.start()
+    try:
+        primary.em.set_secondary_state(-1)
+    except ValueError:
+        pass
+    else:
+        raise Exception("primary.em.set_secondary_state(-1) did not raise a ValueError!")
+    
+
+@unittest.skipIf(ON_PYPY, "This test fails on pypy during travis builds but usually works locally.")
 def test_distributed_evaluation_multiprocessing(do_mwcp=True):
     """
     Full test run using the Distributed Evaluator (fake nodes using processes).
@@ -259,7 +323,7 @@ def test_distributed_evaluation_multiprocessing(do_mwcp=True):
             swcp.terminate()
 
 
-@unittest.skipIf(ON_PYPY, "This test fails on pypy during travis build but works locally.")
+@unittest.skipIf(ON_PYPY, "Pypy has problems with threading.")
 def test_distributed_evaluation_threaded():
     """
     Full test run using the Distributed Evaluator (fake nodes using threads).
@@ -272,7 +336,7 @@ def test_distributed_evaluation_threaded():
     We use this to get better coverage.
     """
     if not HAVE_THREADING:
-        return
+        raise unittest.SkipTest("Platform does not have threading")
     addr = ("localhost", random.randint(12000, 30000))
     authkey = b"abcd1234"
     mp = threading.Thread(
@@ -322,7 +386,7 @@ def run_primary(addr, authkey, generations):
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
-    p.add_reporter(neat.Checkpointer(1, 5))
+    p.add_reporter(neat.Checkpointer(max(1,int(generations/3)), 5))
 
     # Run for the specified number of generations.
     de = neat.DistributedEvaluator(

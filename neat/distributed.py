@@ -186,7 +186,7 @@ class ExtendedManager(object):
             )
 
     def start(self):
-        """starts or connects to the manager"""
+        """Starts or connects to the manager."""
         if self.mode == MODE_PRIMARY:
             i = self._start()
         else:
@@ -194,16 +194,23 @@ class ExtendedManager(object):
         self.manager = i
 
     def stop(self):
-        """stops the manager"""
+        """Stops the manager."""
         self.manager.shutdown()
         
     def set_secondary_state(self, value):
-        """sets the value for 'secondary_state'"""
+        """Sets the value for 'secondary_state'."""
+        if value not in (STATE_RUNNING, STATE_SHUTDOWN, STATE_FORCED_SHUTDOWN):
+            raise ValueError(
+                "State {!r} is invalid - needs to be one of STATE_RUNNING, STATE_SHUTDOWN, or STATE_FORCED_SHUTDOWN".format(
+                    value)
+                )
+        if self.manager is None:
+            raise RuntimeError("Manager not started")
         self.manager.set_state(value)
 
     def _get_secondary_state(self):
         """
-        Returns the value for 'secondaries_running'.
+        Returns the value for 'secondary_state'.
         This is required for the manager.
         """
         return self._secondary_state
@@ -211,7 +218,7 @@ class ExtendedManager(object):
     def _get_manager_class(self, register_callables=False):
         """
         Returns a new 'Manager' subclass with registered methods.
-        If 'register_callable', define the 'callable' arguments.
+        If 'register_callable' is True, defines the 'callable' arguments.
         """
         
         class _EvaluatorSyncManager(managers.BaseManager):
@@ -268,14 +275,14 @@ class ExtendedManager(object):
         return _EvaluatorSyncManager
 
     def _connect(self):
-        """connects to the manager"""
+        """Connects to the manager."""
         cls = self._get_manager_class(register_callables=False)
         ins = cls(address=self.addr, authkey=self.authkey)
         ins.connect()
         return ins
 
     def _start(self):
-        """starts the manager"""
+        """Starts the manager."""
         cls = self._get_manager_class(register_callables=True)
         ins = cls(address=self.addr, authkey=self.authkey)
         ins.start()
@@ -283,20 +290,26 @@ class ExtendedManager(object):
 
     @property
     def secondary_state(self):
-        """wether the secondary nodes should still process elements"""
+        """Whether the secondary nodes should still process elements."""
         v = self.manager.get_state()
         return v.get()
 
     def get_inqueue(self):
-        """returns the inqueue"""
+        """Returns the inqueue."""
+        if self.manager is None:
+            raise RuntimeError("Manager not started")
         return self.manager.get_inqueue()
 
     def get_outqueue(self):
-        """returns the outqueue"""
+        """Returns the outqueue."""
+        if self.manager is None:
+            raise RuntimeError("Manager not started")
         return self.manager.get_outqueue()
 
     def get_namespace(self):
-        """returns the namespace"""
+        """Returns the namespace."""
+        if self.manager is None:
+            raise RuntimeError("Manager not started")
         return self.manager.get_namespace()
 
 
@@ -344,7 +357,7 @@ class DistributedEvaluator(object):
         else:
             try:
                 self.num_workers = max(1,multiprocessing.cpu_count())
-            except (RuntimeError, AttributeError):
+            except (RuntimeError, AttributeError): # pragma: no cover
                 print("multiprocessing.cpu_count() gave an error; assuming 1",
                       file=sys.stderr)
                 self.num_workers = 1
@@ -358,20 +371,20 @@ class DistributedEvaluator(object):
         self.saw_EOFError = False
 
     def __getstate__(self):
-        """part of the pickle protocol"""
-        # we do not actuall save any state, but we need __getstate__ to be
+        """Required by the pickle protocol."""
+        # we do not actually save any state, but we need __getstate__ to be
         # called.
         return True  # return some nonzero value
 
     def __setstate__(self, state):
-        """called when instances of this class are unpickled."""
+        """Called when instances of this class are unpickled."""
         self._set_shared_instances()
 
     def is_primary(self):
         """Returns True if the caller is the primary node"""
         return (self.mode == MODE_PRIMARY)
 
-    def is_master(self):
+    def is_master(self): # pragma: no cover
         """Returns True if the caller is the primary (master) node"""
         warnings.warn("Use is_primary, not is_master", DeprecationWarning)
         return self.is_primary()
@@ -442,19 +455,19 @@ class DistributedEvaluator(object):
         self._set_shared_instances()
 
     def _set_shared_instances(self):
-        """sets the attributes to the shared instances"""
+        """Sets attributes from the shared instances."""
         self.inqueue = self.em.get_inqueue()
         self.outqueue = self.em.get_outqueue()
         self.namespace = self.em.get_namespace()
 
     def _reset_em(self):
-        """resets self.em and the shared instances"""
+        """Resets self.em and the shared instances."""
         self.em = ExtendedManager(self.addr, self.authkey, mode=self.mode, start=False)
         self.em.start()
         self._set_shared_instances()
 
     def _secondary_loop(self, reconnect=False):
-        """The worker loop for the secondary"""
+        """The worker loop for the secondary nodes."""
         if self.num_workers > 1:
             pool = multiprocessing.Pool(self.num_workers)
         else:
@@ -543,7 +556,7 @@ class DistributedEvaluator(object):
     def evaluate(self, genomes, config):
         """
         Evaluates the genomes.
-        This method raises a ModeError when this
+        This method raises a ModeError if the
         DistributedEvaluator is not in primary mode.
         """
         if self.mode != MODE_PRIMARY:
