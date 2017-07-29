@@ -745,8 +745,8 @@ distributed
     to the localhost; if it does, it returns :py:data:`MODE_PRIMARY`, else it returns :py:data:`MODE_SECONDARY`. If mode is either MODE_PRIMARY or
     MODE_SECONDARY, it returns the ``mode`` argument. Otherwise, a ValueError is raised.
 
-    :param addr: A tuple of (hostname, port) pointing to the machine that has the :term:`primary node`.
-    :type addr: tuple(str, int)
+    :param addr: Either a tuple of (hostname, port) pointing to the machine that has the :term:`primary node`, or the hostname (as ``bytes`` if on 3.X).
+    :type addr: tuple(str, int) or bytes
     :param int mode: Specifies the mode to run in - must be one of :py:data:`MODE_AUTO`, :py:data:`MODE_PRIMARY`, or :py:data:`MODE_SECONDARY`.
     :raises ValueError: If the mode is not one of the above.
 
