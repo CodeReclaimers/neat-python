@@ -76,9 +76,9 @@ author = u'CodeReclaimers, LLC'
 # built documents.
 #
 # The short X.Y version.
-version = '0.91'
+version = '0.92'
 # The full version, including alpha/beta/rc tags.
-release = '0.91-config_work'
+release = '0.92'
 
 if version != release:
   tags.add('draft')

@@ -17,7 +17,8 @@ for the NEAT simulation.  This, again, is to help avoid silent changes in behavi
 
 .. _configuration-file-sections-label:
 
-The configuration file is in several sections, of which at least one is required. However, there are no requirements for ordering within these sections, or for ordering of the sections themselves.
+The configuration file is in several sections, of which at least one is required. However, there are no requirements for ordering within
+these sections, or for ordering of the sections themselves.
 
 .. _configuration-file-NEAT-section-label:
 
@@ -57,7 +58,7 @@ itself.  This section is always required, and is handled by the `Config` class i
     number of generations passed to :py:meth:`population.Population.run` is enabled, and the ``found_solution`` method **is** called upon generation
     number termination. If it evaluates to ``False``, then fitness is used to determine termination. **This defaults to ``False``.**
 
-    .. versionadded:: 0.91-config_work
+    .. versionadded:: 0.92
 
 .. _pop-size-label:
 
@@ -212,8 +213,8 @@ required for your particular implementation.
     value may be positive or negative). New aggregation functions can be defined similarly to :ref:`new activation functions <customization-label>`.
     (Note that the function needs to take a `list` or other `iterable`; the `reduce <functools.reduce>` function, as in `aggregations`, may be of use in this.)
 
-    .. versionchanged:: 0.91-config_work
-      Moved out of :py:mod:`genome` into :py:mod:`aggregations`; maxabs added; method for defining new aggregation functions added.
+    .. versionchanged:: 0.92
+      Moved out of :py:mod:`genome` into :py:mod:`aggregations`; maxabs, mean, and median added; method for defining new aggregation functions added.
 
 .. index:: bias
 .. index:: mutation
@@ -240,7 +241,7 @@ required for your particular implementation.
     range/0.25, as implied by this, but the range divided by a bit over 0.288 (the square root of 12); however, this approximation makes setting
     the range much easier.) **This defaults to ``gaussian``.**
 
-    .. versionadded:: 0.91-config_work
+    .. versionadded:: 0.92
 
 .. index:: max_value
 .. index:: min_value
@@ -344,7 +345,8 @@ required for your particular implementation.
 * *enabled_rate_to_true_add*
     Adds to the ``enabled_mutate_rate`` if the connection is currently not enabled.
 
-    .. versionadded:: 0.91-config_work
+    .. versionadded:: 0.92
+      ``enabled_rate_to_false_add`` and ``enabled_rate_to_true_add``
 
 .. _feed-forward-config-label:
 
@@ -382,7 +384,7 @@ required for your particular implementation.
     * ``partial_direct #`` - as for ``full_direct``, but each connection has a probability of being present determined by the number
       (valid values are in [0.0, 1.0]).
 
-.. versionchanged:: 0.91-github
+.. versionchanged:: 0.92
   fs_neat split into fs_neat_nohidden and fs_neat_hidden; full, partial split into full_nodirect, full_direct, partial_nodirect, partial_direct
 
 .. index:: mutation
@@ -445,7 +447,7 @@ required for your particular implementation.
     range/0.25, as implied by this, but the range divided by a bit over 0.288 (the square root of 12); however, this approximation makes setting
     the range much easier.) **This defaults to ``gaussian``.**
 
-    .. versionadded:: 0.91-config_work
+    .. versionadded:: 0.92
 
 .. index:: max_value
 .. index:: min_value
@@ -485,14 +487,14 @@ required for your particular implementation.
     per generation. (If the probabilities for :ref:`conn_add_prob <conn-add-prob-label>`, conn_delete_prob, :ref:`node_add_prob <node-add-prob-label>`,
     and node_delete_prob add up to over 1, the chances of each are proportional to the appropriate configuration value.) **This defaults to ``False``.**
 
-    .. versionadded:: 0.91-config_work
+    .. versionadded:: 0.92
 
 * *structural_mutation_surer*
     If this evaluates to ``True``, then an attempt to add a :term:`node` to a genome lacking :term:`connections <connection>` will result in adding
     a connection instead; furthermore, if an attempt to add a connection tries to add a connection that already exists, that connection will be
     :term:`enabled`. If this is set to ``default``, then it acts as if it had the same value as ``single_structural_mutation`` (above). **This defaults to ``default``.**
 
-    .. versionadded:: 0.91-config_work
+    .. versionadded:: 0.92
 
 .. index:: weight
 .. index:: mutation
@@ -519,7 +521,7 @@ required for your particular implementation.
     range/0.25, as implied by this, but the range divided by a bit over 0.288 (the square root of 12); however, this approximation makes setting
     the range much easier.) **This defaults to ``gaussian``.**
 
-    .. versionadded:: 0.91-config_work
+    .. versionadded:: 0.92
 
 .. index:: max_value
 .. index:: min_value

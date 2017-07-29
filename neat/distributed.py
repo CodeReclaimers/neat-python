@@ -428,7 +428,7 @@ class DistributedEvaluator(object):
         if shutdown:
             self.em.stop()
         self.started = False
-        self.inqeueu = self.outqueue = self.namespace = None
+        self.inqueue = self.outqueue = self.namespace = None
 
     def _start_primary(self):
         """Start as the primary"""

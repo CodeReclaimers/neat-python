@@ -55,7 +55,10 @@ class ConfigParameter(object):
             else:
                 warnings.warn("Using default {!r} for '{!s}'".format(self.default, self.name),
                               DeprecationWarning)
-                value = self.default
+                if (str != self.value_type) and isinstance(self.default, self.value_type):
+                    return self.default
+                else:
+                    value = self.default
 
         try:
             if str == self.value_type:

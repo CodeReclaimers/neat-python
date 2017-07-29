@@ -232,6 +232,8 @@ class DefaultGenome(object):
 
     def configure_crossover(self, genome1, genome2, config):
         """ Configure a new genome by crossover from two parent genomes. """
+        assert isinstance(genome1.fitness, (int, float))
+        assert isinstance(genome2.fitness, (int, float))
         if genome1.fitness > genome2.fitness:
             parent1, parent2 = genome1, genome2
         else:
@@ -321,7 +323,11 @@ class DefaultGenome(object):
         self.add_connection(config, new_node_id, o, conn_to_split.weight, True)
 
     def add_connection(self, config, input_key, output_key, weight, enabled):
-        # TODO: Add validation of this connection addition.
+        # TODO: Add further validation of this connection addition?
+        assert isinstance(input_key, int)
+        assert isinstance(output_key, int)
+        assert output_key >= 0
+        assert isinstance(enabled, bool)
         key = (input_key, output_key)
         connection = config.connection_gene_type(key)
         connection.init_attributes(config)
