@@ -172,7 +172,7 @@ if __name__ == '__main__':
     authkey = ns.authkey
     mode = ns.mode
 
-    if (host in ("0.0.0.0", "localhost", "") and (mode == neat.distributed.MODE_AUTO):
+    if (host in ("0.0.0.0", "localhost", "")) and (mode == neat.distributed.MODE_AUTO):
         # print an error message
         # we are using auto-mode determination in this example,
         # which does not work well with '0.0.0.0' or 'localhost'.
