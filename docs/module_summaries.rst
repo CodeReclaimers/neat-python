@@ -1412,32 +1412,6 @@ Directed graph algorithm implementations.
     :return: A list of layers, with each layer consisting of a set of :term:`identifiers <key>`; only includes nodes returned by `required_for_output`.
     :rtype: list(set(int))
 
-.. py:module:: indexer
-   :synopsis: Contains the Indexer class, to help with creating new identifiers/keys.
-
-.. index:: ! key
-.. index::
-  see: id; key
-
-indexer
-----------
-Helps with creating new :term:`identifiers/keys <key>`.
-
-  .. py:class:: Indexer(first)
-
-    Initializes an Indexer instance with the internal ID counter set to ``first``. This class functions to help with creating new (unique) identifiers/keys.
-
-    :param int first: The initial identifier (:term:`key`) to be used.
-
-    .. py:method:: get_next(result=None)
-
-      If ``result`` is not `None`, then we return it unmodified.  Otherwise, we return the next ID and increment our internal counter.
-
-      :param result: Returned unmodified unless `None`.
-      :type result: :pytypes:`int <typesnumeric>` or None
-      :return: Identifier/:term:`key` to use.
-      :rtype: :pytypes:`int <typesnumeric>`
-
 .. py:module:: iznn
    :synopsis: Implements a spiking neural network (closer to in vivo neural networks) based on Izhikevich's 2003 model.
 
