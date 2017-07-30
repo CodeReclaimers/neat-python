@@ -134,8 +134,8 @@ def _determine_mode(addr, mode):
     if mode == MODE_AUTO:
         if host_is_local(host):
             return MODE_PRIMARY
-        else:
-            return MODE_SECONDARY
+
+        return MODE_SECONDARY
     elif mode in (MODE_SECONDARY, MODE_PRIMARY):
         return mode
     else:
@@ -196,7 +196,7 @@ class _ExtendedManager(object):
     def stop(self):
         """Stops the manager."""
         self.manager.shutdown()
-        
+
     def set_secondary_state(self, value):
         """Sets the value for 'secondary_state'."""
         if value not in (_STATE_RUNNING, _STATE_SHUTDOWN, _STATE_FORCED_SHUTDOWN):
@@ -220,7 +220,7 @@ class _ExtendedManager(object):
         Returns a new 'Manager' subclass with registered methods.
         If 'register_callable' is True, defines the 'callable' arguments.
         """
-        
+
         class _EvaluatorSyncManager(managers.BaseManager):
             """
             A custom BaseManager.
@@ -254,7 +254,7 @@ class _ExtendedManager(object):
                 "get_namespace",
                 callable=lambda: namespace,
                 )
-            
+
 
         else:
             _EvaluatorSyncManager.register(
@@ -368,7 +368,6 @@ class DistributedEvaluator(object):
         self.outqueue = None
         self.namespace = None
         self.started = False
-        self.saw_EOFError = False
 
     def __getstate__(self):
         """Required by the pickle protocol."""
@@ -472,7 +471,6 @@ class DistributedEvaluator(object):
             pool = multiprocessing.Pool(self.num_workers)
         else:
             pool = None
-        saw_EOFError = False
         should_reconnect = True
         while should_reconnect:
             i = 0
@@ -504,14 +502,12 @@ class DistributedEvaluator(object):
                 except queue.Empty:
                     continue
                 except (socket.error, EOFError, IOError, OSError, socket.gaierror, TypeError):
-                    saw_EOFError = True
                     break
                 except (managers.RemoteError, multiprocessing.ProcessError) as e:
                     if ('Empty' in repr(e)) or ('TimeoutError' in repr(e)):
                         continue
                     if (('EOFError' in repr(e)) or ('PipeError' in repr(e)) or
                         ('AuthenticationError' in repr(e))): # Second for Python 3.X, Third for 3.6+
-                        saw_EOFError = True
                         break
                     raise
                 if pool is None:
@@ -536,17 +532,15 @@ class DistributedEvaluator(object):
                 try:
                     self.outqueue.put(res)
                 except (socket.error, EOFError, IOError, OSError, socket.gaierror, TypeError):
-                    saw_EOFError = True
                     break
                 except (managers.RemoteError, multiprocessing.ProcessError) as e:
                     if ('Empty' in repr(e)) or ('TimeoutError' in repr(e)):
                         continue
                     if (('EOFError' in repr(e)) or ('PipeError' in repr(e)) or
                         ('AuthenticationError' in repr(e))): # Second for Python 3.X, Third for 3.6+
-                        saw_EOFError = True
                         break
                     raise
-                
+
             if not reconnect:
                 should_reconnect = False
                 break
