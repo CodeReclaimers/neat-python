@@ -80,10 +80,10 @@ MODE_AUTO = 0  # auto-determine mode
 MODE_PRIMARY = MODE_MASTER = 1  # enforce primary mode
 MODE_SECONDARY = MODE_SLAVE = 2  # enforce secondary mode
 
-# states to determine the shutdown states
-STATE_RUNNING = 0
-STATE_SHUTDOWN = 1
-STATE_FORCED_SHUTDOWN = 2
+# states to determine whether the secondaries should shut down
+_STATE_RUNNING = 0
+_STATE_SHUTDOWN = 1
+_STATE_FORCED_SHUTDOWN = 2
 
 
 class ModeError(RuntimeError):
@@ -117,7 +117,7 @@ def host_is_local(hostname, port=22): # no port specified, just use the ssh port
     return False
 
 
-def determine_mode(addr, mode):
+def _determine_mode(addr, mode):
     """
     Returns the mode which should be used.
     If mode is MODE_AUTO, this is determined by checking if 'addr' points to the
@@ -162,7 +162,7 @@ def chunked(data, chunksize):
     return res
 
 
-class ExtendedManager(object):
+class _ExtendedManager(object):
     """A class for managing the multiprocessing.managers.SyncManager"""
     __safe_for_unpickling__ = True  # this may not be safe for unpickling,
                                     # but this is required by pickle.
@@ -170,9 +170,9 @@ class ExtendedManager(object):
     def __init__(self, addr, authkey, mode, start=False):
         self.addr = addr
         self.authkey = authkey
-        self.mode = determine_mode(addr, mode)
+        self.mode = _determine_mode(addr, mode)
         self.manager = None
-        self._secondary_state= multiprocessing.managers.Value(int, STATE_RUNNING)
+        self._secondary_state= multiprocessing.managers.Value(int, _STATE_RUNNING)
         if start:
             self.start()
 
@@ -199,9 +199,9 @@ class ExtendedManager(object):
         
     def set_secondary_state(self, value):
         """Sets the value for 'secondary_state'."""
-        if value not in (STATE_RUNNING, STATE_SHUTDOWN, STATE_FORCED_SHUTDOWN):
+        if value not in (_STATE_RUNNING, _STATE_SHUTDOWN, _STATE_FORCED_SHUTDOWN):
             raise ValueError(
-                "State {!r} is invalid - needs to be one of STATE_RUNNING, STATE_SHUTDOWN, or STATE_FORCED_SHUTDOWN".format(
+                "State {!r} is invalid - needs to be one of _STATE_RUNNING, _STATE_SHUTDOWN, or _STATE_FORCED_SHUTDOWN".format(
                     value)
                 )
         if self.manager is None:
@@ -362,8 +362,8 @@ class DistributedEvaluator(object):
                       file=sys.stderr)
                 self.num_workers = 1
         self.worker_timeout = worker_timeout
-        self.mode = determine_mode(self.addr, mode)
-        self.em = ExtendedManager(self.addr, self.authkey, mode=self.mode, start=False)
+        self.mode = _determine_mode(self.addr, mode)
+        self.em = _ExtendedManager(self.addr, self.authkey, mode=self.mode, start=False)
         self.inqueue = None
         self.outqueue = None
         self.namespace = None
@@ -433,9 +433,9 @@ class DistributedEvaluator(object):
         if not self.started:
             raise RuntimeError("Not yet started!")
         if force_secondary_shutdown:
-            state = STATE_FORCED_SHUTDOWN
+            state = _STATE_FORCED_SHUTDOWN
         else:
-            state = STATE_SHUTDOWN
+            state = _STATE_SHUTDOWN
         self.em.set_secondary_state(state)
         time.sleep(wait)
         if shutdown:
@@ -446,7 +446,7 @@ class DistributedEvaluator(object):
     def _start_primary(self):
         """Start as the primary"""
         self.em.start()
-        self.em.set_secondary_state(STATE_RUNNING)
+        self.em.set_secondary_state(_STATE_RUNNING)
         self._set_shared_instances()
 
     def _start_secondary(self):
@@ -462,7 +462,7 @@ class DistributedEvaluator(object):
 
     def _reset_em(self):
         """Resets self.em and the shared instances."""
-        self.em = ExtendedManager(self.addr, self.authkey, mode=self.mode, start=False)
+        self.em = _ExtendedManager(self.addr, self.authkey, mode=self.mode, start=False)
         self.em.start()
         self._set_shared_instances()
 
@@ -492,10 +492,10 @@ class DistributedEvaluator(object):
                             raise
                         else:
                             break
-                    if state == STATE_FORCED_SHUTDOWN:
+                    if state == _STATE_FORCED_SHUTDOWN:
                         running = False
                         should_reconnect = False
-                    elif state == STATE_SHUTDOWN:
+                    elif state == _STATE_SHUTDOWN:
                         running = False
                     if not running:
                         continue

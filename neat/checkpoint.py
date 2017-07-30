@@ -2,9 +2,13 @@
 from __future__ import print_function
 
 import gzip
-import pickle
 import random
 import time
+
+try:
+    import cPickle as pickle # pylint: disable=import-error
+except ImportError:
+    import pickle # pylint: disable=import-error
 
 from neat.population import Population
 from neat.reporting import BaseReporter

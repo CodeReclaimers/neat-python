@@ -411,6 +411,10 @@ checkpoint
 ---------------
 Uses :py:mod:`pickle` to save and restore populations (and other aspects of the simulation state).
 
+  .. note::
+
+    The speed of this module can vary widely between python implementations (and perhaps versions).
+
   .. py:class:: Checkpointer(generation_interval=100, time_interval_seconds=300, filename_prefix='neat-checkpoint-')
 
     A reporter class that performs checkpointing, saving and restoring the simulation state (including population, randomization, and other aspects).
@@ -678,9 +682,10 @@ distributed
   .. note::
 
     This module is in a **beta** state, and still *unstable* even in single-machine testing. Reliability is likely to vary, including depending on the Python version
-    and implementation (e.g., cpython vs pypy) in use; :py:mod:`checkpointing <checkpoint>` is particularly uncertain, as is any possibility of reconnecting
-    between :term:`primary <primary node>` and :term:`secondary <secondary node>` nodes. Note also that this module is not responsible for starting the
-    script copies on the different :term:`compute nodes <compute node>`, since this is very site/configuration-dependent.
+    and implementation (e.g., cpython vs pypy) in use and the likelihoods of timeouts (due to machine and/or network slowness). In particular, while the code can try
+    to reconnect between between :term:`primary <primary node>` and :term:`secondary <secondary node>` nodes, as noted in the `multiprocessing` documentation
+    this may not work due to data loss/corruption. Note also that this module is not responsible for starting the script copies on the different
+    :term:`compute nodes <compute node>`, since this is very site/configuration-dependent.
 
   .. rubric:: About :term:`compute nodes <compute node>`:
 
@@ -709,18 +714,21 @@ distributed
 
   See :file:`examples/xor/evolve-feedforward-distributed.py` for a complete example.
 
-  Note: Contains a number of private methods (starting with ``_``), which are usually not documented below.
+  .. note::
+
+    The below contains some (but not complete) information about private functions, classes, and similar (starting with ``_``); this documentation is meant to help with
+    maintaining and improving the code, not for enabling external use, and the interface may change **rapidly** with no warning.
 
   .. py:data:: MODE_AUTO
   .. py:data:: MODE_PRIMARY
   .. py:data:: MODE_SECONDARY
 
     Values - which should be treated as constants - that are used for the ``mode`` argument of :py:class:`DistributedEvaluator`. If MODE_AUTO,
-    :py:func:`determine_mode()` uses :py:func:`host_is_local()` and the specified ``addr`` of the :term:`primary node` to decide the mode; the other two specify it.
+    :py:func:`_determine_mode()` uses :py:func:`host_is_local()` and the specified ``addr`` of the :term:`primary node` to decide the mode; the other two specify it.
 
-  .. py:data:: STATE_RUNNING
-  .. py:data:: STATE_SHUTDOWN
-  .. py:data:: STATE_FORCED_SHUTDOWN
+  .. py:data:: _STATE_RUNNING
+  .. py:data:: _STATE_SHUTDOWN
+  .. py:data:: _STATE_FORCED_SHUTDOWN
 
     Values - which should be treated as constants - that are used to determine the current state (whether the secondaries should be continuing the run or not).
 
@@ -739,7 +747,7 @@ distributed
     :return: Whether the hostname appears to be equivalent to that of the localhost.
     :rtype: :pytypes:`bool <typesnumeric>`
 
-  .. py:function:: determine_mode(addr, mode)
+  .. py:function:: _determine_mode(addr, mode)
 
     Returns the mode that should be used.  If ``mode`` is :py:data:`MODE_AUTO`, this is determined by checking (via :py:func:`host_is_local()`) if ``addr`` points
     to the localhost; if it does, it returns :py:data:`MODE_PRIMARY`, else it returns :py:data:`MODE_SECONDARY`. If mode is either MODE_PRIMARY or
@@ -762,20 +770,16 @@ distributed
     :rtype: list(list(object))
     :raises ValueError: If ``chunksize`` is not 1+ or is not an integer
 
-  .. py:class:: ExtendedManager(addr, authkey, mode, start=False)
+  .. py:class:: _ExtendedManager(addr, authkey, mode, start=False)
 
     Manages the :pylib:`multiprocessing.managers.SyncManager <multiprocessing.html#multiprocessing.managers.SyncManager>` instance. Initializes
-    ``self._secondary_state`` to :py:data:`STATE_RUNNING`.
+    ``self._secondary_state`` to :py:data:`_STATE_RUNNING`.
 
-    .. warning::
-
-      See :pylib:`Authentication Keys <multiprocessing.html#authentication-keys>` for more on the ``authkey`` parameter, used to restrict access to the manager.
-
-    :param addr: Should be a tuple of (hostname, port) pointing to the machine running the DistributedEvaluator in primary mode. If mode is :py:data:`MODE_AUTO`, the mode is determined by checking whether the hostname points to this host or not (via :py:func:`determine_mode()` and :py:func:`host_is_local()`).
+    :param addr: Should be a tuple of (hostname, port) pointing to the machine running the DistributedEvaluator in primary mode. If mode is :py:data:`MODE_AUTO`, the mode is determined by checking whether the hostname points to this host or not (via :py:func:`_determine_mode()` and :py:func:`host_is_local()`).
     :type addr: tuple(str, int)
-    :param authkey:  The password used to restrict access to the manager. All DistributedEvaluators need to use the same authkey. Note that this needs to be a :pytypes:`bytes` object for Python 3.X, and should be in 2.7 for compatibility (identical in 2.7 to a `str` object).
+    :param authkey:  The password used to restrict access to the manager. All DistributedEvaluators need to use the same authkey. Note that this needs to be a :pytypes:`bytes` object for Python 3.X, and should be in 2.7 for compatibility (identical in 2.7 to a `str` object). For more information, see under :py:class:`DistributedEvaluator`.
     :type authkey: :pytypes:`bytes`
-    :param int mode: Specifies the mode to run in - must be one of :py:data:`MODE_AUTO`, :py:data:`MODE_PRIMARY`, or :py:data:`MODE_SECONDARY`. Processed by :py:func:`determine_mode()`.
+    :param int mode: Specifies the mode to run in - must be one of :py:data:`MODE_AUTO`, :py:data:`MODE_PRIMARY`, or :py:data:`MODE_SECONDARY`. Processed by :py:func:`_determine_mode()`.
     :param bool start: Whether to call the :py:meth:`start()` method after initialization.
 
     .. py:method:: __reduce__()
@@ -799,16 +803,13 @@ distributed
 
       Sets the value for the ``secondary_state``, shared between the nodes via :pylib:`multiprocessing.managers.Value <multiprocessing.html#multiprocessing.managers.SyncManager.Value>`.
 
-      :param int value: The desired secondary state; must be one of :py:data:`STATE_RUNNING`, :py:data:`STATE_SHUTDOWN`, or :py:data:`STATE_FORCED_SHUTDOWN`.
+      :param int value: The desired secondary state; must be one of :py:data:`_STATE_RUNNING`, :py:data:`_STATE_SHUTDOWN`, or :py:data:`_STATE_FORCED_SHUTDOWN`.
       :raises ValueError: If the ``value`` is not one of the above.
       :raises RuntimeError: If the manager has not been :py:meth:`started <start()>`.
 
-    .. py:method:: secondary_state()
+    .. py:attribute:: secondary_state
 
-      Retrieves the :pylib:`property <functions.html#property>` ``secondary_state`` - whether the secondary nodes should still be processing elements.
-
-      :return: The current secondary_state.
-      :rtype: :pytypes:`int <typesnumeric>`
+      The :pylib:`property <functions.html#property>` ``secondary_state`` - whether the secondary nodes should still be processing elements.
 
     .. py:method:: get_inqueue()
 
@@ -842,9 +843,13 @@ distributed
 
     An evaluator working across multiple machines (:term:`compute nodes <compute node>`).
 
+    .. warning::
+
+      See :pylib:`Authentication Keys <multiprocessing.html#authentication-keys>` for more on the ``authkey`` parameter, used to restrict access to the manager.
+
     :param addr: Should be a tuple of (hostname, port) pointing to the machine running the DistributedEvaluator in primary mode. If mode is :py:data:`MODE_AUTO`, the mode is determined by checking whether the hostname points to this host or not (via :py:func:`host_is_local()`).
     :type addr: tuple(str, int)
-    :param authkey:  The password used to restrict access to the manager. All DistributedEvaluators need to use the same authkey. Note that this needs to be a :pytypes:`bytes` object for Python 3.X, and should be in 2.7 for compatibility (identical in 2.7 to a `str` object). For more information, see under :py:class:`ExtendedManager`.
+    :param authkey:  The password used to restrict access to the manager. All DistributedEvaluators need to use the same authkey. Note that this needs to be a :pytypes:`bytes` object for Python 3.X, and should be in 2.7 for compatibility (identical in 2.7 to a `str` object).
     :type authkey: :pytypes:`bytes`
     :param eval_function: The eval_function should take two arguments - a genome object and a config object - and return a single :pytypes:`float <typesnumeric>` (the genome's fitness) Note that this is not the same as how a fitness function is called by :py:meth:`Population.run <population.Population.run>`, nor by :py:class:`ParallelEvaluator <parallel.ParallelEvaluator>` (although it is more similar to the latter).
     :type eval_function: `function`
@@ -883,7 +888,7 @@ distributed
       If the DistributedEvaluator is in primary mode, starts the manager process and returns. If the DistributedEvaluator is in secondary mode, it connects to the
       manager and waits for tasks.
 
-      :param exit_on_stop: If a secondary node, whether to exit if the connection is lost (unless reconnect is True) or the primary calls for a forced shutdown (via setting the ``secondary_state`` to :py:data:`STATE_FORCED_SHUTDOWN` instead of :py:data:`STATE_SHUTDOWN`)
+      :param exit_on_stop: If a secondary node, whether to exit if (unless ``reconnect`` is ``True``) the connection is lost, the primary calls for a shutdown (via :py:meth:`stop()`), or - even if ``reconnect`` is True - the primary calls for a forced shutdown (via calling :py:meth:`stop()` with ``force_secondary_shutdown`` set to ``True``).
       :type exit_on_stop: :pytypes:`bool <typesnumeric>`
       :param secondary_wait: Specifies the time (in seconds) to sleep before actually starting, if a :term:`secondary node`.
       :type secondary_wait: :pytypes:`float <typesnumeric>`
@@ -899,14 +904,15 @@ distributed
       :type wait: :pytypes:`float <typesnumeric>`
       :param shutdown: Whether to :pylib:`shutdown <multiprocessing.html#multiprocessing.managers.BaseManager.shutdown>` the :pylib:`multiprocessing.managers.SyncManager <multiprocessing.html#multiprocessing.managers.SyncManager>` also (after the wait, if any).
       :type shutdown: :pytypes:`bool <typesnumeric>`
-      :param bool force_secondary_shutdown: If true, the ``secondary_state`` will be set to :py:data:`STATE_FORCED_SHUTDOWN` instead of :py:data:`STATE_SHUTDOWN`, causing the secondaries to shutdown even if started with ``reconnect`` true.
+      :param bool force_secondary_shutdown: Causes secondaries to shutdown even if started with ``reconnect`` true (via setting the ``secondary_state`` to :py:data:`_STATE_FORCED_SHUTDOWN` instead of :py:data:`_STATE_SHUTDOWN`).
       :raises ModeError: If not the :term:`primary node` (not in :py:data:`MODE_PRIMARY`).
       :raises RuntimeError: If not yet :py:meth:`started <start()>`.
 
     .. py:method:: evaluate(genomes, config)
 
       Evaluates the genomes. Distributes the genomes to the secondary nodes, then gathers the fitnesses from the secondary nodes and assigns them to the
-      genomes. Must not be called by :term:`secondary nodes <secondary node>`.
+      genomes. Must not be called by :term:`secondary nodes <secondary node>`. TODO: Improved handling of errors from broken connections with
+      the secondary nodes may be needed.
 
       :param genomes: Dictionary of (:term:`genome_id <key>`, genome) 
       :type genomes: dict(int, :datamodel:`instance <index-48>`)

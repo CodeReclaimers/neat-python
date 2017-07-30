@@ -18,7 +18,7 @@ else:
     HAVE_THREADING = True
 
 import neat
-from neat.distributed import chunked, MODE_AUTO, MODE_PRIMARY, MODE_SECONDARY, ModeError, STATE_RUNNING
+from neat.distributed import chunked, MODE_AUTO, MODE_PRIMARY, MODE_SECONDARY, ModeError, _STATE_RUNNING
 
 ON_PYPY = platform.python_implementation().upper().startswith("PYPY")
 
@@ -190,7 +190,7 @@ def test_DistributedEvaluator_state_error1():
         mode=MODE_PRIMARY,
         )
     try:
-        primary.em.set_secondary_state(STATE_RUNNING)
+        primary.em.set_secondary_state(_STATE_RUNNING)
     except RuntimeError:
         pass
     else:
