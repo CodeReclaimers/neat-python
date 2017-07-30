@@ -1,7 +1,7 @@
 """
 This module implements a spiking neural network.
 Neurons are based on the model described by:
-    
+
 Izhikevich, E. M.
 Simple Model of Spiking Neurons
 IEEE TRANSACTIONS ON NEURAL NETWORKS, VOL. 14, NO. 6, NOVEMBER 2003
@@ -36,7 +36,7 @@ LOW_THRESHOLD_SPIKING_PARAMS  = {'a': 0.02, 'b': 0.25, 'c': -65.0, 'd': 2.00}
 
 class IZNodeGene(BaseGene):
     """Contains attributes for the iznn node genes and determines genomic distances."""
-    
+
     _gene_attributes = [FloatAttribute('bias'),
                            FloatAttribute('a'),
                            FloatAttribute('b'),

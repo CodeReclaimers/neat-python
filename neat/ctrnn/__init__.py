@@ -1,3 +1,4 @@
+"""Handles the continuous-time recurrent neural network implementation."""
 from __future__ import division
 
 from neat.graphs import required_for_output
@@ -15,6 +16,7 @@ class CTRNNNodeEval(object):
 
 
 class CTRNN(object):
+    """Sets up the ctrnn network itself."""
     def __init__(self, inputs, outputs, node_evals):
         self.input_nodes = inputs
         self.output_nodes = outputs

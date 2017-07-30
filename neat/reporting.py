@@ -88,6 +88,7 @@ class BaseReporter(object):
 
 
 class StdOutReporter(BaseReporter):
+    """Uses `print` to output information about the run; an example reporter class."""
     def __init__(self, show_species_detail):
         self.show_species_detail = show_species_detail
         self.generation = None

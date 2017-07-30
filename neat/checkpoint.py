@@ -71,7 +71,7 @@ class Checkpointer(BaseReporter):
 
     @staticmethod
     def restore_checkpoint(filename):
-        '''Resumes the simulation from a previous saved point.'''
+        """Resumes the simulation from a previous saved point."""
         with gzip.open(filename) as f:
             generation, config, population, species_set, rndstate = pickle.load(f)
             random.setstate(rndstate)

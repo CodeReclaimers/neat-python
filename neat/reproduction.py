@@ -109,7 +109,7 @@ class DefaultReproduction(DefaultClassConfig):
         if not remaining_species:
             species.species = {}
             return {} # was []
-        
+
         # Find minimum/maximum fitness across the entire population, for use in
         # species adjusted fitness computation.
         min_fitness = min(all_fitnesses)

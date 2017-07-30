@@ -54,7 +54,6 @@ class BaseGene(object):
         new_gene = self.__class__(self.key)
         for a in self._gene_attributes:
             setattr(new_gene, a.name, getattr(self, a.name))
-            
 
         return new_gene
 

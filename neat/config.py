@@ -183,7 +183,6 @@ class Config(object):
                                              "\n\t".join(unknown_list))
             raise UnknownConfigItemError(
                 "Unknown (section 'NEAT') configuration item {!s}".format(unknown_list[0]))
-        
 
         # Parse type sections.
         genome_dict = dict(parameters.items(genome_type.__name__))

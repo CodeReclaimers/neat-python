@@ -66,7 +66,7 @@ class DefaultStagnation(DefaultClassConfig):
             is_stagnant = False
             if num_non_stagnant > self.stagnation_config.species_elitism:
                 is_stagnant = stagnant_time >= self.stagnation_config.max_stagnation
-                
+
             if (len(species_data) - idx) <= self.stagnation_config.species_elitism:
                 is_stagnant = False
 
