@@ -236,8 +236,8 @@ required for your particular implementation.
 
 * *bias_init_type*
     If set to ``gaussian`` or ``normal``, then the initialization is to a normal/gaussian distribution. If set to ``uniform``, a uniform distribution
-    from :math:`\max(bias_min_value, (bias_init_mean-(bias_init_stdev*2)))` to
-    :math:`\min(bias_max_value, (bias_init_mean+(bias_init_stdev*2)))`. (Note that the standard deviation of a uniform distribution is not
+    from :math:`\max(bias\_min\_value, (bias\_init\_mean-(bias\_init\_stdev*2)))` to
+    :math:`\min(bias\_max\_value, (bias\_init\_mean+(bias\_init\_stdev*2)))`. (Note that the standard deviation of a uniform distribution is not
     range/0.25, as implied by this, but the range divided by a bit over 0.288 (the square root of 12); however, this approximation makes setting
     the range much easier.) **This defaults to "gaussian".**
 
@@ -442,8 +442,8 @@ required for your particular implementation.
 
 * *response_init_type*
     If set to ``gaussian`` or ``normal``, then the initialization is to a normal/gaussian distribution. If set to ``uniform``, a uniform distribution
-    from :math:`\max(response_min_value, (response_init_mean-(response_init_stdev*2)))` to
-    :math:`\min(response_max_value, (response_init_mean+(response_init_stdev*2)))`. (Note that the standard deviation of a uniform distribution is not
+    from :math:`\max(response\_min\_value, (response\_init\_mean-(response\_init\_stdev*2)))` to
+    :math:`\min(response\_max\_value, (response\_init\_mean+(response\_init\_stdev*2)))`. (Note that the standard deviation of a uniform distribution is not
     range/0.25, as implied by this, but the range divided by a bit over 0.288 (the square root of 12); however, this approximation makes setting
     the range much easier.) **This defaults to "gaussian".**
 
@@ -516,8 +516,8 @@ required for your particular implementation.
 
 * *weight_init_type*
     If set to ``gaussian`` or ``normal``, then the initialization is to a normal/gaussian distribution. If set to ``uniform``, a uniform distribution
-    from :math:`\max(weight_min_value, (weight_init_mean-(weight_init_stdev*2)))` to
-    :math:`\min(weight_max_value, (weight_init_mean+(weight_init_stdev*2)))`. (Note that the standard deviation of a uniform distribution is not
+    from :math:`\max(weight\_min\_value, (weight\_init\_mean-(weight\_init\_stdev*2)))` to
+    :math:`\min(weight\_max\_value, (weight\_init\_mean+(weight\_init\_stdev*2)))`. (Note that the standard deviation of a uniform distribution is not
     range/0.25, as implied by this, but the range divided by a bit over 0.288 (the square root of 12); however, this approximation makes setting
     the range much easier.) **This defaults to "gaussian".**
 
