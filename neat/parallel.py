@@ -1,4 +1,7 @@
-"""Runs evaluation functions in parallel subprocesses in order to evaluate multiple genomes at once."""
+"""
+Runs evaluation functions in parallel subprocesses
+in order to evaluate multiple genomes at once.
+"""
 from multiprocessing import Pool
 
 class ParallelEvaluator(object):
@@ -14,12 +17,12 @@ class ParallelEvaluator(object):
         self.pool = Pool(num_workers)
 
     def __del__(self):
-        self.pool.close()
+        self.pool.close() # should this be terminate?
         self.pool.join()
 
     def evaluate(self, genomes, config):
         jobs = []
-        for genome_id, genome in genomes:
+        for ignored_genome_id, genome in genomes:
             jobs.append(self.pool.apply_async(self.eval_function, (genome, config)))
 
         # assign the fitness back to each genome

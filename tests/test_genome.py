@@ -22,6 +22,10 @@ class TestCreateNew(unittest.TestCase):
         self.config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                                   neat.DefaultSpeciesSet, neat.DefaultStagnation,
                                   config_path)
+        config2_path = os.path.join(local_dir, 'test_configuration2')
+        self.config2 = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                                  neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                                  config2_path)
 
     def test_unconnected_no_hidden(self):
         """Unconnected network with only input and output nodes."""
@@ -236,7 +240,7 @@ class TestCreateNew(unittest.TestCase):
         (equivalent to partial_nodirect and partial_direct with no hidden nodes)
         """
         gid = 42
-        config = self.config.genome_config
+        config = self.config2.genome_config
         config.initial_connection = 'partial'
         config.connection_fraction = 0.5
         config.num_hidden = 0
@@ -255,7 +259,7 @@ class TestCreateNew(unittest.TestCase):
         should output warning re docs/code conflict.
         """
         gid = 42
-        config = self.config.genome_config
+        config = self.config2.genome_config
         config.initial_connection = 'partial'
         config.connection_fraction = 0.5
         config.num_hidden = 2

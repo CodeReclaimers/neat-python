@@ -12,24 +12,15 @@ Most settings must be explicitly enumerated in the configuration file.  (This ma
 that library code changes will result in your project silently using different NEAT settings. There are some defaults, as noted below, and
 insofar as possible new configuration parameters will default to the existing behavior.)
 
-.. note::
-
-  TODO: Work on ways to make the existing defaults more integrated with the configuration code. This may involve a third, optional (defaulting to ``None``)
-  parameter for `ConfigParameter`, giving a default. Such a mechanism will be needed to convert the configuration in `DefaultReproduction` and
-  `DefaultStagnation` to match that in other classes/modules. It would also be needed to add, for instance, an alternative uniform-distribution initialization
-  for various parameters such as weight and bias, without requiring all configuration files to be changed to specify the gaussian distribution currently in
-  use. Another example would be for a configuration file variable for whether more than one addition/connection :term:`mutation` can take place at a time,
-  as mentioned in genome.py.
-
-  The above is done in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch.
-
 Note that the `Config` constructor also requires you to explicitly specify the types that will be used
 for the NEAT simulation.  This, again, is to help avoid silent changes in behavior.
 
 .. _configuration-file-sections-label:
 
-The configuration file is in several sections, of which at least one is required. However, there are no requirements for ordering within these sections, or for ordering of the sections themselves.
+The configuration file is in several sections, of which at least one is required. However, there are no requirements for ordering within
+these sections, or for ordering of the sections themselves.
 
+.. _configuration-file-NEAT-section-label:
 
 [NEAT] section
 --------------
@@ -54,10 +45,20 @@ itself.  This section is always required, and is handled by the `Config` class i
     any registered reporting class' :py:meth:`found_solution <reporting.BaseReporter.found_solution>` method.
 
 .. note::
-  The ``found_solution`` method is **not** called if the maximum number of generations is reached without the above threshold being passed.
-  TODO: Add a new configuration parameter to ignore the above, provided a maximum number of generations is passed
-  to :py:meth:`population.Population.run`, and if so call ``found_solution`` upon termination by a maximum number of generations. (This is mostly done
-  in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch.)
+  The ``found_solution`` method is **not** called if the maximum number of generations is reached without the above threshold being passed
+  (if attention is being paid to fitness for termination in the first place - see ``no_fitness_termination`` below).
+
+.. _no-fitness-termination-label:
+
+.. index:: ! no_fitness_termination
+.. index:: found_solution()
+
+* *no_fitness_termination*
+    If this evaluates to ``True``, then the ``fitness_criterion`` and ``fitness_threshold`` are ignored for termination; only valid if termination by a maximum
+    number of generations passed to :py:meth:`population.Population.run` is enabled, and the ``found_solution`` method **is** called upon generation
+    number termination. If it evaluates to ``False``, then fitness is used to determine termination. **This defaults to "False".**
+
+    .. versionadded:: 0.92
 
 .. _pop-size-label:
 
@@ -114,13 +115,6 @@ required for your particular implementation.
     a ``species_elitism`` setting of 3 will prevent the 3 species with the highest species fitness from
     being removed for stagnation regardless of the amount of time they have not shown improvement. **This defaults to 0.**
 
-.. note::
-
-  TODO: `DefaultStagnation.write_config` uses a default of 15 for ``species_elitism``, but the default by `DefaultStagnation.parse_config` is 0,
-  which will override.
-
-  The above is handled in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch.
-
 .. index:: reproduction
 .. index:: DefaultReproduction
 
@@ -136,6 +130,8 @@ required for your particular implementation.
 
 .. index:: ! elitism
 
+.. _elitism-label:
+
 * *elitism*
     The number of most-fit individuals in each species that will be preserved as-is from one generation to the next. **This defaults to 0.**
 
@@ -144,12 +140,12 @@ required for your particular implementation.
 * *survival_threshold*
     The fraction for each species allowed to reproduce each generation. **This defaults to 0.2.**
 
-.. note::
+.. index:: ! min_species_size
 
-  TODO: There is also a :index:`min_species_size` configuration parameter, defaulting to 2, although it is not written out by
-  `DefaultReproduction.write_config`.
+.. _min-species-size-label:
 
-  The above is handled in the `config_work <https://github.com/drallensmith/neat-python/tree/config_work>`_ branch, although documentation is needed.
+* *min_species_size*
+    The minimum number of genomes per species after reproduction. **This defaults to 2.**
 
 .. index:: genome
 .. index:: DefaultGenome
@@ -169,13 +165,21 @@ required for your particular implementation.
 
 .. _activation-function-config-label:
 
+.. index:: X_default
+
 * *activation_default*
     The default :term:`activation function` :term:`attribute <attributes>` :py:meth:`assigned <attributes.StringAttribute.init_value>` to new
-    :term:`nodes <node>`. **If none is given, or ``random`` is specified, one of the ``activation_options`` will be chosen at random.**
+    :term:`nodes <node>`. **If none is given, or "random" is specified, one of the activation_options will be chosen at random.**
+
+.. index:: mutate_rate
+
 * *activation_mutate_rate*
     The probability that :term:`mutation` will replace the node's activation function with a
     :py:meth:`randomly-determined <attributes.StringAttribute.mutate_value>` member of the ``activation_options``.
     Valid values are in [0.0, 1.0].
+
+.. index:: X_options
+
 * *activation_options*
     A space-separated list of the activation functions that may be used by nodes.  **This defaults to** :ref:`sigmoid <sigmoid-label>`. The
     built-in available functions can be found in :ref:`activation-functions-label`; more can be added as described in :ref:`customization-label`.
@@ -185,35 +189,80 @@ required for your particular implementation.
 .. index:: node
 .. index:: attributes
 
+.. _aggregation-function-config-label:
+
+.. index:: X_default
+
 * *aggregation_default*
     The default :term:`aggregation function` :term:`attribute <attributes>` :py:meth:`assigned <attributes.StringAttribute.init_value>` to new
-    :term:`nodes <node>`. **If none is given, or ``random`` is specified, one of the ``aggregation_options`` will be chosen at random.**
+    :term:`nodes <node>`. **If none is given, or "random" is specified, one of the aggregation_options will be chosen at random.**
+
+.. index:: mutate_rate
+
 * *aggregation_mutate_rate*
     The probability that :term:`mutation` will replace the node's aggregation function with a
     :py:meth:`randomly-determined <attributes.StringAttribute.mutate_value>` member of the ``aggregation_options``.
     Valid values are in [0.0, 1.0].
+
+.. index:: X_options
+
 * *aggregation_options*
-    A space-separated list of the aggregation functions that may be used by nodes.  **This defaults to ``sum``.** The
-    available functions (defined in `genome.DefaultGenomeConfig`) are: ``sum``, :py:func:`product <genome.product>`, ``min``, and ``max``
+    A space-separated list of the aggregation functions that may be used by nodes.  **This defaults to "sum".** The
+    available functions (defined in `aggregations`) are: ``sum``, :py:func:`product <aggregations.product_aggregation>`, ``min``, ``max``, ``mean``, ``median``,
+    and :py:func:`maxabs <aggregations.maxabs_aggregation>` (which returns the input value with the greatest absolute value; the returned
+    value may be positive or negative). New aggregation functions can be defined similarly to :ref:`new activation functions <customization-label>`.
+    (Note that the function needs to take a `list` or other `iterable`; the `reduce <functools.reduce>` function, as in `aggregations`, may be of use in this.)
+
+    .. versionchanged:: 0.92
+      Moved out of :py:mod:`genome` into :py:mod:`aggregations`; maxabs, mean, and median added; method for defining new aggregation functions added.
 
 .. index:: bias
 .. index:: mutation
 .. index:: node
 .. index:: attributes
 
+.. index:: init_mean
+
 * *bias_init_mean*
-    The mean of the normal/gaussian distribution used to :py:meth:`select <attributes.FloatAttribute.init_value>` :term:`bias`
+    The mean of the normal/gaussian distribution, if it is used to :py:meth:`select <attributes.FloatAttribute.init_value>` :term:`bias`
     :term:`attribute <attributes>` values for new :term:`nodes <node>`.
+
+.. index:: init_stdev
+
 * *bias_init_stdev*
-    The standard deviation of the normal/gaussian distribution used to select bias values for new nodes.
+    The standard deviation of the normal/gaussian distribution, if it is used to select bias values for new nodes.
+
+.. index:: init_type
+
+* *bias_init_type*
+    If set to ``gaussian`` or ``normal``, then the initialization is to a normal/gaussian distribution. If set to ``uniform``, a uniform distribution
+    from :math:`\max(bias\_min\_value, (bias\_init\_mean-(bias\_init\_stdev*2)))` to
+    :math:`\min(bias\_max\_value, (bias\_init\_mean+(bias\_init\_stdev*2)))`. (Note that the standard deviation of a uniform distribution is not
+    range/0.25, as implied by this, but the range divided by a bit over 0.288 (the square root of 12); however, this approximation makes setting
+    the range much easier.) **This defaults to "gaussian".**
+
+    .. versionadded:: 0.92
+
+.. index:: max_value
+.. index:: min_value
+
 * *bias_max_value*
     The maximum allowed bias value.  Biases above this value will be :py:meth:`clamped <attributes.FloatAttribute.clamp>` to this value.
 * *bias_min_value*
     The minimum allowed bias value.  Biases below this value will be :py:meth:`clamped <attributes.FloatAttribute.clamp>` to this value.
+
+.. index:: mutate_power
+
 * *bias_mutate_power*
     The standard deviation of the zero-centered normal/gaussian distribution from which a bias value :term:`mutation` is drawn.
+
+.. index:: mutate_rate
+
 * *bias_mutate_rate*
     The probability that :term:`mutation` will change the bias of a node by adding a random value.
+
+.. index:: replace_rate
+
 * *bias_replace_rate*
     The probability that :term:`mutation` will replace the bias of a node with a newly :py:meth:`chosen <attributes.FloatAttribute.init_value>`
     random value (as if it were a new node).
@@ -252,11 +301,15 @@ required for your particular implementation.
 
 .. index:: mutation
 .. index:: connection
+.. index:: conn_add_prob
 
 .. _conn-add-prob-label:
 
 * *conn_add_prob*
     The probability that :term:`mutation` will add a :term:`connection` between existing :term:`nodes <node>`. Valid values are in [0.0, 1.0].
+
+.. index:: conn_delete_prob
+
 * *conn_delete_prob*
     The probability that :term:`mutation` will delete an existing connection. Valid values are in [0.0, 1.0].
 
@@ -268,6 +321,8 @@ required for your particular implementation.
 .. index:: connection
 .. index:: attributes
 
+.. index:: X_default
+
 * *enabled_default*
     The default :term:`enabled` :term:`attribute <attributes>` of newly created connections.  Valid values are ``True`` and ``False``.
 
@@ -276,10 +331,22 @@ required for your particular implementation.
   (from the setting of the :ref:`initial_connection <initial-connection-config-label>` variable).
 
 .. index:: mutation
+.. index:: mutate_rate
 
 * *enabled_mutate_rate*
     The probability that :term:`mutation` will :py:func:`replace <attributes.BoolAttribute.mutate_value>` (50/50 chance of ``True`` or ``False``)
     the enabled status of a connection. Valid values are in [0.0, 1.0].
+
+.. index:: rate_to_false_add
+.. index:: rate_to_true_add
+
+* *enabled_rate_to_false_add*
+    Adds to the ``enabled_mutate_rate`` if the connection is currently :term:`enabled`.
+* *enabled_rate_to_true_add*
+    Adds to the ``enabled_mutate_rate`` if the connection is currently not enabled.
+
+    .. versionadded:: 0.92
+      ``enabled_rate_to_false_add`` and ``enabled_rate_to_true_add``
 
 .. _feed-forward-config-label:
 
@@ -302,7 +369,7 @@ required for your particular implementation.
 
     * ``unconnected`` - No :term:`connections <connection>` are initially present. **This is the default.**
     * ``fs_neat_nohidden`` - One randomly-chosen :term:`input node` has one connection to each :term:`output node`. (This is one version of the
-      FS-NEAT scheme.)
+      FS-NEAT scheme; "FS" stands for "Feature Selection".)
     * ``fs_neat_hidden`` - One randomly-chosen :term:`input node` has one connection to each :term:`hidden <hidden node>` and
       :term:`output node`. (This is another version of the FS-NEAT scheme. If there are no hidden nodes, it is the same as ``fs_neat_nohidden``.)
     * ``full_nodirect`` - Each :term:`input node` is connected to all :term:`hidden <hidden node>` nodes, if there are any, and each hidden node is
@@ -317,33 +384,40 @@ required for your particular implementation.
     * ``partial_direct #`` - as for ``full_direct``, but each connection has a probability of being present determined by the number
       (valid values are in [0.0, 1.0]).
 
-.. versionchanged:: 0.91-github
+.. versionchanged:: 0.92
   fs_neat split into fs_neat_nohidden and fs_neat_hidden; full, partial split into full_nodirect, full_direct, partial_nodirect, partial_direct
 
 .. index:: mutation
 .. index:: node
+.. index:: node_add_prob
 
 .. _node-add-prob-label:
 
 * *node_add_prob*
     The probability that :term:`mutation` will add a new :term:`node` (essentially replacing an existing connection,
     the :term:`enabled` status of which will be set to ``False``). Valid values are in [0.0, 1.0].
+
+.. index:: node_delete_prob
+
 * *node_delete_prob*
     The probability that :term:`mutation` will delete an existing node (and all connections to it). Valid values are in [0.0, 1.0].
 
 .. _num-nodes-config-label:
 
 .. index:: hidden node
+.. index:: ! num_hidden
 
 * *num_hidden*
     The number of :term:`hidden nodes <hidden node>` to add to each genome in the initial population.
 
 .. index:: input node
+.. index:: ! num_inputs
 
 * *num_inputs*
     The number of :term:`input nodes <input node>`, through which the network receives inputs.
 
 .. index:: output node
+.. index:: ! num_outputs
 
 * *num_outputs*
     The number of :term:`output nodes <output node>`, to which the network delivers outputs.
@@ -353,41 +427,122 @@ required for your particular implementation.
 .. index:: node
 .. index:: attributes
 
+.. index:: init_mean
+
 * *response_init_mean*
-    The mean of the normal/gaussian distribution used to :py:meth:`select <attributes.FloatAttribute.init_value>` :term:`response` multiplier
+    The mean of the normal/gaussian distribution, if it is used to :py:meth:`select <attributes.FloatAttribute.init_value>` :term:`response` multiplier
     :term:`attribute <attributes>` values for new :term:`nodes <node>`.
+
+.. index:: init_stdev
+
 * *response_init_stdev*
-    The standard deviation of the normal/gaussian distribution used to select response multipliers for new nodes.
+    The standard deviation of the normal/gaussian distribution, if it is used to select response multipliers for new nodes.
+
+.. index:: init_type
+
+* *response_init_type*
+    If set to ``gaussian`` or ``normal``, then the initialization is to a normal/gaussian distribution. If set to ``uniform``, a uniform distribution
+    from :math:`\max(response\_min\_value, (response\_init\_mean-(response\_init\_stdev*2)))` to
+    :math:`\min(response\_max\_value, (response\_init\_mean+(response\_init\_stdev*2)))`. (Note that the standard deviation of a uniform distribution is not
+    range/0.25, as implied by this, but the range divided by a bit over 0.288 (the square root of 12); however, this approximation makes setting
+    the range much easier.) **This defaults to "gaussian".**
+
+    .. versionadded:: 0.92
+
+.. index:: max_value
+.. index:: min_value
+
 * *response_max_value*
-    The maximum allowed response multiplier. Response multipliers above this value will be :py:meth:`clamped <attributes.FloatAttribute.clamp>` to this value.
+    The maximum allowed response multiplier. Response multipliers above this value will be :py:meth:`clamped <attributes.FloatAttribute.clamp>` to this
+    value.
 * *response_min_value*
     The minimum allowed response multiplier. Response multipliers below this value will be :py:meth:`clamped <attributes.FloatAttribute.clamp>` to this value.
+
+.. index:: mutate_power
+
 * *response_mutate_power*
     The standard deviation of the zero-centered normal/gaussian distribution from which a response multiplier :term:`mutation` is drawn.
+
+.. index:: mutate_rate
+
 * *response_mutate_rate*
     The probability that :term:`mutation` will change the response multiplier of a node by adding a random value.
+
+.. index:: replace_rate
+
 * *response_replace_rate*
     The probability that :term:`mutation` will replace the response multiplier of a node with a newly :py:meth:`chosen <attributes.FloatAttribute.init_value>` 
     random value (as if it were a new node).
+
+.. index:: ! single_structural_mutation
+.. index:: ! structural_mutation_surer
+.. index:: mutation
+.. index:: node
+.. index:: connection
+
+.. _structural-mutation-surer-label:
+
+* *single_structural_mutation*
+    If this evaluates to ``True``, only one structural mutation (the addition or removal of a :term:`node` or :term:`connection`) will be allowed per genome
+    per generation. (If the probabilities for :ref:`conn_add_prob <conn-add-prob-label>`, conn_delete_prob, :ref:`node_add_prob <node-add-prob-label>`,
+    and node_delete_prob add up to over 1, the chances of each are proportional to the appropriate configuration value.) **This defaults to "False".**
+
+    .. versionadded:: 0.92
+
+* *structural_mutation_surer*
+    If this evaluates to ``True``, then an attempt to add a :term:`node` to a genome lacking :term:`connections <connection>` will result in adding
+    a connection instead; furthermore, if an attempt to add a connection tries to add a connection that already exists, that connection will be
+    :term:`enabled`. If this is set to ``default``, then it acts as if it had the same value as ``single_structural_mutation`` (above). **This defaults to "default".**
+
+    .. versionadded:: 0.92
 
 .. index:: weight
 .. index:: mutation
 .. index:: connection
 .. index:: attributes
 
+.. index:: init_mean
+
 * *weight_init_mean*
     The mean of the normal/gaussian distribution used to :py:meth:`select <attributes.FloatAttribute.init_value>` :term:`weight`
     :term:`attribute <attributes>` values for new :term:`connections <connection>`.
+
+.. index:: init_stdev
+
 * *weight_init_stdev*
     The standard deviation of the normal/gaussian distribution used to select weight values for new connections.
+
+.. index:: ! init_type
+
+* *weight_init_type*
+    If set to ``gaussian`` or ``normal``, then the initialization is to a normal/gaussian distribution. If set to ``uniform``, a uniform distribution
+    from :math:`\max(weight\_min\_value, (weight\_init\_mean-(weight\_init\_stdev*2)))` to
+    :math:`\min(weight\_max\_value, (weight\_init\_mean+(weight\_init\_stdev*2)))`. (Note that the standard deviation of a uniform distribution is not
+    range/0.25, as implied by this, but the range divided by a bit over 0.288 (the square root of 12); however, this approximation makes setting
+    the range much easier.) **This defaults to "gaussian".**
+
+    .. versionadded:: 0.92
+
+.. index:: max_value
+.. index:: min_value
+
 * *weight_max_value*
     The maximum allowed weight value. Weights above this value will be :py:meth:`clamped <attributes.FloatAttribute.clamp>` to this value.
 * *weight_min_value*
     The minimum allowed weight value. Weights below this value will be :py:meth:`clamped <attributes.FloatAttribute.clamp>` to this value.
+
+.. index:: mutate_power
+
 * *weight_mutate_power*
     The standard deviation of the zero-centered normal/gaussian distribution from which a weight value :term:`mutation` is drawn.
+
+.. index:: mutate_rate
+
 * *weight_mutate_rate*
     The probability that :term:`mutation` will change the weight of a connection by adding a random value.
+
+.. index:: replace_rate
+
 * *weight_replace_rate*
     The probability that :term:`mutation` will replace the weight of a connection with a newly :py:meth:`chosen <attributes.FloatAttribute.init_value>`
     random value (as if it were a new connection).

@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='neat-python',
-    version='0.91',
+    version='0.92',
     author='cesar.gomes, mirrorballu2',
     author_email='nobody@nowhere.com',
     maintainer='CodeReclaimers, LLC',
@@ -24,6 +24,7 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Scientific/Engineering'
     ]

@@ -1,0 +1,15 @@
+.coveralls.yml
+docs/_build/**
+_build/**
+cover
+.coverage
+neat-checkpoint-*
+fitness_history.csv
+speciation.csv
+species_fitness.csv
+.mypy_cache
+*~
+*.pyc
+*.pyo
+__pycache__/
+*stats*.dat*

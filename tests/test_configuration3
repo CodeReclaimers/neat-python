@@ -2,18 +2,18 @@
 fitness_criterion     = max
 fitness_threshold     = 0.9
 pop_size              = 150
-reset_on_extinction   = False
+reset_on_extinction   = True
 
 [DefaultGenome]
 # node activation options
-activation_default      = squanchy
-activation_mutate_rate  = 0.0
-activation_options      = sigmoid squanchy
+activation_default      = random
+activation_mutate_rate  = 0.5
+activation_options      = sigmoid tanh relu softplus
 
 # node aggregation options
-aggregation_default     = sum
-aggregation_mutate_rate = 0.0
-aggregation_options     = sum
+aggregation_default     = random
+aggregation_mutate_rate = 0.5
+aggregation_options     = sum product max min maxabs median mean
 
 # node bias options
 bias_init_mean          = 0.0
@@ -33,11 +33,12 @@ conn_add_prob           = 0.5
 conn_delete_prob        = 0.5
 
 # connection enable options
-enabled_default         = True
-enabled_mutate_rate     = 0.01
+enabled_default         = 1
+enabled_mutate_rate     = 0.05
+enabled_rate_to_false_add = 0.05
 
 feed_forward            = True
-initial_connection      = full
+initial_connection      = partial 0.5
 
 # node add/remove rates
 node_add_prob           = 0.2
@@ -57,9 +58,14 @@ response_mutate_power   = 0.0
 response_mutate_rate    = 0.0
 response_replace_rate   = 0.0
 
+# structural mutation
+single_structural_mutation = True
+structural_mutation_surer = 1
+
 # connection weight options
 weight_init_mean        = 0.0
 weight_init_stdev       = 1.0
+weight_init_type        = uniform
 weight_max_value        = 30
 weight_min_value        = -30
 weight_mutate_power     = 0.5
@@ -72,8 +78,9 @@ compatibility_threshold = 3.0
 [DefaultStagnation]
 species_fitness_func = max
 max_stagnation       = 20
+species_elitism        = 0
 
 [DefaultReproduction]
 elitism            = 2
 survival_threshold = 0.2
-
+min_species_size = 2

@@ -1,7 +1,11 @@
+"""
+Gathers (via the reporting interface) and provides (to callers and/or a file)
+the most-fit genomes and information on genome/species fitness and species sizes.
+"""
 import copy
 import csv
 
-from neat.math_util import mean, stdev
+from neat.math_util import mean, stdev, median2
 from neat.reporting import BaseReporter
 from neat.six_util import iteritems
 
@@ -11,8 +15,8 @@ from neat.six_util import iteritems
 
 class StatisticsReporter(BaseReporter):
     """
-    Gathers (via the reporting interface) and provides (to callers and/or a file) the most-fit genomes and
-    information on genome/species fitness and species sizes.
+    Gathers (via the reporting interface) and provides (to callers and/or a file)
+    the most-fit genomes and information on genome/species fitness and species sizes.
     """
     def __init__(self):
         BaseReporter.__init__(self)
@@ -28,7 +32,8 @@ class StatisticsReporter(BaseReporter):
         #species_cross_validation_stats = {}
         for sid, s in iteritems(species.species):
             species_stats[sid] = dict((k, v.fitness) for k, v in iteritems(s.members))
-            #species_cross_validation_stats[sid] = dict((k, v.cross_fitness) for k, v in iteritems(s.members))
+            ##species_cross_validation_stats[sid] = dict((k, v.cross_fitness) for
+##                                                       k, v in iteritems(s.members))
         self.generation_statistics.append(species_stats)
         #self.generation_cross_validation_statistics.append(species_cross_validation_stats)
 
@@ -43,14 +48,18 @@ class StatisticsReporter(BaseReporter):
         return stat
 
     def get_fitness_mean(self):
-        """Get the per-generation average fitness."""
+        """Get the per-generation mean fitness."""
         return self.get_fitness_stat(mean)
 
     def get_fitness_stdev(self):
         """Get the per-generation standard deviation of the fitness."""
         return self.get_fitness_stat(stdev)
 
-    def get_average_cross_validation_fitness(self):
+    def get_fitness_median(self):
+        """Get the per-generation median fitness."""
+        return self.get_fitness_stat(median2)
+
+    def get_average_cross_validation_fitness(self): # pragma: no cover
         """Get the per-generation average cross_validation fitness."""
         avg_cross_validation_fitness = []
         for stats in self.generation_cross_validation_statistics:
@@ -89,7 +98,10 @@ class StatisticsReporter(BaseReporter):
         self.save_species_count()
         self.save_species_fitness()
 
-    def save_genome_fitness(self, delimiter=' ', filename='fitness_history.csv', with_cross_validation=False):
+    def save_genome_fitness(self,
+                            delimiter=' ',
+                            filename='fitness_history.csv',
+                            with_cross_validation=False):
         """ Saves the population's best and average fitness. """
         with open(filename, 'w') as f:
             w = csv.writer(f, delimiter=delimiter)
@@ -97,10 +109,13 @@ class StatisticsReporter(BaseReporter):
             best_fitness = [c.fitness for c in self.most_fit_genomes]
             avg_fitness = self.get_fitness_mean()
 
-            if with_cross_validation:
+            if with_cross_validation: # pragma: no cover
                 cv_best_fitness = [c.cross_fitness for c in self.most_fit_genomes]
                 cv_avg_fitness = self.get_average_cross_validation_fitness()
-                for best, avg, cv_best, cv_avg in zip(best_fitness, avg_fitness, cv_best_fitness, cv_avg_fitness):
+                for best, avg, cv_best, cv_avg in zip(best_fitness,
+                                                      avg_fitness,
+                                                      cv_best_fitness,
+                                                      cv_avg_fitness):
                     w.writerow([best, avg, cv_best, cv_avg])
             else:
                 for best, avg in zip(best_fitness, avg_fitness):

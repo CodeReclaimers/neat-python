@@ -11,7 +11,7 @@ class FeedForwardNetwork(object):
 
     def activate(self, inputs):
         if len(self.input_nodes) != len(inputs):
-            raise Exception("Expected {0} inputs, got {1}".format(len(self.input_nodes), len(inputs)))
+            raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.input_nodes), len(inputs)))
 
         for k, v in zip(self.input_nodes, inputs):
             self.values[k] = v
@@ -37,16 +37,17 @@ class FeedForwardNetwork(object):
         for layer in layers:
             for node in layer:
                 inputs = []
-                node_expr = []
-                # TODO: This could be more efficient.
-                for cg in itervalues(genome.connections):
-                    inode, onode = cg.key
-                    if onode == node and cg.enabled:
+                node_expr = [] # currently unused
+                for conn_key in connections:
+                    inode, onode = conn_key
+                    if onode == node:
+                        cg = genome.connections[conn_key]
                         inputs.append((inode, cg.weight))
                         node_expr.append("v[{}] * {:.7e}".format(inode, cg.weight))
 
+
                 ng = genome.nodes[node]
-                aggregation_function = config.genome_config.aggregation_function_defs[ng.aggregation]
+                aggregation_function = config.genome_config.aggregation_function_defs.get(ng.aggregation)
                 activation_function = config.genome_config.activation_defs.get(ng.activation)
                 node_evals.append((node, activation_function, aggregation_function, ng.bias, ng.response, inputs))
 

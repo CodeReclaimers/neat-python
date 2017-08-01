@@ -6,9 +6,9 @@ reset_on_extinction   = False
 
 [DefaultGenome]
 # node activation options
-activation_default      = squanchy
+activation_default      = sigmoid
 activation_mutate_rate  = 0.0
-activation_options      = sigmoid squanchy
+activation_options      = sigmoid
 
 # node aggregation options
 aggregation_default     = sum
@@ -37,7 +37,7 @@ enabled_default         = True
 enabled_mutate_rate     = 0.01
 
 feed_forward            = True
-initial_connection      = full
+initial_connection      = partial 1.5
 
 # node add/remove rates
 node_add_prob           = 0.2
@@ -72,8 +72,9 @@ compatibility_threshold = 3.0
 [DefaultStagnation]
 species_fitness_func = max
 max_stagnation       = 20
+species_elitism        = 0
 
 [DefaultReproduction]
 elitism            = 2
 survival_threshold = 0.2
-
+min_species_size = 2

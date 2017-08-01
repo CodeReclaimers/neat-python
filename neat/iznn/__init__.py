@@ -1,7 +1,7 @@
 """
 This module implements a spiking neural network.
 Neurons are based on the model described by:
-    
+
 Izhikevich, E. M.
 Simple Model of Spiking Neurons
 IEEE TRANSACTIONS ON NEURAL NETWORKS, VOL. 14, NO. 6, NOVEMBER 2003
@@ -36,8 +36,8 @@ LOW_THRESHOLD_SPIKING_PARAMS  = {'a': 0.02, 'b': 0.25, 'c': -65.0, 'd': 2.00}
 
 class IZNodeGene(BaseGene):
     """Contains attributes for the iznn node genes and determines genomic distances."""
-    
-    __gene_attributes__ = [FloatAttribute('bias'),
+
+    _gene_attributes = [FloatAttribute('bias'),
                            FloatAttribute('a'),
                            FloatAttribute('b'),
                            FloatAttribute('c'),
@@ -126,6 +126,7 @@ class IZNeuron(object):
 
 
 class IZNN(object):
+    """Basic iznn network object."""
     def __init__(self, neurons, inputs, outputs):
         self.neurons = neurons
         self.inputs = inputs
@@ -134,13 +135,16 @@ class IZNN(object):
 
     def set_inputs(self, inputs):
         """Assign input voltages."""
-        assert len(inputs) == len(self.inputs)
+        if len(inputs) != len(self.inputs):
+            raise RuntimeError(
+                "Number of inputs {0:d} does not match number of input nodes {1:d}".format(
+                    len(inputs),len(self.inputs)))
         for i, v in zip(self.inputs, inputs):
             self.input_values[i] = v
 
     def reset(self):
         """Reset all neurons to their default state."""
-        for i, n in self.neurons.items():
+        for n in itervalues(self.neurons):
             n.reset()
 
     def get_time_step_msec(self):
