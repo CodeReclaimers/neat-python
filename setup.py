@@ -14,7 +14,7 @@ setup(
                      'developed by Kenneth O. Stanley for evolving arbitrary neural networks.',
     packages=['neat', 'neat/iznn', 'neat/nn', 'neat/ctrnn'],
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Intended Audience :: Education',
         'Intended Audience :: Science/Research',
