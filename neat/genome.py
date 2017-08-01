@@ -454,7 +454,7 @@ class DefaultGenome(object):
         return len(self.nodes), num_enabled_connections
 
     def __str__(self):
-        s = "Nodes:"
+        s = "Key: {0}\nFitness: {1}\nNodes:".format(self.key, self.fitness)
         for k, ng in iteritems(self.nodes):
             s += "\n\t{0} {1!s}".format(k, ng)
         s += "\nConnections:"
