@@ -429,7 +429,7 @@ Uses :py:mod:`pickle` to save and restore populations (and other aspects of the 
     :type time_interval_seconds: :pytypes:`float <typesnumeric>` or None
     :param str filename_prefix: The prefix for the checkpoint file names.
 
-    .. py:method:: start_generation(generation):
+    .. py:method:: start_generation(generation)
 
       Saves the current generation number for use by :py:meth:`save_checkpoint()`.
 
