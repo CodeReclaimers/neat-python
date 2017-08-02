@@ -40,7 +40,8 @@ extensions = [
     'sphinx.ext.extlinks',
   # note: the below does not actually require (at least the Python) graphviz
   # package to be installed
-    'sphinx.ext.inheritance_diagram', 
+    'sphinx.ext.inheritance_diagram',
+    'sphinx.ext.coverage',
 ]
 
 extlinks = {'pytypes': ('https://docs.python.org/3.5/library/stdtypes.html#%s',
