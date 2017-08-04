@@ -2,14 +2,16 @@
 Handles creation of genomes, either from scratch or by sexual or
 asexual reproduction from parents.
 """
-from __future__ import division
+from __future__ import division, print_function
 
 import math
 import random
+
 from itertools import count
+from sys import stderr, float_info
 
 from neat.config import ConfigParameter, DefaultClassConfig
-from neat.math_util import mean
+from neat.math_util import mean, NORM_EPSILON
 from neat.six_util import iteritems, itervalues
 
 # TODO: Provide some sort of optional cross-species performance criteria, which
@@ -28,7 +30,8 @@ class DefaultReproduction(DefaultClassConfig):
         return DefaultClassConfig(param_dict,
                                   [ConfigParameter('elitism', int, 0),
                                    ConfigParameter('survival_threshold', float, 0.2),
-                                   ConfigParameter('min_species_size', int, 2)])
+                                   ConfigParameter('min_species_size', int, 2),
+                                   ConfigParameter('fitness_min_divisor', float, 1.0)])
 
     def __init__(self, config, reporters, stagnation):
         # pylint: disable=super-init-not-called
@@ -37,6 +40,19 @@ class DefaultReproduction(DefaultClassConfig):
         self.genome_indexer = count(1)
         self.stagnation = stagnation
         self.ancestors = {}
+
+        if config.fitness_min_divisor < 0.0:
+            raise RuntimeError(
+                "Fitness_min_divisor cannot be negative ({0:n})".format(
+                    config.fitness_min_divisor))
+        elif config.fitness_min_divisor == 0.0:
+            config.fitness_min_divisor = NORM_EPSILON
+        elif config.fitness_min_divisor < float_info.epsilon:
+            print("Fitness_min_divisor {0:n} is too low; increasing to {1:n}".format(
+                config.fitness_min_divisor,float_info.epsilon), file=stderr)
+            stderr.flush()
+            config.fitness_min_divisor = float_info.epsilon
+
 
     def create_new(self, genome_type, genome_config, num_genomes):
         new_genomes = {}
@@ -115,8 +131,7 @@ class DefaultReproduction(DefaultClassConfig):
         min_fitness = min(all_fitnesses)
         max_fitness = max(all_fitnesses)
         # Do not allow the fitness range to be zero, as we divide by it below.
-        # TODO: The ``1.0`` below is rather arbitrary, and should be configurable.
-        fitness_range = max(1.0, max_fitness - min_fitness)
+        fitness_range = max(self.reproduction_config.fitness_min_divisor, max_fitness - min_fitness)
         for afs in remaining_species:
             # Compute adjusted fitness.
             msf = mean([m.fitness for m in itervalues(afs.members)])
