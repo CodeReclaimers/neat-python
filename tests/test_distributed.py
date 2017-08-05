@@ -258,7 +258,7 @@ def test_DistributedEvaluator_state_error4():
 ##        raise Exception("primary.em.set_secondary_state(-1) did not raise a ValueError!")
     
 
-@unittest.skipIf(ON_PYPY, "This test fails on pypy during travis builds but usually works locally.")
+#@unittest.skipIf(ON_PYPY, "This test fails on pypy during travis builds but usually works locally.")
 def test_distributed_evaluation_multiprocessing(do_mwcp=True):
     """
     Full test run using the Distributed Evaluator (fake nodes using processes).
@@ -449,5 +449,5 @@ if __name__ == '__main__':
     test_DistributedEvaluator_mode()
     test_DistributedEvaluator_primary_restrictions()
     test_distributed_evaluation_multiprocessing(do_mwcp=True)
-    if HAVE_THREADING:
+    if HAVE_THREADING and (not ON_PYPY):
         test_distributed_evaluation_threaded()

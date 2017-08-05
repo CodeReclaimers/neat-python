@@ -1,8 +1,20 @@
 from __future__ import print_function
 import os
+import unittest
+
 import neat
 
 VERBOSE = True
+
+ON_PYPY = platform.python_implementation().upper().startswith("PYPY")
+
+try:
+    import threading
+except ImportError:
+    import dummy_threading as threading
+    HAVE_THREADING = False
+else:
+    HAVE_THREADING = True
 
 def eval_dummy_genome_nn(genome, config):
     net = neat.nn.FeedForwardNetwork.create(genome, config)
@@ -381,9 +393,11 @@ def test_parallel():
 
     stats.save()
 
-
+@unittest.skipIf(ON_PYPY, "Pypy has problems with threading.")
 def test_threaded_evaluation():
     """Tests a neat evolution using neat.threaded.ThreadedEvaluator"""
+    if not HAVE_THREADING:
+        raise unittest.SkipTest("Platform does not have threading")
     # Load configuration.
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'test_configuration')
@@ -406,9 +420,11 @@ def test_threaded_evaluation():
 
     stats.save()
 
-
+@unittest.skipIf(ON_PYPY, "Pypy has problems with threading.")
 def test_threaded_evaluator():
     """Tests general functionality of neat.threaded.ThreadedEvaluator"""
+    if not HAVE_THREADING:
+        raise unittest.SkipTest("Platform does not have threading")
     n_workers = 3
     e = neat.ThreadedEvaluator(n_workers, eval_dummy_genome_nn)
     try:
@@ -691,8 +707,9 @@ if __name__ == '__main__':
     test_serial_extinction_exception()
     test_serial_extinction_no_exception()
     test_parallel()
-    test_threaded_evaluation()
-    test_threaded_evaluator()
+    if HAVE_THREADING and (not ON_PYPY):
+        test_threaded_evaluation()
+        test_threaded_evaluator()
     test_run_nn_recurrent()
     test_run_nn_recurrent_bad()
     test_run_ctrnn()

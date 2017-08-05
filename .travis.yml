@@ -4,14 +4,14 @@ python:
   - 2.7
   - 3.5
   - 3.6
+  - pypy2.7-5.8.0
+  - pypy3.5-5.8.0
   - 3.3
   - 3.4
   - 3.5-dev
   - 3.6-dev
   - 3.7-dev
   - nightly
-  - pypy
-  - pypy3.5-5.8.0
 install:
     - pip install --upgrade nose coveralls coverage
     - if [[ $TRAVIS_PYTHON_VERSION == 'pypy'* ]]; then export TRAVIS_WAIT=45; else export TRAVIS_WAIT=20; fi
