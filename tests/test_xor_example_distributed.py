@@ -128,7 +128,7 @@ def run_secondary(addr, authkey, num_workers=1):
         raise Exception("DistributedEvaluator in secondary mode did not try to exit!")
 
 
-@unittest.skipIf(ON_PYPY, "This test fails on pypy during travis builds (frequently due to timeouts) but usually works locally.")
+#@unittest.skipIf(ON_PYPY, "This test fails on pypy during travis builds (frequently due to timeouts) but usually works locally.")
 def test_xor_example_distributed():
     """
     Test to make sure restoration after checkpoint works with distributed.
