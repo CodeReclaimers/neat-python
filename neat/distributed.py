@@ -498,7 +498,8 @@ class DistributedEvaluator(object):
         elif isinstance(e, (EOFError, TypeError, socket.gaierror)):
             return 0
         elif (('eoferror' in string) or ('typeerror' in string) or ('gaierror' in string)
-              or ('pipeerror' in string) or ('authenticationerror' in string)):
+              or ('pipeerror' in string) or ('authenticationerror' in string)
+              or ('refused' in string) or ('file descriptor' in string)):
             return 0
         return -1
         
