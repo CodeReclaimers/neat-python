@@ -183,11 +183,10 @@ class _ExtendedManager(object):
         self.authkey = authkey
         self.mode = _determine_mode(addr, mode)
         self.manager = None
-##        self._secondary_state= multiprocessing.managers.Value(int, _STATE_RUNNING)
         if start:
             self.start()
 
-    def __reduce__(self):
+    def __reduce__(self): # pragma: no cover
         """
         This method is used by pickle to serialize instances of this class.
         """
@@ -207,26 +206,8 @@ class _ExtendedManager(object):
 
     def stop(self):
         """Stops the manager."""
-        #self.manager.shutdown()
+        #self.manager.shutdown() # claims there isn't any such attribute ?!?
         self.manager = None
-
-##    def set_secondary_state(self, value):
-##        """Sets the value for 'secondary_state'."""
-##        if value not in (_STATE_RUNNING, _STATE_SHUTDOWN, _STATE_FORCED_SHUTDOWN):
-##            raise ValueError(
-##                "State {!r} is invalid - needs to be one of _STATE_RUNNING, _STATE_SHUTDOWN, or _STATE_FORCED_SHUTDOWN".format(
-##                    value)
-##                )
-##        if self.manager is None:
-##            raise RuntimeError("Manager not started")
-##        self.manager.set_state(value)
-
-##    def _get_secondary_state(self):
-##        """
-##        Returns the value for 'secondary_state'.
-##        This is required for the manager.
-##        """
-##        return self._secondary_state
 
     @staticmethod
     def _get_manager_class(register_callables=False):
@@ -256,14 +237,6 @@ class _ExtendedManager(object):
                 "get_outqueue",
                 callable=lambda: outqueue,
                 )
-##            _EvaluatorSyncManager.register(
-##                "get_state",
-##                callable=self._get_secondary_state,
-##                )
-##            _EvaluatorSyncManager.register(
-##                "set_state",
-##                callable=lambda v: self._secondary_state.set(v),
-##                )
             _EvaluatorSyncManager.register(
                 "get_namespace",
                 callable=lambda: namespace,
@@ -277,12 +250,6 @@ class _ExtendedManager(object):
             _EvaluatorSyncManager.register(
                 "get_outqueue",
                 )
-##            _EvaluatorSyncManager.register(
-##                "get_state",
-##                )
-##            _EvaluatorSyncManager.register(
-##                "set_state",
-##                )
             _EvaluatorSyncManager.register(
                 "get_namespace",
                 )
@@ -301,12 +268,6 @@ class _ExtendedManager(object):
         ins = cls(address=self.addr, authkey=self.authkey)
         ins.start()
         return ins
-
-##    @property
-##    def secondary_state(self):
-##        """Whether the secondary nodes should still process elements."""
-##        v = self.manager.get_state()
-##        return v.get()
 
     def get_inqueue(self):
         """Returns the inqueue."""
@@ -439,14 +400,14 @@ class DistributedEvaluator(object):
                 reconnect_max_time = max((5*60),(15*max(5,self.worker_timeout)))
             else:
                 reconnect_max_time = max(60,(5*max(1,self.worker_timeout)))
-        self.reconnect_max_time = reconnect_max_time
+        self.reconnect_max_time = max(0.3,reconnect_max_time)
         if self.mode == MODE_PRIMARY:
             self._start_primary()
         elif self.mode == MODE_SECONDARY:
             time.sleep(secondary_wait)
             while True:
                 self._start_secondary()
-                self._secondary_loop(reconnect_max_time=max(0.3,reconnect_max_time))
+                self._secondary_loop(reconnect_max_time=reconnect_max_time)
                 if self.exit_on_stop:
                     self._do_exit()
                 else:
@@ -473,20 +434,9 @@ class DistributedEvaluator(object):
             raise ModeError("Not in primary mode!")
         if not self.started:
             raise RuntimeError("Not yet started!")
-##        if force_secondary_shutdown is None:
-##            if self.reconnect:
-##                force_secondary_shutdown = True
-##            else:
-##                force_secondary_shutdown = False
-##        if force_secondary_shutdown:
-##            state = _STATE_FORCED_SHUTDOWN
-##        else:
-##            state = _STATE_SHUTDOWN
-##        self.em.set_secondary_state(state)
-##        time.sleep(wait)
         start_time = time.time()
         num_added = 0
-        if self.n_tasks is None:
+        if self.n_tasks is None: # pragma: no cover
             self.n_tasks = max(1, wait, self.worker_timeout)*5
             warnings.warn("Self.n_tasks is None; estimating at {:n}".format(self.n_tasks))
         while (num_added < self.n_tasks) and ((time.time() - start_time) <
@@ -499,7 +449,7 @@ class DistributedEvaluator(object):
                     self.inqueue.put(0, block=True, timeout=0.2)
                 else:
                     self.inqueue.put(1, block=True, timeout=0.2)
-            except (EOFError, IOError, OSError, socket.gaierror, TypeError,
+            except (EOFError, IOError, OSError, socket.gaierror, TypeError, queue.Full,
                     managers.RemoteError, multiprocessing.ProcessError) as e:
                 if ("timed" in repr(e).lower()) or ("timeout" in repr(e).lower()):
                     if (time.time() - start_time) < max(1, wait, self.worker_timeout):
@@ -522,7 +472,6 @@ class DistributedEvaluator(object):
     def _start_primary(self):
         """Start as the primary"""
         self.em.start()
-##        self.em.set_secondary_state(_STATE_RUNNING)
         self._set_shared_instances()
 
     def _start_secondary(self):
@@ -538,8 +487,7 @@ class DistributedEvaluator(object):
 
     def _reset_em(self):
         """Resets self.em and the shared instances."""
-        self.em = _ExtendedManager(self.addr, self.authkey, mode=self.mode, start=False)
-        self.em.start()
+        self.em = _ExtendedManager(self.addr, self.authkey, mode=self.mode, start=True)
         self._set_shared_instances()
 
     @staticmethod
@@ -570,11 +518,11 @@ class DistributedEvaluator(object):
                     managers.RemoteError, multiprocessing.ProcessError) as e:
                 if (time.time() - last_time_done) >= reconnect_max_time:
                     should_reconnect = False
-                    if self._check_exception(e) < 0:
+                    if self._check_exception(e) < 0: # pragma: no cover
                         self.exit_on_stop = True
                         self.exit_string = repr(e)
                     break
-                elif self._check_exception(e) < 0:
+                elif self._check_exception(e) < 0: # pragma: no cover
                     raise
                 else:
                     continue
@@ -614,12 +562,12 @@ class DistributedEvaluator(object):
                             continue
                         else:
                             break
-                    elif (time.time() - last_time_done) >= reconnect_max_time:
+                    elif (time.time() - last_time_done) >= reconnect_max_time: # pragma: no cover
                         self.exit_on_stop = True
                         self.exit_string = repr(e)
                         should_reconnect = False
                         break
-                    else:
+                    else: # pragma: no cover
                         raise
 
                 if isinstance(tasks, int): # from primary
@@ -653,7 +601,7 @@ class DistributedEvaluator(object):
                 last_time_done = time.time()
                 try:
                     self.outqueue.put(res)
-                except queue.Full:
+                except queue.Full: # pragma: no cover
                     continue
                 except (EOFError, TypeError, socket.gaierror,
                         managers.RemoteError, multiprocessing.ProcessError,
@@ -669,12 +617,12 @@ class DistributedEvaluator(object):
                             continue
                         else:
                             break
-                    elif (time.time() - last_time_done) >= reconnect_max_time:
+                    elif (time.time() - last_time_done) >= reconnect_max_time: # pragma: no cover
                         self.exit_on_stop = True
                         self.exit_string = repr(e)
                         should_reconnect = False
                         break
-                    else:
+                    else: # pragma: no cover
                         raise
                 else:
                     last_time_done = time.time()
