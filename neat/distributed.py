@@ -91,11 +91,6 @@ MODE_AUTO = 0  # auto-determine mode
 MODE_PRIMARY = MODE_MASTER = 1  # enforce primary mode
 MODE_SECONDARY = MODE_SLAVE = 2  # enforce secondary mode
 
-# states to determine whether the secondaries should shut down
-##_STATE_RUNNING = 0
-##_STATE_SHUTDOWN = 1
-##_STATE_FORCED_SHUTDOWN = 2
-
 
 class ModeError(RuntimeError):
     """
@@ -510,6 +505,10 @@ class DistributedEvaluator(object):
         else:
             pool = None
         should_reconnect = True
+        if self.reconnect:
+            em_bad = False
+        else:
+            em_bad = True
         last_time_done = time.time()
         while should_reconnect:
             running = True
@@ -519,6 +518,7 @@ class DistributedEvaluator(object):
                     managers.RemoteError, multiprocessing.ProcessError) as e:
                 if (time.time() - last_time_done) >= reconnect_max_time:
                     should_reconnect = False
+                    em_bad = True
                     if self._check_exception(e) < 0: # pragma: no cover
                         self.exit_on_stop = True
                         self.exit_string = repr(e)
@@ -527,25 +527,8 @@ class DistributedEvaluator(object):
                     raise
                 else:
                     continue
-            # may put last_time_done = time.time() here...
+            last_time_done = time.time() # being successful at reconnecting can be used as a keepalive
             while running:
-##                i += 1
-##                if i % 5 == 0:
-##                    # for better performance, only check every 5 cycles
-##                    try:
-##                        state = self.em.secondary_state
-##                    except (socket.error, EOFError, IOError, OSError, socket.gaierror, TypeError):
-##                        if not reconnect:
-##                            raise
-##                        else:
-##                            break
-##                    if state == _STATE_FORCED_SHUTDOWN:
-##                        running = False
-##                        should_reconnect = False
-##                    elif state == _STATE_SHUTDOWN:
-##                        running = False
-##                    if not running:
-##                        continue
                 try:
                     tasks = self.inqueue.get(block=True, timeout=0.2)
                 except queue.Empty:
@@ -557,7 +540,8 @@ class DistributedEvaluator(object):
                     curr_status = self._check_exception(e)
                     if (curr_status >= 0):
                         if (time.time() - last_time_done) >= reconnect_max_time:
-                            should_reconnect = False
+                            if em_bad:
+                                should_reconnect = False
                             break
                         elif curr_status > 0:
                             continue
@@ -612,7 +596,8 @@ class DistributedEvaluator(object):
                     curr_status = self._check_exception(e)
                     if (curr_status >= 0):
                         if (time.time() - last_time_done) >= reconnect_max_time:
-                            should_reconnect = False
+                            if em_bad:
+                                should_reconnect = False
                             break
                         elif curr_status > 0:
                             continue
@@ -627,8 +612,9 @@ class DistributedEvaluator(object):
                         raise
                 else:
                     last_time_done = time.time()
-            if (time.time() - last_time_done) >= reconnect_max_time:
-                should_reconnect = False
+            if ((time.time() - last_time_done) >= reconnect_max_time):
+                if em_bad:
+                    should_reconnect = False
                 break
         if pool is not None:
             pool.terminate()
