@@ -93,7 +93,7 @@ MODE_SECONDARY = MODE_SLAVE = 2  # enforce secondary mode
 
 # what a return from _check_exception means
 EXCEPTION_TYPE_OK = 1 # queue empty and similar; try again
-EXCEPTION_TYPE_RECONNECT = 0 # disconnected but may be able to reconnect
+EXCEPTION_TYPE_UNCERTAIN = 0 # disconnected but may be able to reconnect
 EXCEPTION_TYPE_BAD = -1 # either raise it again or immediately return and exit with non-zero status code
 
 class ModeError(RuntimeError):
