@@ -18,7 +18,7 @@ else:
     HAVE_THREADING = True
 
 import neat
-from neat.distributed import chunked, MODE_AUTO, MODE_PRIMARY, MODE_SECONDARY, ModeError, _STATE_RUNNING
+from neat.distributed import chunked, MODE_AUTO, MODE_PRIMARY, MODE_SECONDARY, ModeError
 
 ON_PYPY = platform.python_implementation().upper().startswith("PYPY")
 
@@ -181,20 +181,20 @@ def test_DistributedEvaluator_primary_restrictions():
     else:
         raise Exception("A DistributedEvaluator in secondary mode could call evaluate()!")
 
-def test_DistributedEvaluator_state_error1():
-    """Tests that attempts to use an unstarted manager for set_secondary_state cause an error."""
-    primary = neat.DistributedEvaluator(
-        ("localhost", 8022),
-        authkey=b"abcd1234",
-        eval_function=eval_dummy_genome_nn,
-        mode=MODE_PRIMARY,
-        )
-    try:
-        primary.em.set_secondary_state(_STATE_RUNNING)
-    except RuntimeError:
-        pass
-    else:
-        raise Exception("primary.em.set_secondary_state with unstarted manager did not raise a RuntimeError!")
+##def test_DistributedEvaluator_state_error1():
+##    """Tests that attempts to use an unstarted manager for set_secondary_state cause an error."""
+##    primary = neat.DistributedEvaluator(
+##        ("localhost", 8022),
+##        authkey=b"abcd1234",
+##        eval_function=eval_dummy_genome_nn,
+##        mode=MODE_PRIMARY,
+##        )
+##    try:
+##        primary.em.set_secondary_state(_STATE_RUNNING)
+##    except RuntimeError:
+##        pass
+##    else:
+##        raise Exception("primary.em.set_secondary_state with unstarted manager did not raise a RuntimeError!")
 
 def test_DistributedEvaluator_state_error2():
     """Tests that attempts to use an unstarted manager for get_inqueue cause an error."""
@@ -241,21 +241,21 @@ def test_DistributedEvaluator_state_error4():
     else:
         raise Exception("primary.em.get_namespace() with unstarted manager did not raise a RuntimeError!")
 
-def test_DistributedEvaluator_state_error5():
-    """Tests that attempts to set an invalid state cause an error."""
-    primary = neat.DistributedEvaluator(
-        ("localhost", 8022),
-        authkey=b"abcd1234",
-        eval_function=eval_dummy_genome_nn,
-        mode=MODE_PRIMARY,
-        )
-    primary.start()
-    try:
-        primary.em.set_secondary_state(-1)
-    except ValueError:
-        pass
-    else:
-        raise Exception("primary.em.set_secondary_state(-1) did not raise a ValueError!")
+##def test_DistributedEvaluator_state_error5():
+##    """Tests that attempts to set an invalid state cause an error."""
+##    primary = neat.DistributedEvaluator(
+##        ("localhost", 8022),
+##        authkey=b"abcd1234",
+##        eval_function=eval_dummy_genome_nn,
+##        mode=MODE_PRIMARY,
+##        )
+##    primary.start()
+##    try:
+##        primary.em.set_secondary_state(-1)
+##    except ValueError:
+##        pass
+##    else:
+##        raise Exception("primary.em.set_secondary_state(-1) did not raise a ValueError!")
     
 
 @unittest.skipIf(ON_PYPY, "This test fails on pypy during travis builds but usually works locally.")

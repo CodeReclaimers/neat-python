@@ -21,10 +21,14 @@ MODE_AUTO cannot be used for those secondary nodes - MODE_SECONDARY will need to
 specified.
 
 NOTE:
-    This module is in a **beta** state, and still *unstable* even in single-machine testing. Reliability is likely to vary, including depending on the Python version
-    and implementation (e.g., cpython vs pypy) in use and the likelihoods of timeouts (due to machine and/or network slowness). In particular, while the code can try
-    to reconnect between between primary and secondary nodes, as noted in the `multiprocessing` documentation this may not work due to data loss/corruption. Note also
-    that this module is not responsible for starting the script copies on the different compute nodes, since this is very site/configuration-dependent.
+    This module is in a **beta** state, and still *unstable* even in single-machine
+    testing. Reliability is likely to vary, including depending on the Python version
+    and implementation (e.g., cpython vs pypy) in use and the likelihoods of timeouts
+    (due to machine and/or network slowness). In particular, while the code can try
+    to reconnect between between primary and secondary nodes, as noted in the
+    `multiprocessing` documentation this may not work due to data loss/corruption.
+    Note also that this module is *not* responsible for starting the script copies
+    on the different compute nodes, since this is very site/configuration-dependent.
 
 
 Usage:
@@ -88,9 +92,9 @@ MODE_PRIMARY = MODE_MASTER = 1  # enforce primary mode
 MODE_SECONDARY = MODE_SLAVE = 2  # enforce secondary mode
 
 # states to determine whether the secondaries should shut down
-_STATE_RUNNING = 0
-_STATE_SHUTDOWN = 1
-_STATE_FORCED_SHUTDOWN = 2
+##_STATE_RUNNING = 0
+##_STATE_SHUTDOWN = 1
+##_STATE_FORCED_SHUTDOWN = 2
 
 
 class ModeError(RuntimeError):
@@ -179,7 +183,7 @@ class _ExtendedManager(object):
         self.authkey = authkey
         self.mode = _determine_mode(addr, mode)
         self.manager = None
-        self._secondary_state= multiprocessing.managers.Value(int, _STATE_RUNNING)
+##        self._secondary_state= multiprocessing.managers.Value(int, _STATE_RUNNING)
         if start:
             self.start()
 
@@ -189,40 +193,43 @@ class _ExtendedManager(object):
         """
         return (
             self.__class__,
-            (self.addr, self.authkey, self.mode, True),
+            (self.addr, self.authkey, self.mode, bool(self.manager is not None)),
             )
 
     def start(self):
         """Starts or connects to the manager."""
-        if self.mode == MODE_PRIMARY:
-            i = self._start()
-        else:
-            i = self._connect()
-        self.manager = i
+        if self.manager is None:
+            if self.mode == MODE_PRIMARY:
+                i = self._start()
+            else:
+                i = self._connect()
+            self.manager = i
 
     def stop(self):
         """Stops the manager."""
-        self.manager.shutdown()
+        #self.manager.shutdown()
+        self.manager = None
 
-    def set_secondary_state(self, value):
-        """Sets the value for 'secondary_state'."""
-        if value not in (_STATE_RUNNING, _STATE_SHUTDOWN, _STATE_FORCED_SHUTDOWN):
-            raise ValueError(
-                "State {!r} is invalid - needs to be one of _STATE_RUNNING, _STATE_SHUTDOWN, or _STATE_FORCED_SHUTDOWN".format(
-                    value)
-                )
-        if self.manager is None:
-            raise RuntimeError("Manager not started")
-        self.manager.set_state(value)
+##    def set_secondary_state(self, value):
+##        """Sets the value for 'secondary_state'."""
+##        if value not in (_STATE_RUNNING, _STATE_SHUTDOWN, _STATE_FORCED_SHUTDOWN):
+##            raise ValueError(
+##                "State {!r} is invalid - needs to be one of _STATE_RUNNING, _STATE_SHUTDOWN, or _STATE_FORCED_SHUTDOWN".format(
+##                    value)
+##                )
+##        if self.manager is None:
+##            raise RuntimeError("Manager not started")
+##        self.manager.set_state(value)
 
-    def _get_secondary_state(self):
-        """
-        Returns the value for 'secondary_state'.
-        This is required for the manager.
-        """
-        return self._secondary_state
+##    def _get_secondary_state(self):
+##        """
+##        Returns the value for 'secondary_state'.
+##        This is required for the manager.
+##        """
+##        return self._secondary_state
 
-    def _get_manager_class(self, register_callables=False):
+    @staticmethod
+    def _get_manager_class(register_callables=False):
         """
         Returns a new 'Manager' subclass with registered methods.
         If 'register_callable' is True, defines the 'callable' arguments.
@@ -236,9 +243,9 @@ class _ExtendedManager(object):
             """
             pass
 
-        inqueue = queue.Queue()
-        outqueue = queue.Queue()
-        namespace = Namespace()
+        inqueue = queue.Queue() # may need to be one from multiprocessing.managers.SyncManager
+        outqueue = queue.Queue() # ditto
+        namespace = Namespace() # ditto
 
         if register_callables:
             _EvaluatorSyncManager.register(
@@ -249,14 +256,14 @@ class _ExtendedManager(object):
                 "get_outqueue",
                 callable=lambda: outqueue,
                 )
-            _EvaluatorSyncManager.register(
-                "get_state",
-                callable=self._get_secondary_state,
-                )
-            _EvaluatorSyncManager.register(
-                "set_state",
-                callable=lambda v: self._secondary_state.set(v),
-                )
+##            _EvaluatorSyncManager.register(
+##                "get_state",
+##                callable=self._get_secondary_state,
+##                )
+##            _EvaluatorSyncManager.register(
+##                "set_state",
+##                callable=lambda v: self._secondary_state.set(v),
+##                )
             _EvaluatorSyncManager.register(
                 "get_namespace",
                 callable=lambda: namespace,
@@ -270,12 +277,12 @@ class _ExtendedManager(object):
             _EvaluatorSyncManager.register(
                 "get_outqueue",
                 )
-            _EvaluatorSyncManager.register(
-                "get_state",
-                )
-            _EvaluatorSyncManager.register(
-                "set_state",
-                )
+##            _EvaluatorSyncManager.register(
+##                "get_state",
+##                )
+##            _EvaluatorSyncManager.register(
+##                "set_state",
+##                )
             _EvaluatorSyncManager.register(
                 "get_namespace",
                 )
@@ -295,11 +302,11 @@ class _ExtendedManager(object):
         ins.start()
         return ins
 
-    @property
-    def secondary_state(self):
-        """Whether the secondary nodes should still process elements."""
-        v = self.manager.get_state()
-        return v.get()
+##    @property
+##    def secondary_state(self):
+##        """Whether the secondary nodes should still process elements."""
+##        v = self.manager.get_state()
+##        return v.get()
 
     def get_inqueue(self):
         """Returns the inqueue."""
@@ -375,6 +382,11 @@ class DistributedEvaluator(object):
         self.outqueue = None
         self.namespace = None
         self.started = False
+        self.exit_string = None
+        self.exit_on_stop = True
+        self.reconnect = False
+        self.reconnect_max_time = None
+        self.n_tasks = None
 
     def __getstate__(self):
         """Required by the pickle protocol."""
@@ -395,7 +407,13 @@ class DistributedEvaluator(object):
         warnings.warn("Use is_primary, not is_master", DeprecationWarning)
         return self.is_primary()
 
-    def start(self, exit_on_stop=True, secondary_wait=0, reconnect=False):
+    def _do_exit(self):
+        if self.exit_string is None:
+            sys.exit(0)
+        else:
+            sys.exit(self.exit_string)
+
+    def start(self, exit_on_stop=True, secondary_wait=0, reconnect=False, reconnect_max_time=None):
         """
         If the DistributedEvaluator is in primary mode, starts the manager
         process and returns. In this case, the ``exit_on_stop`` argument will
@@ -414,14 +432,31 @@ class DistributedEvaluator(object):
         if self.started:
             raise RuntimeError("DistributedEvaluator already started!")
         self.started = True
+        self.exit_on_stop = exit_on_stop
+        self.reconnect = reconnect
+        if reconnect_max_time is None:
+            if reconnect:
+                reconnect_max_time = max((5*60),(15*max(5,self.worker_timeout)))
+            else:
+                reconnect_max_time = max(60,(5*max(1,self.worker_timeout)))
+        self.reconnect_max_time = reconnect_max_time
         if self.mode == MODE_PRIMARY:
             self._start_primary()
         elif self.mode == MODE_SECONDARY:
             time.sleep(secondary_wait)
-            self._start_secondary()
-            self._secondary_loop(reconnect=reconnect)
+            while True:
+                self._start_secondary()
+                self._secondary_loop(reconnect_max_time=max(0.3,reconnect_max_time))
+                if self.exit_on_stop:
+                    self._do_exit()
+                else:
+                    self.inqueue = self.outqueue = self.namespace = None
+                    if self.reconnect:
+                        self.em.stop()
+                    else:
+                        break
             if exit_on_stop:
-                sys.exit(0)
+                self._do_exit()
         else:
             raise ValueError("Invalid mode {!r}!".format(self.mode))
 
@@ -438,21 +473,56 @@ class DistributedEvaluator(object):
             raise ModeError("Not in primary mode!")
         if not self.started:
             raise RuntimeError("Not yet started!")
-        if force_secondary_shutdown:
-            state = _STATE_FORCED_SHUTDOWN
-        else:
-            state = _STATE_SHUTDOWN
-        self.em.set_secondary_state(state)
-        time.sleep(wait)
+##        if force_secondary_shutdown is None:
+##            if self.reconnect:
+##                force_secondary_shutdown = True
+##            else:
+##                force_secondary_shutdown = False
+##        if force_secondary_shutdown:
+##            state = _STATE_FORCED_SHUTDOWN
+##        else:
+##            state = _STATE_SHUTDOWN
+##        self.em.set_secondary_state(state)
+##        time.sleep(wait)
+        start_time = time.time()
+        num_added = 0
+        if self.n_tasks is None:
+            self.n_tasks = max(1, wait, self.worker_timeout)*5
+            warnings.warn("Self.n_tasks is None; estimating at {:n}".format(self.n_tasks))
+        while (num_added < self.n_tasks) and ((time.time() - start_time) <
+                                              max(1,
+                                                  self.reconnect_max_time,
+                                                  wait,
+                                                  self.worker_timeout)):
+            try:
+                if force_secondary_shutdown:
+                    self.inqueue.put(0, block=True, timeout=0.2)
+                else:
+                    self.inqueue.put(1, block=True, timeout=0.2)
+            except (EOFError, IOError, OSError, socket.gaierror, TypeError,
+                    managers.RemoteError, multiprocessing.ProcessError) as e:
+                if ("timed" in repr(e).lower()) or ("timeout" in repr(e).lower()):
+                    if (time.time() - start_time) < max(1, wait, self.worker_timeout):
+                        num_added += 1
+                        continue
+                    else:
+                        break
+                else:
+                    break
+            else:
+                num_added += 1
+        time_passed = time.time() - start_time
+        if time_passed < wait:
+            time.sleep(wait - time_passed)
         if shutdown:
             self.em.stop()
         self.started = False
-        self.inqueue = self.outqueue = self.namespace = None
+        self.outqueue = self.inqueue = self.namespace = None
 
     def _start_primary(self):
         """Start as the primary"""
         self.em.start()
-        self.em.set_secondary_state(_STATE_RUNNING)
+##        self.em.set_secondary_state(_STATE_RUNNING)
         self._set_shared_instances()
 
     def _start_secondary(self):
@@ -472,51 +542,95 @@ class DistributedEvaluator(object):
         self.em.start()
         self._set_shared_instances()
 
-    def _secondary_loop(self, reconnect=False):
+    @staticmethod
+    def _check_exception(e):
+        string = repr(e).lower()
+        if ('timed' in string) or ('timeout' in string):
+            return 1 # OK
+        elif isinstance(e, (EOFError, TypeError, socket.gaierror)):
+            return 0
+        elif (('eoferror' in string) or ('typeerror' in string) or ('gaierror' in string)
+              or ('pipeerror' in string) or ('authenticationerror' in string)):
+            return 0
+        return -1
+        
+    def _secondary_loop(self, reconnect_max_time=(5*60)):
         """The worker loop for the secondary nodes."""
         if self.num_workers > 1:
             pool = multiprocessing.Pool(self.num_workers)
         else:
             pool = None
         should_reconnect = True
+        last_time_done = time.time()
         while should_reconnect:
-            i = 0
             running = True
             try:
                 self._reset_em()
-            except (socket.error, EOFError, IOError, OSError, socket.gaierror, TypeError):
-                continue
+            except (EOFError, IOError, OSError, socket.gaierror, TypeError,
+                    managers.RemoteError, multiprocessing.ProcessError) as e:
+                if (time.time() - last_time_done) >= reconnect_max_time:
+                    should_reconnect = False
+                    if self._check_exception(e) < 0:
+                        self.exit_on_stop = True
+                        self.exit_string = repr(e)
+                    break
+                elif self._check_exception(e) < 0:
+                    raise
+                else:
+                    continue
+            # may put last_time_done = time.time() here...
             while running:
-                i += 1
-                if i % 5 == 0:
-                    # for better performance, only check every 5 cycles
-                    try:
-                        state = self.em.secondary_state
-                    except (socket.error, EOFError, IOError, OSError, socket.gaierror, TypeError):
-                        if not reconnect:
-                            raise
-                        else:
-                            break
-                    if state == _STATE_FORCED_SHUTDOWN:
-                        running = False
-                        should_reconnect = False
-                    elif state == _STATE_SHUTDOWN:
-                        running = False
-                    if not running:
-                        continue
+##                i += 1
+##                if i % 5 == 0:
+##                    # for better performance, only check every 5 cycles
+##                    try:
+##                        state = self.em.secondary_state
+##                    except (socket.error, EOFError, IOError, OSError, socket.gaierror, TypeError):
+##                        if not reconnect:
+##                            raise
+##                        else:
+##                            break
+##                    if state == _STATE_FORCED_SHUTDOWN:
+##                        running = False
+##                        should_reconnect = False
+##                    elif state == _STATE_SHUTDOWN:
+##                        running = False
+##                    if not running:
+##                        continue
                 try:
                     tasks = self.inqueue.get(block=True, timeout=0.2)
                 except queue.Empty:
                     continue
-                except (socket.error, EOFError, IOError, OSError, socket.gaierror, TypeError):
-                    break
-                except (managers.RemoteError, multiprocessing.ProcessError) as e:
-                    if ('Empty' in repr(e)) or ('TimeoutError' in repr(e)):
+                except (EOFError, TypeError, socket.gaierror,
+                        managers.RemoteError, multiprocessing.ProcessError, IOError, OSError) as e:
+                    if ('empty' in repr(e).lower()):
                         continue
-                    if (('EOFError' in repr(e)) or ('PipeError' in repr(e)) or
-                        ('AuthenticationError' in repr(e))): # Second for Python 3.X, Third for 3.6+
+                    curr_status = self._check_exception(e)
+                    if (curr_status >= 0):
+                        if (time.time() - last_time_done) >= reconnect_max_time:
+                            should_reconnect = False
+                            break
+                        elif curr_status > 0:
+                            continue
+                        else:
+                            break
+                    elif (time.time() - last_time_done) >= reconnect_max_time:
+                        self.exit_on_stop = True
+                        self.exit_string = repr(e)
+                        should_reconnect = False
                         break
-                    raise
+                    else:
+                        raise
+
+                if isinstance(tasks, int): # from primary
+                    running = False
+                    should_reconnect = False
+                    if tasks and self.reconnect:
+                        self.exit_on_stop = False
+                    elif not tasks:
+                        self.reconnect = False
+                    break
+                last_time_done = time.time()
                 if pool is None:
                     res = []
                     for genome_id, genome, config in tasks:
@@ -536,19 +650,35 @@ class DistributedEvaluator(object):
                         job.get(timeout=self.worker_timeout) for job in jobs
                         ]
                     res = zip(genome_ids, results)
+                last_time_done = time.time()
                 try:
                     self.outqueue.put(res)
-                except (socket.error, EOFError, IOError, OSError, socket.gaierror, TypeError):
-                    break
-                except (managers.RemoteError, multiprocessing.ProcessError) as e:
-                    if ('Empty' in repr(e)) or ('TimeoutError' in repr(e)):
+                except queue.Full:
+                    continue
+                except (EOFError, TypeError, socket.gaierror,
+                        managers.RemoteError, multiprocessing.ProcessError,
+                        IOError, OSError) as e:
+                    if ('full' in repr(e).lower()):
                         continue
-                    if (('EOFError' in repr(e)) or ('PipeError' in repr(e)) or
-                        ('AuthenticationError' in repr(e))): # Second for Python 3.X, Third for 3.6+
+                    curr_status = self._check_exception(e)
+                    if (curr_status >= 0):
+                        if (time.time() - last_time_done) >= reconnect_max_time:
+                            should_reconnect = False
+                            break
+                        elif curr_status > 0:
+                            continue
+                        else:
+                            break
+                    elif (time.time() - last_time_done) >= reconnect_max_time:
+                        self.exit_on_stop = True
+                        self.exit_string = repr(e)
+                        should_reconnect = False
                         break
-                    raise
-
-            if not reconnect:
+                    else:
+                        raise
+                else:
+                    last_time_done = time.time()
+            if (time.time() - last_time_done) >= reconnect_max_time:
                 should_reconnect = False
                 break
         if pool is not None:
@@ -581,3 +711,4 @@ class DistributedEvaluator(object):
         for genome_id, fitness in results:
             genome = id2genome[genome_id]
             genome.fitness = fitness
+        self.n_tasks = n_tasks

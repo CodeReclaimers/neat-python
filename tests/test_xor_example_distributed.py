@@ -58,7 +58,7 @@ def run_primary(addr, authkey, generations):
     de.start()
     winner = p.run(de.evaluate, generations)
     print("===== stopping DistributedEvaluator =====")
-    de.stop(wait=3, shutdown=True, force_secondary_shutdown=False)
+    de.stop(wait=3, shutdown=False, force_secondary_shutdown=False)
 
     if winner:
         # Display the winning genome.
