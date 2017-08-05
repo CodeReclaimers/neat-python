@@ -4,12 +4,12 @@ python:
   - 2.7
   - 3.5
   - 3.6
-  - pypy2.7-5.8.0
-  - pypy3.5-5.8.0
   - 3.3
   - 3.4
   - 3.5-dev
   - 3.6-dev
+  - pypy2.7-5.8.0
+  - pypy3.5-5.8.0
   - 3.7-dev
   - nightly
 install:
