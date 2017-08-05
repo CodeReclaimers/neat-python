@@ -91,6 +91,10 @@ MODE_AUTO = 0  # auto-determine mode
 MODE_PRIMARY = MODE_MASTER = 1  # enforce primary mode
 MODE_SECONDARY = MODE_SLAVE = 2  # enforce secondary mode
 
+# what a return from _check_exception means
+EXCEPTION_TYPE_OK = 1 # queue empty and similar; try again
+EXCEPTION_TYPE_RECONNECT = 0 # disconnected but may be able to reconnect
+EXCEPTION_TYPE_BAD = -1 # either raise it again or immediately return and exit with non-zero status code
 
 class ModeError(RuntimeError):
     """
@@ -489,14 +493,14 @@ class DistributedEvaluator(object):
     def _check_exception(e):
         string = repr(e).lower()
         if ('timed' in string) or ('timeout' in string):
-            return 1 # OK
+            return EXCEPTION_TYPE_OK
         elif isinstance(e, (EOFError, TypeError, socket.gaierror)):
-            return 0
+            return EXCEPTION_TYPE_UNCERTAIN
         elif (('eoferror' in string) or ('typeerror' in string) or ('gaierror' in string)
               or ('pipeerror' in string) or ('authenticationerror' in string)
               or ('refused' in string) or ('file descriptor' in string)):
-            return 0
-        return -1
+            return EXCEPTION_TYPE_UNCERTAIN
+        return EXCEPTION_TYPE_BAD
         
     def _secondary_loop(self, reconnect_max_time=(5*60)):
         """The worker loop for the secondary nodes."""
@@ -519,11 +523,11 @@ class DistributedEvaluator(object):
                 if (time.time() - last_time_done) >= reconnect_max_time:
                     should_reconnect = False
                     em_bad = True
-                    if self._check_exception(e) < 0: # pragma: no cover
+                    if self._check_exception(e) == EXCEPTION_TYPE_BAD: # pragma: no cover
                         self.exit_on_stop = True
                         self.exit_string = repr(e)
                     break
-                elif self._check_exception(e) < 0: # pragma: no cover
+                elif self._check_exception(e) == EXCEPTION_TYPE_BAD: # pragma: no cover
                     raise
                 else:
                     continue
@@ -538,12 +542,12 @@ class DistributedEvaluator(object):
                     if ('empty' in repr(e).lower()):
                         continue
                     curr_status = self._check_exception(e)
-                    if (curr_status >= 0):
+                    if curr_status in (EXCEPTION_TYPE_OK, EXCEPTION_TYPE_UNCERTAIN):
                         if (time.time() - last_time_done) >= reconnect_max_time:
                             if em_bad:
                                 should_reconnect = False
                             break
-                        elif curr_status > 0:
+                        elif curr_status == EXCEPTION_TYPE_OK:
                             continue
                         else:
                             break
@@ -594,12 +598,12 @@ class DistributedEvaluator(object):
                     if ('full' in repr(e).lower()):
                         continue
                     curr_status = self._check_exception(e)
-                    if (curr_status >= 0):
+                    if curr_status in (EXCEPTION_TYPE_OK, EXCEPTION_TYPE_UNCERTAIN):
                         if (time.time() - last_time_done) >= reconnect_max_time:
                             if em_bad:
                                 should_reconnect = False
                             break
-                        elif curr_status > 0:
+                        elif curr_status == EXCEPTION_TYPE_OK:
                             continue
                         else:
                             break
@@ -632,12 +636,12 @@ class DistributedEvaluator(object):
         tasks = chunked(tasks, self.secondary_chunksize)
         n_tasks = len(tasks)
         for task in tasks:
-            self.inqueue.put(task)
+            self.inqueue.put(task) # should this be w/timeouts and checking for exceptions?
         tresults = []
         while len(tresults) < n_tasks:
             try:
                 sr = self.outqueue.get(block=True, timeout=0.2)
-            except (queue.Empty, managers.RemoteError):
+            except (queue.Empty, managers.RemoteError): # more detailed check?
                 continue
             tresults.append(sr)
         results = []
