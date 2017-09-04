@@ -1,0 +1,11 @@
+python-targets:
+  - 2
+  - 3
+doc-warnings: true
+max-line-length: 100
+pyroma:
+  run: true
+ignore-patterns:
+  - ^docs/*.py$
+ignore-paths:
+  - examples

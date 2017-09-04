@@ -10,8 +10,18 @@ python:
   - 3.6-dev
   - 3.7-dev
   - nightly
-  - pypy
-  - pypy3.5-5.8.0
+env:
+matrix:
+  include:
+    - python: pypy2.7-5.8.0
+    - python: pypy3.5-5.8.0
+    - python: pypy2.7-5.8.0
+      env: TRY_PYPY=1
+    - python: pypy3.5-5.8.0
+      env: TRY_PYPY=1
+  fast_finish: true
+  allow_failures:
+    - env: TRY_PYPY=1
 install:
     - pip install --upgrade nose coveralls coverage
     - if [[ $TRAVIS_PYTHON_VERSION == 'pypy'* ]]; then export TRAVIS_WAIT=45; else export TRAVIS_WAIT=20; fi

@@ -85,3 +85,4 @@ species_elitism        = 0
 elitism            = 2
 survival_threshold = 0.2
 min_species_size = 2
+fitness_min_divisor = 0.0
