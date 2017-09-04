@@ -1,0 +1,70 @@
+# The `NEAT` section specifies parameters particular to the NEAT algorithm
+# or the experiment itself.  This is the only required section.
+[NEAT]
+fitness_criterion     = max
+fitness_threshold     = 3.95
+pop_size              = 4
+reset_on_extinction   = False
+no_fitness_termination = False
+
+[DefaultGenome]
+num_inputs              = 2
+num_hidden              = 0
+num_outputs             = 1
+initial_connection      = partial_nodirect 0.5
+feed_forward            = True
+compatibility_disjoint_coefficient = 1.0
+compatibility_weight_coefficient   = 0.8
+conn_add_prob           = 0.25
+conn_delete_prob        = 0.2
+node_add_prob           = 0.25
+node_delete_prob        = 0.2
+identical_mutations_keys = 38
+activation_default      = clamped_tanh_step
+activation_options      = clamped_tanh_step multiparam_relu_softplus multiparam_sigmoid multiparam_sigmoid_approx multiparam_log_inv hat_gauss_rectangular multiparam_gauss multiparam_pow wave exp
+activation_mutate_rate  = 0.05
+aggregation_default     = sum_product_mean
+aggregation_options     = sum_product_mean maxabs_tmean max_median_min
+aggregation_mutate_rate = 0.05
+bias_init_mean          = 0.0
+bias_init_stdev         = 1.0
+bias_replace_rate       = 0.1
+bias_mutate_rate        = 0.7
+bias_mutate_power       = 0.5
+bias_max_value          = 30.0
+bias_min_value          = -30.0
+response_init_mean      = 1.0
+response_init_stdev     = 0.2
+response_replace_rate   = 0.1
+response_mutate_rate    = 0.2
+response_mutate_power   = 0.1
+response_max_value      = 30.0
+response_min_value      = -30.0
+
+weight_max_value        = 30
+weight_min_value        = -30
+weight_init_mean        = 0.0
+weight_init_stdev       = 1.0
+weight_init_type         = uniform
+weight_mutate_rate      = 0.8
+weight_replace_rate     = 0.1
+weight_mutate_power     = 0.5
+
+enabled_default         = True
+enabled_mutate_rate     = 0.05
+enabled_rate_to_true_add = 0.05
+fitter_enabled_transfer = True
+
+[DefaultSpeciesSet]
+compatibility_threshold = 3.6
+
+[DefaultStagnation]
+species_fitness_func = max
+max_stagnation       = 20
+species_elitism = 2
+
+[DefaultReproduction]
+elitism            = 0
+survival_threshold = 0.2
+fitness_min_divisor = 0.0
+double_mutate_clones = True

@@ -429,9 +429,27 @@ Uses :py:mod:`pickle` to save and restore populations (and other aspects of the 
     :type time_interval_seconds: :pytypes:`float <typesnumeric>` or None
     :param str filename_prefix: The prefix for the checkpoint file names.
 
+    .. py:method:: start_generation(generation)
+
+      Saves the current generation number for use by :py:meth:`save_checkpoint()`.
+
+      :param int generation: Current generation.
+
+    .. py:method:: end_generation(config, population, species_set)
+
+      Checks to see whether :py:meth:`save_checkpoint()` needs to be called, and if so calls it, then updates the last_generation_checkpoint and the
+      corresponding last_time_checkpoint attributes.
+
+      :param config: The `config.Config` configuration instance to be used.
+      :type config: :datamodel:`instance <index-48>`
+      :param population: A population as created by :py:meth:`reproduction.DefaultReproduction.create_new` or a compatible implementation.
+      :type population: dict(int, :datamodel:`object <objects-values-and-types>`)
+      :param species: A :py:class:`species.DefaultSpeciesSet` (or compatible implementation) instance.
+      :type species: :datamodel:`instance <index-48>`
+
     .. py:method:: save_checkpoint(config, population, species, generation)
 
-      Saves the current simulation (including randomization) state to (if using the default ``neat-checkpoint-`` for ``filename_prefix``)
+      Saves the current simulation state (including randomization state) to (if using the default ``neat-checkpoint-`` for ``filename_prefix``)
       :file:`neat-checkpoint-{generation}`, with ``generation`` being the generation number.
 
       :param config: The `config.Config` configuration instance to be used.
@@ -632,6 +650,21 @@ ctrnn
 
       Resets the time and all node activations to 0 (necessary due to otherwise retaining state via :term:`recurrent` connections).
 
+    .. py:method:: set_node_value(node_key, value)
+
+      Sets the current node activation for the particular node selected.
+
+      :param int node_key: The :term:`key` for the node to be altered.
+      :param float value: What to set the activation of the node to.
+
+    .. index:: TODO
+
+    .. py:method:: get_max_time_step()
+
+      Planned to return the maximum time step that will be stable for the current network; not yet implemented.
+
+      :raises NotImplementedError: Always.
+
     .. index:: ! continuous-time
 
     .. py:method:: advance(inputs, advance_time, time_step=None)
@@ -643,7 +676,7 @@ ctrnn
       :type inputs: list(float)
       :param advance_time: How much time to advance the network before returning the resulting outputs.
       :type advance_time: :pytypes:`float <typesnumeric>`
-      :param time_step: How much time per step to advance the network; the default of ``None`` will currently result in an error, but it is planned to determine it automatically.
+      :param time_step: How much time per step to advance the network; the default of ``None`` will currently result in an error, but it is planned to determine it automatically using :py:meth:`get_max_time_step()`.
       :type time_step: :pytypes:`float <typesnumeric>` or None
       :return: The values for the :term:`output nodes <output node>`.
       :rtype: list(float)
@@ -1555,7 +1588,19 @@ See http://www.izhikevich.org/publications/spikes.pdf.
 
   .. py:class:: IZGenome(DefaultGenome)
 
-    Contains the parse_config class method for iznn genome configuration, which returns a :py:class:`genome.DefaultGenomeConfig` instance.
+    Sets up the genome to use :py:class:`IZNodeGene` instances for node genes, and :py:class:`genes.DefaultConnectionGene` instances for
+    connection genes.
+
+    .. py:classmethod:: parse_config(param_dict)
+
+      Required interface method. Provides IZNodeGene :term:`node` and default :term:`connection` :term:`gene` specifications (from :py:mod:`genes`) and
+      uses `DefaultGenomeConfig` to do the rest of the configuration.
+
+      :param param_dict: Dictionary of parameters from configuration file.
+      :type param_dict: dict(str, str)
+      :return: Configuration object; considered opaque by rest of code, so type may vary by implementation (here, a `DefaultGenomeConfig` instance).
+      :rtype: :datamodel:`instance <index-48>`
+
 
   .. py:class:: IZNeuron(bias, a, b, c, d, inputs)
 
@@ -1862,6 +1907,20 @@ Implements the core evolution algorithm.
     :param initial_state: If supplied (such as by a method of the :py:class:`Checkpointer <checkpoint.Checkpointer>` class), a tuple of (``Population``, ``Species``, generation number)
     :type initial_state: None or tuple(:datamodel:`instance <index-48>`, :datamodel:`instance <index-48>`, int)
     :raises RuntimeError: If the :ref:`fitness_criterion <fitness-criterion-label>` function is invalid.
+
+    .. py:method:: add_reporter(reporter)
+
+      Adds a reporter to those that will be notified at appropriate points. Uses :py:meth:`ReporterSet.add() <reporting.ReporterSet.add()>`.
+
+      :param reporter: A reporter callable via a :py:class:`reporting.ReporterSet` instance.
+      :type reporter: :datamodel:`instance <index-48>`
+
+    .. py:method:: remove_reporter(reporter)
+
+      Removes a reporter from those that will be notified at appropriate points. Uses :py:meth:`ReporterSet.remove() <reporting.ReporterSet.remove()>`.
+
+      :param reporter: A reporter callable via a :py:class:`reporting.ReporterSet` instance.
+      :type reporter: :datamodel:`instance <index-48>`
 
     .. index:: ! no_fitness_termination
     .. index:: ! reset_on_extinction

@@ -12,6 +12,11 @@ from neat.distributed import MODE_PRIMARY, MODE_SECONDARY
 
 ON_PYPY = platform.python_implementation().upper().startswith("PYPY")
 
+if ON_PYPY and ((not 'TRY_PYPY' in os.environ) or (os.environ['TRY_PYPY'] != 1)):
+    SKIP_FOR_PYPY = True
+else:
+    SKIP_FOR_PYPY = False
+
 # 2-input XOR inputs and expected outputs.
 XOR_INPUTS = [(0.0, 0.0), (0.0, 1.0), (1.0, 0.0), (1.0, 1.0)]
 XOR_OUTPUTS = [(0.0,), (1.0,), (1.0,), (0.0,)]
@@ -58,7 +63,7 @@ def run_primary(addr, authkey, generations):
     de.start()
     winner = p.run(de.evaluate, generations)
     print("===== stopping DistributedEvaluator =====")
-    de.stop(wait=3, shutdown=True, force_secondary_shutdown=False)
+    de.stop(wait=3, shutdown=False, force_secondary_shutdown=False)
 
     if winner:
         # Display the winning genome.
@@ -128,7 +133,7 @@ def run_secondary(addr, authkey, num_workers=1):
         raise Exception("DistributedEvaluator in secondary mode did not try to exit!")
 
 
-@unittest.skipIf(ON_PYPY, "This test fails on pypy during travis builds (frequently due to timeouts) but usually works locally.")
+@unittest.skipIf(SKIP_FOR_PYPY, "This test fails on pypy during travis builds (frequently due to timeouts) but usually works locally.")
 def test_xor_example_distributed():
     """
     Test to make sure restoration after checkpoint works with distributed.

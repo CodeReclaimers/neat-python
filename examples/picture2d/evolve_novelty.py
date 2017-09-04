@@ -1,4 +1,7 @@
-from Pillow import Image
+try:
+    from Pillow import Image
+expect ImportError:
+    from PIL import Image
 import os
 import random
 from multiprocessing import Pool
@@ -101,6 +104,9 @@ def run():
         pop.run(ne.evaluate, 1)
 
         winner = stats.best_genome()
+
+        pop.best_genome = None # code assumes fitnesses remain the same...
+
         if ne.scheme == 'gray':
             image = eval_gray_image(winner, config, full_scale * width, full_scale * height)
         elif ne.scheme == 'color':

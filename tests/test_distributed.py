@@ -18,11 +18,14 @@ else:
     HAVE_THREADING = True
 
 import neat
-from neat.distributed import chunked, MODE_AUTO, MODE_PRIMARY, MODE_SECONDARY, ModeError, _STATE_RUNNING
+from neat.distributed import chunked, MODE_AUTO, MODE_PRIMARY, MODE_SECONDARY, ModeError
 
 ON_PYPY = platform.python_implementation().upper().startswith("PYPY")
 
-
+if ON_PYPY and ((not 'TRY_PYPY' in os.environ) or (os.environ['TRY_PYPY'] != 1)):
+    SKIP_FOR_PYPY = True
+else:
+    SKIP_FOR_PYPY = False
 
 def eval_dummy_genome_nn(genome, config):
     """dummy evaluation function"""
@@ -181,21 +184,6 @@ def test_DistributedEvaluator_primary_restrictions():
     else:
         raise Exception("A DistributedEvaluator in secondary mode could call evaluate()!")
 
-def test_DistributedEvaluator_state_error1():
-    """Tests that attempts to use an unstarted manager for set_secondary_state cause an error."""
-    primary = neat.DistributedEvaluator(
-        ("localhost", 8022),
-        authkey=b"abcd1234",
-        eval_function=eval_dummy_genome_nn,
-        mode=MODE_PRIMARY,
-        )
-    try:
-        primary.em.set_secondary_state(_STATE_RUNNING)
-    except RuntimeError:
-        pass
-    else:
-        raise Exception("primary.em.set_secondary_state with unstarted manager did not raise a RuntimeError!")
-
 def test_DistributedEvaluator_state_error2():
     """Tests that attempts to use an unstarted manager for get_inqueue cause an error."""
     primary = neat.DistributedEvaluator(
@@ -240,25 +228,9 @@ def test_DistributedEvaluator_state_error4():
         pass
     else:
         raise Exception("primary.em.get_namespace() with unstarted manager did not raise a RuntimeError!")
-
-def test_DistributedEvaluator_state_error5():
-    """Tests that attempts to set an invalid state cause an error."""
-    primary = neat.DistributedEvaluator(
-        ("localhost", 8022),
-        authkey=b"abcd1234",
-        eval_function=eval_dummy_genome_nn,
-        mode=MODE_PRIMARY,
-        )
-    primary.start()
-    try:
-        primary.em.set_secondary_state(-1)
-    except ValueError:
-        pass
-    else:
-        raise Exception("primary.em.set_secondary_state(-1) did not raise a ValueError!")
     
 
-@unittest.skipIf(ON_PYPY, "This test fails on pypy during travis builds but usually works locally.")
+@unittest.skipIf(SKIP_FOR_PYPY, "This test fails on pypy during travis builds but usually works locally.")
 def test_distributed_evaluation_multiprocessing(do_mwcp=True):
     """
     Full test run using the Distributed Evaluator (fake nodes using processes).
@@ -448,6 +420,7 @@ if __name__ == '__main__':
     test_host_is_local()
     test_DistributedEvaluator_mode()
     test_DistributedEvaluator_primary_restrictions()
-    test_distributed_evaluation_multiprocessing(do_mwcp=True)
-    if HAVE_THREADING:
+    if not SKIP_FOR_PYPY:
+        test_distributed_evaluation_multiprocessing(do_mwcp=True)
+    if HAVE_THREADING and (not ON_PYPY):
         test_distributed_evaluation_threaded()
