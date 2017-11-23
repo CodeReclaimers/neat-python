@@ -56,23 +56,23 @@ a primary node or as a secondary node with MODE_AUTO.
 from __future__ import print_function
 
 import socket
+import select
+import struct
 import sys
 import time
 import warnings
+import multiprocessing
+import base64
+import pickle
+import json
+import threading
 
-# below still needed for queue.Empty
 try:
-    # pylint: disable=import-error
     import Queue as queue
 except ImportError:
-    # pylint: disable=import-error
     import queue
 
-import multiprocessing
-from multiprocessing import managers
-from argparse import Namespace
-
-# Some of this code is based on
+# Some of the original code is based on
 # http://eli.thegreenplace.net/2012/01/24/distributed-computing-in-python-with-multiprocessing
 # According to the website, the code is in the public domain
 # ('public domain' links to unlicense.org).
@@ -91,6 +91,12 @@ MODE_SECONDARY = MODE_SLAVE = 2  # enforce secondary mode
 _STATE_RUNNING = 0
 _STATE_SHUTDOWN = 1
 _STATE_FORCED_SHUTDOWN = 2
+_STATE_ERROR = 3
+
+
+# constants for network communication
+_LENGTH_PREFIX = "!Q"
+_LENGTH_PREFIX_LENGTH = struct.calcsize(_LENGTH_PREFIX)
 
 
 class ModeError(RuntimeError):
@@ -101,6 +107,18 @@ class ModeError(RuntimeError):
     """
     pass
 
+
+class ProtocolError(IOError):
+    """
+    An Exception raised when either the client or the server does not
+    send a valid response.
+    """
+    pass
+
+
+class AuthError(Exception):
+    """raised if the Authentication failed."""
+    pass
 
 def host_is_local(hostname, port=22): # no port specified, just use the ssh port
     """
@@ -169,155 +187,91 @@ def chunked(data, chunksize):
     return res
 
 
-class _ExtendedManager(object):
-    """A class for managing the multiprocessing.managers.SyncManager"""
-    __safe_for_unpickling__ = True  # this may not be safe for unpickling,
-                                    # but this is required by pickle.
+def _serialize_tasks(tasks):
+    """serialize a tasklist."""
+    # TODO: this needs to be done in a more efficient way.
+    return base64.b64encode(pickle.dumps(tasks, -1))
 
-    def __init__(self, addr, authkey, mode, start=False):
-        self.addr = addr
-        self.authkey = authkey
-        self.mode = _determine_mode(addr, mode)
-        self.manager = None
-        self._secondary_state= multiprocessing.managers.Value(int, _STATE_RUNNING)
-        if start:
-            self.start()
 
-    def __reduce__(self):
+def _load_tasks(s):
+    """loads a tasklist from a string returned by _serialize_tasks()"""
+    return pickle.loads(base64.b64decode(s))
+
+
+class _MessageHandler(object):
+    """
+    Class for managing a socket connection.
+    This includes detecting incomplete messages and completing them with
+    later messages.
+    """
+    
+    # constants for managing the current state
+    _STATE_RECV_PREFIX = 0  # we are currently waiting for the length prefix
+    _STATE_RECV_MESSAGE = 1  # we arer currently receiving a message
+    
+    def __init__(self, s):
+        self._s = s
+        self._state = self._STATE_RECV_PREFIX
+        self._msg_size = _LENGTH_PREFIX_LENGTH
+        self._cur_buff = ""
+        self.messages = []
+    
+    def feed(self, data):
         """
-        This method is used by pickle to serialize instances of this class.
+        Process received data.
+        Returns the number which still need to be received for this message.
         """
-        return (
-            self.__class__,
-            (self.addr, self.authkey, self.mode, True),
-            )
-
-    def start(self):
-        """Starts or connects to the manager."""
-        if self.mode == MODE_PRIMARY:
-            i = self._start()
+        received_a_whole_message = False
+        self._cur_buff += data
+        while len(self._cur_buff) >= self._msg_size:
+            msg = self._cur_buff[:self._msg_size]
+            self._cur_buff = self._cur_buff[self._msg_size:]
+            received_a_whole_message = received_a_whole_message or (len(self._cur_buff) >= self._msg_size)
+            self._handle_message(msg)
+        if received_a_whole_message:
+            return 0
         else:
-            i = self._connect()
-        self.manager = i
-
-    def stop(self):
-        """Stops the manager."""
-        self.manager.shutdown()
-
-    def set_secondary_state(self, value):
-        """Sets the value for 'secondary_state'."""
-        if value not in (_STATE_RUNNING, _STATE_SHUTDOWN, _STATE_FORCED_SHUTDOWN):
-            raise ValueError(
-                "State {!r} is invalid - needs to be one of _STATE_RUNNING, _STATE_SHUTDOWN, or _STATE_FORCED_SHUTDOWN".format(
-                    value)
-                )
-        if self.manager is None:
-            raise RuntimeError("Manager not started")
-        self.manager.set_state(value)
-
-    def _get_secondary_state(self):
-        """
-        Returns the value for 'secondary_state'.
-        This is required for the manager.
-        """
-        return self._secondary_state
-
-    def _get_manager_class(self, register_callables=False):
-        """
-        Returns a new 'Manager' subclass with registered methods.
-        If 'register_callable' is True, defines the 'callable' arguments.
-        """
-
-        class _EvaluatorSyncManager(managers.BaseManager):
-            """
-            A custom BaseManager.
-            Please see the documentation of `multiprocessing` for more
-            information.
-            """
-            pass
-
-        inqueue = queue.Queue()
-        outqueue = queue.Queue()
-        namespace = Namespace()
-
-        if register_callables:
-            _EvaluatorSyncManager.register(
-                "get_inqueue",
-                callable=lambda: inqueue,
-                )
-            _EvaluatorSyncManager.register(
-                "get_outqueue",
-                callable=lambda: outqueue,
-                )
-            _EvaluatorSyncManager.register(
-                "get_state",
-                callable=self._get_secondary_state,
-                )
-            _EvaluatorSyncManager.register(
-                "set_state",
-                callable=lambda v: self._secondary_state.set(v),
-                )
-            _EvaluatorSyncManager.register(
-                "get_namespace",
-                callable=lambda: namespace,
-                )
-
-
+            return self._msg_size - len(self._cur_buff)
+    
+    def _handle_message(self, msg):
+        """handle an incomming message as required by self._state"""
+        if self._state == self._STATE_RECV_PREFIX:
+            self._msg_size = struct.unpack(_LENGTH_PREFIX, msg)[0]
+            self._state = self._STATE_RECV_MESSAGE
+        elif self._state == self._STATE_RECV_MESSAGE:
+            self._msg_size = _LENGTH_PREFIX_LENGTH
+            self._state = self._STATE_RECV_PREFIX
+            self.messages.append(msg)
         else:
-            _EvaluatorSyncManager.register(
-                "get_inqueue",
-                )
-            _EvaluatorSyncManager.register(
-                "get_outqueue",
-                )
-            _EvaluatorSyncManager.register(
-                "get_state",
-                )
-            _EvaluatorSyncManager.register(
-                "set_state",
-                )
-            _EvaluatorSyncManager.register(
-                "get_namespace",
-                )
-        return _EvaluatorSyncManager
+            raise RuntimeError("Internal error: invalid state!")
+    
+    def send_message(self, msg):
+        """sends a message."""
+        length = len(msg)
+        prefix = struct.pack(_LENGTH_PREFIX, length)
+        data = prefix + length
+        self._s.send(data)
+    
+    def send_json(self, d):
+        """serializes d into json, then sends the message."""
+        ser = json.dumps(d)
+        return self.send_message(ser)
+    
+    def recv(self):
+        """receives a message from the socket (blocking)."""
+        to_recv = 1  # receive one byte initialy
+        while True:
+            data = self._s.recv(to_recv)
+            to_recv = self.feed(data)
+            if to_recv == 0:
+                return
+    
+    def get_message(self):
+        """if a message was received, return it. Otherwise, receive a message and return it."""
+        while len(self.messages) == 0:
+            self.recv()
+        return self.messages.pop(0)
 
-    def _connect(self):
-        """Connects to the manager."""
-        cls = self._get_manager_class(register_callables=False)
-        ins = cls(address=self.addr, authkey=self.authkey)
-        ins.connect()
-        return ins
-
-    def _start(self):
-        """Starts the manager."""
-        cls = self._get_manager_class(register_callables=True)
-        ins = cls(address=self.addr, authkey=self.authkey)
-        ins.start()
-        return ins
-
-    @property
-    def secondary_state(self):
-        """Whether the secondary nodes should still process elements."""
-        v = self.manager.get_state()
-        return v.get()
-
-    def get_inqueue(self):
-        """Returns the inqueue."""
-        if self.manager is None:
-            raise RuntimeError("Manager not started")
-        return self.manager.get_inqueue()
-
-    def get_outqueue(self):
-        """Returns the outqueue."""
-        if self.manager is None:
-            raise RuntimeError("Manager not started")
-        return self.manager.get_outqueue()
-
-    def get_namespace(self):
-        """Returns the namespace."""
-        if self.manager is None:
-            raise RuntimeError("Manager not started")
-        return self.manager.get_namespace()
 
 
 class DistributedEvaluator(object):
@@ -358,7 +312,7 @@ class DistributedEvaluator(object):
         self.authkey = authkey
         self.eval_function = eval_function
         self.secondary_chunksize = secondary_chunksize
-        self.slave_chunksize = secondary_chunksize # backward compatibility
+        self.slave_chunksize = secondary_chunksize  # backwards compatibility
         if num_workers:
             self.num_workers = num_workers
         else:
@@ -370,11 +324,11 @@ class DistributedEvaluator(object):
                 self.num_workers = 1
         self.worker_timeout = worker_timeout
         self.mode = _determine_mode(self.addr, mode)
-        self.em = _ExtendedManager(self.addr, self.authkey, mode=self.mode, start=False)
-        self.inqueue = None
-        self.outqueue = None
-        self.namespace = None
         self.started = False
+        self._inqueue = queue.Queue()
+        self._outqueue = queue.Queue()
+        self._sock_thread = None
+        self._va_lock = threading.Lock()
 
     def __getstate__(self):
         """Required by the pickle protocol."""
@@ -384,7 +338,7 @@ class DistributedEvaluator(object):
 
     def __setstate__(self, state):
         """Called when instances of this class are unpickled."""
-        self._set_shared_instances()
+        pass
 
     def is_primary(self):
         """Returns True if the caller is the primary node"""
@@ -439,38 +393,244 @@ class DistributedEvaluator(object):
         if not self.started:
             raise RuntimeError("Not yet started!")
         if force_secondary_shutdown:
-            state = _STATE_FORCED_SHUTDOWN
+            self._state = _STATE_FORCED_SHUTDOWN
         else:
-            state = _STATE_SHUTDOWN
-        self.em.set_secondary_state(state)
-        time.sleep(wait)
+            self._state = _STATE_SHUTDOWN
+        time.sleep(wait)  # wait is now mostly for backwards compability
         if shutdown:
-            self.em.stop()
+            try:
+                self._listen_s.close()
+            except:
+                pass
         self.started = False
-        self.inqueue = self.outqueue = self.namespace = None
 
     def _start_primary(self):
         """Start as the primary"""
-        self.em.start()
-        self.em.set_secondary_state(_STATE_RUNNING)
-        self._set_shared_instances()
+        # setup primary specific vars
+        self._clients = {}  # socket -> _MessageHandler
+        self._s2tasks = {}  # socket -> tasks
+        self._authenticated_clients = []  # list of authenticated secondaries
+        self._waiting_clients = []  # list of secondaries waiting for tasks
+        
+        # create socket, bind and listen
+        self._bind_and_listen()
+        
+        # create and start network thread
+        self._sock_thread = threading.Thread(
+            name="{c} network thread".format(c=self.__class__),
+            target=self._primary_sock_thread,
+            )
+        self._sock_thread.start()
+    
+    def _bind_and_listen(self):
+        """create a socket, bind it and starts listening for connections."""
+        self._listen_s = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)  # todo: ipv6 support
+        self._listen_s.bind(self.addr)
+        self._listen_s.listen(3)
+    
+    def _primary_sock_thread(self):
+        """method for the socket thread of the primary node."""
+        if self.mode != MODE_PRIMARY:
+            raise ModeError("Not a primary node!")
+        while self._started:
+            to_check_read = [self._listen_s, self._clients.keys()]
+            to_check_err = [self._listen_s, self._clients.keys()]
+            to_read, to_write, has_err = select.select(to_check_read, [], to_check_err, 0.1)
+            if (len(to_read) + len(to_write) + len(has_err)) == 0:
+                continue
+            
+            for s in to_read:
+                if s is self._listen_s:
+                    # new connection
+                    c, addr = s.accept()
+                    mh = _MessageHandler(c)
+                    self._clients[c] = mh
+                else:
+                    # data available
+                    data = s.recv(4096)  # receive at most 4k bytes. If more are available, recv them in the next iteration.
+                    mh = self._clients.get(s, None)
+                    if mh is None:
+                        self._remove_client(s)
+                        continue
+                    mh.feed(data)
+                    
+                    while len(mh.messages) > 0:
+                        msg = mh.messages.pop(0)
+                        try:
+                            loaded = json.loads(msg)
+                        except:
+                            self._remove_client(s)
+                            break
+                        action = loaded.get(b"action", None)
+                        
+                        # authentication
+                        if action == b"auth":
+                            authkey = loaded.get(b"authkey")
+                            if authkey == self.authkey:
+                                if s not in self._authenticated_clients:
+                                    self._authenticated_clients.append(s)
+                                mh.send_json({b"action": "auth_response", "state": b"success"})
+                            else:
+                                mh.send_json({b"action": b"auth_response", b"state": b"error"})
+                                self._remove_client(s)
+                                break
+                        elif s not in self._authentiated_clients:
+                            # client did not authenticate
+                            self._remove_client(s)
+                            break
+                        
+                        # taks distribution
+                        elif action == b"get_task":
+                            try:
+                                tasks = self._inqueue.get(timeout=0)
+                            except queue.Empty:
+                                self._va_lock.acquire()
+                                self._waiting_clients.append(s)
+                                self._va_lock.release()
+                            else:
+                                self._send_tasks(mh, tasks)
+                        
+                        # results
+                        elif action == b"results":
+                            results = msg.get(b"results", None)
+                            if results is not None:
+                                self.outqueue.put(results)
+                                self._va_lock.acquire()
+                                if s in self._s2tasks:
+                                    del self._s2tasks[s]
+                                self._va_lock.release()
+                            else:
+                                # results not send; reissue tasks if required.
+                                self._va_lock.acquire()
+                                if s in self._s2tasks:
+                                    tasks = self._s2tasks[s]
+                                    del self._s2tasks[s]
+                                self._va_lock.release()
+                                self.inqueue.put(tasks)
+                        
+                        else:
+                            # unknown message; this is probably an error.
+                            self._remove_client(s)
+                            break
+            
+            # for s in to_write:
+            #    # not required
+            #    pass
+            
+            for s in has_err:
+                if s is self._listen_s:
+                    # cant listen anymore
+                    # try to rebind
+                    try:
+                        s.close()
+                    except:
+                        # ignore exception during socket close,
+                        # socket may already be closed.
+                        pass
+                    if self._state == self._STATE_RUNNING:
+                        try:
+                            self._bind_and_listen()
+                        except:
+                            self._state = self._STATE_ERROR
+                            break
+                    else:
+                        # server stopped or not yet started,
+                        # do not rebind and break this loop instead.
+                        break
+                else:
+                    self._remove_client(s)
+        
+        # stop connected clients
+        forced = (self._state == self._STATE_FORCED_SHUTDOWN)
+        for s in self._clients:
+            self._send_stop(s, forced=forced)
+            self._remove_client(s)
+    
+    def _remove_client(self, s):
+        """closes and removes the client."""
+        self._va_lock.acquire()
+        try:
+            s.close()
+        except:
+            pass
+        if s in self._clients:
+            del self._clients[s]
+        if s in self._authenticated_clients:
+            self._authenticated_clients.remove(s)
+        if s in self._s2tasks:
+            tasks = self._s2tasks[s]
+            del self._s2tasks[s]
+        else:
+            tasks = None
+        self._va_lock.release()
+        if tasks is not None:
+            self._add_tasks(tasks)
+    
+    def _send_tasks(self, mh, tasks):
+        """sends some tasks to a secondary connected through the message handler mh."""
+        ser_tasks = _serialize_tasks(tasks)
+        mh.send_json(
+               {
+                   b"action": b"tasks",
+                   b"tasks": ser_tasks,
+               },
+           )
+    
+    def _send_stop(self, s, forced=False):
+        """sends a stop message to a client."""
+        self._va_lock.acquire()
+        mh = self._clients.get(s, _MessageHandler(s))
+        mh.send_json(
+                {
+                    b"action": b"stop",
+                    "forced": forced,
+                }
+            )
+        self._va_lock.release()
+     
+    def _add_tasks(self, tasks):
+        """adds a task for evaluation."""
+        if len(self._waiting_clients) > 0:
+            self._va_lock.acquire()
+            s = self._waiting_clients.pop(0)
+            mh = self._clients.get(s, None)
+            self._va_lock.release()
+            if mh is None:
+                self._remove_client(s)
+                return self._add_tasks(tasks)
+            self._send_tasks(mh, tasks)
+        else:
+            self._inqueue.put(tasks)
 
     def _start_secondary(self):
         """Start as a secondary."""
-        self.em.start()
-        self._set_shared_instances()
-
-    def _set_shared_instances(self):
-        """Sets attributes from the shared instances."""
-        self.inqueue = self.em.get_inqueue()
-        self.outqueue = self.em.get_outqueue()
-        self.namespace = self.em.get_namespace()
-
-    def _reset_em(self):
-        """Resets self.em and the shared instances."""
-        self.em = _ExtendedManager(self.addr, self.authkey, mode=self.mode, start=False)
-        self.em.start()
-        self._set_shared_instances()
+        # TODO: implement this
+        pass
+    
+    def _reset(self):
+        """resets the internal state of the secondary nodes."""
+        # connect
+        self._s = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
+        self._s.connect(self.addr)
+        
+        # create a _MessageHandler
+        self._mh = _MessageHandler(self._s)
+        
+        # auth
+        self._mh.send_json(
+                {
+                    b"action": b"auth",
+                    b"authkey": self.authkey,
+                }
+            )
+        response = json.loads(self._mh.get_message())
+        if response.get(b"action", None) != b"auth_response":
+            self._s.close()
+            raise ProtocolError("Server did not send an auth response!")
+        success = response.get(b"success", False)
+        if not success:
+            self._s.close()
+            raise AuthError("Invalid authkey!")
 
     def _secondary_loop(self, reconnect=False):
         """The worker loop for the secondary nodes."""
@@ -478,45 +638,20 @@ class DistributedEvaluator(object):
             pool = multiprocessing.Pool(self.num_workers)
         else:
             pool = None
-        should_reconnect = True
-        while should_reconnect:
-            i = 0
+        self._should_reconnect = True
+        while self._should_reconnect:
             running = True
             try:
-                self._reset_em()
-            except (socket.error, EOFError, IOError, OSError, socket.gaierror, TypeError):
+                self._reset()
+            except (socket.error, EOFError, IOError, OSError, socket.gaierror,):
                 continue
             while running:
-                i += 1
-                if i % 5 == 0:
-                    # for better performance, only check every 5 cycles
-                    try:
-                        state = self.em.secondary_state
-                    except (socket.error, EOFError, IOError, OSError, socket.gaierror, TypeError):
-                        if not reconnect:
-                            raise
-                        else:
-                            break
-                    if state == _STATE_FORCED_SHUTDOWN:
-                        running = False
-                        should_reconnect = False
-                    elif state == _STATE_SHUTDOWN:
-                        running = False
-                    if not running:
-                        continue
                 try:
-                    tasks = self.inqueue.get(block=True, timeout=0.2)
-                except queue.Empty:
-                    continue
-                except (socket.error, EOFError, IOError, OSError, socket.gaierror, TypeError):
-                    break
-                except (managers.RemoteError, multiprocessing.ProcessError) as e:
-                    if ('Empty' in repr(e)) or ('TimeoutError' in repr(e)):
-                        continue
-                    if (('EOFError' in repr(e)) or ('PipeError' in repr(e)) or
-                        ('AuthenticationError' in repr(e))): # Second for Python 3.X, Third for 3.6+
+                    tasks = self._get_tasks()
+                    if tasks is None:
                         break
-                    raise
+                except (socket.error, EOFError, IOError, OSError, socket.gaierror):
+                    break
                 if pool is None:
                     res = []
                     for genome_id, genome, config in tasks:
@@ -537,22 +672,49 @@ class DistributedEvaluator(object):
                         ]
                     res = zip(genome_ids, results)
                 try:
-                    self.outqueue.put(res)
-                except (socket.error, EOFError, IOError, OSError, socket.gaierror, TypeError):
+                    self._send_results(res)
+                except (socket.error, EOFError, IOError, OSError, socket.gaierror):
                     break
-                except (managers.RemoteError, multiprocessing.ProcessError) as e:
-                    if ('Empty' in repr(e)) or ('TimeoutError' in repr(e)):
-                        continue
-                    if (('EOFError' in repr(e)) or ('PipeError' in repr(e)) or
-                        ('AuthenticationError' in repr(e))): # Second for Python 3.X, Third for 3.6+
-                        break
-                    raise
 
             if not reconnect:
-                should_reconnect = False
+                self._should_reconnect = False
                 break
+        try:
+            self._s.close()
+        except:
+            pass
         if pool is not None:
             pool.terminate()
+    
+    def _get_tasks(self):
+        """
+        Receives some tasks from the primary.
+        This method returns either the received tasks or None if the
+        secondary was stopped by the primary.
+        """
+        while True:
+            msg = json.loads(self._mh.get_message())
+            action = msg.get(b"action", None)
+            
+            if action == b"stop":
+                forced = msg.get("forced", False)
+                if forced:
+                    self._should_reconnect = False
+                return None
+                
+            elif action == b"tasks":
+                tasks = msg.get(b"tasks", None)
+                if tasks is not None:
+                    return _load_tasks(tasks)
+    
+    def _send_results(self, results):
+        """sends the results to the primary node."""
+        self._mh.send_json(
+                {
+                    b"action": b"results",
+                    b"results": results,
+                }
+            )
 
     def evaluate(self, genomes, config):
         """
@@ -566,13 +728,13 @@ class DistributedEvaluator(object):
         id2genome = {genome_id: genome for genome_id, genome in genomes}
         tasks = chunked(tasks, self.secondary_chunksize)
         n_tasks = len(tasks)
-        for task in tasks:
-            self.inqueue.put(task)
+        for tasklist in tasks:
+            self._add_tasks(tasklist)
         tresults = []
         while len(tresults) < n_tasks:
             try:
                 sr = self.outqueue.get(block=True, timeout=0.2)
-            except (queue.Empty, managers.RemoteError):
+            except (queue.Empty):
                 continue
             tresults.append(sr)
         results = []
