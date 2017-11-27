@@ -249,7 +249,7 @@ class _MessageHandler(object):
         """sends a message."""
         length = len(msg)
         prefix = struct.pack(_LENGTH_PREFIX, length)
-        data = prefix + length
+        data = prefix + msg
         self._s.send(data)
     
     def send_json(self, d):
@@ -432,9 +432,9 @@ class DistributedEvaluator(object):
         """method for the socket thread of the primary node."""
         if self.mode != MODE_PRIMARY:
             raise ModeError("Not a primary node!")
-        while self._started:
-            to_check_read = [self._listen_s, self._clients.keys()]
-            to_check_err = [self._listen_s, self._clients.keys()]
+        while self.started:
+            to_check_read = [self._listen_s] + self._clients.keys()
+            to_check_err = [self._listen_s] + self._clients.keys()
             to_read, to_write, has_err = select.select(to_check_read, [], to_check_err, 0.1)
             if (len(to_read) + len(to_write) + len(has_err)) == 0:
                 continue
@@ -494,7 +494,7 @@ class DistributedEvaluator(object):
                         elif action == b"results":
                             results = msg.get(b"results", None)
                             if results is not None:
-                                self.outqueue.put(results)
+                                self._outqueue.put(results)
                                 self._va_lock.acquire()
                                 if s in self._s2tasks:
                                     del self._s2tasks[s]
@@ -506,7 +506,7 @@ class DistributedEvaluator(object):
                                     tasks = self._s2tasks[s]
                                     del self._s2tasks[s]
                                 self._va_lock.release()
-                                self.inqueue.put(tasks)
+                                self._inqueue.put(tasks)
                         
                         else:
                             # unknown message; this is probably an error.
@@ -733,7 +733,7 @@ class DistributedEvaluator(object):
         tresults = []
         while len(tresults) < n_tasks:
             try:
-                sr = self.outqueue.get(block=True, timeout=0.2)
+                sr = self._outqueue.get(block=True, timeout=0.2)
             except (queue.Empty):
                 continue
             tresults.append(sr)
