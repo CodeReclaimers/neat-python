@@ -224,14 +224,15 @@ class _MessageHandler(object):
         received_a_whole_message = False
         self._cur_buff += data
         while len(self._cur_buff) >= self._msg_size:
+            received_a_whole_message = received_a_whole_message or (len(self._cur_buff) >= self._msg_size)
             msg = self._cur_buff[:self._msg_size]
             self._cur_buff = self._cur_buff[self._msg_size:]
-            received_a_whole_message = received_a_whole_message or (len(self._cur_buff) >= self._msg_size)
             self._handle_message(msg)
         if received_a_whole_message:
             return 0
         else:
-            return self._msg_size - len(self._cur_buff)
+            remaining = self._msg_size - len(self._cur_buff)
+            return remaining
     
     def _handle_message(self, msg):
         """handle an incomming message as required by self._state"""
@@ -448,6 +449,10 @@ class DistributedEvaluator(object):
                 else:
                     # data available
                     data = s.recv(4096)  # receive at most 4k bytes. If more are available, recv them in the next iteration.
+                    if len(data) == 0:
+                        # connection closed.
+                        self._remove_client(s)
+                        continue
                     mh = self._clients.get(s, None)
                     if mh is None:
                         self._remove_client(s)
@@ -469,12 +474,12 @@ class DistributedEvaluator(object):
                             if authkey == self.authkey:
                                 if s not in self._authenticated_clients:
                                     self._authenticated_clients.append(s)
-                                mh.send_json({b"action": "auth_response", "state": b"success"})
+                                mh.send_json({b"action": "auth_response", b"success": True})
                             else:
-                                mh.send_json({b"action": b"auth_response", b"state": b"error"})
+                                mh.send_json({b"action": b"auth_response", b"success": False})
                                 self._remove_client(s)
                                 break
-                        elif s not in self._authentiated_clients:
+                        elif s not in self._authenticated_clients:
                             # client did not authenticate
                             self._remove_client(s)
                             break
@@ -492,7 +497,7 @@ class DistributedEvaluator(object):
                         
                         # results
                         elif action == b"results":
-                            results = msg.get(b"results", None)
+                            results = loaded.get(b"results", None)
                             if results is not None:
                                 self._outqueue.put(results)
                                 self._va_lock.acquire()
@@ -541,7 +546,7 @@ class DistributedEvaluator(object):
                     self._remove_client(s)
         
         # stop connected clients
-        forced = (self._state == self._STATE_FORCED_SHUTDOWN)
+        forced = (self._state == _STATE_FORCED_SHUTDOWN)
         for s in self._clients:
             self._send_stop(s, forced=forced)
             self._remove_client(s)
@@ -692,6 +697,8 @@ class DistributedEvaluator(object):
         This method returns either the received tasks or None if the
         secondary was stopped by the primary.
         """
+        tosend = {b"action": b"get_task"}
+        self._mh.send_json(tosend)
         while True:
             msg = json.loads(self._mh.get_message())
             action = msg.get(b"action", None)

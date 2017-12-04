@@ -181,86 +181,8 @@ def test_DistributedEvaluator_primary_restrictions():
     else:
         raise Exception("A DistributedEvaluator in secondary mode could call evaluate()!")
 
-'''
-def test_DistributedEvaluator_state_error1():
-    """Tests that attempts to use an unstarted manager for set_secondary_state cause an error."""
-    primary = neat.DistributedEvaluator(
-        ("localhost", 8022),
-        authkey=b"abcd1234",
-        eval_function=eval_dummy_genome_nn,
-        mode=MODE_PRIMARY,
-        )
-    try:
-        primary.em.set_secondary_state(_STATE_RUNNING)
-    except RuntimeError:
-        pass
-    else:
-        raise Exception("primary.em.set_secondary_state with unstarted manager did not raise a RuntimeError!")
 
-def test_DistributedEvaluator_state_error2():
-    """Tests that attempts to use an unstarted manager for get_inqueue cause an error."""
-    primary = neat.DistributedEvaluator(
-        ("localhost", 8022),
-        authkey=b"abcd1234",
-        eval_function=eval_dummy_genome_nn,
-        mode=MODE_PRIMARY,
-        )
-    try:
-        ignored = primary.em.get_inqueue()
-    except RuntimeError:
-        pass
-    else:
-        raise Exception("primary.em.get_inqueue() with unstarted manager did not raise a RuntimeError!")
-
-def test_DistributedEvaluator_state_error3():
-    """Tests that attempts to use an unstarted manager for get_outqueue cause an error."""
-    primary = neat.DistributedEvaluator(
-        ("localhost", 8022),
-        authkey=b"abcd1234",
-        eval_function=eval_dummy_genome_nn,
-        mode=MODE_PRIMARY,
-        )
-    try:
-        ignored = primary.em.get_outqueue()
-    except RuntimeError:
-        pass
-    else:
-        raise Exception("primary.em.get_outqueue() with unstarted manager did not raise a RuntimeError!")
-
-def test_DistributedEvaluator_state_error4():
-    """Tests that attempts to use an unstarted manager for get_namespace cause an error."""
-    primary = neat.DistributedEvaluator(
-        ("localhost", 8022),
-        authkey=b"abcd1234",
-        eval_function=eval_dummy_genome_nn,
-        mode=MODE_PRIMARY,
-        )
-    try:
-        ignored = primary.em.get_namespace()
-    except RuntimeError:
-        pass
-    else:
-        raise Exception("primary.em.get_namespace() with unstarted manager did not raise a RuntimeError!")
-
-def test_DistributedEvaluator_state_error5():
-    """Tests that attempts to set an invalid state cause an error."""
-    primary = neat.DistributedEvaluator(
-        ("localhost", 8022),
-        authkey=b"abcd1234",
-        eval_function=eval_dummy_genome_nn,
-        mode=MODE_PRIMARY,
-        )
-    primary.start()
-    try:
-        primary.em.set_secondary_state(-1)
-    except ValueError:
-        pass
-    else:
-        raise Exception("primary.em.set_secondary_state(-1) did not raise a ValueError!")
-    
-'''
-
-@unittest.skipIf(ON_PYPY, "This test fails on pypy during travis builds but usually works locally.")
+# @unittest.skipIf(ON_PYPY, "This test fails on pypy during travis builds but usually works locally.")
 def test_distributed_evaluation_multiprocessing(do_mwcp=True):
     """
     Full test run using the Distributed Evaluator (fake nodes using processes).
@@ -325,7 +247,7 @@ def test_distributed_evaluation_multiprocessing(do_mwcp=True):
             swcp.terminate()
 
 
-@unittest.skipIf(ON_PYPY, "Pypy has problems with threading.")
+# @unittest.skipIf(ON_PYPY, "Pypy has problems with threading.")
 def test_distributed_evaluation_threaded():
     """
     Full test run using the Distributed Evaluator (fake nodes using threads).
