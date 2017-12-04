@@ -406,7 +406,7 @@ class DistributedEvaluator(object):
         self.started = False
 
     def _start_primary(self):
-        """Start as the primary"""
+        """Start as the primary node."""
         # setup primary specific vars
         self._clients = {}  # socket -> _MessageHandler
         self._s2tasks = {}  # socket -> tasks
@@ -443,7 +443,12 @@ class DistributedEvaluator(object):
             for s in to_read:
                 if s is self._listen_s:
                     # new connection
-                    c, addr = s.accept()
+                    try:
+                        c, addr = s.accept()
+                    except Exception:
+                        if not self._started:
+                            break
+                        raise
                     mh = _MessageHandler(c)
                     self._clients[c] = mh
                 else:
@@ -547,7 +552,7 @@ class DistributedEvaluator(object):
         
         # stop connected clients
         forced = (self._state == _STATE_FORCED_SHUTDOWN)
-        for s in self._clients:
+        for s in self._clients.keys():
             self._send_stop(s, forced=forced)
             self._remove_client(s)
     
