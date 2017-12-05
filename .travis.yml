@@ -16,6 +16,6 @@ install:
     - pip install --upgrade nose coveralls coverage
     - if [[ $TRAVIS_PYTHON_VERSION == 'pypy'* ]]; then export TRAVIS_WAIT=45; else export TRAVIS_WAIT=20; fi
 script:
-    travis_wait "${TRAVIS_WAIT}" nosetests --with-coverage --cover-package=neat -vd
+    nosetests --with-coverage --cover-package=neat -vd
 after_success:
     coveralls
