@@ -459,7 +459,7 @@ class DistributedEvaluator(object):
         self._stopwaitevent.clear()  # just to be sure
         while self.started:
             to_check_read = [self._listen_s] + list(self._clients.keys())  # list() for python3 compatibility
-            to_check_err = [self._listen_s] + list(self._clients.keys())  #  ^^ TODO: is there another way to do this? 
+            to_check_err = [self._listen_s] + list(self._clients.keys())  #  ^^ TODO: is there another way to do this?
             to_read, to_write, has_err = select.select(to_check_read, [], to_check_err, 0.1)
             if (len(to_read) + len(to_write) + len(has_err)) == 0:
                 continue
@@ -496,7 +496,7 @@ class DistributedEvaluator(object):
                             self._remove_client(s)
                             break
                         action = loaded.get("action", None)
-                        
+
                         # authentication
                         if action == "auth":
                             authkey = loaded.get("authkey")
@@ -577,7 +577,7 @@ class DistributedEvaluator(object):
         # stop connected clients
         forced = (self._state == _STATE_FORCED_SHUTDOWN)
         try:
-            for s in self._clients.keys():
+            for s in list(self._clients.keys()):  # list() for py3 compatibility
                 self._send_stop(s, forced=forced)
                 self._remove_client(s)
         finally:
@@ -707,7 +707,7 @@ class DistributedEvaluator(object):
                     results = [
                         job.get(timeout=self.worker_timeout) for job in jobs
                         ]
-                    res = zip(genome_ids, results)
+                    res = list(zip(genome_ids, results))  # list() for py3 compatibility
                 try:
                     self._send_results(res)
                 except (socket.error, EOFError, IOError, OSError, socket.gaierror):
@@ -734,13 +734,13 @@ class DistributedEvaluator(object):
         while True:
             msg = json_bytes_loads(self._mh.get_message())
             action = msg.get("action", None)
-            
+
             if action == "stop":
                 forced = msg.get("forced", False)
                 if forced:
                     self._should_reconnect = False
                 return None
-                
+
             elif action == "tasks":
                 tasks = msg.get("tasks", None)
                 if tasks is not None:
