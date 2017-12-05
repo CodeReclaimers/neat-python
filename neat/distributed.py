@@ -225,18 +225,18 @@ class _MessageHandler(object):
     This includes detecting incomplete messages and completing them with
     later messages.
     """
-    
+
     # constants for managing the current state
     _STATE_RECV_PREFIX = 0  # we are currently waiting for the length prefix
     _STATE_RECV_MESSAGE = 1  # we arer currently receiving a message
-    
+
     def __init__(self, s):
         self._s = s
         self._state = self._STATE_RECV_PREFIX
         self._msg_size = _LENGTH_PREFIX_LENGTH
         self._cur_buff = b""
         self.messages = []
-    
+
     def feed(self, data):
         """
         Process received data.
@@ -254,7 +254,7 @@ class _MessageHandler(object):
         else:
             remaining = self._msg_size - len(self._cur_buff)
             return remaining
-    
+
     def _handle_message(self, msg):
         """handle an incomming message as required by self._state"""
         if self._state == self._STATE_RECV_PREFIX:
@@ -266,19 +266,19 @@ class _MessageHandler(object):
             self.messages.append(msg)
         else:
             raise RuntimeError("Internal error: invalid state!")
-    
+
     def send_message(self, msg):
         """sends a message."""
         length = len(msg)
         prefix = struct.pack(_LENGTH_PREFIX, length)
         data = prefix + msg
         self._s.send(data)
-    
+
     def send_json(self, d):
         """serializes d into json, then sends the message."""
         ser = json_bytes_dumps(d)
         return self.send_message(ser)
-    
+
     def recv(self):
         """receives a message from the socket (blocking)."""
         to_recv = 1  # receive one byte initialy
@@ -287,7 +287,7 @@ class _MessageHandler(object):
             to_recv = self.feed(data)
             if to_recv == 0:
                 return
-    
+
     def get_message(self):
         """if a message was received, return it. Otherwise, receive a message and return it."""
         while len(self.messages) == 0:
@@ -350,7 +350,8 @@ class DistributedEvaluator(object):
         self._inqueue = queue.Queue()
         self._outqueue = queue.Queue()
         self._sock_thread = None
-        self._va_lock = threading.Lock()
+        self._va_lock = threading.Lock()  # lock to prevent parallel access to some vars
+        self._stopwaitevent = threading.Event()  # event for waiting for the network thread to stop
 
     def __getstate__(self):
         """Required by the pickle protocol."""
@@ -425,46 +426,53 @@ class DistributedEvaluator(object):
             except:
                 pass
         self.started = False
+        self._stopwaitevent.wait()
 
     def _start_primary(self):
-        """Start as the primary"""
+        """Start as the primary node."""
         # setup primary specific vars
         self._clients = {}  # socket -> _MessageHandler
         self._s2tasks = {}  # socket -> tasks
         self._authenticated_clients = []  # list of authenticated secondaries
         self._waiting_clients = []  # list of secondaries waiting for tasks
-        
+
         # create socket, bind and listen
         self._bind_and_listen()
-        
+
         # create and start network thread
         self._sock_thread = threading.Thread(
             name="{c} network thread".format(c=self.__class__),
             target=self._primary_sock_thread,
             )
         self._sock_thread.start()
-    
+
     def _bind_and_listen(self):
         """create a socket, bind it and starts listening for connections."""
         self._listen_s = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)  # todo: ipv6 support
         self._listen_s.bind(self.addr)
         self._listen_s.listen(3)
-    
+
     def _primary_sock_thread(self):
         """method for the socket thread of the primary node."""
         if self.mode != MODE_PRIMARY:
             raise ModeError("Not a primary node!")
+        self._stopwaitevent.clear()  # just to be sure
         while self.started:
             to_check_read = [self._listen_s] + list(self._clients.keys())  # list() for python3 compatibility
             to_check_err = [self._listen_s] + list(self._clients.keys())  #  ^^ TODO: is there another way to do this? 
             to_read, to_write, has_err = select.select(to_check_read, [], to_check_err, 0.1)
             if (len(to_read) + len(to_write) + len(has_err)) == 0:
                 continue
-            
+
             for s in to_read:
                 if s is self._listen_s:
                     # new connection
-                    c, addr = s.accept()
+                    try:
+                        c, addr = s.accept()
+                    except Exception:
+                        if not self._started:
+                            break
+                        raise
                     mh = _MessageHandler(c)
                     self._clients[c] = mh
                 else:
@@ -479,7 +487,7 @@ class DistributedEvaluator(object):
                         self._remove_client(s)
                         continue
                     mh.feed(data)
-                    
+
                     while len(mh.messages) > 0:
                         msg = mh.messages.pop(0)
                         try:
@@ -504,7 +512,7 @@ class DistributedEvaluator(object):
                             # client did not authenticate
                             self._remove_client(s)
                             break
-                        
+
                         # taks distribution
                         elif action == "get_task":
                             try:
@@ -515,7 +523,7 @@ class DistributedEvaluator(object):
                                 self._va_lock.release()
                             else:
                                 self._send_tasks(mh, tasks)
-                        
+
                         # results
                         elif action == "results":
                             results = loaded.get("results", None)
@@ -533,16 +541,16 @@ class DistributedEvaluator(object):
                                     del self._s2tasks[s]
                                 self._va_lock.release()
                                 self._inqueue.put(tasks)
-                        
+
                         else:
                             # unknown message; this is probably an error.
                             self._remove_client(s)
                             break
-            
+
             # for s in to_write:
             #    # not required
             #    pass
-            
+
             for s in has_err:
                 if s is self._listen_s:
                     # cant listen anymore
@@ -565,13 +573,16 @@ class DistributedEvaluator(object):
                         break
                 else:
                     self._remove_client(s)
-        
+
         # stop connected clients
         forced = (self._state == _STATE_FORCED_SHUTDOWN)
-        for s in self._clients:
-            self._send_stop(s, forced=forced)
-            self._remove_client(s)
-    
+        try:
+            for s in self._clients.keys():
+                self._send_stop(s, forced=forced)
+                self._remove_client(s)
+        finally:
+            self._stopwaitevent.set()
+
     def _remove_client(self, s):
         """closes and removes the client."""
         self._va_lock.acquire()
@@ -591,7 +602,7 @@ class DistributedEvaluator(object):
         self._va_lock.release()
         if tasks is not None:
             self._add_tasks(tasks)
-    
+
     def _send_tasks(self, mh, tasks):
         """sends some tasks to a secondary connected through the message handler mh."""
         ser_tasks = _serialize_tasks(tasks)
@@ -601,7 +612,7 @@ class DistributedEvaluator(object):
                    "tasks": ser_tasks,
                },
            )
-    
+
     def _send_stop(self, s, forced=False):
         """sends a stop message to a client."""
         self._va_lock.acquire()
@@ -613,7 +624,7 @@ class DistributedEvaluator(object):
                 }
             )
         self._va_lock.release()
-     
+
     def _add_tasks(self, tasks):
         """adds a task for evaluation."""
         if len(self._waiting_clients) > 0:
@@ -632,16 +643,16 @@ class DistributedEvaluator(object):
         """Start as a secondary."""
         # TODO: implement this
         pass
-    
+
     def _reset(self):
         """resets the internal state of the secondary nodes."""
         # connect
         self._s = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
         self._s.connect(self.addr)
-        
+
         # create a _MessageHandler
         self._mh = _MessageHandler(self._s)
-        
+
         # auth
         self._mh.send_json(
                 {
@@ -711,7 +722,7 @@ class DistributedEvaluator(object):
             pass
         if pool is not None:
             pool.terminate()
-    
+
     def _get_tasks(self):
         """
         Receives some tasks from the primary.
@@ -734,7 +745,7 @@ class DistributedEvaluator(object):
                 tasks = msg.get("tasks", None)
                 if tasks is not None:
                     return _load_tasks(tasks)
-    
+
     def _send_results(self, results):
         """sends the results to the primary node."""
         self._mh.send_json(

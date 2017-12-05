@@ -128,7 +128,7 @@ def test_DistributedEvaluator_mode():
         result = de.mode
         assert result == expected, "Mode determination failed! Hostname: {h}; expected: {e}; got: {r!r}!".format(
             h=hostname, e=expected, r=result)
-        
+
         if result == MODE_AUTO:
             raise Exception(
                 "DistributedEvaluator.__init__(mode=MODE_AUTO) did not automatically determine its mode!"
@@ -240,28 +240,31 @@ def test_distributed_evaluation_multiprocessing(do_mwcp=True):
         mwcp.start()
     swcp.start()
     try:
-        print("Joining primary process")
+        print("[distributed] Tests/Process-control: Joining process of primary node...")
         sys.stdout.flush()
         mp.join()
+        print("[distributed] Tests/Process-control: successfully joined process of primary node.")
         if mp.exitcode != 0:
-            raise Exception("Primary-process exited with status {s}!".format(s=mp.exitcode))
+            raise Exception("Primary-node-process exited with status {s}!".format(s=mp.exitcode))
         if do_mwcp:
             if not mwcp.is_alive():
-                print("mwcp is not 'alive'")
-            print("children: {c}".format(c=multiprocessing.active_children()))
-            print("Joining multiworker-secondary process")
+                print("[distributed] Tests/Process-control: mwcp is not 'alive'!")
+            print("[distributed] Tests/Process-control: children: {c}.".format(c=multiprocessing.active_children()))
+            print("[distributed] Tests/Process-control: Joining multiworker-secondary process...")
             sys.stdout.flush()
             mwcp.join()
+            print("[distributed] Tests/Process-control: successfully joinded multiworker-secondary process.")
             if mwcp.exitcode != 0:
                 raise Exception("Multiworker-secondary-process exited with status {s}!".format(s=mwcp.exitcode))
         if not swcp.is_alive():
-            print("swcp is not 'alive'")
-        print("Joining singleworker-secondary process")
+            print("[distributed] Tests/Process-control: swcp is not 'alive'!")
+        print("[distributed] Tests/Process-control: Joining singleworker-secondary process.")
         sys.stdout.flush()
         swcp.join()
+        print("[distributed] Tests/Process-control: successfully joined singleworker-secondary process.")
         if swcp.exitcode != 0:
             raise Exception("Singleworker-secondary-process exited with status {s}!".format(s=swcp.exitcode))
-            
+
     finally:
         if mp.is_alive():
             mp.terminate()
@@ -309,14 +312,14 @@ def test_distributed_evaluation_threaded():
     mp.join()
     mwcp.join()
     swcp.join()
-    
+
     # we cannot check for exceptions in the threads.
     # however, these checks are also done in
     # test_distributed_evaluationmultiprocessing,
     # so they should not fail here.
     # also, this test is mainly for the coverage.
 
-    
+
 
 def run_primary(addr, authkey, generations):
     """Starts a DistributedEvaluator in primary mode."""
@@ -344,16 +347,16 @@ def run_primary(addr, authkey, generations):
         mode=MODE_PRIMARY,
         secondary_chunksize=15,
         )
-    print("Starting DistributedEvaluator")
+    print("[distributed] primary: starting DistributedEvaluator")
     sys.stdout.flush()
     de.start()
-    print("Running evaluate")
+    print("[distributed] primary: starting evaluation of genomes...")
     sys.stdout.flush()
     p.run(de.evaluate, generations)
-    print("Evaluated")
+    print("[distributed] primary: evaluation finished.")
     sys.stdout.flush()
     de.stop(wait=5)
-    print("Did de.stop")
+    print("[distributed] primary: did de.stop")
     sys.stdout.flush()
 
     stats.save()
@@ -384,11 +387,17 @@ def run_secondary(addr, authkey, num_workers=1):
         mode=MODE_SECONDARY,
         num_workers=num_workers,
         )
+    print("[distributed] secondary: starting DistributedEvaluator...")
+    sys.stdout.flush()
     try:
-        de.start(secondary_wait=3, exit_on_stop=True)
+        de.start(secondary_wait=3, exit_on_stop=True, reconnect=False)
     except SystemExit:
+        print("[distributed] secondary: caught expected SystemExit.")
+        sys.stdout.flush()
         pass
     else:
+        print("[distributed] secondary: expected a SystemExit; not SystemExit caught!")
+        sys.stdout.flush()
         raise Exception("DistributedEvaluator in secondary mode did not try to exit!")
 
 if __name__ == '__main__':
