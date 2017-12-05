@@ -98,6 +98,7 @@ _STATE_ERROR = 3
 _LENGTH_PREFIX = "!Q"
 _LENGTH_PREFIX_LENGTH = struct.calcsize(_LENGTH_PREFIX)
 _DEFAULT_NETWORK_ENCODING = "utf-8"  # encoding for json messages
+_DEFAULT_PICKLE_ENCODING = "latin1"  # encoding for pickle
 
 
 class ModeError(RuntimeError):
@@ -210,13 +211,12 @@ def json_bytes_loads(bytestr):
 
 def _serialize_tasks(tasks):
     """serialize a tasklist."""
-    # TODO: this needs to be done in a more efficient way.
-    return base64.b64encode(pickle.dumps(tasks, -1))
+    return pickle.dumps(tasks, -1).decode(_DEFAULT_PICKLE_ENCODING)
 
 
 def _load_tasks(s):
     """loads a tasklist from a string returned by _serialize_tasks()"""
-    return pickle.loads(base64.b64decode(s))
+    return pickle.loads(s.encode(_DEFAULT_PICKLE_ENCODING))
 
 
 class _MessageHandler(object):
