@@ -168,6 +168,7 @@ def test_json_bytes_dumps_loads():
     {"one": 1, "two": 2, "three": "three"},
     {"1": 2, "3":4, "5":6},
     u"unicode_string",
+    "native_string",
     ]
     bytestype = type(b"some bytestring")
     for obj in test_objs:

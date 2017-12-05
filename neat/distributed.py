@@ -487,17 +487,17 @@ class DistributedEvaluator(object):
                         except:
                             self._remove_client(s)
                             break
-                        action = loaded.get(b"action", None)
+                        action = loaded.get("action", None)
                         
                         # authentication
-                        if action == b"auth":
-                            authkey = loaded.get(b"authkey")
+                        if action == "auth":
+                            authkey = loaded.get("authkey")
                             if authkey == self.authkey:
                                 if s not in self._authenticated_clients:
                                     self._authenticated_clients.append(s)
-                                mh.send_json({b"action": "auth_response", b"success": True})
+                                mh.send_json({"action": "auth_response", "success": True})
                             else:
-                                mh.send_json({b"action": b"auth_response", b"success": False})
+                                mh.send_json({"action": "auth_response", "success": False})
                                 self._remove_client(s)
                                 break
                         elif s not in self._authenticated_clients:
@@ -506,7 +506,7 @@ class DistributedEvaluator(object):
                             break
                         
                         # taks distribution
-                        elif action == b"get_task":
+                        elif action == "get_task":
                             try:
                                 tasks = self._inqueue.get(timeout=0)
                             except queue.Empty:
@@ -517,8 +517,8 @@ class DistributedEvaluator(object):
                                 self._send_tasks(mh, tasks)
                         
                         # results
-                        elif action == b"results":
-                            results = loaded.get(b"results", None)
+                        elif action == "results":
+                            results = loaded.get("results", None)
                             if results is not None:
                                 self._outqueue.put(results)
                                 self._va_lock.acquire()
