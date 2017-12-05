@@ -117,7 +117,7 @@ def test_DistributedEvaluator_mode():
         try:
             de = neat.DistributedEvaluator(
                 addr,
-                authkey=b"abcd1234",
+                authkey="abcd1234",
                 eval_function=eval_dummy_genome_nn,
                 mode=mode,
                 )
@@ -399,6 +399,7 @@ def run_secondary(addr, authkey, num_workers=1):
         print("[distributed] secondary: expected a SystemExit; not SystemExit caught!")
         sys.stdout.flush()
         raise Exception("DistributedEvaluator in secondary mode did not try to exit!")
+
 
 if __name__ == '__main__':
     test_chunked()
