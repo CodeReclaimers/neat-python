@@ -97,6 +97,7 @@ _STATE_ERROR = 3
 # constants for network communication
 _LENGTH_PREFIX = "!Q"
 _LENGTH_PREFIX_LENGTH = struct.calcsize(_LENGTH_PREFIX)
+_DEFAULT_NETWORK_ENCODING = "utf-8"  # encoding for json messages
 
 
 class ModeError(RuntimeError):
@@ -187,6 +188,26 @@ def chunked(data, chunksize):
     return res
 
 
+def json_bytes_dumps(obj):
+    """
+    Encodes obj into json, returning a bytestring.
+    This is mainly used for py2/py3 compatibility.
+    """
+    dumped = json.dumps(obj, ensure_ascii=True)
+    encoded = dumped.encode(_DEFAULT_NETWORK_ENCODING)
+    return encoded
+
+
+def json_bytes_loads(bytestr):
+    """
+    Decodes a bytestring into json.
+    This is mainly used for py2/py3 cimpatibility.
+    """
+    decoded = bytestr.decode(_DEFAULT_NETWORK_ENCODING)
+    loaded = json.loads(decoded)
+    return loaded
+
+
 def _serialize_tasks(tasks):
     """serialize a tasklist."""
     # TODO: this needs to be done in a more efficient way.
@@ -213,7 +234,7 @@ class _MessageHandler(object):
         self._s = s
         self._state = self._STATE_RECV_PREFIX
         self._msg_size = _LENGTH_PREFIX_LENGTH
-        self._cur_buff = ""
+        self._cur_buff = b""
         self.messages = []
     
     def feed(self, data):
@@ -255,7 +276,7 @@ class _MessageHandler(object):
     
     def send_json(self, d):
         """serializes d into json, then sends the message."""
-        ser = json.dumps(d)
+        ser = json_bytes_dumps(d)
         return self.send_message(ser)
     
     def recv(self):
@@ -295,7 +316,7 @@ class DistributedEvaluator(object):
         ``authkey`` is the password used to restrict access to the manager; see
         ``Authentication Keys`` in the `multiprocessing` manual for more information.
         All DistributedEvaluators need to use the same authkey. Note that this needs
-        to be a `bytes` object for Python 3.X, and should be in 2.7 for compatibility
+        to be a `str` object for Python 3.X, and should be in 2.7 for compatibility
         (identical in 2.7 to a `str` object).
         ``eval_function`` should take two arguments (a genome object and the
         configuration) and return a single float (the genome's fitness).
@@ -434,8 +455,8 @@ class DistributedEvaluator(object):
         if self.mode != MODE_PRIMARY:
             raise ModeError("Not a primary node!")
         while self.started:
-            to_check_read = [self._listen_s] + self._clients.keys()
-            to_check_err = [self._listen_s] + self._clients.keys()
+            to_check_read = [self._listen_s] + list(self._clients.keys())  # list() for python3 compatibility
+            to_check_err = [self._listen_s] + list(self._clients.keys())  #  ^^ TODO: is there another way to do this? 
             to_read, to_write, has_err = select.select(to_check_read, [], to_check_err, 0.1)
             if (len(to_read) + len(to_write) + len(has_err)) == 0:
                 continue
@@ -462,7 +483,7 @@ class DistributedEvaluator(object):
                     while len(mh.messages) > 0:
                         msg = mh.messages.pop(0)
                         try:
-                            loaded = json.loads(msg)
+                            loaded = json_bytes_loads(msg)
                         except:
                             self._remove_client(s)
                             break
@@ -576,8 +597,8 @@ class DistributedEvaluator(object):
         ser_tasks = _serialize_tasks(tasks)
         mh.send_json(
                {
-                   b"action": b"tasks",
-                   b"tasks": ser_tasks,
+                   "action": "tasks",
+                   "tasks": ser_tasks,
                },
            )
     
@@ -587,7 +608,7 @@ class DistributedEvaluator(object):
         mh = self._clients.get(s, _MessageHandler(s))
         mh.send_json(
                 {
-                    b"action": b"stop",
+                    "action": "stop",
                     "forced": forced,
                 }
             )
@@ -624,15 +645,15 @@ class DistributedEvaluator(object):
         # auth
         self._mh.send_json(
                 {
-                    b"action": b"auth",
-                    b"authkey": self.authkey,
+                    "action": "auth",
+                    "authkey": self.authkey,
                 }
             )
-        response = json.loads(self._mh.get_message())
-        if response.get(b"action", None) != b"auth_response":
+        response = json_bytes_loads(self._mh.get_message())
+        if response.get("action", None) != "auth_response":
             self._s.close()
             raise ProtocolError("Server did not send an auth response!")
-        success = response.get(b"success", False)
+        success = response.get("success", False)
         if not success:
             self._s.close()
             raise AuthError("Invalid authkey!")
@@ -697,20 +718,20 @@ class DistributedEvaluator(object):
         This method returns either the received tasks or None if the
         secondary was stopped by the primary.
         """
-        tosend = {b"action": b"get_task"}
+        tosend = {"action": "get_task"}
         self._mh.send_json(tosend)
         while True:
-            msg = json.loads(self._mh.get_message())
-            action = msg.get(b"action", None)
+            msg = json_bytes_loads(self._mh.get_message())
+            action = msg.get("action", None)
             
-            if action == b"stop":
+            if action == "stop":
                 forced = msg.get("forced", False)
                 if forced:
                     self._should_reconnect = False
                 return None
                 
-            elif action == b"tasks":
-                tasks = msg.get(b"tasks", None)
+            elif action == "tasks":
+                tasks = msg.get("tasks", None)
                 if tasks is not None:
                     return _load_tasks(tasks)
     
@@ -718,8 +739,8 @@ class DistributedEvaluator(object):
         """sends the results to the primary node."""
         self._mh.send_json(
                 {
-                    b"action": b"results",
-                    b"results": results,
+                    "action": "results",
+                    "results": results,
                 }
             )
 

@@ -145,7 +145,7 @@ def test_DistributedEvaluator_mode():
     try:
         de = neat.DistributedEvaluator(
             addr,
-            authkey=b"abcd1234",
+            authkey=u"abcd1234",
             eval_function=eval_dummy_genome_nn,
             mode="#invalid MODE!",
         )
@@ -156,11 +156,34 @@ def test_DistributedEvaluator_mode():
         raise Exception("Passing an invalid mode did not cause an exception to be raised on start()!")
 
 
+def test_json_bytes_dumps_loads():
+    """
+    Test for the json_bytes_dumps() and json_bytes_loads() functions.
+    """
+    test_objs = [
+    1,
+    2,
+    3,
+    [1, 2, 3],
+    {"one": 1, "two": 2, "three": "three"},
+    {"1": 2, "3":4, "5":6},
+    u"unicode_string",
+    ]
+    bytestype = type(b"some bytestring")
+    for obj in test_objs:
+        dumped = neat.distributed.json_bytes_dumps(obj)
+        if type(dumped) != bytestype:
+            raise Exception("neat.distributed.json_bytes_dumps({o}) did not return a bytestring!".format(o=repr(obj)))
+        loaded = neat.distributed.json_bytes_loads(dumped)
+        if loaded != obj:
+            raise Exception("neat.distributed.json_bytes_loads(): {lo}; expected: {o}!".format(lo=repr(loaded), o=repr(obj)))
+
+
 def test_DistributedEvaluator_primary_restrictions():
     """Tests that some primary-exclusive methods fail when called by the secondaries"""
     secondary = neat.DistributedEvaluator(
         ("localhost", 8022),
-        authkey=b"abcd1234",
+        authkey=u"abcd1234",
         eval_function=eval_dummy_genome_nn,
         mode=MODE_SECONDARY,
         )
@@ -193,7 +216,7 @@ def test_distributed_evaluation_multiprocessing(do_mwcp=True):
     created using the multiprocessing module.
     """
     addr = ("localhost", random.randint(12000, 30000))
-    authkey = b"abcd1234"
+    authkey = u"abcd1234"
     mp = multiprocessing.Process(
         name="Primary evaluation process",
         target=run_primary,
@@ -262,7 +285,7 @@ def test_distributed_evaluation_threaded():
     if not HAVE_THREADING:
         raise unittest.SkipTest("Platform does not have threading")
     addr = ("localhost", random.randint(12000, 30000))
-    authkey = b"abcd1234"
+    authkey = u"abcd1234"
     mp = threading.Thread(
         name="Primary evaluation thread",
         target=run_primary,
