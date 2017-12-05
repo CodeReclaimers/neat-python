@@ -62,7 +62,6 @@ import sys
 import time
 import warnings
 import multiprocessing
-import base64
 import pickle
 import json
 import threading
@@ -353,6 +352,7 @@ class DistributedEvaluator(object):
         self._va_lock = threading.Lock()  # lock to prevent parallel access to some vars
         self._stopwaitevent = threading.Event()  # event for waiting for the network thread to stop
 
+    '''
     def __reduce__(self):
         """part of the pickle protocol."""
         return (
@@ -363,9 +363,8 @@ class DistributedEvaluator(object):
     @classmethod
     def _load_from_pickle(cls, *args):
         """called to create an instance of this class from pickle."""
-        ins = this.__class__(*args)
+        ins = cls(*args)
         return ins
-    '''
     def __getstate__(self):
         """Required by the pickle protocol."""
         # we do not actually save any state, but we need __getstate__ to be
@@ -409,7 +408,6 @@ class DistributedEvaluator(object):
             self._start_primary()
         elif self.mode == MODE_SECONDARY:
             time.sleep(secondary_wait)
-            self._start_secondary()
             self._secondary_loop(reconnect=reconnect)
             if exit_on_stop:
                 sys.exit(0)
@@ -439,6 +437,7 @@ class DistributedEvaluator(object):
                 self._listen_s.close()
             except:
                 pass
+            self._listen_s = None
         self.started = False
         self._stopwaitevent.wait()
 
@@ -463,6 +462,7 @@ class DistributedEvaluator(object):
     def _bind_and_listen(self):
         """create a socket, bind it and starts listening for connections."""
         self._listen_s = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)  # todo: ipv6 support
+        self._listen_s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self._listen_s.bind(self.addr)
         self._listen_s.listen(3)
 
@@ -652,11 +652,6 @@ class DistributedEvaluator(object):
             self._send_tasks(mh, tasks)
         else:
             self._inqueue.put(tasks)
-
-    def _start_secondary(self):
-        """Start as a secondary."""
-        # TODO: implement this
-        pass
 
     def _reset(self):
         """resets the internal state of the secondary nodes."""

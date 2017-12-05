@@ -122,12 +122,19 @@ def run_secondary(addr, authkey, num_workers=1):
         mode=MODE_SECONDARY,
         num_workers=num_workers,
         )
-    try:
-        de.start(secondary_wait=3, exit_on_stop=True, reconnect=True)
-    except SystemExit:
-        pass
-    else:
-        raise Exception("DistributedEvaluator in secondary mode did not try to exit!")
+    max_tries = 3
+    for i in range(max_tries):
+        # sometimes it may take a while before the port used is available again
+        try:
+            de.start(secondary_wait=3, exit_on_stop=True, reconnect=True)
+        except SystemExit:
+            # expected
+            break
+        except OSError:
+            if i == (max_tries -1):
+                raise
+        else:
+            raise Exception("DistributedEvaluator in secondary mode did not try to exit!")
 
 
 # @unittest.skipIf(ON_PYPY, "This test fails on pypy during travis builds (frequently due to timeouts) but usually works locally.")
