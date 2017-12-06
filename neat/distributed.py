@@ -352,30 +352,6 @@ class DistributedEvaluator(object):
         self._va_lock = threading.Lock()  # lock to prevent parallel access to some vars
         self._stopwaitevent = threading.Event()  # event for waiting for the network thread to stop
 
-    '''
-    def __reduce__(self):
-        """part of the pickle protocol."""
-        return (
-            self.__class__._load_from_pickle,
-            (self.addr. self.authkey, self.eval_function, self.secondary_chunksize. self.slave_chunksize, self.num_workers, self.worker_timeout, self.mode),
-            )
-
-    @classmethod
-    def _load_from_pickle(cls, *args):
-        """called to create an instance of this class from pickle."""
-        ins = cls(*args)
-        return ins
-    def __getstate__(self):
-        """Required by the pickle protocol."""
-        # we do not actually save any state, but we need __getstate__ to be
-        # called.
-        return True  # return some nonzero value
-
-    def __setstate__(self, state):
-        """Called when instances of this class are unpickled."""
-        self._listen_s = None
-    '''
-
     def is_primary(self):
         """Returns True if the caller is the primary node"""
         return (self.mode == MODE_PRIMARY)
@@ -560,10 +536,6 @@ class DistributedEvaluator(object):
                             # unknown message; this is probably an error.
                             self._remove_client(s)
                             break
-
-            # for s in to_write:
-            #    # not required
-            #    pass
 
             for s in has_err:
                 if s is self._listen_s:

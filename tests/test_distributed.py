@@ -77,7 +77,6 @@ def test_host_is_local():
         ("localhost", True),
         ("0.0.0.0", True),
         ("127.0.0.1", True),
-        #("::1", True), # depends on IP, etc setup on host to work right
         (socket.gethostname(), True),
         (socket.getfqdn(), True),
         ("github.com", False),
@@ -206,7 +205,6 @@ def test_DistributedEvaluator_primary_restrictions():
         raise Exception("A DistributedEvaluator in secondary mode could call evaluate()!")
 
 
-# @unittest.skipIf(ON_PYPY, "This test fails on pypy during travis builds but usually works locally.")
 def test_distributed_evaluation_multiprocessing(do_mwcp=True):
     """
     Full test run using the Distributed Evaluator (fake nodes using processes).
@@ -274,7 +272,6 @@ def test_distributed_evaluation_multiprocessing(do_mwcp=True):
             swcp.terminate()
 
 
-# @unittest.skipIf(ON_PYPY, "Pypy has problems with threading.")
 def test_distributed_evaluation_threaded():
     """
     Full test run using the Distributed Evaluator (fake nodes using threads).
