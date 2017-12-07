@@ -74,13 +74,13 @@ def test_host_is_local():
     """test for neat.distributed.host_is_local"""
     tests = (
         # (hostname or ip, expected value)
-        ("localhost", True),
-        ("0.0.0.0", True),
-        ("127.0.0.1", True),
+        (b"localhost", True),
+        (b"0.0.0.0", True),
+        (b"127.0.0.1", True),
         (socket.gethostname(), True),
         (socket.getfqdn(), True),
-        ("github.com", False),
-        ("google.de", False),
+        (b"github.com", False),
+        (b"google.de", False),
         )
     for hostname, islocal in tests:
         try:
@@ -101,45 +101,45 @@ def test_DistributedEvaluator_mode():
     # automatically determined when explicitly given.
     tests = (
         # (hostname or ip, mode to pass, expected mode)
-        ("localhost", MODE_PRIMARY, MODE_PRIMARY),
-        ("0.0.0.0", MODE_PRIMARY, MODE_PRIMARY),
-        ("localhost", MODE_SECONDARY, MODE_SECONDARY),
-        ("example.org", MODE_PRIMARY, MODE_PRIMARY),
+        (b"localhost", MODE_PRIMARY, MODE_PRIMARY),
+        (b"0.0.0.0", MODE_PRIMARY, MODE_PRIMARY),
+        (b"localhost", MODE_SECONDARY, MODE_SECONDARY),
+        (b"example.org", MODE_PRIMARY, MODE_PRIMARY),
         (socket.gethostname(), MODE_SECONDARY, MODE_SECONDARY),
-        ("localhost", MODE_AUTO, MODE_PRIMARY),
+        (b"localhost", MODE_AUTO, MODE_PRIMARY),
         (socket.gethostname(), MODE_AUTO, MODE_PRIMARY),
         (socket.getfqdn(), MODE_AUTO, MODE_PRIMARY),
-        ("example.org", MODE_AUTO, MODE_SECONDARY),
+        (b"example.org", MODE_AUTO, MODE_SECONDARY),
         )
     for hostname, mode, expected in tests:
-        addr = (hostname, 8022)
-        try:
-            de = neat.DistributedEvaluator(
-                addr,
-                authkey="abcd1234",
-                eval_function=eval_dummy_genome_nn,
-                mode=mode,
-                )
-        except EnvironmentError:
-            print("test_DistributedEvaluator_mode(): Error with hostname " +
-                  "{!r}".format(hostname))
-            raise
-        result = de.mode
-        assert result == expected, "Mode determination failed! Hostname: {h}; expected: {e}; got: {r!r}!".format(
-            h=hostname, e=expected, r=result)
-
-        if result == MODE_AUTO:
-            raise Exception(
-                "DistributedEvaluator.__init__(mode=MODE_AUTO) did not automatically determine its mode!"
-                )
-        elif (result == MODE_PRIMARY) and (not de.is_primary()):
-            raise Exception(
-                "DistributedEvaluator.is_primary() returns False even if the evaluator is in primary mode!"
-                )
-        elif (result == MODE_SECONDARY) and de.is_primary():
-            raise Exception(
-                "DistributedEvaluator.is_primary() returns True even if the evaluator is in secondary mode!"
-                )
+        for addr in ((hostname, 8022), hostname):
+            try:
+                de = neat.DistributedEvaluator(
+                    addr,
+                    authkey="abcd1234",
+                    eval_function=eval_dummy_genome_nn,
+                    mode=mode,
+                    )
+            except EnvironmentError:
+                print("test_DistributedEvaluator_mode(): Error with hostname " +
+                      "{!r}".format(hostname))
+                raise
+            result = de.mode
+            assert result == expected, "Mode determination failed! Hostname: {h}; expected: {e}; got: {r!r}!".format(
+                h=hostname, e=expected, r=result)
+    
+            if result == MODE_AUTO:
+                raise Exception(
+                    "DistributedEvaluator.__init__(mode=MODE_AUTO) did not automatically determine its mode!"
+                    )
+            elif (result == MODE_PRIMARY) and (not de.is_primary()):
+                raise Exception(
+                    "DistributedEvaluator.is_primary() returns False even if the evaluator is in primary mode!"
+                    )
+            elif (result == MODE_SECONDARY) and de.is_primary():
+                raise Exception(
+                    "DistributedEvaluator.is_primary() returns True even if the evaluator is in secondary mode!"
+                    )
     # test invalid mode error
     try:
         de = neat.DistributedEvaluator(
@@ -236,6 +236,8 @@ def test_distributed_evaluation_multiprocessing(do_mwcp=True):
     swcp.daemon = True  # we cannot set this on mwcp
     if do_mwcp:
         mwcp.start()
+    else:
+        print("[distributed] Tests/Process-control: Skipping start of the multiworker secondary node process...")
     swcp.start()
     try:
         print("[distributed] Tests/Process-control: Joining process of primary node...")
@@ -270,6 +272,40 @@ def test_distributed_evaluation_multiprocessing(do_mwcp=True):
             mwcp.terminate()
         if swcp.is_alive():
             swcp.terminate()
+
+
+def test_distributed_evaluation_invalid_authkey_multiprocessing(pc=multiprocessing.Process):
+    """Test for DistributedEvaluator-behavior on invalid authkey (Fake nodes using processes)"""
+    addr = ("localhost", random.randint(12000, 30000))
+    valid_authkey = u"Linux>Windows"
+    invalid_authkey = u"Windows>Linux"
+    print("[distributed] Tests/Process-control: starting primary node/thread...")
+    mp = pc(
+        name="Primary evaluation process",
+        target=run_primary,
+        args=(addr, valid_authkey, 19), # 19 because stagnation is at 20
+        )
+    mp.daemon = True
+    mp.start()
+    print("[distributed] Tests/Process-control: running secondary node in main process/thread...")
+    try:
+        run_secondary(addr, authkey=invalid_authkey, num_workers=1)
+    except neat.distributed.AuthError:
+        # expected
+        print("[distributed] Tests/Process-control: catched expected AuthError.")
+        pass
+    else:
+        print("[distributed] Tests/Process-control: did not catch expected AuthError! This is an Error!")
+        raise Exception("Expected an auth error!")
+    finally:
+        print("[distributed] Tests/Process-control: Terminating primary process/thread.")
+        if hasattr(mp, "terminate"):
+            mp.terminate()
+
+
+def test_distributed_evaluation_invalid_authkey_threaded():
+    """Test for DistributedEvaluator-behavior on invalid authkey (Fake nodes using threads)"""
+    test_distributed_evaluation_invalid_authkey_multiprocessing(pc=threading.Thread)
 
 
 def test_distributed_evaluation_threaded():

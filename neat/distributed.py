@@ -121,6 +121,7 @@ class AuthError(Exception):
     """raised if the Authentication failed."""
     pass
 
+
 def host_is_local(hostname, port=22): # no port specified, just use the ssh port
     """
     Returns True if the hostname points to the localhost, otherwise False.
