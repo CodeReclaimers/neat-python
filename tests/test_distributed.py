@@ -182,7 +182,7 @@ def test_json_bytes_dumps_loads():
 def test_DistributedEvaluator_primary_restrictions():
     """Tests that some primary-exclusive methods fail when called by the secondaries"""
     secondary = neat.DistributedEvaluator(
-        ("localhost", 8022),
+        (b"localhost", 8022),
         authkey=u"abcd1234",
         eval_function=eval_dummy_genome_nn,
         mode=MODE_SECONDARY,
@@ -214,7 +214,7 @@ def test_distributed_evaluation_multiprocessing(do_mwcp=True):
     We emulate the other machines using subprocesses
     created using the multiprocessing module.
     """
-    addr = ("localhost", random.randint(12000, 30000))
+    addr = (b"localhost", random.randint(12000, 30000))
     authkey = u"abcd1234"
     mp = multiprocessing.Process(
         name="Primary evaluation process",
@@ -276,7 +276,7 @@ def test_distributed_evaluation_multiprocessing(do_mwcp=True):
 
 def test_distributed_evaluation_invalid_authkey_multiprocessing(pc=multiprocessing.Process):
     """Test for DistributedEvaluator-behavior on invalid authkey (Fake nodes using processes)"""
-    addr = ("localhost", random.randint(12000, 30000))
+    addr = (b"localhost", random.randint(12000, 30000))
     valid_authkey = u"Linux>Windows"
     invalid_authkey = u"Windows>Linux"
     print("[distributed] Tests/Process-control: starting primary node/thread...")
@@ -321,7 +321,7 @@ def test_distributed_evaluation_threaded():
     """
     if not HAVE_THREADING:
         raise unittest.SkipTest("Platform does not have threading")
-    addr = ("localhost", random.randint(12000, 30000))
+    addr = (b"localhost", random.randint(12000, 30000))
     authkey = u"abcd1234"
     mp = threading.Thread(
         name="Primary evaluation thread",
