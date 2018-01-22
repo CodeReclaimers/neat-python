@@ -127,8 +127,8 @@ def host_is_local(hostname, port=22): # no port specified, just use the ssh port
     Returns True if the hostname points to the localhost, otherwise False.
     """
     hostname = socket.getfqdn(hostname)
-    if hostname in ("localhost", "0.0.0.0", "127.0.0.1", "1.0.0.127.in-addr.arpa",
-                    "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa"):
+    if hostname in (b"localhost", b"0.0.0.0", b"127.0.0.1", b"1.0.0.127.in-addr.arpa",
+                    b"1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa"):
         return True
     localhost = socket.gethostname()
     if hostname == localhost:
