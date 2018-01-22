@@ -90,7 +90,7 @@ def test_host_is_local():
                                                                                           islocal))
             raise
         else: # if do not want to do 'raise' above for some cases
-            assert result == islocal, "Hostname/IP: {h}; Expected: {e}; Got: {r!r}".format(
+            assert result == islocal, "Unexpected results for hostname/IP: {h}; Expected: {e}; Got: {r!r}".format(
                 h=hostname, e=islocal, r=result)
 
 
@@ -105,10 +105,10 @@ def test_DistributedEvaluator_mode():
         (b"0.0.0.0", MODE_PRIMARY, MODE_PRIMARY),
         (b"localhost", MODE_SECONDARY, MODE_SECONDARY),
         (b"example.org", MODE_PRIMARY, MODE_PRIMARY),
-        (socket.gethostname(), MODE_SECONDARY, MODE_SECONDARY),
+        (socket.gethostname().encode("ascii"), MODE_SECONDARY, MODE_SECONDARY),
         (b"localhost", MODE_AUTO, MODE_PRIMARY),
-        (socket.gethostname(), MODE_AUTO, MODE_PRIMARY),
-        (socket.getfqdn(), MODE_AUTO, MODE_PRIMARY),
+        (socket.gethostname().encode("ascii"), MODE_AUTO, MODE_PRIMARY),
+        (socket.getfqdn().encode("ascii"), MODE_AUTO, MODE_PRIMARY),
         (b"example.org", MODE_AUTO, MODE_SECONDARY),
         )
     for hostname, mode, expected in tests:
