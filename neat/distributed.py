@@ -126,7 +126,12 @@ def host_is_local(hostname, port=22): # no port specified, just use the ssh port
     """
     Returns True if the hostname points to the localhost, otherwise False.
     """
-    hostnames = [hostname, socket.getfqdn(hostname)]
+    try:
+        fqdn = socket.getfqdn(hostname)
+    except TypeError:
+        # sometimes fails on pypy3
+        fqdn = None
+    hostnames = [hostname, fqdn]
     for hn in hostnames:
         if hn in (
             # for py2/py3 compatibility, check for both binary and native strings
