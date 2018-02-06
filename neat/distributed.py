@@ -126,28 +126,34 @@ def host_is_local(hostname, port=22): # no port specified, just use the ssh port
     """
     Returns True if the hostname points to the localhost, otherwise False.
     """
-    hostname = socket.getfqdn(hostname)
-    if hostname in (
-        # for py2/py3 compatibility, check for both binary and native strings
-        b"localhost", "localhost",
-        b"0.0.0.0", "0.0.0.0",
-        b"127.0.0.1", "127.0.0.1",
-        b"1.0.0.127.in-addr.arpa", "1.0.0.127.in-addr.arpa",
-        b"1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa",
-        "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa"
-        ):
-        return True
-    localhost = socket.gethostname()
-    if hostname == localhost:
-        return True
-    localaddrs = socket.getaddrinfo(localhost, port)
-    targetaddrs = socket.getaddrinfo(hostname, port)
-    for (ignored_family, ignored_socktype, ignored_proto, ignored_canonname,
-         sockaddr) in localaddrs:
-        for (ignored_rfamily, ignored_rsocktype, ignored_rproto,
-             ignored_rcanonname, rsockaddr) in targetaddrs:
-            if rsockaddr[0] == sockaddr[0]:
-                return True
+    try:
+        fqdn = socket.getfqdn(hostname)
+    except TypeError:
+        # sometimes fails on pypy3
+        fqdn = None
+    hostnames = [hostname, fqdn]
+    for hn in hostnames:
+        if hn in (
+            # for py2/py3 compatibility, check for both binary and native strings
+            b"localhost", "localhost",
+            b"0.0.0.0", "0.0.0.0",
+            b"127.0.0.1", "127.0.0.1",
+            b"1.0.0.127.in-addr.arpa", "1.0.0.127.in-addr.arpa",
+            b"1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa",
+            "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa"
+            ):
+            return True
+        localhost = socket.gethostname()
+        if hn == localhost:
+            return True
+        localaddrs = socket.getaddrinfo(localhost, port)
+        targetaddrs = socket.getaddrinfo(hn, port)
+        for (ignored_family, ignored_socktype, ignored_proto, ignored_canonname,
+             sockaddr) in localaddrs:
+            for (ignored_rfamily, ignored_rsocktype, ignored_rproto,
+                 ignored_rcanonname, rsockaddr) in targetaddrs:
+                if rsockaddr[0] == sockaddr[0]:
+                    return True
     return False
 
 
