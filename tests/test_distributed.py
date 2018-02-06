@@ -31,7 +31,7 @@ def eval_dummy_genome_nn(genome, config):
 
 
 def test_chunked():
-    """Test for neat.distributed.chunked"""
+    """Test for neat.distributed.chunked()"""
     # test chunked(range(110), 10)
     # => 11 chunks of 10 elements
     d110 = list(range(110))
@@ -71,7 +71,7 @@ def test_chunked():
 
 
 def test_host_is_local():
-    """test for neat.distributed.host_is_local"""
+    """test for neat.distributed.host_is_local()"""
     tests = (
         # (hostname or ip, expected value)
         (b"localhost", True),
@@ -95,7 +95,7 @@ def test_host_is_local():
 
 
 def test_DistributedEvaluator_mode():
-    """Tests for the mode determination of DistributedEvaluator"""
+    """Tests for the mode determination of neat.distributed.DistributedEvaluator()"""
     # test auto mode setting
     # we also test that the mode is not
     # automatically determined when explicitly given.
@@ -127,7 +127,7 @@ def test_DistributedEvaluator_mode():
             result = de.mode
             assert result == expected, "Mode determination failed! Hostname: {h}; expected: {e}; got: {r!r}!".format(
                 h=hostname, e=expected, r=result)
-    
+
             if result == MODE_AUTO:
                 raise Exception(
                     "DistributedEvaluator.__init__(mode=MODE_AUTO) did not automatically determine its mode!"
@@ -157,7 +157,7 @@ def test_DistributedEvaluator_mode():
 
 def test_json_bytes_dumps_loads():
     """
-    Test for the json_bytes_dumps() and json_bytes_loads() functions.
+    Test for json_bytes_dumps() and json_bytes_loads().
     """
     test_objs = [
     1,
@@ -180,7 +180,7 @@ def test_json_bytes_dumps_loads():
 
 
 def test_DistributedEvaluator_primary_restrictions():
-    """Tests that some primary-exclusive methods fail when called by the secondaries"""
+    """Test that primary-exclusive methods fail when called by the secondary nodes"""
     secondary = neat.DistributedEvaluator(
         (b"localhost", 8022),
         authkey=u"abcd1234",
@@ -353,7 +353,6 @@ def test_distributed_evaluation_threaded():
     # also, this test is mainly for the coverage.
 
 
-
 def run_primary(addr, authkey, generations):
     """Starts a DistributedEvaluator in primary mode."""
     # Load configuration.
@@ -370,7 +369,7 @@ def run_primary(addr, authkey, generations):
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
-    p.add_reporter(neat.Checkpointer(max(1,int(generations/3)), 5))
+    p.add_reporter(neat.Checkpointer(max(1, int(generations/3)), 5))
 
     # Run for the specified number of generations.
     de = neat.DistributedEvaluator(
