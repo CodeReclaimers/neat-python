@@ -1,3 +1,5 @@
+.idea/*
+neat_python.egg-info/*
 .coveralls.yml
 docs/_build/**
 _build/**
