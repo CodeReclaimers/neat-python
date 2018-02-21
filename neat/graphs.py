@@ -24,12 +24,13 @@ def creates_cycle(connections, test):
             return False
 
 
-def required_for_output(inputs, outputs, connections):
+def required_for_output(inputs, outputs, connections, check_recurrent=False):
     """
     Collect the nodes whose state is required to compute the final network output(s).
     :param inputs: list of the input identifiers
     :param outputs: list of the output node identifiers
     :param connections: list of (input, output) connections in the network.
+    :param check_recurrent: check recurrent connections
     NOTE: It is assumed that the input identifier set and the node identifier set are disjoint.
     By convention, the output node ids are always the same as the output index.
 
@@ -38,6 +39,7 @@ def required_for_output(inputs, outputs, connections):
 
     required = set(outputs)
     s = set(outputs)
+    r_idx0 = -len(inputs) - 1
     while 1:
         # Find nodes not in S whose output is consumed by a node in s.
         t = set(a for (a, b) in connections if b in s and a not in s)
@@ -48,6 +50,10 @@ def required_for_output(inputs, outputs, connections):
         layer_nodes = set(x for x in t if x not in inputs)
         if not layer_nodes:
             break
+
+        if check_recurrent:
+            # Replace recurrent id with actual node id
+            layer_nodes = set(-x + r_idx0 if x <= r_idx0 else x for x in layer_nodes)
 
         required = required.union(layer_nodes)
         s = s.union(t)
@@ -88,5 +94,3 @@ def feed_forward_layers(inputs, outputs, connections):
         s = s.union(t)
 
     return layers
-
-

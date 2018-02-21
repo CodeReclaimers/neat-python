@@ -20,6 +20,7 @@ class DefaultGenomeConfig(object):
     allowed_connectivity = ['unconnected', 'fs_neat_nohidden', 'fs_neat', 'fs_neat_hidden',
                             'full_nodirect', 'full', 'full_direct',
                             'partial_nodirect', 'partial', 'partial_direct']
+    nw_types = ['default', 'rnn', 'mlrnn', 'ctrnn', 'iznn']
 
     def __init__(self, params):
         # Create full set of available activation functions.
@@ -31,6 +32,7 @@ class DefaultGenomeConfig(object):
         self._params = [ConfigParameter('num_inputs', int),
                         ConfigParameter('num_outputs', int),
                         ConfigParameter('num_hidden', int),
+                        ConfigParameter('nw_type', str, default='default'),
                         ConfigParameter('feed_forward', bool),
                         ConfigParameter('compatibility_disjoint_coefficient', float),
                         ConfigParameter('compatibility_weight_coefficient', float),
@@ -38,6 +40,7 @@ class DefaultGenomeConfig(object):
                         ConfigParameter('conn_delete_prob', float),
                         ConfigParameter('node_add_prob', float),
                         ConfigParameter('node_delete_prob', float),
+                        ConfigParameter('recurrent_con_prob', float, default=0.5),
                         ConfigParameter('single_structural_mutation', bool, 'false'),
                         ConfigParameter('structural_mutation_surer', str, 'default'),
                         ConfigParameter('initial_connection', str, 'unconnected')]
@@ -56,6 +59,8 @@ class DefaultGenomeConfig(object):
         # pins have keys 0,1,...
         self.input_keys = [-i - 1 for i in range(self.num_inputs)]
         self.output_keys = [i for i in range(self.num_outputs)]
+
+        assert self.nw_type in self.nw_types
 
         self.connection_fraction = None
 
@@ -366,6 +371,11 @@ class DefaultGenome(object):
         if config.feed_forward and creates_cycle(list(iterkeys(self.connections)), key):
             return
 
+        # If this is a MLRecurrentNetwork setup, there's a chance of a recurrent edge
+        if in_node >= 0 and config.nw_type == 'mlrnn':
+            if random() > config.recurrent_con_prob:
+                in_node = -in_node - config.num_inputs - 1
+
         cg = self.create_connection(config, in_node, out_node)
         self.connections[cg.key] = cg
 
@@ -381,6 +391,9 @@ class DefaultGenome(object):
         for k, v in iteritems(self.connections):
             if del_key in v.key:
                 connections_to_delete.add(v.key)
+            if config.nw_type == 'mlrnn':  # Check recurrent connections from our node
+                if -del_key - config.num_inputs - 1 == v.key[0]:
+                    connections_to_delete.add(v.key)
 
         for key in connections_to_delete:
             del self.connections[key]
@@ -527,7 +540,6 @@ class DefaultGenome(object):
                 connections.append((i, i))
 
         return connections
-
 
     def connect_full_nodirect(self, config):
         """
