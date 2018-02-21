@@ -61,19 +61,20 @@ def required_for_output(inputs, outputs, connections, check_recurrent=False):
     return required
 
 
-def feed_forward_layers(inputs, outputs, connections):
+def feed_forward_layers(inputs, outputs, connections, check_recurrent=False):
     """
     Collect the layers whose members can be evaluated in parallel in a feed-forward network.
     :param inputs: list of the network input nodes
     :param outputs: list of the output node identifiers
     :param connections: list of (input, output) connections in the network.
+    :param check_recurrent: check recurrent connections
 
     Returns a list of layers, with each layer consisting of a set of node identifiers.
     Note that the returned layers do not contain nodes whose output is ultimately
     never used to compute the final network output.
     """
 
-    required = required_for_output(inputs, outputs, connections)
+    required = required_for_output(inputs, outputs, connections, check_recurrent=check_recurrent)
 
     layers = []
     s = set(inputs)
@@ -83,9 +84,17 @@ def feed_forward_layers(inputs, outputs, connections):
         c = set(b for (a, b) in connections if a in s and b not in s)
         # Keep only the used nodes whose entire input set is contained in s.
         t = set()
-        for n in c:
-            if n in required and all(a in s for (a, b) in connections if b == n):
-                t.add(n)
+
+        r_idx0 = -len(inputs) - 1
+        if check_recurrent:
+            for n in c:
+                if n in required and \
+                        all(a <= r_idx0 or a in s or (b, a) in connections for (a, b) in connections if b == n):
+                    t.add(n)
+        else:
+            for n in c:
+                if n in required and all(a in s for (a, b) in connections if b == n):
+                    t.add(n)
 
         if not t:
             break

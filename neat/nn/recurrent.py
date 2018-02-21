@@ -1,4 +1,4 @@
-from neat.graphs import required_for_output
+from neat.graphs import required_for_output, feed_forward_layers
 from neat.six_util import itervalues, iteritems
 
 
@@ -122,29 +122,24 @@ class MLRecurrentNetwork(object):
     def create(genome, config):
         """ Receives a genome and returns its phenotype (a MLRecurrentNetwork). """
         genome_config = config.genome_config
-        required = required_for_output(genome_config.input_keys, genome_config.output_keys, genome.connections, True)
+        connections = [cg.key for cg in itervalues(genome.connections) if cg.enabled]
 
-        # Gather inputs and expressed connections.
-        node_inputs = {}
-        r_idx0 = -genome_config.num_inputs - 1
-        for cg in itervalues(genome.connections):
-            if not cg.enabled:
-                continue
-
-            i, o = cg.key
-            if o not in required and i not in required and (i > r_idx0 or -i+r_idx0 not in required):
-                continue
-
-            if o not in node_inputs:
-                node_inputs[o] = [(i, cg.weight)]
-            else:
-                node_inputs[o].append((i, cg.weight))
+        layers = \
+            feed_forward_layers(config.genome_config.input_keys, config.genome_config.output_keys, connections, True)
 
         node_evals = []
-        for node_key, inputs in iteritems(node_inputs):
-            node = genome.nodes[node_key]
-            activation_function = genome_config.activation_defs.get(node.activation)
-            aggregation_function = genome_config.aggregation_function_defs.get(node.aggregation)
-            node_evals.append((node_key, activation_function, aggregation_function, node.bias, node.response, inputs))
+        for layer in layers:
+            for node in layer:
+                inputs = []
+                for conn_key in connections:
+                    inode, onode = conn_key
+                    if onode == node:
+                        cg = genome.connections[conn_key]
+                        inputs.append((inode, cg.weight))
+
+                ng = genome.nodes[node]
+                aggregation_function = config.genome_config.aggregation_function_defs.get(ng.aggregation)
+                activation_function = config.genome_config.activation_defs.get(ng.activation)
+                node_evals.append((node, activation_function, aggregation_function, ng.bias, ng.response, inputs))
 
         return MLRecurrentNetwork(genome_config.input_keys, genome_config.output_keys, node_evals)
