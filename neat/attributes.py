@@ -24,6 +24,7 @@ class BaseAttribute(object):
                                 self._config_items[n][1])
                 for n in iterkeys(self._config_items)]
 
+
 class FloatAttribute(BaseAttribute):
     """
     Class for numeric attributes,
@@ -156,4 +157,44 @@ class StringAttribute(BaseAttribute):
         return value
 
     def validate(self, config): # pragma: no cover
+        pass
+
+
+class DynamicAttribute(BaseAttribute):
+    """
+    Class for runtime attributes such as the gates of a GRU
+    """
+    _config_items = {"default": [str, 'not_set'],
+                     "options": [list, None],
+                     "mutate_rate": [float, None],
+                     'type': [type, float]}
+
+    def init_value(self, config):
+        default = getattr(config, self.default_name)
+        _type = getattr(config, self.type_name)
+        if default == 'not_set':
+            options = getattr(config, self.options_name)
+            if len(options) > 0:
+                return choice(options)
+            return _type(random())
+        else:
+            return _type(default)
+
+    def mutate_value(self, value, config):
+        mutate_rate = getattr(config, self.mutate_rate_name)
+        default = getattr(config, self.default_name)
+        _type = getattr(config, self.type_name)
+        if mutate_rate > 0:
+            r = random()
+            if r < mutate_rate:
+                # config.options_name should be set by genome.mutate()
+                options = getattr(config, self.options_name)
+                if len(options) > 0:
+                    return choice(options)
+                if default == 'not_set':
+                    return _type(random())
+                return _type(default)
+        return value
+
+    def validate(self, config):
         pass

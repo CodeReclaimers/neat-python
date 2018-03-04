@@ -2,6 +2,7 @@
 import neat.nn as nn
 import neat.ctrnn as ctrnn
 import neat.iznn as iznn
+import neat.gru as gru
 import neat.distributed as distributed
 
 from neat.config import Config

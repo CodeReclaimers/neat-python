@@ -8,7 +8,16 @@ fitness_threshold     = 3.98
 pop_size              = 500
 reset_on_extinction   = 0
 
-[DefaultGenome]
+[GRUGenome]
+# GRU parameters
+
+gru_prob                = 1
+read_gate_mutate_rate   = 0.3
+forget_gate_mutate_rate = 0.3
+read_gate_default       = 1
+forget_gate_default     = 0
+
+# General NN parameters
 num_inputs              = 2
 num_hidden              = 1
 num_outputs             = 1
@@ -17,13 +26,15 @@ initial_connection      = partial_direct 0.5
 feed_forward            = False
 compatibility_disjoint_coefficient = 1.0
 compatibility_weight_coefficient   = 0.6
-conn_add_prob           = 0.1
-conn_delete_prob        = 0.1
-node_add_prob           = 0.1
-node_delete_prob        = 0.1
-activation_default      = my_sinc_function
-activation_options      = sigmoid my_sinc_function
-activation_mutate_rate  = 0.1
+
+conn_add_prob           = 0.3
+conn_delete_prob        = 0.3
+node_add_prob           = 0.3
+node_delete_prob        = 0.3
+activation_mutate_rate  = 0.3
+
+activation_default      = tanh
+activation_options      = sigmoid tanh
 aggregation_default     = sum
 aggregation_options     = sum
 aggregation_mutate_rate = 0.0
@@ -57,9 +68,9 @@ compatibility_threshold = 3.0
 
 [DefaultStagnation]
 species_fitness_func = max
-max_stagnation  = 70
+max_stagnation  = 500
 
 [DefaultReproduction]
-elitism            = 10
+elitism            = 20
 survival_threshold = 0.2
 
