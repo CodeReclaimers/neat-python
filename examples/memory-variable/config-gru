@@ -4,7 +4,7 @@
 # or the experiment itself.  This is the only required section.
 [NEAT]
 fitness_criterion     = max
-fitness_threshold     = 3.98
+fitness_threshold     = 1
 pop_size              = 500
 reset_on_extinction   = 0
 
@@ -18,7 +18,7 @@ read_gate_default       = 1
 forget_gate_default     = 0
 
 # General NN parameters
-num_inputs              = 2
+num_inputs              = 3
 num_hidden              = 1
 num_outputs             = 1
 initial_connection      = partial_direct 0.5

@@ -113,6 +113,122 @@ class GRUGenome(DefaultGenome):
 
 
 class GRUNetwork(object):
+    def __init__(self, inputs, outputs, node_evals, gate_list):
+        self.input_nodes = inputs
+        self.output_nodes = outputs
+        self.node_evals = node_evals
+        self.gate_list = gate_list
+
+        self.values = [{}, {}]
+        for v in self.values:
+            for k in inputs + outputs:
+                v[k] = 0.0
+
+            for node, ignored_activation, ignored_aggregation, ignored_bias, ignored_response, links, \
+                ignored_gates in self.node_evals:
+                v[node] = 0.0
+                for i, w in links:
+                    v[i] = 0.0
+        self.active = 0
+
+    def reset(self):
+        self.values = [dict((k, 0.0) for k in v) for v in self.values]
+        self.active = 0
+
+    def activate(self, inputs):
+        if len(self.input_nodes) != len(inputs):
+            raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.input_nodes), len(inputs)))
+
+        t_m1_val = self.values[self.active]
+        t_val = self.values[1 - self.active]
+        self.active = 1 - self.active
+
+        for i, v in zip(self.input_nodes, inputs):
+            t_m1_val[i] = v
+            t_val[i] = v
+
+        for node, activation, aggregation, bias, response, links, gates in self.node_evals:
+            if gates is None:
+                node_inputs = [t_m1_val[i] for i, w in links]
+                s = aggregation(node_inputs)
+                t_val[node] = activation(bias + response * s)
+            else:
+                rt = gates[0]
+                zt = gates[1]
+
+                # Check if gates are assigned to nodes
+                if type(rt) is int:
+                    rt = t_val[rt]
+                if type(zt) is int:
+                    zt = t_val[zt]
+
+                node_inputs = [t_m1_val[i] for i, w in links]
+
+                s_c = activation(aggregation(node_inputs))
+
+                t_val[node] = zt * t_m1_val[node] + (1 - zt) * s_c
+
+        return [t_val[i] for i in self.output_nodes]
+
+    @staticmethod
+    def create(genome, config):
+        """ Receives a genome and returns its phenotype (a GRUNetwork). """
+        genome_config = config.genome_config
+        required = required_for_output(genome_config.input_keys, genome_config.output_keys, genome.connections,
+                                       genome.nodes)
+
+        connections = [cg.key for cg in itervalues(genome.connections) if cg.enabled]
+
+        node_evals = []
+
+        node_inputs = {}
+        for cg in itervalues(genome.connections):
+            if not cg.enabled:
+                continue
+
+            i, o = cg.key
+            if o not in required and i not in required:
+                continue
+
+            if o not in node_inputs:
+                node_inputs[o] = [(i, cg.weight)]
+            else:
+                node_inputs[o].append((i, cg.weight))
+
+        node_evals = []
+        gate_list = set()
+
+        # Add the gates first for proper computation order
+        for node_key, inputs in iteritems(node_inputs):
+            ng = genome.nodes[node_key]
+
+            if type(ng) is GRUNodeGene:
+                for gate_key in [ng.read_gate, ng.forget_gate]:
+                    if type(gate_key) is int and gate_key not in gate_list:
+                        gate_list = gate_list.union(gate_key)
+                        gate_g = genome.nodes[gate_key]
+                        activation_function = genome_config.activation_defs.get(gate_g.activation)
+                        aggregation_function = genome_config.aggregation_function_defs.get(gate_g.aggregation)
+                        node_evals.append(
+                            (gate_key, activation_function, aggregation_function, gate_g.bias, gate_g.response, inputs,
+                             [gate_g.read_gate, gate_g.forget_gate] if type(gate_g) is GRUNodeGene else None))
+
+        for node_key, inputs in iteritems(node_inputs):
+            if node_key not in gate_list:
+                ng = genome.nodes[node_key]
+                activation_function = genome_config.activation_defs.get(ng.activation)
+                aggregation_function = genome_config.aggregation_function_defs.get(ng.aggregation)
+
+                node_evals.append(
+                    (node_key, activation_function, aggregation_function, ng.bias, ng.response, inputs,
+                     [ng.read_gate, ng.forget_gate] if type(ng) is GRUNodeGene else None))
+
+        nw = GRUNetwork(genome_config.input_keys, genome_config.output_keys, node_evals, gate_list)
+        nw.genome = genome
+        return nw
+
+
+class GRUNetworkML(object):
     def __init__(self, inputs, outputs, node_evals):
         self.input_nodes = inputs
         self.output_nodes = outputs
@@ -201,16 +317,15 @@ class GRUNetwork(object):
                 aggregation_function = config.genome_config.aggregation_function_defs.get(ng.aggregation)
                 activation_function = config.genome_config.activation_defs.get(ng.activation)
 
-                n_gene = genome.nodes[node]
-                if type(n_gene) is GRUNodeGene:
+                if type(ng) is GRUNodeGene:
                     node_evals.append(
                         (node, activation_function, aggregation_function, ng.bias, ng.response, inputs,
-                         [n_gene.read_gate, n_gene.forget_gate]))
+                         [ng.read_gate, ng.forget_gate]))
                 else:
                     node_evals.append(
                         (node, activation_function, aggregation_function, ng.bias, ng.response, inputs, None))
 
-        nw = GRUNetwork(genome_config.input_keys, genome_config.output_keys, node_evals)
+        nw = GRUNetworkML(genome_config.input_keys, genome_config.output_keys, node_evals)
         nw.genome = genome
         return nw
 
