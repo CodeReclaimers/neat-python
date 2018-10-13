@@ -38,10 +38,10 @@ class IZNodeGene(BaseGene):
     """Contains attributes for the iznn node genes and determines genomic distances."""
 
     _gene_attributes = [FloatAttribute('bias'),
-                           FloatAttribute('a'),
-                           FloatAttribute('b'),
-                           FloatAttribute('c'),
-                           FloatAttribute('d')]
+                        FloatAttribute('a'),
+                        FloatAttribute('b'),
+                        FloatAttribute('c'),
+                        FloatAttribute('d')]
 
     def distance(self, other, config):
         s = abs(self.a - other.a) + abs(self.b - other.b) \
@@ -138,7 +138,7 @@ class IZNN(object):
         if len(inputs) != len(self.inputs):
             raise RuntimeError(
                 "Number of inputs {0:d} does not match number of input nodes {1:d}".format(
-                    len(inputs),len(self.inputs)))
+                    len(inputs), len(self.inputs)))
         for i, v in zip(self.inputs, inputs):
             self.input_values[i] = v
 

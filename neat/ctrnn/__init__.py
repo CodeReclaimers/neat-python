@@ -44,7 +44,7 @@ class CTRNN(object):
         for v in self.values:
             v[node_key] = value
 
-    def get_max_time_step(self): # pragma: no cover
+    def get_max_time_step(self):  # pragma: no cover
         # TODO: Compute max time step that is known to be numerically stable for
         # the current network configuration.
         # pylint: disable=no-self-use
@@ -58,7 +58,7 @@ class CTRNN(object):
         final_time_seconds = self.time_seconds + advance_time
 
         # Use half of the max allowed time step if none is given.
-        if time_step is None: # pragma: no cover
+        if time_step is None:  # pragma: no cover
             time_step = 0.5 * self.get_max_time_step()
 
         if len(self.input_nodes) != len(inputs):

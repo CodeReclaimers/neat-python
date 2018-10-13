@@ -20,12 +20,12 @@ However, if a machine has both a primary node and one or more secondary nodes,
 MODE_AUTO cannot be used for those secondary nodes - MODE_SECONDARY will need to be
 specified.
 
-NOTE:
-    This module is in a **beta** state, and still *unstable* even in single-machine testing. Reliability is likely to vary, including depending on the Python version
-    and implementation (e.g., cpython vs pypy) in use and the likelihoods of timeouts (due to machine and/or network slowness). In particular, while the code can try
-    to reconnect between between primary and secondary nodes, as noted in the `multiprocessing` documentation this may not work due to data loss/corruption. Note also
-    that this module is not responsible for starting the script copies on the different compute nodes, since this is very site/configuration-dependent.
-
+NOTE: This module is in a **beta** state, and still *unstable* even in single-machine testing. Reliability is likely to
+vary, including depending on the Python version and implementation (e.g., cpython vs pypy) in use and the likelihoods of
+timeouts (due to machine and/or network slowness). In particular, while the code can try to reconnect between between
+primary and secondary nodes, as noted in the `multiprocessing` documentation this may not work due to data
+loss/corruption. Note also that this module is not responsible for starting the script copies on the different compute
+nodes, since this is very site/configuration-dependent.
 
 Usage:
 1. Import modules and define the evaluation logic (the eval_genome function).
