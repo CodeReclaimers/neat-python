@@ -129,6 +129,9 @@ def test_function_set():
     assert s.get('sin') is not None
     assert s.get('gauss') is not None
     assert s.get('relu') is not None
+    assert s.get('elu') is not None
+    assert s.get('lelu') is not None
+    assert s.get('selu') is not None
     assert s.get('identity') is not None
     assert s.get('clamped') is not None
     assert s.get('inv') is not None
@@ -144,6 +147,9 @@ def test_function_set():
     assert s.is_valid('sin')
     assert s.is_valid('gauss')
     assert s.is_valid('relu')
+    assert s.is_valid('elu')
+    assert s.is_valid('lelu')
+    assert s.is_valid('selu')
     assert s.is_valid('identity')
     assert s.is_valid('clamped')
     assert s.is_valid('inv')

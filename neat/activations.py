@@ -25,20 +25,27 @@ def sin_activation(z):
 
 def gauss_activation(z):
     z = max(-3.4, min(3.4, z))
-    return math.exp(-5.0 * z**2)
+    return math.exp(-5.0 * z ** 2)
 
 
 def relu_activation(z):
     return z if z > 0.0 else 0.0
 
+
 def elu_activation(z):
     return z if z > 0.0 else math.exp(z) - 1
 
-def lelu_activation(z, leaky=0.005):
-    return z if z > 0.0 else 0.005*z
 
-def selu_activation(z, lam=1.0507009873554804934193349852946, alpha=1.6732632423543772848170429916717):
-    return lam*z if z > 0.0 else lam*alpha*(math.exp(z) - 1)
+def lelu_activation(z):
+    leaky = 0.005
+    return z if z > 0.0 else leaky * z
+
+
+def selu_activation(z):
+    lam = 1.0507009873554804934193349852946
+    alpha = 1.6732632423543772848170429916717
+    return lam * z if z > 0.0 else lam * alpha * (math.exp(z) - 1)
+
 
 def softplus_activation(z):
     z = max(-60.0, min(60.0, 5.0 * z))
@@ -56,7 +63,7 @@ def clamped_activation(z):
 def inv_activation(z):
     try:
         z = 1.0 / z
-    except ArithmeticError: # handle overflows
+    except ArithmeticError:  # handle overflows
         return 0.0
     else:
         return z
@@ -99,7 +106,7 @@ def validate_activation(function):
                        types.LambdaType)):
         raise InvalidActivationFunction("A function object is required.")
 
-    if function.__code__.co_argcount != 1: # avoid deprecated use of `inspect`
+    if function.__code__.co_argcount != 1:  # avoid deprecated use of `inspect`
         raise InvalidActivationFunction("A single-argument function is required.")
 
 
@@ -108,6 +115,7 @@ class ActivationFunctionSet(object):
     Contains the list of current valid activation functions,
     including methods for adding and getting them.
     """
+
     def __init__(self):
         self.functions = {}
         self.add('sigmoid', sigmoid_activation)
