@@ -47,7 +47,14 @@ class SimpleNeuralNetworkAttribute(AttributedAttribute):
         return weight_matrix, biases
 
     def mutate_value(self, value, config):
-        pass
+
+        biases = value[0]
+        weights = value[1]
+
+        new_biases = (self.get_attr(self.bias_attr_name).mutate_value(i, config) for i in biases)
+        new_weights =((self.get_attr(self.weight_attr_name).mutate_value(i, config) for i in weigh_row) for weigh_row in weights)
+
+        return new_biases, new_weights
 
 
 class ConditionAttribute(AttributedAttribute):
