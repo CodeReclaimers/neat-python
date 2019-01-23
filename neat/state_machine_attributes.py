@@ -1,3 +1,4 @@
+import operator
 from random import random, randrange
 
 from neat.attributes import FloatAttribute, BaseAttribute

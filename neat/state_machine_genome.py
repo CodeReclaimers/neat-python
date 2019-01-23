@@ -1,4 +1,4 @@
-from random import random, randrange, choice
+from random import random, choice
 
 from neat.config import ConfigParameter
 
@@ -35,7 +35,7 @@ class StateMachineGenomeConfig(object):
         for p in self._params:
             setattr(self, p.name, p.interpret(params))
 
-        self.node_indexer = 0
+        self.node_indexer = 1
 
     def get_new_node_key(self):
 
@@ -138,7 +138,11 @@ class StateMachineGenome(object):
             self.mutate_delete_state(config)
 
         if random() < config.conn_add_prob:
-            self.mutate_add_transition(config)
+            try:
+                self.mutate_add_transition(config)
+            except AssertionError:
+                # print('Self-loop introduced transition not created.')
+                pass
 
         if random() < config.conn_delete_prob:
             self.mutate_delete_transition()
@@ -169,16 +173,19 @@ class StateMachineGenome(object):
 
     def mutate_add_transition(self, config):
         # Pick two random states which need to be connected.
-        begin_state = choice(list(self.states.values()))
-        end_state = choice(list(self.states.values()))
-        key = (begin_state, end_state)
+        begin_state_key = choice(list(self.states.values())).key
+        end_state_key = choice(list(self.states.values())).key
 
-        # Check whether there is a connection already, if so enable otherwise create one.
-        if key in self.transitions:
-            self.transitions[key].enabled = True
-        else:
-            t = self.create_transition(config, begin_state, end_state)
-            self.transitions[t.key] = t
+        if begin_state_key != end_state_key:  # Raise exception when self-loop is introduced.
+
+            key = (begin_state_key, end_state_key)
+
+            # Check whether there is a connection already, if so enable otherwise create one.
+            if key in self.transitions:
+                self.transitions[key].enabled = True
+            else:
+                t = self.create_transition(config, begin_state_key, end_state_key)
+                self.transitions[t.key] = t
 
     def mutate_delete_transition(self):
         """" Removes one of the transitions currently available. """

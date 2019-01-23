@@ -1,6 +1,6 @@
 import numpy as np
 import operator
-import random
+from random import choice
 
 
 # This class represents a working state machine which can actually run on robot or in simulation.
@@ -17,6 +17,7 @@ class StateMachineNetwork(object):
 
         # Add the states in the dictionary for easy look-up.
         for state in states:
+
             if state.id in self.states:
                 raise ValueError("State included twice")
 
@@ -28,7 +29,7 @@ class StateMachineNetwork(object):
 
         # Add all the transitions indexed by the begin state, for easy lookup.
         for transition in transitions:
-            if transition.begin_state_id not in self.transitions:
+            if transition.begin_state_id not in list(self.transitions.keys()):
                 raise ValueError('Begin state of transition not in state machine')
 
             self.transitions[transition.begin_state_id].append(transition)
@@ -54,7 +55,7 @@ class StateMachineNetwork(object):
 
         next_state = current_state_id
         if len(possible_transitions) > 0:
-            next_state = random.choice(possible_transitions).end_state_id
+            next_state = choice(possible_transitions).end_state_id
 
         return next_state, output
 
@@ -62,7 +63,22 @@ class StateMachineNetwork(object):
     def create(genome, config):
         """ Receives a genome and returns its phenotype (a state machine of neural networks). """
 
-        # TODO: implement.
+        network_states = []
+        for _, state in genome.states.items():
+            network_state = State(state.key)
+            network_state.set_weights(state.nn[1])
+            network_state.set_biases(state.nn[0])
+            network_states.append(network_state)
+
+        network_transitions = []
+        for _, transition in genome.transitions.items():
+            transition_state = Transition(transition.key[0], transition.key[0])
+            for condition in transition.conditions:
+                transition_state.add_condition(Condition(condition[0], condition[1], condition[2]))
+
+            network_transitions.append(transition_state)
+
+        return StateMachineNetwork(network_states, network_transitions)
 
 
 class State(object):
@@ -124,18 +140,25 @@ class Transition(object):
 class Condition(object):
     """ This class represents a condition which can be checked for making a transition. """
 
-    ops = {
-        "=": operator.eq,
-        ">": operator.gt,
-        "<": operator.lt,
-    }
+    ops = (
+        operator.eq,
+        operator.gt,
+        operator.lt,
+    )
 
-    def __init__(self, sensor_id, operator_id, comparison_value):
+    def __init__(self, sensor_id, op, comparison_value):
+        if op not in Condition.ops:
+            raise ValueError('Invalid operator given to condition')
+
         self.sensor_id = sensor_id
-        self.operator = Condition.ops[operator_id]
+        self.operator = op
         self.comparison_value = comparison_value
 
     def compare(self, inputs):
         """ Compares the value of the indicated sensor with the reference value."""
         value = inputs[self.sensor_id]
         return self.operator(value, self.comparison_value)
+
+    @staticmethod
+    def random_operator():
+        return choice(list(Condition.ops))

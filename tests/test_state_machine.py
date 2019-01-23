@@ -1,6 +1,9 @@
+import operator
 import unittest
 
+from neat.state_machine_genome import StateMachineGenome
 from neat.state_machine_network import StateMachineNetwork, State, Transition, Condition
+from tests.config_generation import init_config
 
 
 class TestStateMachine(unittest.TestCase):
@@ -53,7 +56,7 @@ class TestStateMachine(unittest.TestCase):
         sm = StateMachineNetwork([State(1), State(2)], [Transition(1, 2)])
         sm.states[1].set_biases([1, 2])
         sm.states[1].set_weights([[1, 2], [3, 4]])
-        sm.transitions[1][0].add_condition(Condition(0, "=", 4))
+        sm.transitions[1][0].add_condition(Condition(0, operator.eq, 4))
 
         next_state, output = sm.activate(1, [5, 10])
         self.assertEqual(next_state, 1)
@@ -63,7 +66,7 @@ class TestStateMachine(unittest.TestCase):
         sm = StateMachineNetwork([State(1), State(2)], [Transition(1, 2)])
         sm.states[1].set_biases([1, 2])
         sm.states[1].set_weights([[1, 2], [3, 4]])
-        sm.transitions[1][0].add_condition(Condition(0, "=", 5))
+        sm.transitions[1][0].add_condition(Condition(0, operator.eq, 5))
 
         next_state, output = sm.activate(1, [5, 10])
         self.assertEqual(next_state, 2)
@@ -73,8 +76,8 @@ class TestStateMachine(unittest.TestCase):
         sm = StateMachineNetwork([State(1), State(2)], [Transition(1, 2)])
         sm.states[1].set_biases([1, 2])
         sm.states[1].set_weights([[1, 2], [3, 4]])
-        sm.transitions[1][0].add_condition(Condition(0, "=", 4))
-        sm.transitions[1][0].add_condition(Condition(1, ">", 10))
+        sm.transitions[1][0].add_condition(Condition(0, operator.eq, 4))
+        sm.transitions[1][0].add_condition(Condition(1, operator.gt, 10))
 
         next_state, output = sm.activate(1, [5, 10])
         self.assertEqual(next_state, 1)
@@ -84,8 +87,8 @@ class TestStateMachine(unittest.TestCase):
         sm = StateMachineNetwork([State(1), State(2), State(3)], [Transition(1, 2), Transition(1, 2)])
         sm.states[1].set_biases([1, 2])
         sm.states[1].set_weights([[1, 2], [3, 4]])
-        sm.transitions[1][0].add_condition(Condition(0, "=", 5))
-        sm.transitions[1][1].add_condition(Condition(1, ">", 5))
+        sm.transitions[1][0].add_condition(Condition(0, operator.eq, 5))
+        sm.transitions[1][1].add_condition(Condition(1, operator.gt, 5))
 
         next_state, output = sm.activate(1, [5, 10])
         self.assertIn(next_state, [2, 3])
@@ -95,16 +98,58 @@ class TestStateMachine(unittest.TestCase):
         sm = StateMachineNetwork([State(1), State(2), State(3)], [Transition(1, 2), Transition(1, 2)])
         sm.states[1].set_biases([1, 2])
         sm.states[1].set_weights([[1, 2], [3, 4]])
-        sm.transitions[1][0].add_condition(Condition(0, "=", 4))
-        sm.transitions[1][1].add_condition(Condition(1, ">", 10))
+        sm.transitions[1][0].add_condition(Condition(0, operator.eq, 4))
+        sm.transitions[1][1].add_condition(Condition(1, operator.gt, 10))
 
         next_state, output = sm.activate(1, [5, 10])
-        self.assertEqual(next_state, 1)
+        self.assertEqual(1, next_state)
         self.assertEqual(output, [26, 57])
 
     def test_invalid_state(self):
         sm = StateMachineNetwork([State(1)], [])
         self.assertRaises(KeyError, sm.activate, 3, [5, 10])
+
+    def test_empty_sm_creation(self):
+        genome = StateMachineGenome(1)
+        smn = StateMachineNetwork.create(genome, init_config())
+
+        self.assertEqual(len(smn.states), 0)
+        self.assertEqual(len(smn.transitions), 0)
+
+    def test_one_state(self):
+        genome = StateMachineGenome(1)
+        config = init_config()
+        genome.configure_new(config)
+        smn = StateMachineNetwork.create(genome, config)
+
+        self.assertEqual(len(smn.states), 1)
+        self.assertEqual(len(smn.transitions), 1)
+
+    def test_two_states(self):
+        genome = StateMachineGenome(1)
+        config = init_config()
+        genome.configure_new(config)
+        genome.mutate_add_state(config)
+        smn = StateMachineNetwork.create(genome, config)
+
+        self.assertEqual(len(smn.states), 2)
+        self.assertEqual(len(smn.transitions), 2)
+        self.assertIsNotNone(smn.states[0])
+        self.assertIsNotNone(smn.states[1])
+        self.assertEqual(len(smn.transitions[0]), 1)
+        self.assertEqual(len(smn.transitions[1]), 1)
+
+    def test_create_transition(self):
+        genome = StateMachineGenome(1)
+        config = init_config()
+        genome.configure_new(config)
+        genome.mutate_add_state(config)
+        genome.mutate_add_transition(config)
+        smn = StateMachineNetwork.create(genome, config)
+
+        self.assertEqual(len(smn.states), 2)
+        self.assertEqual(len(smn.transitions), 2)
+        self.assertEqual(2, len(smn.transitions[1]) + len(smn.transitions[0]))
 
 
 class TestState(unittest.TestCase):
@@ -198,62 +243,62 @@ class TestTransition(unittest.TestCase):
 
     def test_one_condition_true(self):
         transition = Transition(1, 2)
-        transition.add_condition(Condition(2, "=", 5))
+        transition.add_condition(Condition(2, operator.eq, 5))
         self.assertTrue(transition.check_transition([0, 0, 5]))
 
     def test_one_condition_false(self):
         transition = Transition(1, 2)
-        transition.add_condition(Condition(2, "=", 5))
+        transition.add_condition(Condition(2, operator.eq, 5))
         self.assertFalse(transition.check_transition([0, 0, 4]))
 
     def test_two_conditions_false(self):
         transition = Transition(1, 2)
-        transition.add_condition(Condition(1, "=", 5))
-        transition.add_condition(Condition(2, "=", 4))
+        transition.add_condition(Condition(1, operator.eq, 5))
+        transition.add_condition(Condition(2, operator.eq, 4))
         self.assertFalse(transition.check_transition([0, 0, 4]))
 
     def test_two_conditions_true(self):
         transition = Transition(1, 2)
-        transition.add_condition(Condition(1, "<", 5))
-        transition.add_condition(Condition(2, "=", 4))
+        transition.add_condition(Condition(1, operator.lt, 5))
+        transition.add_condition(Condition(2, operator.eq, 4))
         self.assertTrue(transition.check_transition([0, 0, 4]))
 
     def test_many_conditions_false(self):
         transition = Transition(1, 2)
-        transition.add_condition(Condition(1, "<", 5))
-        transition.add_condition(Condition(2, "=", 4))
-        transition.add_condition(Condition(2, "<", 5))
-        transition.add_condition(Condition(0, "=", 4))
-        transition.add_condition(Condition(1, "=", 0))
-        transition.add_condition(Condition(0, "<", 4))
+        transition.add_condition(Condition(1, operator.lt, 5))
+        transition.add_condition(Condition(2, operator.eq, 4))
+        transition.add_condition(Condition(2, operator.lt, 5))
+        transition.add_condition(Condition(0, operator.eq, 4))
+        transition.add_condition(Condition(1, operator.eq, 0))
+        transition.add_condition(Condition(0, operator.lt, 4))
         self.assertFalse(transition.check_transition([0, 0, 4]))
 
     def test_many_conditions_true(self):
         transition = Transition(1, 2)
-        transition.add_condition(Condition(1, "<", 5))
-        transition.add_condition(Condition(2, "=", 4))
-        transition.add_condition(Condition(2, "<", 5))
-        transition.add_condition(Condition(0, "<", 4))
-        transition.add_condition(Condition(1, "=", 0))
-        transition.add_condition(Condition(0, "<", 4))
+        transition.add_condition(Condition(1, operator.lt, 5))
+        transition.add_condition(Condition(2, operator.eq, 4))
+        transition.add_condition(Condition(2, operator.lt, 5))
+        transition.add_condition(Condition(0, operator.lt, 4))
+        transition.add_condition(Condition(1, operator.eq, 0))
+        transition.add_condition(Condition(0, operator.lt, 4))
         self.assertTrue(transition.check_transition([0, 0, 4]))
 
 
 class TestCondition(unittest.TestCase):
 
     def test_valid_condition(self):
-        condition = Condition(3, "<", 1)
+        condition = Condition(3, operator.lt, 1)
         self.assertTrue(condition.compare([10, 10, 10, 0.5]))
 
     def test_invalid_condition(self):
-        condition = Condition(2, ">", 1)
+        condition = Condition(2, operator.gt, 1)
         self.assertFalse(condition.compare([10, 10, 0, 0.5]))
 
     def test_invalid_op(self):
-        self.assertRaises(KeyError, Condition, 2, ">=", 1)
+        self.assertRaises(ValueError, Condition, 2, ">=", 1)
 
     def test_sensor_out_of_range(self):
-        condition = Condition(5, ">", 1)
+        condition = Condition(5, operator.gt, 1)
         self.assertRaises(IndexError, condition.compare, [10, 10, 0, 0.5])
 
 
