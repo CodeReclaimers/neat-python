@@ -20,7 +20,6 @@ class StateMachineGenomeConfig(object):
 
         self._params = [ConfigParameter('num_inputs', int),
                         ConfigParameter('num_outputs', int),
-                        ConfigParameter('num_hidden', int),
                         ConfigParameter('state_add_prob', float),
                         ConfigParameter('state_delete_prob', float),
                         ConfigParameter('transition_add_prob', float),
@@ -61,7 +60,7 @@ class StateMachineGenome(object):
     def parse_config(cls, param_dict):
         param_dict['node_gene_type'] = StateGene
         param_dict['connection_gene_type'] = TransitionGene
-        return StateMachineGenome(param_dict)
+        return StateMachineGenomeConfig(param_dict)
 
     @classmethod
     def write_config(cls, f, config):
