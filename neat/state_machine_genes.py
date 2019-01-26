@@ -1,20 +1,25 @@
 from neat.attributes import BoolAttribute
 
 from neat.genes import BaseGene
-from neat.state_machine_attributes import SimpleNeuralNetworkAttribute, ConditionsAttribute
+from neat.state_machine_attributes import ConditionsAttribute, BiasesAttribute, WeightsAttribute
 
 
 class StateGene(BaseGene):
     """" Class representing the gene of a state in the state machine. """
 
-    _gene_attributes = [SimpleNeuralNetworkAttribute('nn')]
+    _gene_attributes = [BiasesAttribute('biases'),
+                        WeightsAttribute('weights')]
 
     def __init__(self, key):
         assert isinstance(key, int), "StateGene key must be an int, not {!r}".format(key)
         BaseGene.__init__(self, key)
 
     def distance(self, other, config):
-        return 0
+        assert isinstance(other, StateGene)
+
+        self.biases.difference()
+
+        return
 
 
 class TransitionGene(BaseGene):
@@ -28,4 +33,6 @@ class TransitionGene(BaseGene):
         BaseGene.__init__(self, key)
 
     def distance(self, other, config):
+        assert isinstance(other, TransitionGene)
+
         return 0

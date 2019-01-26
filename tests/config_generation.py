@@ -5,6 +5,7 @@ def init_config():
     params = dict()
     params['num_inputs'] = 2
     params['num_outputs'] = 2
+    params['num_initial_states'] = 1
     params['state_add_prob'] = 1
     params['state_delete_prob'] = 1
     params['transition_add_prob'] = 1

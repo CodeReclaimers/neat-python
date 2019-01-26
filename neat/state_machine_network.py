@@ -65,9 +65,10 @@ class StateMachineNetwork(object):
 
         network_states = []
         for _, state in genome.states.items():
+
             network_state = State(state.key)
-            network_state.set_weights(state.nn[1])
-            network_state.set_biases(state.nn[0])
+            network_state.set_biases(state.biases)
+            network_state.set_weights(state.weights)
             network_states.append(network_state)
 
         network_transitions = []
@@ -84,8 +85,8 @@ class StateMachineNetwork(object):
 class State(object):
     """ This class represents a state in the state machine. """
 
-    def __init__(self, id):
-        self.id = id
+    def __init__(self, identifier):
+        self.id = identifier
         self.biases = None
         self.weights = None
         self.num_inputs = 0
@@ -99,7 +100,8 @@ class State(object):
     def set_weights(self, weights):
         # length rows are #inputs, length columns are #outputs.
         self.weights = np.array(weights)
-        self.num_inputs = len(self.weights[0])
+
+        self.num_inputs = len(weights[0])
 
     def activate(self, inputs):
 

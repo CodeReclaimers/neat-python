@@ -20,6 +20,7 @@ class StateMachineGenomeConfig(object):
 
         self._params = [ConfigParameter('num_inputs', int),
                         ConfigParameter('num_outputs', int),
+                        ConfigParameter('num_initial_states', int),
                         ConfigParameter('state_add_prob', float),
                         ConfigParameter('state_delete_prob', float),
                         ConfigParameter('transition_add_prob', float),
@@ -35,7 +36,7 @@ class StateMachineGenomeConfig(object):
         for p in self._params:
             setattr(self, p.name, p.interpret(params))
 
-        self.node_indexer = 1
+        self.node_indexer = self.num_initial_states
 
     def get_new_node_key(self):
 
@@ -79,7 +80,8 @@ class StateMachineGenome(object):
 
     def configure_new(self, config):
         """" Create a simple state machine without any outgoing states. """
-        self.states[0] = self.create_state(config, 0)
+        for i in range(config.num_initial_states):
+            self.states[i] = self.create_state(config, i)
 
     @staticmethod
     def create_state(config, state_key):
@@ -105,8 +107,8 @@ class StateMachineGenome(object):
             parent1, parent2 = genome2, genome1
 
         # Inherit connection genes
-        for key, cg1 in iteritems(parent1.connections):
-            cg2 = parent2.connections.get(key)
+        for key, cg1 in iteritems(parent1.transitions):
+            cg2 = parent2.transitions.get(key)
             if cg2 is None:
                 # Excess or disjoint gene: copy from the fittest parent.
                 self.transitions[key] = cg1.copy()
@@ -115,8 +117,8 @@ class StateMachineGenome(object):
                 self.transitions[key] = cg1.crossover(cg2)
 
         # Inherit node genes
-        parent1_set = parent1.nodes
-        parent2_set = parent2.nodes
+        parent1_set = parent1.states
+        parent2_set = parent2.states
 
         for key, ng1 in iteritems(parent1_set):
             ng2 = parent2_set.get(key)
@@ -131,20 +133,16 @@ class StateMachineGenome(object):
     def mutate(self, config):
         """ Mutates this genome. """
 
-        if random() < config.node_add_prob:
+        if random() < config.state_add_prob:
             self.mutate_add_state(config)
 
-        if random() < config.node_delete_prob:
+        if random() < config.state_delete_prob:
             self.mutate_delete_state(config)
 
-        if random() < config.conn_add_prob:
-            try:
-                self.mutate_add_transition(config)
-            except AssertionError:
-                # print('Self-loop introduced transition not created.')
-                pass
+        if random() < config.transition_add_prob:
+            self.mutate_add_transition(config)
 
-        if random() < config.conn_delete_prob:
+        if random() < config.transition_delete_prob:
             self.mutate_delete_transition()
 
         # Mutate connection genes.
@@ -210,3 +208,16 @@ class StateMachineGenome(object):
 
             # Remove state.
             del self.states[del_key]
+
+    def distance(self, other, config):
+        # Distance for know is the number of nodes, not in common.
+
+        similarity_count = 0
+        for state in self.states:
+            if state in other.states:
+                similarity_count += 1
+
+        return len(self.states) + len(other.states) - (similarity_count * 2)
+
+    def size(self):
+        return len(self.states), len(self.transitions)

@@ -52,6 +52,15 @@ class TestStateMachineGenome(unittest.TestCase):
         except AssertionError:
             print("Same state, all ok.")
 
+    def test_multiple_initial_states(self):
+        genome = StateMachineGenome(1)
+        config = init_config()
+        config.num_initial_states = 4
+        genome.configure_new(config)
+
+        self.assertEqual(len(genome.states), 4)
+        self.assertEqual(len(genome.transitions), 0)
+
 
 if __name__ == '__main__':
     unittest.main()
