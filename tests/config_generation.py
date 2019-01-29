@@ -11,8 +11,11 @@ def init_config():
     params['transition_add_prob'] = 1
     params['transition_delete_prob'] = 1
 
+    params['activation'] = 'sigmoid'
+    params['aggregation'] = 'sum'
+
     params['compatibility_disjoint_coefficient'] = 0.5
-    params['state_difference_coefficient'] = 0.5
+    params['compatibility_difference_coefficient'] = 1.0
 
     params['weight_init_mean'] = 1
     params['weight_init_stdev'] = 1

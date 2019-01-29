@@ -2,10 +2,12 @@ import numpy as np
 import operator
 from random import choice
 
+from neat.activations import identity_activation
+from neat.aggregations import sum_aggregation
 
-# This class represents a working state machine which can actually run on robot or in simulation.
+
 class StateMachineNetwork(object):
-
+    """ This class represents a working state machine which can actually run on robot or in simulation. """
     def __init__(self, states, transitions):
         """ Parameters:
             states : dict() where states are sorted based on state_id
@@ -63,9 +65,11 @@ class StateMachineNetwork(object):
         """ Receives a genome and returns its phenotype (a state machine of neural networks). """
 
         network_states = []
+        aggregation_function = config.aggregation_function_defs.get(config.aggregation)
+        activation_function = config.activation_defs.get(config.activation)
         for _, state in genome.states.items():
 
-            network_state = State(state.key)
+            network_state = State(state.key, aggregation_function, activation_function)
             network_state.set_biases(state.biases)
             network_state.set_weights(state.weights)
             network_states.append(network_state)
@@ -84,10 +88,13 @@ class StateMachineNetwork(object):
 class State(object):
     """ This class represents a state in the state machine. """
 
-    def __init__(self, identifier):
+    def __init__(self, identifier, aggregation_func=sum_aggregation, activation_func=identity_activation):
+        """ Default the weights are summed without any function being applied to them."""
         self.id = identifier
         self.biases = None
         self.weights = None
+        self.agg_func = aggregation_func
+        self.act_func = activation_func
         self.num_inputs = 0
         self.num_outputs = 0
 
@@ -112,10 +119,9 @@ class State(object):
         combined_weights = np.multiply(np_inputs, self.weights)
 
         # Note that this sum fails in case of a single row of weight
-        aggregate = np.sum(combined_weights, axis=1)
+        aggregate = [self.act_func(self.agg_func(weight_row)) for weight_row in combined_weights]
 
         assert len(aggregate) == self.num_outputs
-
         return (aggregate + self.biases).tolist()
 
 

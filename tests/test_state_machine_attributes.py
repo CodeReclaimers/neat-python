@@ -42,3 +42,7 @@ class TestWeightsAttribute(unittest.TestCase):
 
         value = attribute.mutate_value(value, config)
         self.assertEqual((2, 3), value.shape)
+
+
+if __name__ == '__main__':
+    unittest.main()

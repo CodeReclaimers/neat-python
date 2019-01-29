@@ -118,7 +118,7 @@ class TestStateMachineGenome(unittest.TestCase):
         genome = StateMachineGenome(1)
         genome2 = StateMachineGenome(2)
         config = init_config()
-        config.state_difference_coefficient = 0
+        config.compatibility_difference_coefficient = 0
         config.compatibility_disjoint_coefficient = 1
         config.num_initial_states = config.node_indexer = 4
         genome.configure_new(config)

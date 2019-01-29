@@ -26,7 +26,7 @@ def eval_genomes(genomes, config):
     count = 0
     for genome_id, genome in genomes:
         count += 1
-        net = StateMachineNetwork.create(genome, config)
+        net = StateMachineNetwork.create(genome, config.genome_config)
         start_time = time.time()
         genome.fitness = run_environment(net)
         # sub rewards.

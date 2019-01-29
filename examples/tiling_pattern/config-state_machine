@@ -8,14 +8,8 @@ reset_on_extinction   = False
 
 [StateMachineGenome]
 # node activation options
-activation_default      = sigmoid
-activation_mutate_rate  = 0.0
-activation_options      = sigmoid
-
-# node aggregation options
-aggregation_default     = sum
-aggregation_mutate_rate = 0.0
-aggregation_options     = sum
+activation              = sigmoid
+aggregation             = sum
 
 # node bias options
 bias_init_mean          = 0.5

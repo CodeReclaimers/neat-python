@@ -26,7 +26,9 @@ class StateMachineGenomeConfig(object):
                         ConfigParameter('transition_add_prob', float),
                         ConfigParameter('transition_delete_prob', float),
                         ConfigParameter('compatibility_disjoint_coefficient', float),
-                        ConfigParameter('compatibility_difference_coefficient', float)]
+                        ConfigParameter('compatibility_difference_coefficient', float),
+                        ConfigParameter('activation', str),
+                        ConfigParameter('aggregation', str)]
 
         # Gather configuration data from the gene classes.
         self.node_gene_type = params['node_gene_type']
