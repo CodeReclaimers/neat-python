@@ -1,3 +1,5 @@
+import numpy as np
+
 from neat.attributes import BoolAttribute
 
 from neat.genes import BaseGene
@@ -17,9 +19,12 @@ class StateGene(BaseGene):
     def distance(self, other, config):
         assert isinstance(other, StateGene)
 
-        self.biases.difference()
+        # Calculate the average difference in bias.
+        avg_bias_difference = sum(np.abs(np.subtract(self.biases, other.biases))) / self.biases.size
+        # Calculate the average difference in weights.
+        avg_weight_difference = sum(sum(np.abs(np.subtract(self.weights, other.weights)))) / self.weights.size
 
-        return
+        return config.compatibility_difference_coefficient * (avg_bias_difference + avg_weight_difference)
 
 
 class TransitionGene(BaseGene):
@@ -35,4 +40,6 @@ class TransitionGene(BaseGene):
     def distance(self, other, config):
         assert isinstance(other, TransitionGene)
 
-        return 0
+        # TODO: add difference with maximal value for difference of condition being 1.
+        # TODO: Track conditions (possibly)
+        return config.compatibility_difference_coefficient * abs(len(other.conditions) - len(self.conditions))

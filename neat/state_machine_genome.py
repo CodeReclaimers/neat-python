@@ -24,7 +24,9 @@ class StateMachineGenomeConfig(object):
                         ConfigParameter('state_add_prob', float),
                         ConfigParameter('state_delete_prob', float),
                         ConfigParameter('transition_add_prob', float),
-                        ConfigParameter('transition_delete_prob', float)]
+                        ConfigParameter('transition_delete_prob', float),
+                        ConfigParameter('compatibility_disjoint_coefficient', float),
+                        ConfigParameter('compatibility_difference_coefficient', float)]
 
         # Gather configuration data from the gene classes.
         self.node_gene_type = params['node_gene_type']
@@ -212,12 +214,22 @@ class StateMachineGenome(object):
     def distance(self, other, config):
         # Distance for know is the number of nodes, not in common.
 
+        difference_distance = 0
+
         similarity_count = 0
-        for state in self.states:
-            if state in other.states:
+        for key, state in self.states.items():
+            if key in other.states:
+                difference_distance += state.distance(other.states[key], config)
                 similarity_count += 1
 
-        return len(self.states) + len(other.states) - (similarity_count * 2)
+        for key, transition in self.transitions.items():
+            if key in other.transitions:
+                difference_distance += transition.distance(other.transitions[key], config)
+
+        # TODO: add transition disjoint distance.
+        num_disjoint_states = len(self.states) + len(other.states) - (similarity_count * 2)
+
+        return config.compatibility_disjoint_coefficient * num_disjoint_states + difference_distance
 
     def size(self):
         return len(self.states), len(self.transitions)

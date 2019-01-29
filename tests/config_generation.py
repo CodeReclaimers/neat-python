@@ -3,13 +3,16 @@ from neat.state_machine_genome import StateMachineGenome
 
 def init_config():
     params = dict()
-    params['num_inputs'] = 2
+    params['num_inputs'] = 3
     params['num_outputs'] = 2
     params['num_initial_states'] = 1
     params['state_add_prob'] = 1
     params['state_delete_prob'] = 1
     params['transition_add_prob'] = 1
     params['transition_delete_prob'] = 1
+
+    params['compatibility_disjoint_coefficient'] = 0.5
+    params['state_difference_coefficient'] = 0.5
 
     params['weight_init_mean'] = 1
     params['weight_init_stdev'] = 1
@@ -28,6 +31,7 @@ def init_config():
     params['bias_min_value'] = 0
 
     params['conditions_add_condition_prob'] = 1
+    params['conditions_remove_condition_prob'] = 1
     params['condition_mutate_input_prob'] = 1
     params['condition_mutate_comp_prob'] = 1
 

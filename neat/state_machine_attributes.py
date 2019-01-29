@@ -1,5 +1,7 @@
 from random import random, randrange
 
+import numpy as np
+
 from neat.attributes import FloatAttribute, BaseAttribute
 from neat.state_machine_network import Condition
 
@@ -32,10 +34,10 @@ class BiasesAttribute(AttributedAttribute):
 
     def init_value(self, config):
         # Row with a bias for each output value.
-        return [self.get_attr().init_value(config) for _ in range(config.num_outputs)]
+        return np.array([self.get_attr().init_value(config) for _ in range(config.num_outputs)])
 
     def mutate_value(self, value, config):
-        return [self.get_attr().mutate_value(i, config) for i in value]
+        return np.array([self.get_attr().mutate_value(i, config) for i in value])
 
 
 class WeightsAttribute(AttributedAttribute):
@@ -45,14 +47,14 @@ class WeightsAttribute(AttributedAttribute):
         super().__init__(name, FloatAttribute('weight'), **default_dict)
 
     def init_value(self, config):
-        return [[self.get_attr().init_value(config) for _ in range(config.num_inputs)]
-                for _ in range(config.num_outputs)]
+        return np.array([[self.get_attr().init_value(config) for _ in range(config.num_inputs)]
+                         for _ in range(config.num_outputs)])
 
     def mutate_value(self, value, config):
         """ Mutates all the weight as described in the config files.
         This is found to be faster than a tuple variant, with 1.89s vs 2.13s for 100000 trials.
         """
-        return [[self.get_attr().mutate_value(i, config) for i in weigh_row] for weigh_row in value]
+        return np.array([[self.get_attr().mutate_value(i, config) for i in weigh_row] for weigh_row in value])
 
 
 class ConditionAttribute(AttributedAttribute):

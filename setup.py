@@ -27,5 +27,5 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Scientific/Engineering'
-    ]
+    ], install_requires=['numpy']
 )

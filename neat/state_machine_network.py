@@ -10,7 +10,6 @@ class StateMachineNetwork(object):
         """ Parameters:
             states : dict() where states are sorted based on state_id
             transitions : dict() where transitions are sorted based on begin_id.
-            begin_node_id : initial node of the state machine.
         """
         self.states = dict()
         self.transitions = dict()
