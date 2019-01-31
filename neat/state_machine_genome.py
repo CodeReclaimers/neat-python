@@ -235,3 +235,15 @@ class StateMachineGenome(object):
 
     def size(self):
         return len(self.states), len(self.transitions)
+
+    def __str__(self):
+
+        s = "Key: {0}\nFitness: {1}\nNodes:".format(self.key, self.fitness)
+        for k, ng in iteritems(self.states):
+            s += "\n\t{0} {1!s}".format(k, ng)
+        s += "\nConnections:"
+        transitions = list(self.transitions.values())
+        transitions.sort()
+        for c in transitions:
+            s += "\n\t" + str(c)
+        return s

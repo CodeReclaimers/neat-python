@@ -10,7 +10,6 @@ import neat
 import gym
 import gym_multi_robot
 from gym_multi_robot import visualize
-from gym_multi_robot.genome_serializer import GenomeSerializer
 
 from examples.tiling_pattern.tiling_pattern_functions import output_winner
 from neat import DefaultSpeciesSet, DefaultReproduction, DefaultStagnation
@@ -18,10 +17,9 @@ from neat.state_machine_genome import StateMachineGenome
 from neat.state_machine_network import StateMachineNetwork
 
 num_steps = 3000
-num_trails = 5
 num_generations = 100
 
-env = gym.make('tiling-pattern-v0')
+env = gym.make('tiling-pattern7x5-static-v0')
 
 
 def eval_genomes(genomes, config):
@@ -39,21 +37,18 @@ def eval_genomes(genomes, config):
 
 
 def run_environment(net):
-    reward = 0
+    observation = env.reset()
 
-    for _ in range(num_trails):
-        observation = env.reset()
+    states = [0 for _ in range(len(observation))]
+    for i in range(num_steps):
+        output = [net.activate(states[i], observation[i]) for i in range(len(observation))]
+        states = [state for state, _ in output]
+        actions = [action for _, action in output]
+        observation, _, _, _ = env.step(actions)
 
-        states = [0 for _ in range(len(observation))]
-        for i in range(num_steps):
-            output = [net.activate(states[i], observation[i]) for i in range(len(observation))]
-            states = [state for state, _ in output]
-            actions = [action for _, action in output]
-            observation, _, _, _ = env.step(actions)
+    reward = env.get_fitness()
 
-        reward += env.get_fitness()
-
-    return reward / num_trails
+    return reward
 
 
 def run(config_file):
@@ -73,8 +68,9 @@ def run(config_file):
     # Run for up to 300 generations.
     winner = p.run(eval_genomes, num_generations)
 
-    visualize.visualize_stats(stats, fitness_out_file='sm_avg_fitness.svg', species_out_file='sm_species.svg')
-    output_winner(winner, config, net_filename='sm_winner', genome_filename='sm_winner')
+    visualize.visualize_stats(stats, fitness_out_file='sm_avg_fitness_static.svg',
+                              species_out_file='sm_species_static.svg')
+    output_winner(winner, config, net_filename='sm_winner_static', genome_filename='sm_winner_static')
 
 
 if __name__ == '__main__':
