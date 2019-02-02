@@ -7,28 +7,26 @@ import os
 import neat
 import gym
 
-from examples.experiment_functions import SMSwarmExperimentRunner
+from examples.experiment_functions import NEATSwarmExperimentRunner
 from examples.experiment_template import SingleExperiment
 
 # Important variables.
-from neat.state_machine_genome import StateMachineGenome
-
-experiment_name = 'SM_4_states_static'
+experiment_name = 'NEAT_reference_static'
 num_steps = 3000
 num_robots = 5
 num_generations = 100
 num_runs = 5
-config_name = 'config-state_machine'
+config_name = 'config-feedforward'
 
 if __name__ == '__main__':
 
     env = gym.make('tiling-pattern7x5-static-v0')
-    runner = SMSwarmExperimentRunner(env, num_steps)
+    runner = NEATSwarmExperimentRunner(env, num_steps)
 
     # Create learning configuration.
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, config_name)
-    config = neat.Config(StateMachineGenome, neat.DefaultReproduction,
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_path)
 

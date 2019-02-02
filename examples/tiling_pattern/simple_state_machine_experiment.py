@@ -2,85 +2,39 @@
 Simple example using the tile structure creation task.
 """
 
-from __future__ import print_function
 import os
-import time
 
 import neat
 import gym
-import gym_multi_robot
-from gym_multi_robot import visualize
-from gym_multi_robot.genome_serializer import GenomeSerializer
 
-from examples.tiling_pattern.tiling_pattern_functions import output_winner
-from neat import DefaultSpeciesSet, DefaultReproduction, DefaultStagnation
+from examples.experiment_functions import SMSwarmExperimentRunner
+from examples.experiment_template import SingleExperiment
+
+# Important variables.
 from neat.state_machine_genome import StateMachineGenome
-from neat.state_machine_network import StateMachineNetwork
 
+experiment_name = 'SM_4_states'
 num_steps = 3000
-num_trails = 5
+num_robots = 5
 num_generations = 100
-
-env = gym.make('tiling-pattern-v0')
-
-
-def eval_genomes(genomes, config):
-    count = 0
-    for genome_id, genome in genomes:
-        count += 1
-        net = StateMachineNetwork.create(genome, config.genome_config)
-        start_time = time.time()
-        genome.fitness = run_environment(net)
-        # sub rewards.
-        end_time = time.time()
-        avg_time = end_time - start_time
-
-        print("%d : avg_runtime: %s seconds ---" %(count, avg_time))
-
-
-def run_environment(net):
-    reward = 0
-
-    for _ in range(num_trails):
-        observation = env.reset()
-
-        states = [0 for _ in range(len(observation))]
-        for i in range(num_steps):
-            output = [net.activate(states[i], observation[i]) for i in range(len(observation))]
-            states = [state for state, _ in output]
-            actions = [action for _, action in output]
-            observation, _, _, _ = env.step(actions)
-
-        reward += env.get_fitness()
-
-    return reward / num_trails
-
-
-def run(config_file):
-    # Load configuration.
-    config = neat.Config(StateMachineGenome, DefaultReproduction,
-                         DefaultSpeciesSet, DefaultStagnation,
-                         config_file)
-
-    # Create the population, which is the top-level object for a NEAT run.
-    p = neat.Population(config)
-
-    # Add a stdout reporter to show progress in the terminal.
-    p.add_reporter(neat.StdOutReporter(True))
-    stats = neat.StatisticsReporter()
-    p.add_reporter(stats)
-
-    # Run for up to 300 generations.
-    winner = p.run(eval_genomes, num_generations)
-
-    visualize.visualize_stats(stats, fitness_out_file='sm_avg_fitness.svg', species_out_file='sm_species.svg')
-    output_winner(winner, config, net_filename='sm_winner', genome_filename='sm_winner')
-
+num_runs = 5
+num_trails = 5
+config_name = 'config-state_machine'
 
 if __name__ == '__main__':
-    # Determine path to configuration file. This path manipulation is
-    # here so that the script will run successfully regardless of the
-    # current working directory.
+
+    env = gym.make('tiling-pattern-v0')
+    runner = SMSwarmExperimentRunner(env, num_steps)
+
+    # Create learning configuration.
     local_dir = os.path.dirname(__file__)
-    config_path = os.path.join(local_dir, 'config-state_machine')
-    run(config_path)
+    config_path = os.path.join(local_dir, config_name)
+    config = neat.Config(StateMachineGenome, neat.DefaultReproduction,
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                         config_path)
+
+    # Create and run experiment.
+    experiment = SingleExperiment(config, runner, num_generations, experiment_name, num_trails)
+
+    for i in range(num_runs):
+        experiment.run(experiment_name + str(i))
