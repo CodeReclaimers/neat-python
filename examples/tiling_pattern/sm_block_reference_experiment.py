@@ -13,7 +13,7 @@ from examples.experiment_template import SingleExperiment
 # Important variables.
 from neat.state_machine_genome import StateMachineGenome
 
-experiment_name = 'SM_4_states_static'
+experiment_name = 'SM_4_reference_block'
 num_steps = 3000
 num_generations = 100
 num_runs = 5
@@ -21,7 +21,7 @@ config_name = 'config-state_machine'
 
 if __name__ == '__main__':
 
-    env = gym.make('tiling-pattern7x5-static-v0')
+    env = gym.make('tiling-pattern11x11-block-v0')
     runner = SMSwarmExperimentRunner(env, num_steps)
 
     # Create learning configuration.
