@@ -1,3 +1,5 @@
+from gym_multi_robot import visualize
+
 import neat
 from neat.state_machine_network import StateMachineNetwork
 
@@ -30,6 +32,10 @@ class SwarmExperimentRunner:
         """
         pass
 
+    def draw(self, genome, config):
+        """ This function should draw the given genome. It depends on the genome that is actually used."""
+        pass
+
 
 class NEATSwarmExperimentRunner(SwarmExperimentRunner):
     """ This class can be used to run Neat experiments."""
@@ -44,6 +50,9 @@ class NEATSwarmExperimentRunner(SwarmExperimentRunner):
             observation, _, _, _ = self.env.step(output)
 
         return self.env.get_fitness()
+
+    def draw(self, genome, config, node_names=None, filename=None):
+        visualize.draw_net(genome, config, node_names=node_names, filename=filename)
 
 
 class SMSwarmExperimentRunner(SwarmExperimentRunner):
@@ -62,3 +71,6 @@ class SMSwarmExperimentRunner(SwarmExperimentRunner):
             observation, _, _, _ = self.env.step(actions)
 
         return self.env.get_fitness()
+
+    def draw(self, genome, config, node_names=None, filename=None):
+        visualize.draw_state_machine(genome, config, node_names=node_names, filename=filename)

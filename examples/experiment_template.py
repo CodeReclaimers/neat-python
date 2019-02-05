@@ -29,7 +29,7 @@ class SingleExperiment:
 
             print("%d : avg_runtime: %s seconds ---" % (count, avg_time))
 
-    def run(self, name=None, num_trails=None,):
+    def run(self, name=None):
         """ Runs the experiment.
         Name parameter can be used to update the name of the experiment.
         """
@@ -58,11 +58,10 @@ class SingleExperiment:
         genome_filename = 'winner' + str(self.exp_name)
 
         node_names = {-1: 'hold', -2: 'on object', -3: '1_obstacle', -4: '1_tile', -5: '1_robot', -6: '2_obstacle',
-                      -7: '2_tile', -8: '2_robot', -9: '3_obstacle', -10: '3_tile', -11: '3_robot',
-                      -12: '4_obstacle',
+                      -7: '2_tile', -8: '2_robot', -9: '3_obstacle', -10: '3_tile', -11: '3_robot', -12: '4_obstacle',
                       -13: '4_tile', -14: '4_robot', -15: '5_obstacle', -16: '5_tile', -17: '5_robot',
                       0: 'drive', 1: 'rotation', 2: 'pickup', 3: 'put down'}
-        visualize.draw_net(self.learning_config, self.winner, node_names=node_names, filename=net_filename)
+        self.exp_runner.draw(self.learning_config, self.winner, node_names=node_names, filename=net_filename)
 
         ObjectSerializer.serialize(self.winner, genome_filename)
 
@@ -72,7 +71,7 @@ class SingleExperiment:
         """ This function outputs the statistics in figures and in reusable objects."""
         fitness_out_file = 'avg_fitness_' + str(self.exp_name) + '.svg'
         species_out_file = 'species_' + str(self.exp_name) + '.svg'
-        stats_out_file = 'stats' + str(self.exp_name) + '.pickle'
+        stats_out_file = 'stats' + str(self.exp_name)
 
         visualize.visualize_stats(self.stats, fitness_out_file,species_out_file)
         ObjectSerializer.serialize(self.stats, stats_out_file)
