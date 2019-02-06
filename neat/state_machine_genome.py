@@ -201,6 +201,10 @@ class StateMachineGenome(object):
             # Select state to delete.
             del_key = choice(list(self.states.keys()))
 
+            # Make sure that the initial state stays, since that is where the algorithm starts with.
+            if del_key == 0:
+                return
+
             # Remove all transitions to and from this state.
             transitions_to_delete = set()
             for k, _ in self.transitions.items():
