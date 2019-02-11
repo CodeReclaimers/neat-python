@@ -5,7 +5,7 @@ import os
 import warnings
 
 try:
-    from configparser import ConfigParser
+    from configparser import ConfigParser, NoSectionError
 except ImportError:
     from ConfigParser import SafeConfigParser as ConfigParser
 
@@ -139,6 +139,12 @@ class Config(object):
                 ConfigParameter('reset_on_extinction', bool),
                 ConfigParameter('no_fitness_termination', bool, False)]
 
+    __general = [ConfigParameter('experiment_name', str),
+                 ConfigParameter('env_name', str),
+                 ConfigParameter('num_steps', int),
+                 ConfigParameter('num_generations', int),
+                 ConfigParameter('num_runs', int),]
+
     def __init__(self, genome_type, reproduction_type, species_set_type, stagnation_type, filename):
         # Check that the provided types have the required methods.
         assert hasattr(genome_type, 'parse_config')
@@ -198,6 +204,13 @@ class Config(object):
 
         reproduction_dict = dict(parameters.items(reproduction_type.__name__))
         self.reproduction_config = reproduction_type.parse_config(reproduction_dict)
+
+        if parameters.has_section('General'):
+            print('General parameter found and read')
+
+            for p in self.__general:
+                if p.default is None:
+                    setattr(self, p.name, p.parse('General', parameters))
 
     def save(self, filename):
         with open(filename, 'w') as f:
