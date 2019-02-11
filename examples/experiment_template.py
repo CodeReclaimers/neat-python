@@ -17,17 +17,17 @@ class SingleExperiment:
         self.stats = None   # Stores the stats about the last experiment.
 
     def eval_genomes(self, genomes, config):
-        count = 0
-        for genome_id, genome in genomes:
-            count += 1
+        start_time = time.time()
 
-            start_time = time.time()
+        for genome_id, genome in genomes:
             genome.fitness = self.exp_runner.run_multiple_trails(genome, config, self.num_trails)
             # sub rewards.
-            end_time = time.time()
-            avg_time = end_time - start_time
 
-            print("%d : avg_runtime: %s seconds ---" % (count, avg_time))
+        end_time = time.time()
+        time_diff = end_time - start_time
+        avg_time = time_diff / len(genomes)
+
+        print("generation total_runtime: %s seconds, avg_runtime: %s seconds" % (time_diff, avg_time))
 
     def run(self, name=None):
         """ Runs the experiment.
