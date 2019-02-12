@@ -1,0 +1,90 @@
+#--- parameters for the cartpole experiment ---#
+
+[General]
+experiment_name       = f_sm_1_state
+env_name              = foraging50x50-v0
+num_steps             = 2000
+num_generations       = 100
+num_runs              = 5
+
+[NEAT]
+fitness_criterion     = max
+fitness_threshold     = 1000
+pop_size              = 100
+reset_on_extinction   = False
+
+[StateMachineGenome]
+# node activation options
+activation              = sigmoid
+aggregation             = sum
+
+# node bias options
+bias_init_mean          = 0.0
+bias_init_stdev         = 1.0
+bias_max_value          = 1.0
+bias_min_value          = -1.0
+bias_mutate_power       = 0.5
+bias_mutate_rate        = 0.7
+bias_replace_rate       = 0.1
+
+# connection add/remove rates
+### No states are added or removed.
+state_add_prob           = 0.0
+state_delete_prob        = 0.0
+
+# connection enable options
+enabled_default         = True
+enabled_mutate_rate     = 0.01
+
+feed_forward            = True
+initial_connection      = full
+
+# transition add/remove rates
+transition_add_prob     = 0.5
+transition_delete_prob  = 0.2
+
+# network parameters
+num_initial_states      = 1
+num_inputs              = 26
+num_outputs             = 4
+
+# connection weight options
+weight_init_mean        = 0.0
+weight_init_stdev       = 1.0
+weight_max_value        = 2
+weight_min_value        = -2
+weight_mutate_power     = 0.5
+weight_mutate_rate      = 0.8
+weight_replace_rate     = 0.1
+
+# Compatibility coefficients
+compatibility_disjoint_coefficient = 0.5
+compatibility_difference_coefficient = 0.5
+
+# Conditions options
+conditions_add_condition_prob    = 0.2
+conditions_remove_condition_prob = 0.1
+condition_mutate_comp_prob       = 0.5
+condition_mutate_input_prob      = 0.5
+
+condition_comparator_init_mean        = 0.0
+condition_comparator_init_stdev       = 1.0
+condition_comparator_max_value        = 10
+condition_comparator_min_value        = -10
+condition_comparator_mutate_power     = 0.5
+condition_comparator_mutate_rate      = 0.8
+condition_comparator_replace_rate     = 0.1
+
+[DefaultSpeciesSet]
+### High compatibility threshold to find average.
+compatibility_threshold = 5.0
+
+[DefaultStagnation]
+species_fitness_func = max
+max_stagnation       = 20
+species_elitism      = 2
+
+[DefaultReproduction]
+elitism            = 2
+survival_threshold = 0.2
+
