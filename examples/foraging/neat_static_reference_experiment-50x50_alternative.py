@@ -22,7 +22,7 @@ config_name = 'config-feedforward-50x50'
 
 gym.register(
     id='foraging50x50-distance-sum-v0',
-    entry_point='gym_multi_robot.envs:WeightedSumForagingEnv',
+    entry_point='gym_multi_robot.envs:ForagingEnv',
     kwargs={'env_storage_path': 'foraging50x50.pickle', 'game_cls': ClosestGame}
 )
 
