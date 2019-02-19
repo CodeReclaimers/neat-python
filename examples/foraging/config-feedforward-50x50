@@ -32,7 +32,7 @@ compatibility_weight_coefficient   = 0.5
 
 # connection add/remove rates
 conn_add_prob           = 0.5
-conn_delete_prob        = 0.5
+conn_delete_prob        = 0.2
 
 # connection enable options
 enabled_default         = True
@@ -53,8 +53,8 @@ num_outputs             = 4
 # node response options
 response_init_mean      = 1.0
 response_init_stdev     = 0.0
-response_max_value      = 5.0
-response_min_value      = -5.0
+response_max_value      = 1.0
+response_min_value      = -1.0
 response_mutate_power   = 0.0
 response_mutate_rate    = 0.0
 response_replace_rate   = 0.0

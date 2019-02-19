@@ -13,7 +13,7 @@ from examples.experiment_functions import NEATSwarmExperimentRunner
 from examples.experiment_template import SingleExperiment
 
 # Important variables.
-experiment_name = 'NEAT_foraging_50x50'
+experiment_name = 'NEAT_foraging_50x50_a'
 num_steps = 3000
 num_robots = 5
 num_generations = 100
@@ -41,4 +41,5 @@ if __name__ == '__main__':
     # Create and run experiment.
     experiment = SingleExperiment(config, runner, num_generations, experiment_name, 2)
 
-    experiment.run(experiment_name)
+    for i in range(num_runs):
+        experiment.run(experiment_name + str(num_runs))
