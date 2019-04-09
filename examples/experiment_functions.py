@@ -4,15 +4,16 @@ import neat
 from neat.state_machine_network import StateMachineNetwork
 
 
-class SwarmExperimentRunner:
+class ExperimentRunner:
     """ This class represents an experiment runner, so an instance which can be used to run gym experiments.
         Note that the fitness is only requested using the get_fitness() function of the environment after the last step.
         So make sure the gym environment provides this.
     """
 
-    def __init__(self, gym_environment, num_steps):
+    def __init__(self, gym_environment, num_steps, render=False):
         self.env = gym_environment
         self.num_steps = num_steps
+        self.render = render
 
     def run_multiple_trails(self, genome, config, num_trails):
         """ This function runs multiple trials with the same genome and environment.
@@ -36,8 +37,37 @@ class SwarmExperimentRunner:
         """ This function should draw the given genome. It depends on the genome that is actually used."""
         pass
 
+    def check_render(self, time_step=0):
+        if self.render:
+            self.env.render()
 
-class NEATSwarmExperimentRunner(SwarmExperimentRunner):
+
+class NEATExperimentRunner(ExperimentRunner):
+    """ This class is an abstract class for NEAT experiments. run() function has to be implemented."""
+
+    def draw(self, genome, config, node_names=None, filename=None):
+        visualize.draw_net(genome, config, node_names=node_names, filename=filename)
+
+    def run(self, genome, config):
+
+        """ This function runs an experiment for a NEAT genome, given a genome and the required variables."""
+        net = neat.nn.FeedForwardNetwork.create(genome, config)
+        observation = self.env.reset()
+        fitness = 0
+
+        for i in range(self.num_steps):
+
+            output = net.activate(observation)
+            observation, fitness, done, _ = self.env.step(output)
+
+            self.check_render(i)
+            if done:
+                break
+
+        return fitness
+
+
+class NEATSwarmExperimentRunner(NEATExperimentRunner):
     """ This class can be used to run Neat experiments."""
 
     def run(self, genome, config):
@@ -46,16 +76,44 @@ class NEATSwarmExperimentRunner(SwarmExperimentRunner):
         observation = self.env.reset()
 
         for i in range(self.num_steps):
+
             output = [net.activate(observation[i]) for i in range(len(observation))]
-            observation, _, _, _ = self.env.step(output)
+            observation, _, done, _ = self.env.step(output)
+
+            self.check_render(i)
+            if done:
+                print('Done after ' + str(i) + ' steps')
+                break
 
         return self.env.get_fitness()
 
+
+class SMExperimentRunner(ExperimentRunner):
+    """ This function runs a state machine experiment with a single robot. """
+
     def draw(self, genome, config, node_names=None, filename=None):
-        visualize.draw_net(genome, config, node_names=node_names, filename=filename)
+        visualize.draw_state_machine(genome, config, node_names=node_names, filename=filename)
+
+    def run(self, genome, config):
+        """ This function runs an experiment for a SM genome, given a genome and the required variables."""
+        net = StateMachineNetwork.create(genome, config.genome_config)
+        observation = self.env.reset()
+
+        fitness = 0
+        state = 0
+
+        for i in range(self.num_steps):
+            state, action = net.activate(state, observation)
+            observation, fitness, done, _ = self.env.step(action)
+
+            self.check_render(i)
+            if done:
+                break
+
+        return fitness
 
 
-class SMSwarmExperimentRunner(SwarmExperimentRunner):
+class SMSwarmExperimentRunner(SMExperimentRunner):
     """ This class can be used to run state machine experiments."""
 
     def run(self, genome, config):
@@ -68,9 +126,10 @@ class SMSwarmExperimentRunner(SwarmExperimentRunner):
             output = [net.activate(states[i], observation[i]) for i in range(len(observation))]
             states = [state for state, _ in output]
             actions = [action for _, action in output]
-            observation, _, _, _ = self.env.step(actions)
+            observation, _, done, _ = self.env.step(actions)
+
+            self.check_render(i)
+            if done:
+                break
 
         return self.env.get_fitness()
-
-    def draw(self, genome, config, node_names=None, filename=None):
-        visualize.draw_state_machine(genome, config, node_names=node_names, filename=filename)
