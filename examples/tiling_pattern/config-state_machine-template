@@ -3,14 +3,14 @@
 [General]
 experiment_name       = state_machine_test
 env_name              = tiling-pattern11x11-block-v0
-num_steps             = 3000
+num_steps             = 2000
 num_generations       = 100
 num_runs              = 5
 
 [NEAT]
 fitness_criterion     = max
 fitness_threshold     = 100
-pop_size              = 100
+pop_size              = 5
 reset_on_extinction   = False
 
 [StateMachineGenome]

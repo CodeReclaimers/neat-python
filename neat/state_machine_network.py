@@ -30,19 +30,18 @@ class StateMachineNetwork(object):
 
         # Add all the transitions indexed by the begin state, for easy lookup.
         for transition in transitions:
+
             if transition.begin_state_id not in list(self.transitions.keys()):
                 raise ValueError('Begin state of transition not in state machine')
 
             self.transitions[transition.begin_state_id].append(transition)
 
     def activate(self, current_state_id, inputs):
-        """ Parameters:
-         current_state_id : current node of the state machine from where calculations should be done.
-         inputs : Inputs sets, should match the number of inputs to the neural networks.
-
-         Output:
-         next_state : next state the controller goes to after this execution.
-         output : Output from the current neural network of the controller.
+        """
+         :parameter current_state_id : current node of the state machine from where calculations should be done.
+         :parameter inputs : Inputs sets, should match the number of inputs to the neural networks.
+         :return next_state, output : next state the controller goes to after this execution.
+         Output from the current neural network of the controller.
          """
         current_state = self.states[current_state_id]
 
@@ -56,7 +55,8 @@ class StateMachineNetwork(object):
 
         next_state = current_state_id
         if len(possible_transitions) > 0:
-            next_state = choice(possible_transitions).end_state_id
+            selected_transition = choice(possible_transitions)
+            next_state = selected_transition.end_state_id
 
         return next_state, output
 
@@ -76,7 +76,7 @@ class StateMachineNetwork(object):
 
         network_transitions = []
         for _, transition in genome.transitions.items():
-            transition_state = Transition(transition.key[0], transition.key[0])
+            transition_state = Transition(transition.key[0], transition.key[1])
             for condition in transition.conditions:
                 transition_state.add_condition(Condition(condition[0], condition[1], condition[2]))
 
