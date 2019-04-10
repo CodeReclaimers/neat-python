@@ -10,9 +10,10 @@ class ExperimentRunner:
         So make sure the gym environment provides this.
     """
 
-    def __init__(self, gym_environment, num_steps, render=False):
+    def __init__(self, gym_environment, num_steps, controller_class, render=False):
         self.env = gym_environment
         self.num_steps = num_steps
+        self.controller_class = controller_class
         self.render = render
 
     def run_multiple_trails(self, genome, config, num_trails):
@@ -31,105 +32,103 @@ class ExperimentRunner:
             Should be implemented by the subclasses with an implementation of how to run.
             Returned should be the fitness of swarm behaviour, as indicated by the environment.
         """
-        pass
+        controller = self.controller_class()
+        controller.reset(genome, config)
+        observation = self.env.reset()
+        fitness = 0
+
+        for i in range(self.num_steps):
+
+            output = controller.step(observation)
+            observation, fitness, done, _ = self.env.step(output)
+
+            self.check_render()
+            if done:
+                break
+
+        return fitness
 
     def draw(self, genome, config):
         """ This function should draw the given genome. It depends on the genome that is actually used."""
-        pass
+        controller = self.controller_class()
+        controller.reset(genome, config)
+        controller.draw()
 
-    def check_render(self, time_step=0):
+    def check_render(self):
         if self.render:
             self.env.render()
 
 
-class NEATExperimentRunner(ExperimentRunner):
-    """ This class is an abstract class for NEAT experiments. run() function has to be implemented."""
-
-    def draw(self, genome, config, node_names=None, filename=None):
-        visualize.draw_net(genome, config, node_names=node_names, filename=filename)
+class SwarmExperimentRunner(ExperimentRunner):
+    """ This class describes an experiment runner for a swarm, ie. multiple robots with the same controller."""
 
     def run(self, genome, config):
 
-        """ This function runs an experiment for a NEAT genome, given a genome and the required variables."""
-        net = neat.nn.FeedForwardNetwork.create(genome, config)
-        observation = self.env.reset()
-        fitness = 0
+        observations = self.env.reset()
+
+        # Spawn as many controllers as there are observations.
+        controllers = [self.controller_class() for _ in range(len(observations))]
+
+        # Reset all controllers with the genome and config.
+        for controller in controllers:
+            controller.reset(genome, config)
 
         for i in range(self.num_steps):
 
-            output = net.activate(observation)
-            observation, fitness, done, _ = self.env.step(output)
-
-            self.check_render(i)
-            if done:
-                break
-
-        return fitness
-
-
-class NEATSwarmExperimentRunner(NEATExperimentRunner):
-    """ This class can be used to run Neat experiments."""
-
-    def run(self, genome, config):
-        """ This function runs an experiment for a NEAT genome, given a genome and the required variables."""
-        net = neat.nn.FeedForwardNetwork.create(genome, config)
-        observation = self.env.reset()
-
-        for i in range(self.num_steps):
-
-            output = [net.activate(observation[i]) for i in range(len(observation))]
-            observation, _, done, _ = self.env.step(output)
-
-            self.check_render(i)
-            if done:
-                print('Done after ' + str(i) + ' steps')
-                break
-
-        return self.env.get_fitness()
-
-
-class SMExperimentRunner(ExperimentRunner):
-    """ This function runs a state machine experiment with a single robot. """
-
-    def draw(self, genome, config, node_names=None, filename=None):
-        visualize.draw_state_machine(genome, config, node_names=node_names, filename=filename)
-
-    def run(self, genome, config):
-        """ This function runs an experiment for a SM genome, given a genome and the required variables."""
-        net = StateMachineNetwork.create(genome, config.genome_config)
-        observation = self.env.reset()
-
-        fitness = 0
-        state = 0
-
-        for i in range(self.num_steps):
-            state, action = net.activate(state, observation)
-            observation, fitness, done, _ = self.env.step(action)
-
-            self.check_render(i)
-            if done:
-                break
-
-        return fitness
-
-
-class SMSwarmExperimentRunner(SMExperimentRunner):
-    """ This class can be used to run state machine experiments."""
-
-    def run(self, genome, config):
-        """ This function runs an experiment for a SM genome, given a genome and the required variables."""
-        net = StateMachineNetwork.create(genome, config.genome_config)
-        observation = self.env.reset()
-
-        states = [0 for _ in range(len(observation))]
-        for i in range(self.num_steps):
-            output = [net.activate(states[i], observation[i]) for i in range(len(observation))]
-            states = [state for state, _ in output]
-            actions = [action for _, action in output]
-            observation, _, done, _ = self.env.step(actions)
+            output = [controllers[i].step(observations[i]) for i in range(len(observations))]
+            observations, _, done, _ = self.env.step(output)
 
             self.check_render(i)
             if done:
                 break
 
         return self.env.get_fitness()
+
+
+class SimulationController:
+    """ This class calculates the actions in the simulation using the given control mechanism."""
+
+    def __init__(self):
+        self.net = None
+
+    def reset(self, genome, config):
+        """ This function resets the stepper indicating that a new simulation is started"""
+        pass
+
+    def step(self, observation):
+        """ This function calculates the desired course of action based on the given observation."""
+        pass
+
+    def draw(self):
+        """ This function draws the current controller that is being used."""
+        pass
+
+
+class FeedForwardNetworkController(SimulationController):
+    """ This class calculates the next actions based on a feed forward network."""
+
+    def reset(self, genome, config):
+        self.net = neat.nn.FeedForwardNetwork.create(genome, config)
+
+    def step(self, observation):
+        return self.net.activate(observation)
+
+
+class StateMachineController(SimulationController):
+    """ This class calculates the next actions based on a state machine. The difference here is that the current state,
+        needs to be taken into account and updated, as this is also part of the state machine.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.current_state = 0
+
+    def reset(self, genome, config):
+        self.net = StateMachineNetwork.create(genome, config.genome_config)
+        self.current_state = 0
+
+    def step(self, observation):
+        new_state, actions = self.net.activate(self.current_state, observation)
+        self.current_state = new_state
+
+        return actions
