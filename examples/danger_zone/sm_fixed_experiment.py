@@ -7,18 +7,18 @@ import os
 import neat
 import gym
 
+from examples.danger_zone.DangerZoneExperiment import DangerZoneExperiment
 from examples.experiment_functions import ExperimentRunner, StateMachineController
-from examples.experiment_template import SingleExperiment
 
 # Important variables.
 from neat.state_machine_genome_partially_fixed import StateMachineGenomeFixed
 
-experiment_name = 'SM'
+experiment_name = 'SM_fixed_layout'
 num_steps = 150
 num_generations = 100
 num_runs = 1
 num_trails = 1
-config_name = 'config-sm_2_state'
+config_name = 'config-sm_fixed'
 
 if __name__ == '__main__':
 
@@ -32,7 +32,7 @@ if __name__ == '__main__':
                          neat.DefaultReproduction, neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
 
     # Create and run experiment.
-    experiment = SingleExperiment(config, runner, num_generations, experiment_name, num_trails)
+    experiment = DangerZoneExperiment(config, runner, num_generations, experiment_name, num_trails)
 
     for i in range(num_runs):
         experiment.run(experiment_name + str(i))

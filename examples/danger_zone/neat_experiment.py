@@ -9,15 +9,16 @@ import numpy as np
 import neat
 import gym
 
-from examples.experiment_functions import NEATExperimentRunner
+from examples.danger_zone.DangerZoneExperiment import DangerZoneExperiment
+from examples.experiment_functions import ExperimentRunner, FeedForwardNetworkController
 from examples.experiment_template import SingleExperiment
 
 # Important variables.
 experiment_name = 'NEAT_reference_static'
-num_steps = 150
+num_steps = 300
 num_robots = 5
 num_generations = 100
-num_runs = 1
+num_runs = 5
 num_trials = 1
 config_name = 'config-feedforward'
 
@@ -25,7 +26,7 @@ config_name = 'config-feedforward'
 if __name__ == '__main__':
 
     env = gym.make('danger-zone-v0')
-    runner = NEATExperimentRunner(env, num_steps)
+    runner = ExperimentRunner(env, num_steps, FeedForwardNetworkController)
 
     # Create learning configuration.
     local_dir = os.path.dirname(__file__)
@@ -35,7 +36,7 @@ if __name__ == '__main__':
                          config_path)
 
     # Create and run experiment.
-    experiment = SingleExperiment(config, runner, num_generations, experiment_name, num_trials)
+    experiment = DangerZoneExperiment(config, runner, num_generations, experiment_name, num_trials)
 
     for i in range(num_runs):
         experiment.run(experiment_name + str(i))
