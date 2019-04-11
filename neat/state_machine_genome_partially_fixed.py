@@ -1,5 +1,4 @@
 import pickle
-import copy
 
 from neat.config import ConfigParameter
 from neat.state_machine_genes import StateGene, TransitionGene

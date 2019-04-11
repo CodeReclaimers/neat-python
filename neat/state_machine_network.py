@@ -43,11 +43,8 @@ class StateMachineNetwork(object):
          :return next_state, output : next state the controller goes to after this execution.
          Output from the current neural network of the controller.
          """
-        current_state = self.states[current_state_id]
 
-        # Evaluate the neural network of the current state.
-        output = current_state.activate(inputs)
-
+        # First check whether a state transition needs to be made, based on the new data.
         possible_transitions = []
         for transition in self.transitions[current_state_id]:
             if transition.check_transition(inputs):
@@ -57,6 +54,10 @@ class StateMachineNetwork(object):
         if len(possible_transitions) > 0:
             selected_transition = choice(possible_transitions)
             next_state = selected_transition.end_state_id
+
+        # Evaluate the neural network of the current state.
+        current_state = self.states[next_state]
+        output = current_state.activate(inputs)
 
         return next_state, output
 
