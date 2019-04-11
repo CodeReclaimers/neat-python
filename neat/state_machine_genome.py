@@ -21,6 +21,7 @@ class StateMachineGenomeConfig(object):
         self._params = [ConfigParameter('num_inputs', int),
                         ConfigParameter('num_outputs', int),
                         ConfigParameter('num_initial_states', int),
+                        ConfigParameter('max_num_states', int, 1000),   # Note the default.
                         ConfigParameter('state_add_prob', float),
                         ConfigParameter('state_delete_prob', float),
                         ConfigParameter('transition_add_prob', float),
@@ -143,7 +144,7 @@ class StateMachineGenome(object):
     def mutate_states(self, config):
         """ This function mutates the states of the genome. """
 
-        if random() < config.state_add_prob:
+        if len(self.states) < config.max_num_states and random() < config.state_add_prob:
             self.mutate_add_state(config)
 
         if random() < config.state_delete_prob:
@@ -227,8 +228,12 @@ class StateMachineGenome(object):
             del self.states[del_key]
 
     def distance(self, other, config):
-        # Distance for know is the number of nodes, not in common.
+        return self.distance_num_node_difference(other, config)
 
+    def distance_num_node_difference(self, other, config):
+        return abs(len(self.states) - len(other.states))
+
+    def advanced_distance(self, other, config):
         difference_distance = 0
 
         similarity_count = 0
