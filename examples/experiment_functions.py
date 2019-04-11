@@ -48,11 +48,9 @@ class ExperimentRunner:
 
         return fitness
 
-    def draw(self, genome, config):
+    def draw(self, genome, config, file_name='winner.svg'):
         """ This function should draw the given genome. It depends on the genome that is actually used."""
-        controller = self.controller_class()
-        controller.reset(genome, config)
-        controller.draw()
+        self.controller_class.draw(genome, config, file_name)
 
     def check_render(self):
         if self.render:
@@ -78,7 +76,7 @@ class SwarmExperimentRunner(ExperimentRunner):
             output = [controllers[i].step(observations[i]) for i in range(len(observations))]
             observations, _, done, _ = self.env.step(output)
 
-            self.check_render(i)
+            self.check_render()
             if done:
                 break
 
@@ -99,8 +97,9 @@ class SimulationController:
         """ This function calculates the desired course of action based on the given observation."""
         pass
 
-    def draw(self):
-        """ This function draws the current controller that is being used."""
+    @classmethod
+    def draw(cls, genome, config, file_name):
+        """ This function draws the given controller."""
         pass
 
 
@@ -112,6 +111,10 @@ class FeedForwardNetworkController(SimulationController):
 
     def step(self, observation):
         return self.net.activate(observation)
+
+    @classmethod
+    def draw(cls, genome, config, file_name):
+        visualize.draw_net(config, genome, filename=file_name)
 
 
 class StateMachineController(SimulationController):
@@ -132,3 +135,7 @@ class StateMachineController(SimulationController):
         self.current_state = new_state
 
         return actions
+
+    @classmethod
+    def draw(cls, genome, config, file_name):
+        visualize.draw_state_machine(config, genome, filename=file_name)

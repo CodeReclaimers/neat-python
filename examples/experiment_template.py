@@ -57,11 +57,7 @@ class SingleExperiment:
         net_filename = 'graph_winner' + str(self.exp_name)
         genome_filename = 'winner' + str(self.exp_name)
 
-        node_names = {-1: 'hold', -2: 'on object', -3: '1_obstacle', -4: '1_tile', -5: '1_robot', -6: '2_obstacle',
-                      -7: '2_tile', -8: '2_robot', -9: '3_obstacle', -10: '3_tile', -11: '3_robot', -12: '4_obstacle',
-                      -13: '4_tile', -14: '4_robot', -15: '5_obstacle', -16: '5_tile', -17: '5_robot',
-                      0: 'drive', 1: 'rotation', 2: 'pickup', 3: 'put down'}
-        self.exp_runner.draw(self.learning_config, self.winner, node_names=node_names, filename=net_filename)
+        self.exp_runner.draw(self.winner, self.learning_config, net_filename)
 
         ObjectSerializer.serialize(self.winner, genome_filename)
 
