@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 
 from neat.attributes import BoolAttribute
@@ -26,6 +28,13 @@ class StateGene(BaseGene):
 
         return config.compatibility_difference_coefficient * (avg_bias_difference + avg_weight_difference)
 
+    def copy(self):
+        state = StateGene(self.key)
+        state.biases = np.array(self.biases)
+        state.weights = np.array(self.weights)
+
+        return state
+
 
 class TransitionGene(BaseGene):
     """ Class representing the gene of a transition in the state machine. """
@@ -43,3 +52,10 @@ class TransitionGene(BaseGene):
         # TODO: add difference with maximal value for difference of condition being 1.
         # TODO: Track conditions (possibly)
         return config.compatibility_difference_coefficient * abs(len(other.conditions) - len(self.conditions))
+
+    def copy(self):
+        transition = TransitionGene(self.key)
+        transition.conditions = copy.deepcopy(self.conditions)
+        transition.enabled = self.enabled
+
+        return transition

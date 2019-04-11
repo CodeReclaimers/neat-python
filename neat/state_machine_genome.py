@@ -137,11 +137,24 @@ class StateMachineGenome(object):
     def mutate(self, config):
         """ Mutates this genome. """
 
+        self.mutate_states(config)
+        self.mutate_transitions(config)
+
+    def mutate_states(self, config):
+        """ This function mutates the states of the genome. """
+
         if random() < config.state_add_prob:
             self.mutate_add_state(config)
 
         if random() < config.state_delete_prob:
             self.mutate_delete_state(config)
+
+        # Mutate node genes (bias, response, etc.).
+        for ng in self.states.values():
+            ng.mutate(config)
+
+    def mutate_transitions(self, config):
+        """ This function mutates the transitions of the genome."""
 
         if random() < config.transition_add_prob:
             self.mutate_add_transition(config)
@@ -152,10 +165,6 @@ class StateMachineGenome(object):
         # Mutate connection genes.
         for cg in self.transitions.values():
             cg.mutate(config)
-
-        # Mutate node genes (bias, response, etc.).
-        for ng in self.states.values():
-            ng.mutate(config)
 
     def mutate_add_state(self, config):
 
