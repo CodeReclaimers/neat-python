@@ -31,13 +31,17 @@ aggregation_default     = sum
 aggregation_options     = sum
 aggregation_mutate_rate = 0.0
 
-bias_init_mean          = 0.5
+# connection enable options
+enabled_default         = True
+enabled_mutate_rate     = 0.01
+
+bias_init_mean          = 0.0
 bias_init_stdev         = 1.0
-bias_replace_rate       = 0.1
-bias_mutate_rate        = 0.7
+bias_max_value          = 1.0
+bias_min_value          = -1.0
 bias_mutate_power       = 0.5
-bias_max_value          = -1.0
-bias_min_value          = 1.0
+bias_mutate_rate        = 0.7
+bias_replace_rate       = 0.1
 
 response_init_mean      = 1.0
 response_init_stdev     = 0.0
@@ -47,15 +51,13 @@ response_mutate_power   = 0.0
 response_max_value      = 1.0
 response_min_value      = 1.0
 
-weight_max_value        = 10
-weight_min_value        = -10
 weight_init_mean        = 0.0
-weight_init_stdev       = 1.0
+weight_init_stdev       = 2.0
+weight_max_value        = 2
+weight_min_value        = -2
+weight_mutate_power     = 0.5
 weight_mutate_rate      = 0.8
 weight_replace_rate     = 0.1
-weight_mutate_power     = 0.5
-enabled_default         = True
-enabled_mutate_rate     = 0.01
 
 [DefaultSpeciesSet]
 compatibility_threshold = 3.0

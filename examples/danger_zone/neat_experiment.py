@@ -14,11 +14,10 @@ from examples.experiment_functions import ExperimentRunner, FeedForwardNetworkCo
 from examples.experiment_template import SingleExperiment
 
 # Important variables.
-experiment_name = 'NEAT_reference_static'
-num_steps = 300
-num_robots = 5
+experiment_name = 'NEAT'
+num_steps = 150
 num_generations = 100
-num_runs = 5
+num_runs = 1
 num_trials = 1
 config_name = 'config-feedforward'
 
