@@ -102,10 +102,21 @@ class StateMachineGenome(object):
         transition.init_attributes(config)
         return transition
 
+    def clone(self, genome):
+        """ This function clones the given genome in the current genome. """
+        for key, connection in iteritems(genome.transitions):
+            self.transitions[key] = connection.copy()
+
+        for key, state in iteritems(genome.states):
+            self.states[key] = state.copy()
+
+        self.worst_change = genome.worst_change
+
     def configure_crossover(self, genome1, genome2, config):
         """ Configure a new genome by crossover from two parent genomes. """
         assert isinstance(genome1.fitness, (int, float))
         assert isinstance(genome2.fitness, (int, float))
+
         if genome1.fitness > genome2.fitness:
             parent1, parent2 = genome1, genome2
         else:

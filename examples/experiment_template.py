@@ -20,7 +20,8 @@ class SingleExperiment:
         start_time = time.time()
 
         for genome_id, genome in genomes:
-            genome.fitness = self.exp_runner.run_multiple_trails(genome, config, self.num_trails)
+
+            self.process_genome(genome, config)
             # sub rewards.
 
         end_time = time.time()
@@ -28,6 +29,10 @@ class SingleExperiment:
         avg_time = time_diff / len(genomes)
 
         print("generation total_runtime: %s seconds, avg_runtime: %s seconds" % (time_diff, avg_time))
+
+    def process_genome(self, genome, config):
+        """ This function processes a genome to finds its fitness and possibly other details. """
+        genome.fitness = self.exp_runner.run_multiple_trails(genome, config, self.num_trails)
 
     def run(self, name=None):
         """ Runs the experiment.
