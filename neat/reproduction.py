@@ -151,11 +151,7 @@ class DefaultReproduction:
             if spawn <= 0:
                 continue
 
-            # Only use the survival threshold fraction to use as parents for the next generation.
-            repro_cutoff = int(math.ceil(self.reproduction_config.survival_threshold *
-                                         len(old_members)))
-            # Use at least two parents no matter what the threshold fraction result is.
-            repro_cutoff = max(repro_cutoff, 2)
+            repro_cutoff = self.calculated_cutoff(len(old_members))
             old_members = old_members[:repro_cutoff]
 
             # Randomly choose parents and produce the number of offspring allotted to the species.
@@ -166,6 +162,17 @@ class DefaultReproduction:
                 new_population[gid] = child
 
         return new_population
+
+    def calculated_cutoff(self, species_size):
+        """ This function calculates the cutoff point of the species."""
+
+        # Only use the survival threshold fraction to use as parents for the next generation.
+        repro_cutoff = int(math.ceil(self.reproduction_config.survival_threshold *
+                                     species_size))
+        # Use at least two parents no matter what the threshold fraction result is.
+        repro_cutoff = max(repro_cutoff, 2)
+
+        return repro_cutoff
 
     @staticmethod
     def calculate_adjusted_fitnesses(remaining_species, all_fitnesses):
