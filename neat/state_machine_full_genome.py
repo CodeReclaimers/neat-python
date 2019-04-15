@@ -77,6 +77,21 @@ class StateMachineFullGenome(StateMachineGenome):
         for cg in self.transitions.values():
             cg.mutate(config)
 
+    def mutate_add_state(self, config):
+
+        new_state = self.create_state(config, config.get_new_node_key())
+
+        # Add incoming and outgoing transitions to each state.
+        for state_key in self.states:
+
+            t1 = self.create_transition(config, state_key, new_state.key)
+            t2 = self.create_transition(config, new_state.key, state_key)
+
+            self.transitions[t1.key] = t1
+            self.transitions[t2.key] = t2
+
+        self.states[new_state.key] = new_state
+
     def distance(self, other, config):
         """ Distance as the difference in number of states. """
         return abs(len(self.states) - len(other.states))
