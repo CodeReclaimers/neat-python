@@ -11,15 +11,16 @@ from examples.danger_zone.DangerZoneExperiment import DangerZoneExperiment, Wors
 from examples.experiment_functions import StateMachineController, ExperimentRunner
 
 # Important variables.
-from neat.reproduction_mutation_only import ReproductionMutationOnly
-from neat.state_machine_genome import StateMachineGenome
+from neat.reproduction_state_machine import ReproductionStateMachineOnly, StateSeparatedSpeciesSet
+from neat.stagnation import MarkAllStagnation
+from neat.state_machine_full_genome import StateMachineFullGenome
 
-experiment_name = 'SM_free_redo'
+experiment_name = 'SM_state_dependent'
 num_steps = 150
 num_generations = 100
 num_runs = 5
 num_trails = 1
-config_name = 'config-sm_free_states'
+config_name = 'config-sm_state_species'
 
 if __name__ == '__main__':
 
@@ -29,10 +30,10 @@ if __name__ == '__main__':
     # Create learning configuration.
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, config_name)
-    config = neat.Config(StateMachineGenome,
-                         ReproductionMutationOnly,
-                         neat.DefaultSpeciesSet,
-                         neat.DefaultStagnation,
+    config = neat.Config(StateMachineFullGenome,
+                         ReproductionStateMachineOnly,
+                         StateSeparatedSpeciesSet,
+                         MarkAllStagnation,
                          config_path)
 
     # Create and run experiment.

@@ -6,7 +6,7 @@ fitness_threshold     = 350
 pop_size              = 100
 reset_on_extinction   = False
 
-[StateMachineGenome]
+[StateMachineFullGenome]
 # node activation options
 activation              = sigmoid
 aggregation             = sum
@@ -70,15 +70,15 @@ condition_comparator_mutate_power     = 0.5
 condition_comparator_mutate_rate      = 0.8
 condition_comparator_replace_rate     = 0.1
 
-[DefaultSpeciesSet]
-compatibility_threshold = 1.0
+[StateSeparatedSpeciesSet]
 
-[DefaultStagnation]
+[MarkAllStagnation]
 species_fitness_func = max
-max_stagnation       = 10
-species_elitism      = 2
+stagnation_split_interval       = 5
 
-[ReproductionMutationOnly]
+[ReproductionStateMachineOnly]
 elitism            = 2
 survival_threshold = 0.2
+min_species_size   = 10
+max_num_states     = 5
 

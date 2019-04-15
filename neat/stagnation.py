@@ -97,18 +97,18 @@ class DefaultStagnation:
 
 class MarkAllStagnation(DefaultStagnation):
     """
-    This class marks all species stagnated that did not improve for more than max_stagnation
-    generations
+    This class marks all species stagnated that did not improve for a number of generations that is dividable by
+    stagnation_split_interval.
     """
 
     @classmethod
     def parse_config(cls, param_dict):
         return DefaultClassConfig(param_dict,
                                   [ConfigParameter('species_fitness_func', str, 'mean'),
-                                   ConfigParameter('max_stagnation', int, 15)])
+                                   ConfigParameter('stagnation_split_interval', int, 15)])
 
     def check_stagnant(self, idx, species, num_species, num_stagnant, generation):
 
         stagnant_time = generation - species.last_improved
 
-        return stagnant_time >= self.stagnation_config.max_stagnation
+        return stagnant_time != 0 and stagnant_time % self.stagnation_config.stagnation_split_interval == 0
