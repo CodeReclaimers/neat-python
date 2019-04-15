@@ -1,3 +1,5 @@
+import math
+
 from neat import DefaultSpeciesSet
 from neat.config import ConfigParameter, DefaultClassConfig
 from neat.reproduction_mutation_only import ReproductionMutationOnly
@@ -39,24 +41,72 @@ class ReproductionStateMachineOnly(ReproductionMutationOnly):
         new_population = {}
 
         # TODO: if the max_num_states is reached and species is stagnated add species to best performing species
-        # TODO: Make species key be the number of states.
         # TODO: Best performing species cannot disappear and stays at min_species_size
+
+        # Get the best performing species
+        best_performing_species = self.get_best_performing_species(remaining_species)
+
+        print('best performing is: ' + str(best_performing_species))
 
         for species, stagnant in zip(remaining_species, stagnant_species):
 
             old_members = list(iteritems(species.members))
+            # Sort members in order of descending fitness.
+            old_members.sort(reverse=True, key=lambda x: x[1].fitness)
 
-            spawned = len(species.members)
+            spawn = len(species.members)
+            spawned = 0
             species.members = {}  # Reset the set of species.
 
-            for _ in range(spawned):
-                gid, child = self.generate_child(old_members, config)
-                new_population[gid] = child
+            repro_cutoff = self.calculated_cutoff(len(old_members))
+            old_members = old_members[:repro_cutoff]
 
-        print(len(new_population))
-        print(pop_size)
+            children = {}
+
+            # Transfer elites to new generation.
+            if self.reproduction_config.elitism > 0:
+                for i, m in old_members[:self.reproduction_config.elitism]:
+                    children[i] = m
+                    spawned += 1
+
+            # Generate the new children.
+            for _ in range(spawn - spawned):
+                gid, child = self.generate_child(old_members, config)
+                children[gid] = child
+
+            # If the current species is stagnant add a state to 1/2 of the state's population.
+            if stagnant and species.key < self.reproduction_config.max_num_states:
+                updated_children = math.floor(spawn / 2)
+
+                if spawn - updated_children < self.reproduction_config.min_species_size:
+
+                    print('Ohh.. all children are updated -------------------------------------')
+                    # If species becomes to small and is not the best performing species, upgrade all.
+                    updated_children = spawn
+
+                for gid in children:
+                    children[gid].mutate_add_state(config.genome_config)
+
+                    updated_children -= 1
+                    if updated_children == 0:
+                        break
+
+            new_population.update(children)
+
         assert len(new_population) == pop_size
         return new_population
+
+    @staticmethod
+    def get_best_performing_species(remaining_species):
+        """ This function returns the index of the best performing species in the species list. """
+        best_performing_species = -1
+        best_fitness = -math.inf
+        for remaining_species in remaining_species:
+            if remaining_species.fitness > best_fitness:
+                best_performing_species = remaining_species.key
+                best_fitness = remaining_species.fitness
+
+        return best_performing_species
 
 
 class StateSeparatedSpeciesSet(DefaultSpeciesSet):
