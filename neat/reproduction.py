@@ -17,7 +17,8 @@ from neat.six_util import iteritems, itervalues
 # configuration. This scheme should be adaptive so that species do not evolve
 # to become "cautious" and only make very slow progress.
 
-class DefaultReproduction(DefaultClassConfig):
+
+class DefaultReproduction:
     """
     Implements the default NEAT-python reproduction scheme:
     explicit fitness sharing with fixed-time species stagnation.
@@ -51,7 +52,7 @@ class DefaultReproduction(DefaultClassConfig):
 
     @staticmethod
     def compute_spawn(adjusted_fitness, previous_sizes, pop_size, min_species_size):
-        """Compute the proper number of offspring per species (proportional to fitness)."""
+        """ Compute the proper number of offspring per species (proportional to fitness)."""
         af_sum = sum(adjusted_fitness)
 
         spawn_amounts = []
@@ -108,23 +109,11 @@ class DefaultReproduction(DefaultClassConfig):
         # No species left.
         if not remaining_species:
             species.species = {}
-            return {} # was []
+            return {}  # was []
 
-        # Find minimum/maximum fitness across the entire population, for use in
-        # species adjusted fitness computation.
-        min_fitness = min(all_fitnesses)
-        max_fitness = max(all_fitnesses)
-        # Do not allow the fitness range to be zero, as we divide by it below.
-        # TODO: The ``1.0`` below is rather arbitrary, and should be configurable.
-        fitness_range = max(1.0, max_fitness - min_fitness)
-        for afs in remaining_species:
-            # Compute adjusted fitness.
-            msf = mean([m.fitness for m in itervalues(afs.members)])
-            af = (msf - min_fitness) / fitness_range
-            afs.adjusted_fitness = af
-
+        self.calculate_adjusted_fitnesses(remaining_species, all_fitnesses)
         adjusted_fitnesses = [s.adjusted_fitness for s in remaining_species]
-        avg_adjusted_fitness = mean(adjusted_fitnesses) # type: float
+        avg_adjusted_fitness = mean(adjusted_fitnesses)  # type: float
         self.reporters.info("Average adjusted fitness: {:.3f}".format(avg_adjusted_fitness))
 
         # Compute the number of new members for each species in the new generation.
@@ -133,7 +122,7 @@ class DefaultReproduction(DefaultClassConfig):
         # Isn't the effective min_species_size going to be max(min_species_size,
         # self.reproduction_config.elitism)? That would probably produce more accurate tracking
         # of population sizes and relative fitnesses... doing. TODO: document.
-        min_species_size = max(min_species_size,self.reproduction_config.elitism)
+        min_species_size = max(min_species_size, self.reproduction_config.elitism)
         spawn_amounts = self.compute_spawn(adjusted_fitnesses, previous_sizes,
                                            pop_size, min_species_size)
 
@@ -173,16 +162,44 @@ class DefaultReproduction(DefaultClassConfig):
             while spawn > 0:
                 spawn -= 1
 
-                parent1_id, parent1 = random.choice(old_members)
-                parent2_id, parent2 = random.choice(old_members)
-
-                # Note that if the parents are not distinct, crossover will produce a
-                # genetically identical clone of the parent (but with a different ID).
-                gid = next(self.genome_indexer)
-                child = config.genome_type(gid)
-                child.configure_crossover(parent1, parent2, config.genome_config)
-                child.mutate(config.genome_config)
+                gid, child = self.generate_child(old_members, config)
                 new_population[gid] = child
-                self.ancestors[gid] = (parent1_id, parent2_id)
 
         return new_population
+
+    @staticmethod
+    def calculate_adjusted_fitnesses(remaining_species, all_fitnesses):
+        """ This function calculates and update the average adjusted fitness.
+        :param remaining_species    - Species that need to update their adjusted fitness
+        :param all_fitnesses        - List of all fitnesses of individuals participating in the reproduction.
+        """
+
+        # Find minimum/maximum fitness across the entire population, for use in
+        # species adjusted fitness computation.
+        min_fitness = min(all_fitnesses)
+        max_fitness = max(all_fitnesses)
+
+        # Do not allow the fitness range to be zero, as we divide by it below.
+        # TODO: The ``1.0`` below is rather arbitrary, and should be configurable.
+        fitness_range = max(1.0, max_fitness - min_fitness)
+        for afs in remaining_species:
+            # Compute adjusted fitness.
+            msf = mean([m.fitness for m in itervalues(afs.members)])
+            af = (msf - min_fitness) / fitness_range
+            afs.adjusted_fitness = af
+
+    def generate_child(self, old_members, config):
+        """ This function generates a child using crossover and mutation. """
+        parent1_id, parent1 = random.choice(old_members)
+        parent2_id, parent2 = random.choice(old_members)
+
+        # Note that if the parents are not distinct, crossover will produce a
+        # genetically identical clone of the parent (but with a different ID).
+        gid = next(self.genome_indexer)
+        child = config.genome_type(gid)
+        child.configure_crossover(parent1, parent2, config.genome_config)
+        child.mutate(config.genome_config)
+
+        self.ancestors[gid] = (parent1_id, parent2_id)
+
+        return gid, child
