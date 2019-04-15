@@ -5,6 +5,7 @@ from neat.math_util import mean, stdev
 from neat.six_util import iteritems, iterkeys, itervalues
 from neat.config import ConfigParameter, DefaultClassConfig
 
+
 class Species(object):
     def __init__(self, key, generation):
         self.key = key
@@ -46,7 +47,8 @@ class GenomeDistanceCache(object):
 
         return d
 
-class DefaultSpeciesSet(DefaultClassConfig):
+
+class DefaultSpeciesSet:
     """ Encapsulates the default speciation scheme. """
 
     def __init__(self, config, reporters):
