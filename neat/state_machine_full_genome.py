@@ -10,14 +10,17 @@ class StateMachineFullGenome(StateMachineGenome):
     Furthermore this genome only works on fully connected state machines.
     """
 
-    def configure_new(self, config):
+    def configure_new(self, config, num_states=None):
         """" Create a fully connected state machine with given number of states. """
-        for i in range(config.num_initial_states):
+        if num_states is None:
+            num_states = config.num_initial_states
+
+        for i in range(num_states):
             self.states[i] = self.create_state(config, i)
 
         # Create a connection from and to everywhere
-        for i in range(config.num_initial_states):
-            for j in range(config.num_initial_states):
+        for i in range(num_states):
+            for j in range(num_states):
                 if i != j:
                     self.transitions[(i, j)] = self.create_transition(config, i, j)
 
