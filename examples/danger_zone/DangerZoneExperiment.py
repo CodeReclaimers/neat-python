@@ -15,7 +15,7 @@ class DangerZoneExperiment(SingleExperiment):
         self.exp_runner.render = True
 
         self.exp_runner.run(self.winner, self.learning_config)
-        self.exp_runner.env.produce_trajectory('trajectory' + str(self.exp_name) + '.png')
+        self.exp_runner.env.produce_trajectory(self.base_directory + 'trajectory' + str(self.exp_name) + '.png')
 
         self.exp_runner.render = False
 
