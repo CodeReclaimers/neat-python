@@ -41,7 +41,6 @@ class ReproductionStateMachineOnly(ReproductionMutationOnly):
         new_population = {}
 
         # TODO: if the max_num_states is reached and species is stagnated add species to best performing species
-        # TODO: Best performing species cannot disappear and stays at min_species_size
 
         # Get the best performing species
         best_performing_species = self.get_best_performing_species(remaining_species)
@@ -57,17 +56,18 @@ class ReproductionStateMachineOnly(ReproductionMutationOnly):
             spawn = len(species.members)
             spawned = 0
             species.members = {}  # Reset the set of species.
-
-            repro_cutoff = self.calculated_cutoff(len(old_members))
-            old_members = old_members[:repro_cutoff]
-
             children = {}
 
             # Transfer elites to new generation.
+            elites = []
             if self.reproduction_config.elitism > 0:
                 for i, m in old_members[:self.reproduction_config.elitism]:
                     children[i] = m
+                    elites.append(i)
                     spawned += 1
+
+            repro_cutoff = self.calculated_cutoff(len(old_members))
+            old_members = old_members[:repro_cutoff]
 
             # Generate the new children.
             for _ in range(spawn - spawned):
@@ -75,26 +75,34 @@ class ReproductionStateMachineOnly(ReproductionMutationOnly):
                 children[gid] = child
 
             # If the current species is stagnant add a state to 1/2 of the state's population.
-            if stagnant and species.key < self.reproduction_config.max_num_states:
+            if stagnant:
+
                 updated_children = math.floor(spawn / 2)
+                spawn_all = False
 
-                if spawn - updated_children < self.reproduction_config.min_species_size:
-
-                    print('Ohh.. all children are updated -------------------------------------')
+                if spawn - updated_children <= self.reproduction_config.min_species_size:
                     # If species becomes to small and is not the best performing species, upgrade all.
-                    updated_children = spawn
+                    spawn_all = True
 
                 for gid in children:
-                    children[gid].mutate_add_state(config.genome_config)
 
-                    updated_children -= 1
-                    if updated_children == 0:
-                        break
+                    if (updated_children > 0 and gid not in elites) or spawn_all:
+                        self.update_child(gid, children, species, config, best_performing_species)
+                        updated_children -= 1
 
             new_population.update(children)
 
         assert len(new_population) == pop_size
         return new_population
+
+    def update_child(self, gid, children, species, config, best_performing_species):
+        # If the species has to much reproduction, then create a new child with as number of states,
+        # so much as the best performing species.
+        if species.key >= self.reproduction_config.max_num_states:
+            children[gid] = config.genome_type(gid)
+            children[gid].configure_new(config.genome_config, best_performing_species)
+        else:
+            children[gid].mutate_add_state(config.genome_config)
 
     @staticmethod
     def get_best_performing_species(remaining_species):

@@ -62,7 +62,7 @@ class StateMachineGenomeFixed(StateMachineGenome):
             for key, transition in genome.transitions.items():
                 self.transitions[key] = transition.copy()
 
-            assert len(self.transitions) == 1
+            assert len(self.transitions) == len(genome.transitions)
 
         elif config.fixed_section == 'layout':
             # Randomly initialise the given states and
