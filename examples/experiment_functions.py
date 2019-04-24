@@ -1,3 +1,5 @@
+from subprocess import CalledProcessError
+
 from gym_multi_robot import visualize
 
 import neat
@@ -15,6 +17,7 @@ class ExperimentRunner:
         self.num_steps = num_steps
         self.controller_class = controller_class
         self.render = render
+        self.controller = None
 
     def run_multiple_trails(self, genome, config, num_trails):
         """ This function runs multiple trials with the same genome and environment.
@@ -32,14 +35,14 @@ class ExperimentRunner:
             Should be implemented by the subclasses with an implementation of how to run.
             Returned should be the fitness of swarm behaviour, as indicated by the environment.
         """
-        controller = self.controller_class()
-        controller.reset(genome, config)
+        self.controller = self.controller_class()
+        self.controller.reset(genome, config)
         observation = self.env.reset()
         fitness = 0
 
         for i in range(self.num_steps):
 
-            output = controller.step(observation)
+            output = self.controller.step(observation)
             observation, fitness, done, _ = self.env.step(output)
 
             self.check_render()
@@ -65,15 +68,15 @@ class SwarmExperimentRunner(ExperimentRunner):
         observations = self.env.reset()
 
         # Spawn as many controllers as there are observations.
-        controllers = [self.controller_class() for _ in range(len(observations))]
+        self.controller = [self.controller_class() for _ in range(len(observations))]
 
         # Reset all controllers with the genome and config.
-        for controller in controllers:
+        for controller in self.controller:
             controller.reset(genome, config)
 
         for i in range(self.num_steps):
 
-            output = [controllers[i].step(observations[i]) for i in range(len(observations))]
+            output = [self.controller[i].step(observations[i]) for i in range(len(observations))]
             observations, _, done, _ = self.env.step(output)
 
             self.check_render()
@@ -138,4 +141,31 @@ class StateMachineController(SimulationController):
 
     @classmethod
     def draw(cls, genome, config, file_name):
-        visualize.draw_state_machine(config, genome, filename=file_name)
+        try:
+            visualize.draw_state_machine(config, genome, filename=file_name)
+        except CalledProcessError:
+            print('State machine graph failed, continuing without producing graph.')
+
+
+class LoggingStateMachineController(StateMachineController):
+    """ This class logs the usage of different states. This means that it keeps a dictionary which counts the number
+        of times the robot is in one state.
+    """
+
+    def __init__(self):
+        super(LoggingStateMachineController, self).__init__()
+        self.state_logger = dict()
+
+    def reset(self, genome, config):
+        super(LoggingStateMachineController, self).reset(genome, config)
+        self.state_logger = dict()
+
+    def step(self, observation):
+        actions = super(LoggingStateMachineController, self).step(observation)
+
+        # Keep a log of the state the robot is in.
+        if self.current_state not in self.state_logger:
+            self.state_logger[self.current_state] = 0
+        self.state_logger[self.current_state] += 1
+
+        return actions
