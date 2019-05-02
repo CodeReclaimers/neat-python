@@ -13,3 +13,4 @@ species_fitness.csv
 *.pyo
 __pycache__/
 *stats*.dat*
+.idea/
