@@ -126,7 +126,7 @@ class StateMachineController(SimulationController):
     """
 
     def __init__(self):
-        super().__init__()
+        SimulationController.__init__(self)
         self.current_state = 0
 
     def reset(self, genome, config):
@@ -153,15 +153,15 @@ class LoggingStateMachineController(StateMachineController):
     """
 
     def __init__(self):
-        super(LoggingStateMachineController, self).__init__()
+        StateMachineController.__init__(self)
         self.state_logger = dict()
 
     def reset(self, genome, config):
-        super(LoggingStateMachineController, self).reset(genome, config)
+        StateMachineController.reset(self, genome, config)
         self.state_logger = dict()
 
     def step(self, observation):
-        actions = super(LoggingStateMachineController, self).step(observation)
+        actions = StateMachineController.step(self, observation)
 
         # Keep a log of the state the robot is in.
         if self.current_state not in self.state_logger:

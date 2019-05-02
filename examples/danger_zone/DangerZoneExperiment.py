@@ -10,7 +10,7 @@ class DangerZoneExperiment(SingleExperiment):
     """
 
     def output_winner(self):
-        super().output_winner()
+        SingleExperiment.output_winner(self)
 
         self.exp_runner.render = True
 
@@ -32,8 +32,9 @@ class WorstChangeKeeperExperimentRunner(ExperimentRunner):
     """
 
     def __init__(self, gym_environment, num_steps, controller_class):
-        super().__init__(gym_environment, num_steps, controller_class)
+        ExperimentRunner.__init__(gym_environment, num_steps, controller_class)
 
+        ExperimentRunner.__init__(self, gym_environment, num_steps, controller_class)
         print("Initialised this one.")
         self.worst_observation_pair = None
 

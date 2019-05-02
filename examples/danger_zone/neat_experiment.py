@@ -11,13 +11,12 @@ import gym
 
 from examples.danger_zone.DangerZoneExperiment import DangerZoneExperiment
 from examples.experiment_functions import ExperimentRunner, FeedForwardNetworkController
-from examples.experiment_template import SingleExperiment
 
 # Important variables.
 experiment_name = 'NEAT'
 num_steps = 150
 num_generations = 100
-num_runs = 1
+num_runs = 5
 num_trials = 1
 config_name = 'config-feedforward'
 
@@ -35,7 +34,7 @@ if __name__ == '__main__':
                          config_path)
 
     # Create and run experiment.
-    experiment = DangerZoneExperiment(config, runner, num_generations, experiment_name, num_trials)
+    experiment = DangerZoneExperiment(config, runner, num_generations, experiment_name, num_trials, 'results/NEAT/')
 
     for i in range(num_runs):
         experiment.run(experiment_name + str(i))

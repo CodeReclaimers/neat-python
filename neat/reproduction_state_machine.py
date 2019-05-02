@@ -108,7 +108,7 @@ class ReproductionStateMachineOnly(ReproductionMutationOnly):
     def get_best_performing_species(remaining_species):
         """ This function returns the index of the best performing species in the species list. """
         best_performing_species = -1
-        best_fitness = -math.inf
+        best_fitness = -float('inf')
         for remaining_species in remaining_species:
             if remaining_species.fitness > best_fitness:
                 best_performing_species = remaining_species.key

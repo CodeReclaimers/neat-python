@@ -12,12 +12,12 @@ class AttributedAttribute(BaseAttribute):
     """
 
     def __init__(self, name, added_attribute, **default_dict):
-        super().__init__(name, **default_dict)
+        BaseAttribute.__init__(self, name, **default_dict)
         self.additional_attribute = added_attribute
 
     def get_config_params(self):
         # Override get_config_parameters to also get parameters of condition element.
-        parameters = super().get_config_params()
+        parameters = BaseAttribute.get_config_params(self)
         parameters.extend(self.additional_attribute.get_config_params())
         return parameters
 
@@ -30,7 +30,7 @@ class BiasesAttribute(AttributedAttribute):
     _config_items = {}
 
     def __init__(self, name, **default_dict):
-        super().__init__(name, FloatAttribute('bias'), **default_dict)
+        AttributedAttribute.__init__(self, name, FloatAttribute('bias'), **default_dict)
 
     def init_value(self, config):
         # Row with a bias for each output value.
@@ -44,7 +44,7 @@ class WeightsAttribute(AttributedAttribute):
     _config_items = {}
 
     def __init__(self, name, **default_dict):
-        super().__init__(name, FloatAttribute('weight'), **default_dict)
+        AttributedAttribute.__init__(self, name, FloatAttribute('weight'), **default_dict)
 
     def init_value(self, config):
         return np.array([[self.get_attr().init_value(config) for _ in range(config.num_inputs)]
@@ -65,7 +65,7 @@ class ConditionAttribute(AttributedAttribute):
                      }
 
     def __init__(self, name, **default_dict):
-        super().__init__(name, FloatAttribute('condition_comparator'), **default_dict)
+        AttributedAttribute.__init__(self, name, FloatAttribute('condition_comparator'), **default_dict)
 
     def init_value(self, config):
         input_sensor = randrange(0, config.num_inputs)
@@ -107,7 +107,7 @@ class ConditionsAttribute(AttributedAttribute):
                      "remove_condition_prob": [float, None]}
 
     def __init__(self, name, **default_dict):
-        super().__init__(name, ConditionAttribute('condition'), **default_dict)
+        AttributedAttribute.__init__(self, name, ConditionAttribute('condition'), **default_dict)
 
     def init_value(self, config):
         return [self.get_attr().init_value(config)]

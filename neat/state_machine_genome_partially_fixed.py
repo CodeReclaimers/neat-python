@@ -18,7 +18,7 @@ Fixing the states or the transitions automatically means fixing the layout.
 class StateMachineGenomeFixedConfig(StateMachineGenomeConfig):
 
     def __init__(self, params):
-        super().__init__(params)
+        StateMachineGenomeConfig.__init__(self, params)
 
         additional_params = [ConfigParameter('genome_source', str),
                              ConfigParameter('fixed_section', str)]
@@ -91,4 +91,4 @@ class StateMachineGenomeFixed(StateMachineGenome):
         """ Override mutate_transitions to prevent transition mutations if that section is fixed."""
         if config.fixed_section not in ['transitions', 'layout']:
             # Only allow to mutate transitions if the number of states is fixed.
-            super().mutate_transitions(config)
+            StateMachineGenome.mutate_transitions(self, config)

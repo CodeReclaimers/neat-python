@@ -65,7 +65,8 @@ class SingleExperiment:
         net_filename = self.base_directory + 'graph_winner' + str(self.exp_name)
         genome_filename = self.base_directory + 'winner' + str(self.exp_name)
 
-        self.exp_runner.draw(self.winner, self.learning_config, net_filename)
+        if self.exp_runner is not None:
+            self.exp_runner.draw(self.winner, self.learning_config, net_filename)
 
         ObjectSerializer.serialize(self.winner, genome_filename)
 
