@@ -66,9 +66,9 @@ class StateMachineNetwork(object):
         """ Receives a genome and returns its phenotype (a state machine of neural networks). """
 
         network_states = []
-        aggregation_function = config.aggregation_function_defs.get(config.aggregation)
-        activation_function = config.activation_defs.get(config.activation)
         for _, state in genome.states.items():
+            aggregation_function = config.aggregation_function_defs.get(state.aggregation)
+            activation_function = config.activation_defs.get(state.activation)
 
             network_state = State(state.key, aggregation_function, activation_function)
             network_state.set_biases(state.biases)
@@ -170,3 +170,11 @@ class Condition(object):
     @staticmethod
     def random_operator():
         return choice(list(Condition.ops))
+
+    @staticmethod
+    def op_to_int(op):
+        return Condition.ops.index(op)
+
+    @staticmethod
+    def int_to_op(index):
+        return Condition.ops[index]

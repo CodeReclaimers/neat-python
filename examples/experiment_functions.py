@@ -1,8 +1,7 @@
 from subprocess import CalledProcessError
 
 from gym_multi_robot import visualize
-
-import neat
+from neat.nn.feed_forward import FeedForwardNetwork
 from neat.state_machine_network import StateMachineNetwork
 
 
@@ -110,7 +109,7 @@ class FeedForwardNetworkController(SimulationController):
     """ This class calculates the next actions based on a feed forward network."""
 
     def reset(self, genome, config):
-        self.net = neat.nn.FeedForwardNetwork.create(genome, config)
+        self.net = FeedForwardNetwork.create(genome, config)
 
     def step(self, observation):
         return self.net.activate(observation)

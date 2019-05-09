@@ -2,7 +2,7 @@ import copy
 
 import numpy as np
 
-from neat.attributes import BoolAttribute
+from neat.attributes import BoolAttribute, StringAttribute
 
 from neat.genes import BaseGene
 from neat.state_machine_attributes import ConditionsAttribute, BiasesAttribute, WeightsAttribute
@@ -12,7 +12,9 @@ class StateGene(BaseGene):
     """" Class representing the gene of a state in the state machine. """
 
     _gene_attributes = [BiasesAttribute('biases'),
-                        WeightsAttribute('weights')]
+                        WeightsAttribute('weights'),
+                        StringAttribute('activation'),
+                        StringAttribute('aggregation')]
 
     def __init__(self, key):
         assert isinstance(key, int), "StateGene key must be an int, not {!r}".format(key)
@@ -32,6 +34,8 @@ class StateGene(BaseGene):
         state = StateGene(self.key)
         state.biases = np.array(self.biases)
         state.weights = np.array(self.weights)
+        state.activation = self.activation
+        state.aggregation = self.aggregation
 
         return state
 
