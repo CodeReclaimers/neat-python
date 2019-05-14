@@ -52,11 +52,13 @@ class SingleExperiment:
         p.add_reporter(self.stats)
 
         # Run experiments
-        self.winner = p.run(self.eval_genomes, self.num_generations)
+        try:
+            self.winner = p.run(self.eval_genomes, self.num_generations)
+        finally:
+            self.winner = p.best_genome
 
-        # Output results and statistics.
-        self.output_stats()
-        self.output_winner()
+            self.output_stats()
+            self.output_winner()
 
     def output_winner(self):
         """This function outputs the current winner in graph and in pickle file."""
