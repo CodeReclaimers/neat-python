@@ -1,0 +1,3 @@
+python neat_experiment.py danger-zone-2D-v0 danger_zone_2d/
+python sm_experiment.py danger-zone-2D-v0 danger_zone_2d/
+python sm_experiment_new.py danger-zone-2D-v0 danger_zone_2d/

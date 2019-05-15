@@ -266,7 +266,6 @@ class DefaultGenome(object):
 
     def mutate(self, config):
         """ Mutates this genome. """
-
         if config.single_structural_mutation:
             div = max(1,(config.node_add_prob + config.node_delete_prob +
                          config.conn_add_prob + config.conn_delete_prob))

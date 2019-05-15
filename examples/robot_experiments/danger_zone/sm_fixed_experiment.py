@@ -7,7 +7,7 @@ import os
 import neat
 import gym
 
-from examples.danger_zone.DangerZoneExperiment import DangerZoneExperiment
+from examples.robot_experiments import gym_robot_experiment
 from examples.experiment_functions import ExperimentRunner, StateMachineController
 
 # Important variables.
@@ -32,7 +32,7 @@ if __name__ == '__main__':
                          neat.DefaultReproduction, neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
 
     # Create and run experiment.
-    experiment = DangerZoneExperiment(config, runner, num_generations, experiment_name, num_trails,
+    experiment = gym_robot_experiment(config, runner, num_generations, experiment_name, num_trails,
                                       'results/SM_fixed_layout/')
 
     for i in range(num_runs):

@@ -54,11 +54,14 @@ class SingleExperiment:
         # Run experiments
         try:
             self.winner = p.run(self.eval_genomes, self.num_generations)
+        except Exception:
+            raise
         finally:
             self.winner = p.best_genome
 
             self.output_stats()
             self.output_winner()
+
 
     def output_winner(self):
         """This function outputs the current winner in graph and in pickle file."""

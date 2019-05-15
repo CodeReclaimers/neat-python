@@ -1,0 +1,84 @@
+#--- parameters for the cartpole experiment ---#
+
+[NEAT]
+fitness_criterion     = max
+fitness_threshold     = 100000
+pop_size              = 100
+reset_on_extinction   = False
+
+[StateMachineFullGenome]
+# node activation options
+activation              = sigmoid
+aggregation             = sum
+
+# node bias options
+bias_init_mean          = 0.0
+bias_init_stdev         = 1.0
+bias_max_value          = 1.0
+bias_min_value          = -1.0
+bias_mutate_power       = 0.5
+bias_mutate_rate        = 0.7
+bias_replace_rate       = 0.1
+
+# connection add/remove rates
+### No states are added or removed.
+state_add_prob           = 0.05
+state_delete_prob        = 0.05
+
+# connection enable options
+enabled_default         = True
+enabled_mutate_rate     = 0.01
+
+feed_forward            = True
+initial_connection      = full
+
+# transition add/remove rates
+transition_add_prob     = 0.05
+transition_delete_prob  = 0.05
+
+# network parameters
+num_initial_states      = 1
+num_inputs              = 2
+num_outputs             = 2
+max_num_states          = 5
+
+# connection weight options
+weight_init_mean        = 0.0
+weight_init_stdev       = 2.0
+weight_max_value        = 2
+weight_min_value        = -2
+weight_mutate_power     = 0.5
+weight_mutate_rate      = 0.8
+weight_replace_rate     = 0.1
+
+# Compatibility coefficients
+compatibility_disjoint_coefficient = 0.5
+compatibility_difference_coefficient = 0.5
+
+# Conditions options
+conditions_add_condition_prob    = 0.2
+conditions_remove_condition_prob = 0.1
+condition_mutate_comp_prob       = 0.5
+condition_mutate_input_prob      = 0.5
+
+condition_comparator_init_type        = uniform
+condition_comparator_init_mean        = 50.0
+condition_comparator_init_stdev       = 50.0
+condition_comparator_max_value        = 100.0
+condition_comparator_min_value        = 0.0
+condition_comparator_mutate_power     = 0.5
+condition_comparator_mutate_rate      = 0.8
+condition_comparator_replace_rate     = 0.1
+
+[StateSeparatedSpeciesSet]
+
+[MarkAllStagnation]
+species_fitness_func = max
+stagnation_split_interval       = 5
+
+[ReproductionStateMachineOnly]
+elitism            = 2
+survival_threshold = 0.2
+min_species_size   = 10
+max_num_states     = 5
+

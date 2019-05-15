@@ -1,0 +1,3 @@
+python examples/robot_experiments/neat_experiment.py danger-zone-v0 danger_zone/
+python examples/robot_experiments/sm_experiment.py danger-zone-v0 danger_zone/
+python examples/robot_experiments/sm_experiment_new.py danger-zone-v0 danger_zone/

@@ -4,7 +4,7 @@ from examples.experiment_functions import ExperimentRunner
 from examples.experiment_template import SingleExperiment
 
 
-class DangerZoneExperiment(SingleExperiment):
+class GymRobotExperiment(SingleExperiment):
     """ This class adds the custom functions that need to be applied in a danger zone experiment.
         In this case this is the plotting of the trajectory.
     """
