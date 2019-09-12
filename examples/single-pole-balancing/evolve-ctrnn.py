@@ -1,6 +1,6 @@
-'''
+"""
 Single-pole balancing experiment using a continuous-time recurrent neural network (CTRNN).
-'''
+"""
 
 from __future__ import print_function
 

@@ -1,6 +1,6 @@
-'''
+"""
 General settings and implementation of the single-pole cart system dynamics.
-'''
+"""
 
 from math import cos, pi, sin
 import random
@@ -41,11 +41,11 @@ class CartPole(object):
         self.tacc = 0.0
 
     def step(self, force):
-        '''
+        """
         Update the system state using leapfrog integration.
             x_{i+1} = x_i + v_i * dt + 0.5 * a_i * dt^2
             v_{i+1} = v_i + 0.5 * (a_i + a_{i+1}) * dt
-        '''
+        """
         # Locals for readability.
         g = self.gravity
         mp = self.mpole
@@ -80,7 +80,7 @@ class CartPole(object):
         self.t += dt
 
     def get_scaled_state(self):
-        '''Get full state, scaled into (approximately) [0, 1].'''
+        """Get full state, scaled into (approximately) [0, 1]."""
         return [0.5 * (self.x + self.position_limit) / self.position_limit,
                 (self.dx + 0.75) / 1.5,
                 0.5 * (self.theta + self.angle_limit_radians) / self.angle_limit_radians,

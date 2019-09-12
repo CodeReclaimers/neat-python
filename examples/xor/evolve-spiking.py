@@ -17,7 +17,7 @@ max_time_msec = 20.0
 
 
 def compute_output(t0, t1):
-    '''Compute the network's output based on the "time to first spike" of the two output neurons.'''
+    """Compute the network's output based on the "time to first spike" of the two output neurons."""
     if t0 is None or t1 is None:
         # If neither of the output neurons fired within the allotted time,
         # give a response which produces a large error.
