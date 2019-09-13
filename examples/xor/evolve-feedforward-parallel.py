@@ -16,13 +16,11 @@ or inherit from ParallelEvaluator if you need to do something more complicated.
 
 from __future__ import print_function
 
-import math
 import os
-import time
-
-import neat
 
 import visualize
+
+import neat
 
 # 2-input XOR inputs and expected outputs.
 xor_inputs = [(0.0, 0.0), (0.0, 1.0), (1.0, 0.0), (1.0, 1.0)]

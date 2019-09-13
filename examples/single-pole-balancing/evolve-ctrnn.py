@@ -10,7 +10,6 @@ import pickle
 import cart_pole
 
 import neat
-from neat.math_util import mean
 import visualize
 
 runs_per_net = 5

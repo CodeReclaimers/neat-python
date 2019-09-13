@@ -179,7 +179,7 @@ class _ExtendedManager(object):
         self.authkey = authkey
         self.mode = _determine_mode(addr, mode)
         self.manager = None
-        self._secondary_state= multiprocessing.managers.Value(int, _STATE_RUNNING)
+        self._secondary_state = multiprocessing.managers.Value(int, _STATE_RUNNING)
         if start:
             self.start()
 

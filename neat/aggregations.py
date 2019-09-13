@@ -3,16 +3,12 @@ Has the built-in aggregation functions, code for using them,
 and code for adding new user-defined ones.
 """
 
-import sys
 import types
 import warnings
-
+from functools import reduce
 from operator import mul
 
 from neat.math_util import mean, median2
-
-if sys.version_info[0] > 2:
-    from functools import reduce
 
 
 def product_aggregation(x):  # note: `x` is a list or other iterable

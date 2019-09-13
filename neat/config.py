@@ -3,11 +3,7 @@ from __future__ import print_function
 
 import os
 import warnings
-
-try:
-    from configparser import ConfigParser
-except ImportError:
-    from ConfigParser import SafeConfigParser as ConfigParser
+from configparser import ConfigParser
 
 from neat.six_util import iterkeys
 

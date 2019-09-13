@@ -1,6 +1,7 @@
-import sys
 import unittest
+
 from neat.reproduction import DefaultReproduction
+
 
 class TestSpawnComputation(unittest.TestCase):
     def test_spawn_adjust1(self):
@@ -40,12 +41,7 @@ class TestSpawnComputation(unittest.TestCase):
         self.assertEqual(spawn, [25, 15])
 
         spawn = DefaultReproduction.compute_spawn(adjusted_fitness, spawn, pop_size, min_species_size)
-        # NOTE: Due to changes in round() between 2.x and 3.x, this test case
-        # has slightly different results based on the Python version.
-        if sys.version_info[0] == 3:
-            self.assertEqual(spawn, [23, 17])
-        else:
-            self.assertEqual(spawn, [22, 18])
+        self.assertEqual(spawn, [23, 17])
 
         spawn = DefaultReproduction.compute_spawn(adjusted_fitness, spawn, pop_size, min_species_size)
         self.assertEqual(spawn, [21, 19])
