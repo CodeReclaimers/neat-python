@@ -24,6 +24,7 @@ def test_network():
     net.advance(0.25)
     net.advance(0.25)
 
+
 # # TODO: Update this test to work with the current implementation.
 # # def test_iznn_evolve():
 # #     """This is a stripped-down copy of the XOR2 spiking example."""

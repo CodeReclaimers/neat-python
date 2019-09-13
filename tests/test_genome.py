@@ -11,6 +11,7 @@ from neat.six_util import iterkeys
 
 class TestCreateNew(unittest.TestCase):
     """Tests using unittest."""
+
     def setUp(self):
         """
         Determine path to configuration file. This path manipulation is
@@ -24,8 +25,8 @@ class TestCreateNew(unittest.TestCase):
                                   config_path)
         config2_path = os.path.join(local_dir, 'test_configuration2')
         self.config2 = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
-                                  neat.DefaultSpeciesSet, neat.DefaultStagnation,
-                                  config2_path)
+                                   neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                                   config2_path)
 
     def test_unconnected_no_hidden(self):
         """Unconnected network with only input and output nodes."""
@@ -40,7 +41,7 @@ class TestCreateNew(unittest.TestCase):
 
         print(g)
         self.assertEqual(set(iterkeys(g.nodes)), {0})
-        assert(not g.connections)
+        assert (not g.connections)
 
     def test_unconnected_hidden(self):
         """Unconnected network with hidden nodes."""
@@ -55,7 +56,7 @@ class TestCreateNew(unittest.TestCase):
 
         print(g)
         self.assertEqual(set(iterkeys(g.nodes)), {0, 1, 2})
-        assert(not g.connections)
+        assert (not g.connections)
 
     def test_fs_neat_no_hidden(self):
         """
@@ -88,7 +89,7 @@ class TestCreateNew(unittest.TestCase):
         g = neat.DefaultGenome(gid)
         self.assertEqual(gid, g.key)
         print("\nThis should output a warning:", file=sys.stderr)
-        g.configure_new(config) # TODO: Test for emitted warning
+        g.configure_new(config)  # TODO: Test for emitted warning
 
         print(g)
         self.assertEqual(set(iterkeys(g.nodes)), {0, 1, 2})
@@ -144,7 +145,7 @@ class TestCreateNew(unittest.TestCase):
 
         # Check that each input is connected to the output node
         for i in config.input_keys:
-            assert((i, 0) in g.connections)
+            assert ((i, 0) in g.connections)
 
     def test_fully_connected_hidden_nodirect_old(self):
         """
@@ -159,7 +160,7 @@ class TestCreateNew(unittest.TestCase):
         g = neat.DefaultGenome(gid)
         self.assertEqual(gid, g.key)
         print("\nThis should output a warning:", file=sys.stderr)
-        g.configure_new(config) # TODO: Test for emitted warning
+        g.configure_new(config)  # TODO: Test for emitted warning
 
         print(g)
         self.assertEqual(set(iterkeys(g.nodes)), {0, 1, 2})
@@ -168,15 +169,15 @@ class TestCreateNew(unittest.TestCase):
         # Check that each input is connected to each hidden node.
         for i in config.input_keys:
             for h in (1, 2):
-                assert((i, h) in g.connections)
+                assert ((i, h) in g.connections)
 
         # Check that each hidden node is connected to the output.
         for h in (1, 2):
-            assert((h, 0) in g.connections)
+            assert ((h, 0) in g.connections)
 
         # Check that inputs are not directly connected to the output
         for i in config.input_keys:
-            assert((i, 0) not in g.connections)
+            assert ((i, 0) not in g.connections)
 
     def test_fully_connected_hidden_nodirect(self):
         """full with no direct input-output connections, only via hidden nodes."""
@@ -196,15 +197,15 @@ class TestCreateNew(unittest.TestCase):
         # Check that each input is connected to each hidden node.
         for i in config.input_keys:
             for h in (1, 2):
-                assert((i, h) in g.connections)
+                assert ((i, h) in g.connections)
 
         # Check that each hidden node is connected to the output.
         for h in (1, 2):
-            assert((h, 0) in g.connections)
+            assert ((h, 0) in g.connections)
 
         # Check that inputs are not directly connected to the output
         for i in config.input_keys:
-            assert((i, 0) not in g.connections)
+            assert ((i, 0) not in g.connections)
 
     def test_fully_connected_hidden_direct(self):
         """full with direct input-output connections (and also via hidden hodes)."""
@@ -224,15 +225,15 @@ class TestCreateNew(unittest.TestCase):
         # Check that each input is connected to each hidden node.
         for i in config.input_keys:
             for h in (1, 2):
-                assert((i, h) in g.connections)
+                assert ((i, h) in g.connections)
 
         # Check that each hidden node is connected to the output.
         for h in (1, 2):
-            assert((h, 0) in g.connections)
+            assert ((h, 0) in g.connections)
 
         # Check that inputs are directly connected to the output
         for i in config.input_keys:
-            assert((i, 0) in g.connections)
+            assert ((i, 0) in g.connections)
 
     def test_partially_connected_no_hidden(self):
         """
@@ -267,7 +268,7 @@ class TestCreateNew(unittest.TestCase):
         g = neat.DefaultGenome(gid)
         self.assertEqual(gid, g.key)
         print("\nThis should output a warning:", file=sys.stderr)
-        g.configure_new(config) # TODO: Test for emitted warning
+        g.configure_new(config)  # TODO: Test for emitted warning
 
         print(g)
         self.assertEqual(set(iterkeys(g.nodes)), {0, 1, 2})
@@ -307,6 +308,7 @@ class TestCreateNew(unittest.TestCase):
         print(g)
         self.assertEqual(set(iterkeys(g.nodes)), {0, 1, 2})
         self.assertLess(len(g.connections), 8)
+
 
 if __name__ == '__main__':
     unittest.main()

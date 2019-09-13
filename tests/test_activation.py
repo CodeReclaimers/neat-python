@@ -44,9 +44,9 @@ def test_relu():
 
 
 def test_softplus():
-    assert_almost_equal(activations.softplus_activation(-5.0),0.0)
+    assert_almost_equal(activations.softplus_activation(-5.0), 0.0)
     assert 0.0 < activations.softplus_activation(0.0) < 0.25
-    assert_almost_equal(activations.softplus_activation(5.0),5.0)
+    assert_almost_equal(activations.softplus_activation(5.0), 5.0)
 
 
 def test_identity():
@@ -105,9 +105,11 @@ def test_cube():
     assert activations.cube_activation(0.5) == 0.125
     assert activations.cube_activation(1.0) == 1.0
 
+
 def plus_activation(x):
     """ Not useful - just a check. """
-    return abs(x+1)
+    return abs(x + 1)
+
 
 def test_add_plus():
     local_dir = os.path.dirname(__file__)
@@ -119,8 +121,10 @@ def test_add_plus():
     assert config.genome_config.activation_defs.get('plus') is not None
     assert config.genome_config.activation_defs.is_valid('plus')
 
+
 def dud_function():
     return 0.0
+
 
 def test_function_set():
     s = activations.ActivationFunctionSet()
@@ -162,19 +166,21 @@ def test_function_set():
 
     assert not s.is_valid('foo')
 
+
 def test_bad_add1():
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'test_configuration')
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_path)
-    
+
     try:
-        config.genome_config.add_activation('1.0',1.0)
+        config.genome_config.add_activation('1.0', 1.0)
     except TypeError:
         pass
     else:
         raise Exception("Should have had a TypeError/derived for 'function' 1.0")
+
 
 def test_bad_add2():
     local_dir = os.path.dirname(__file__)
@@ -182,13 +188,14 @@ def test_bad_add2():
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_path)
-    
+
     try:
-        config.genome_config.add_activation('dud_function',dud_function)
+        config.genome_config.add_activation('dud_function', dud_function)
     except TypeError:
         pass
     else:
         raise Exception("Should have had a TypeError/derived for dud_function")
+
 
 if __name__ == '__main__':
     test_sigmoid()
@@ -206,4 +213,3 @@ if __name__ == '__main__':
     test_hat()
     test_square()
     test_cube()
-

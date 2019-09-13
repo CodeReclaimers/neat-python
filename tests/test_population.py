@@ -122,7 +122,5 @@ class PopulationTests(unittest.TestCase):
 #     # assert id(pop.statistics.generation_statistics) != id(pop2.statistics.generation_statistics)
 
 
-
-
 if __name__ == '__main__':
     pass

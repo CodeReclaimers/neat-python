@@ -1,7 +1,10 @@
 from __future__ import print_function
-#import os
 
 import neat
+
+
+# import os
+
 
 # TODO: These tests are just smoke tests to make sure nothing has become badly broken.  Expand
 # to include more detailed tests of actual functionality.
@@ -31,8 +34,8 @@ def test_softmax():
         for a, b in zip(test[1], results_list):
             assert_almost_equal(a, b)
 
-    #softmax_result = list(neat.math_util.softmax([1.0, 2.0, 3.0, 4.0, 1.0, 2.0, 3.0]))
-    #print("Softmax for [1, 2, 3, 4, 1, 2, 3] is {!r}".format(softmax_result))
+    # softmax_result = list(neat.math_util.softmax([1.0, 2.0, 3.0, 4.0, 1.0, 2.0, 3.0]))
+    # print("Softmax for [1, 2, 3, 4, 1, 2, 3] is {!r}".format(softmax_result))
 
 
 if __name__ == '__main__':

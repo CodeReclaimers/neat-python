@@ -1,6 +1,7 @@
-import neat
 import os
 import unittest
+
+import neat
 
 
 class ConfigTests(unittest.TestCase):
