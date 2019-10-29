@@ -5,7 +5,7 @@ in order to evaluate multiple genomes at once.
 from multiprocessing import Pool
 
 class ParallelEvaluator(object):
-    def __init__(self, num_workers, eval_function, timeout=None):
+    def __init__(self, num_workers, eval_function, timeout=None, maxtasksperchild=None):
         """
         eval_function should take one argument, a tuple of
         (genome object, config object), and return
@@ -14,7 +14,7 @@ class ParallelEvaluator(object):
         self.num_workers = num_workers
         self.eval_function = eval_function
         self.timeout = timeout
-        self.pool = Pool(num_workers)
+        self.pool = Pool(processes=num_workers, maxtasksperchild=maxtasksperchild)
 
     def __del__(self):
         self.pool.close() # should this be terminate?
