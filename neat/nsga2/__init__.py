@@ -17,7 +17,7 @@ from neat.math_util import mean
 # to become "cautious" and only make very slow progress.
 
 
-class DefaultReproduction(DefaultClassConfig):
+class NSGA2Reproduction(DefaultClassConfig):
     """
     Implements the default NEAT-python reproduction scheme:
     explicit fitness sharing with fixed-time species stagnation.

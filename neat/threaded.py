@@ -18,6 +18,7 @@ except ImportError:
     # pylint: disable=import-error
     import queue
 
+
 class ThreadedEvaluator(object):
     """
     A threaded genome evaluator.

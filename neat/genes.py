@@ -21,7 +21,7 @@ class BaseGene(object):
         return '{0}({1})'.format(self.__class__.__name__, ", ".join(attrib))
 
     def __lt__(self, other):
-        assert isinstance(self.key,type(other.key)), "Cannot compare keys {0!r} and {1!r}".format(self.key,other.key)
+        assert isinstance(self.key, type(other.key)), "Cannot compare keys {0!r} and {1!r}".format(self.key, other.key)
         return self.key < other.key
 
     @classmethod
@@ -35,7 +35,7 @@ class BaseGene(object):
             setattr(cls, '_gene_attributes', getattr(cls, '__gene_attributes__'))
             warnings.warn(
                 "Class '{!s}' {!r} needs '_gene_attributes' not '__gene_attributes__'".format(
-                    cls.__name__,cls),
+                    cls.__name__, cls),
                 DeprecationWarning)
         for a in cls._gene_attributes:
             params += a.get_config_params()

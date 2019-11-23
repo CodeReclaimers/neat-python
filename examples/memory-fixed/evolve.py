@@ -9,11 +9,13 @@ This example also demonstrates the use of a custom activation function.
 from __future__ import division, print_function
 
 import math
+import multiprocessing
 import os
 import random
 
-import neat
 import visualize
+
+import neat
 
 
 # Demonstration of how to add your own custom activation function.
@@ -26,10 +28,9 @@ def sinc(x):
 
 
 # N is the length of the test sequence.
-N = 3
+N = 4
 # num_tests is the number of random examples each network is tested against.
-num_tests = 2 ** (N+2)
-
+num_tests = 2 ** (N + 2)
 
 
 def eval_genome(genome, config):
@@ -81,12 +82,8 @@ def run():
     pop.add_reporter(stats)
     pop.add_reporter(neat.StdOutReporter(True))
 
-    if 1:
-        pe = neat.ParallelEvaluator(4, eval_genome)
-        winner = pop.run(pe.evaluate, 1000)
-    else:
-        winner = pop.run(eval_genomes, 1000)
-
+    pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), eval_genome)
+    winner = pop.run(pe.evaluate, 1000)
 
     # Log statistics.
     stats.save()
@@ -113,11 +110,12 @@ def run():
         print("OK" if correct else "FAIL")
         num_correct += 1 if correct else 0
 
-    print("{0} of {1} correct {2:.2f}%".format(num_correct, num_tests, num_correct/num_tests))
+    print("{0} of {1} correct {2:.2f}%".format(num_correct, num_tests, 100.0 * num_correct / num_tests))
 
     node_names = {-1: 'input', -2: 'gate', 0: 'output'}
     visualize.draw_net(config, winner, True, node_names=node_names)
     visualize.plot_stats(stats, ylog=False, view=True)
+    visualize.plot_species(stats, view=True)
 
 
 if __name__ == '__main__':

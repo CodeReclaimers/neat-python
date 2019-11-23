@@ -72,9 +72,9 @@ class DefaultGenomeConfig(object):
 
         # Verify structural_mutation_surer is valid.
         # pylint: disable=access-member-before-definition
-        if self.structural_mutation_surer.lower() in ['1','yes','true','on']:
+        if self.structural_mutation_surer.lower() in ['1', 'yes', 'true', 'on']:
             self.structural_mutation_surer = 'true'
-        elif self.structural_mutation_surer.lower() in ['0','no','false','off']:
+        elif self.structural_mutation_surer.lower() in ['0', 'no', 'false', 'off']:
             self.structural_mutation_surer = 'false'
         elif self.structural_mutation_surer.lower() == 'default':
             self.structural_mutation_surer = 'default'
@@ -104,7 +104,7 @@ class DefaultGenomeConfig(object):
         assert self.initial_connection in self.allowed_connectivity
 
         write_pretty_params(f, self, [p for p in self._params
-                                      if not 'initial_connection' in p.name])
+                                      if 'initial_connection' not in p.name])
 
     def get_new_node_key(self, node_dict):
         if self.node_indexer is None:
@@ -127,6 +127,7 @@ class DefaultGenomeConfig(object):
             error_string = "Invalid structural_mutation_surer {!r}".format(
                 self.structural_mutation_surer)
             raise RuntimeError(error_string)
+
 
 class DefaultGenome(object):
     """
@@ -232,8 +233,6 @@ class DefaultGenome(object):
 
     def configure_crossover(self, genome1, genome2, config):
         """ Configure a new genome by crossover from two parent genomes. """
-        assert isinstance(genome1.fitness, (int, float))
-        assert isinstance(genome2.fitness, (int, float))
         if genome1.fitness > genome2.fitness:
             parent1, parent2 = genome1, genome2
         else:
@@ -267,8 +266,8 @@ class DefaultGenome(object):
         """ Mutates this genome. """
 
         if config.single_structural_mutation:
-            div = max(1,(config.node_add_prob + config.node_delete_prob +
-                         config.conn_add_prob + config.conn_delete_prob))
+            div = max(1, (config.node_add_prob + config.node_delete_prob +
+                          config.conn_add_prob + config.conn_delete_prob))
             r = random()
             if r < (config.node_add_prob/div):
                 self.mutate_add_node(config)
@@ -526,7 +525,6 @@ class DefaultGenome(object):
                 connections.append((i, i))
 
         return connections
-
 
     def connect_full_nodirect(self, config):
         """
