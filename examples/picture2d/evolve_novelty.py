@@ -1,4 +1,4 @@
-from Pillow import Image
+from PIL import Image
 import os
 import random
 from multiprocessing import Pool

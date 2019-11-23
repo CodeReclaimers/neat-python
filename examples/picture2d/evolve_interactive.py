@@ -14,7 +14,6 @@ import pygame
 
 from multiprocessing import Pool
 import neat
-from neat.six_util import itervalues
 
 from common import eval_mono_image, eval_gray_image, eval_color_image
 
@@ -43,7 +42,7 @@ class InteractiveStagnation(object):
 
     def update(self, species_set, generation):
         result = []
-        for s in itervalues(species_set.species):
+        for s in species_set.species.values():
             # If any member of the species is selected (i.e., has a fitness above zero),
             # mark the species as improved.
             for m in s.members.values():
