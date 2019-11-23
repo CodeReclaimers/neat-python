@@ -12,7 +12,6 @@ from neat.aggregations import AggregationFunctionSet
 from neat.config import ConfigParameter, write_pretty_params
 from neat.genes import DefaultConnectionGene, DefaultNodeGene
 from neat.graphs import creates_cycle
-from neat.six_util import iteritems, iterkeys
 
 
 class DefaultGenomeConfig(object):
@@ -109,7 +108,7 @@ class DefaultGenomeConfig(object):
 
     def get_new_node_key(self, node_dict):
         if self.node_indexer is None:
-            self.node_indexer = count(max(list(iterkeys(node_dict))) + 1)
+            self.node_indexer = count(max(list(node_dict)) + 1)
 
         new_id = next(self.node_indexer)
 
@@ -241,7 +240,7 @@ class DefaultGenome(object):
             parent1, parent2 = genome2, genome1
 
         # Inherit connection genes
-        for key, cg1 in iteritems(parent1.connections):
+        for key, cg1 in parent1.connections.items():
             cg2 = parent2.connections.get(key)
             if cg2 is None:
                 # Excess or disjoint gene: copy from the fittest parent.
@@ -254,7 +253,7 @@ class DefaultGenome(object):
         parent1_set = parent1.nodes
         parent2_set = parent2.nodes
 
-        for key, ng1 in iteritems(parent1_set):
+        for key, ng1 in parent1_set.items():
             ng2 = parent2_set.get(key)
             assert key not in self.nodes
             if ng2 is None:
@@ -341,7 +340,7 @@ class DefaultGenome(object):
         Attempt to add a new connection, the only restriction being that the output
         node cannot be one of the network input pins.
         """
-        possible_outputs = list(iterkeys(self.nodes))
+        possible_outputs = list(self.nodes)
         out_node = choice(possible_outputs)
 
         possible_inputs = possible_outputs + config.input_keys
@@ -363,7 +362,7 @@ class DefaultGenome(object):
         # they cannot be the output end of a connection (see above).
 
         # For feed-forward networks, avoid creating cycles.
-        if config.feed_forward and creates_cycle(list(iterkeys(self.connections)), key):
+        if config.feed_forward and creates_cycle(list(self.connections), key):
             return
 
         cg = self.create_connection(config, in_node, out_node)
@@ -371,14 +370,14 @@ class DefaultGenome(object):
 
     def mutate_delete_node(self, config):
         # Do nothing if there are no non-output nodes.
-        available_nodes = [k for k in iterkeys(self.nodes) if k not in config.output_keys]
+        available_nodes = [k for k in self.nodes if k not in config.output_keys]
         if not available_nodes:
             return -1
 
         del_key = choice(available_nodes)
 
         connections_to_delete = set()
-        for k, v in iteritems(self.connections):
+        for k, v in self.connections.items():
             if del_key in v.key:
                 connections_to_delete.add(v.key)
 
@@ -404,11 +403,11 @@ class DefaultGenome(object):
         node_distance = 0.0
         if self.nodes or other.nodes:
             disjoint_nodes = 0
-            for k2 in iterkeys(other.nodes):
+            for k2 in other.nodes:
                 if k2 not in self.nodes:
                     disjoint_nodes += 1
 
-            for k1, n1 in iteritems(self.nodes):
+            for k1, n1 in self.nodes.items():
                 n2 = other.nodes.get(k1)
                 if n2 is None:
                     disjoint_nodes += 1
@@ -425,11 +424,11 @@ class DefaultGenome(object):
         connection_distance = 0.0
         if self.connections or other.connections:
             disjoint_connections = 0
-            for k2 in iterkeys(other.connections):
+            for k2 in other.connections:
                 if k2 not in self.connections:
                     disjoint_connections += 1
 
-            for k1, c1 in iteritems(self.connections):
+            for k1, c1 in self.connections.items():
                 c2 = other.connections.get(k1)
                 if c2 is None:
                     disjoint_connections += 1
@@ -455,7 +454,7 @@ class DefaultGenome(object):
 
     def __str__(self):
         s = "Key: {0}\nFitness: {1}\nNodes:".format(self.key, self.fitness)
-        for k, ng in iteritems(self.nodes):
+        for k, ng in self.nodes.items():
             s += "\n\t{0} {1!s}".format(k, ng)
         s += "\nConnections:"
         connections = list(self.connections.values())
@@ -493,7 +492,7 @@ class DefaultGenome(object):
         (FS-NEAT with connections to hidden, if any).
         """
         input_id = choice(config.input_keys)
-        others = [i for i in iterkeys(self.nodes) if i not in config.input_keys]
+        others = [i for i in self.nodes if i not in config.input_keys]
         for output_id in others:
             connection = self.create_connection(config, input_id, output_id)
             self.connections[connection.key] = connection
@@ -506,8 +505,8 @@ class DefaultGenome(object):
         each hidden node connected to all output nodes.
         (Recurrent genomes will also include node self-connections.)
         """
-        hidden = [i for i in iterkeys(self.nodes) if i not in config.output_keys]
-        output = [i for i in iterkeys(self.nodes) if i in config.output_keys]
+        hidden = [i for i in self.nodes if i not in config.output_keys]
+        output = [i for i in self.nodes if i in config.output_keys]
         connections = []
         if hidden:
             for input_id in config.input_keys:
@@ -523,7 +522,7 @@ class DefaultGenome(object):
 
         # For recurrent genomes, include node self-connections.
         if not config.feed_forward:
-            for i in iterkeys(self.nodes):
+            for i in self.nodes:
                 connections.append((i, i))
 
         return connections

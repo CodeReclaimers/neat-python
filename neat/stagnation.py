@@ -2,7 +2,6 @@
 import sys
 
 from neat.config import ConfigParameter, DefaultClassConfig
-from neat.six_util import iteritems
 from neat.math_util import stat_functions
 
 # TODO: Add a method for the user to change the "is stagnant" computation.
@@ -37,7 +36,7 @@ class DefaultStagnation(DefaultClassConfig):
         returns a list with stagnant species marked for removal.
         """
         species_data = []
-        for sid, s in iteritems(species_set.species):
+        for sid, s in species_set.species.items():
             if s.fitness_history:
                 prev_fitness = max(s.fitness_history)
             else:

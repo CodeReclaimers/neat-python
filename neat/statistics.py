@@ -7,7 +7,6 @@ import csv
 
 from neat.math_util import mean, stdev, median2
 from neat.reporting import BaseReporter
-from neat.six_util import iteritems
 
 
 # TODO: Make a version of this reporter that doesn't continually increase memory usage.
@@ -30,8 +29,8 @@ class StatisticsReporter(BaseReporter):
         # Store the fitnesses of the members of each currently active species.
         species_stats = {}
         #species_cross_validation_stats = {}
-        for sid, s in iteritems(species.species):
-            species_stats[sid] = dict((k, v.fitness) for k, v in iteritems(s.members))
+        for sid, s in species.species.items():
+            species_stats[sid] = dict((k, v.fitness) for k, v in s.members.items())
             ##species_cross_validation_stats[sid] = dict((k, v.cross_fitness) for
 ##                                                       k, v in iteritems(s.members))
         self.generation_statistics.append(species_stats)

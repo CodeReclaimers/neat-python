@@ -10,7 +10,6 @@ from itertools import count
 
 from neat.config import ConfigParameter, DefaultClassConfig
 from neat.math_util import mean
-from neat.six_util import iteritems, itervalues
 
 # TODO: Provide some sort of optional cross-species performance criteria, which
 # are then used to control stagnation and possibly the mutation rate
@@ -100,7 +99,7 @@ class DefaultReproduction(DefaultClassConfig):
             if stagnant:
                 self.reporters.species_stagnant(stag_sid, stag_s)
             else:
-                all_fitnesses.extend(m.fitness for m in itervalues(stag_s.members))
+                all_fitnesses.extend(m.fitness for m in stag_s.members.values())
                 remaining_species.append(stag_s)
         # The above comment was not quite what was happening - now getting fitnesses
         # only from members of non-stagnated species.
@@ -119,7 +118,7 @@ class DefaultReproduction(DefaultClassConfig):
         fitness_range = max(1.0, max_fitness - min_fitness)
         for afs in remaining_species:
             # Compute adjusted fitness.
-            msf = mean([m.fitness for m in itervalues(afs.members)])
+            msf = mean([m.fitness for m in afs.members.values()])
             af = (msf - min_fitness) / fitness_range
             afs.adjusted_fitness = af
 
@@ -146,7 +145,7 @@ class DefaultReproduction(DefaultClassConfig):
             assert spawn > 0
 
             # The species has at least one member for the next generation, so retain it.
-            old_members = list(iteritems(s.members))
+            old_members = list(s.members.items())
             s.members = {}
             species.species[s.key] = s
 

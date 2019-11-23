@@ -1,7 +1,6 @@
 """Deals with the attributes (variable parameters) of genes"""
 from random import choice, gauss, random, uniform
 from neat.config import ConfigParameter
-from neat.six_util import iterkeys, iteritems
 
 
 # TODO: There is probably a lot of room for simplification of these classes using metaprogramming.
@@ -12,9 +11,9 @@ class BaseAttribute(object):
 
     def __init__(self, name, **default_dict):
         self.name = name
-        for n, default in iteritems(default_dict):
+        for n, default in default_dict.items():
             self._config_items[n] = [self._config_items[n][0], default]
-        for n in iterkeys(self._config_items):
+        for n in self._config_items:
             setattr(self, n + "_name", self.config_item_name(n))
 
     def config_item_name(self, config_item_base_name):
@@ -24,7 +23,7 @@ class BaseAttribute(object):
         return [ConfigParameter(self.config_item_name(n),
                                 self._config_items[n][0],
                                 self._config_items[n][1])
-                for n in iterkeys(self._config_items)]
+                for n in self._config_items]
 
 
 class FloatAttribute(BaseAttribute):

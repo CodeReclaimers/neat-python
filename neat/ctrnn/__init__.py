@@ -2,7 +2,6 @@
 from __future__ import division
 
 from neat.graphs import required_for_output
-from neat.six_util import itervalues, iteritems
 
 
 class CTRNNNodeEval(object):
@@ -27,7 +26,7 @@ class CTRNN(object):
             for k in inputs + outputs:
                 v[k] = 0.0
 
-            for node, ne in iteritems(self.node_evals):
+            for node, ne in self.node_evals.items():
                 v[node] = 0.0
                 for i, w in ne.links:
                     v[i] = 0.0
@@ -75,7 +74,7 @@ class CTRNN(object):
                 ivalues[i] = v
                 ovalues[i] = v
 
-            for node_key, ne in iteritems(self.node_evals):
+            for node_key, ne in self.node_evals.items():
                 node_inputs = [ivalues[i] * w for i, w in ne.links]
                 s = ne.aggregation(node_inputs)
                 z = ne.activation(ne.bias + ne.response * s)
@@ -94,7 +93,7 @@ class CTRNN(object):
 
         # Gather inputs and expressed connections.
         node_inputs = {}
-        for cg in itervalues(genome.connections):
+        for cg in genome.connections.values():
             if not cg.enabled:
                 continue
 
@@ -108,7 +107,7 @@ class CTRNN(object):
                 node_inputs[o].append((i, cg.weight))
 
         node_evals = {}
-        for node_key, inputs in iteritems(node_inputs):
+        for node_key, inputs in node_inputs.items():
             node = genome.nodes[node_key]
             activation_function = genome_config.activation_defs.get(node.activation)
             aggregation_function = genome_config.aggregation_function_defs.get(node.aggregation)

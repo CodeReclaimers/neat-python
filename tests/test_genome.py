@@ -6,7 +6,6 @@ import sys
 import unittest
 
 import neat
-from neat.six_util import iterkeys
 
 
 class TestCreateNew(unittest.TestCase):
@@ -40,7 +39,7 @@ class TestCreateNew(unittest.TestCase):
         g.configure_new(self.config.genome_config)
 
         print(g)
-        self.assertEqual(set(iterkeys(g.nodes)), {0})
+        self.assertEqual(set(g.nodes), {0})
         assert (not g.connections)
 
     def test_unconnected_hidden(self):
@@ -55,7 +54,7 @@ class TestCreateNew(unittest.TestCase):
         g.configure_new(self.config.genome_config)
 
         print(g)
-        self.assertEqual(set(iterkeys(g.nodes)), {0, 1, 2})
+        self.assertEqual(set(g.nodes), {0, 1, 2})
         assert (not g.connections)
 
     def test_fs_neat_no_hidden(self):
@@ -73,7 +72,7 @@ class TestCreateNew(unittest.TestCase):
         g.configure_new(config)
 
         print(g)
-        self.assertEqual(set(iterkeys(g.nodes)), {0})
+        self.assertEqual(set(g.nodes), {0})
         self.assertEqual(len(g.connections), 1)
 
     def test_fs_neat_hidden_old(self):
@@ -92,7 +91,7 @@ class TestCreateNew(unittest.TestCase):
         g.configure_new(config)  # TODO: Test for emitted warning
 
         print(g)
-        self.assertEqual(set(iterkeys(g.nodes)), {0, 1, 2})
+        self.assertEqual(set(g.nodes), {0, 1, 2})
         self.assertEqual(len(g.connections), 1)
 
     def test_fs_neat_nohidden(self):
@@ -107,7 +106,7 @@ class TestCreateNew(unittest.TestCase):
         g.configure_new(config)
 
         print(g)
-        self.assertEqual(set(iterkeys(g.nodes)), {0, 1, 2})
+        self.assertEqual(set(g.nodes), {0, 1, 2})
         self.assertEqual(len(g.connections), 1)
 
     def test_fs_neat_hidden(self):
@@ -122,7 +121,7 @@ class TestCreateNew(unittest.TestCase):
         g.configure_new(config)
 
         print(g)
-        self.assertEqual(set(iterkeys(g.nodes)), {0, 1, 2})
+        self.assertEqual(set(g.nodes), {0, 1, 2})
         self.assertEqual(len(g.connections), 3)
 
     def test_fully_connected_no_hidden(self):
@@ -140,7 +139,7 @@ class TestCreateNew(unittest.TestCase):
         g.configure_new(config)
 
         print(g)
-        self.assertEqual(set(iterkeys(g.nodes)), {0})
+        self.assertEqual(set(g.nodes), {0})
         self.assertEqual(len(g.connections), 2)
 
         # Check that each input is connected to the output node
@@ -163,7 +162,7 @@ class TestCreateNew(unittest.TestCase):
         g.configure_new(config)  # TODO: Test for emitted warning
 
         print(g)
-        self.assertEqual(set(iterkeys(g.nodes)), {0, 1, 2})
+        self.assertEqual(set(g.nodes), {0, 1, 2})
         self.assertEqual(len(g.connections), 6)
 
         # Check that each input is connected to each hidden node.
@@ -191,7 +190,7 @@ class TestCreateNew(unittest.TestCase):
         g.configure_new(config)
 
         print(g)
-        self.assertEqual(set(iterkeys(g.nodes)), {0, 1, 2})
+        self.assertEqual(set(g.nodes), {0, 1, 2})
         self.assertEqual(len(g.connections), 6)
 
         # Check that each input is connected to each hidden node.
@@ -219,7 +218,7 @@ class TestCreateNew(unittest.TestCase):
         g.configure_new(config)
 
         print(g)
-        self.assertEqual(set(iterkeys(g.nodes)), {0, 1, 2})
+        self.assertEqual(set(g.nodes), {0, 1, 2})
         self.assertEqual(len(g.connections), 8)
 
         # Check that each input is connected to each hidden node.
@@ -251,7 +250,7 @@ class TestCreateNew(unittest.TestCase):
         g.configure_new(config)
 
         print(g)
-        self.assertEqual(set(iterkeys(g.nodes)), {0})
+        self.assertEqual(set(g.nodes), {0})
         self.assertLess(len(g.connections), 2)
 
     def test_partially_connected_hidden_nodirect_old(self):
@@ -271,7 +270,7 @@ class TestCreateNew(unittest.TestCase):
         g.configure_new(config)  # TODO: Test for emitted warning
 
         print(g)
-        self.assertEqual(set(iterkeys(g.nodes)), {0, 1, 2})
+        self.assertEqual(set(g.nodes), {0, 1, 2})
         self.assertLess(len(g.connections), 6)
 
     def test_partially_connected_hidden_nodirect(self):
@@ -287,7 +286,7 @@ class TestCreateNew(unittest.TestCase):
         g.configure_new(config)
 
         print(g)
-        self.assertEqual(set(iterkeys(g.nodes)), {0, 1, 2})
+        self.assertEqual(set(g.nodes), {0, 1, 2})
         self.assertLess(len(g.connections), 6)
 
     def test_partially_connected_hidden_direct(self):
@@ -306,7 +305,7 @@ class TestCreateNew(unittest.TestCase):
         g.configure_new(config)
 
         print(g)
-        self.assertEqual(set(iterkeys(g.nodes)), {0, 1, 2})
+        self.assertEqual(set(g.nodes), {0, 1, 2})
         self.assertLess(len(g.connections), 8)
 
 

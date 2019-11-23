@@ -75,7 +75,7 @@ def run(config_file, addr, authkey, mode, workers):
         num_workers=workers,  # when in secondary mode, use this many workers
         worker_timeout=10,  # when in secondary mode and workers > 1,
                             # wait at most 10 seconds for the result
-        mode=mode,  # wether this is the primary or a secondary node
+        mode=mode,  # whether this is the primary or a secondary node
                     # in most case you can simply pass
                     # 'neat.distributed.MODE_AUTO' as the mode.
                     # This causes the DistributedEvaluator to
