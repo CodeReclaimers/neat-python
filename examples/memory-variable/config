@@ -1,4 +1,4 @@
-# NEAT configuration for the bit-sequence memory experiment.
+# NEAT configuration for the variable-length bit-sequence memory experiment.
 
 # The `NEAT` section specifies parameters particular to the NEAT algorithm
 # or the experiment itself.  This is the only required section.
@@ -12,14 +12,14 @@ reset_on_extinction   = 0
 num_inputs              = 3
 num_hidden              = 1
 num_outputs             = 1
-initial_connection      = partial 0.5
+initial_connection      = partial_direct 0.5
 feed_forward            = False
 compatibility_disjoint_coefficient    = 1.0
 compatibility_weight_coefficient      = 0.6
-conn_add_prob           = 0.2
-conn_delete_prob        = 0.2
-node_add_prob           = 0.2
-node_delete_prob        = 0.2
+conn_add_prob           = 0.1
+conn_delete_prob        = 0.1
+node_add_prob           = 0.1
+node_delete_prob        = 0.1
 activation_default      = sigmoid
 activation_options      = sigmoid
 activation_mutate_rate  = 0.0

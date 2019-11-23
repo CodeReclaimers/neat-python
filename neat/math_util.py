@@ -14,6 +14,7 @@ def median(values):
     values.sort()
     return values[len(values) // 2]
 
+
 def median2(values):
     values = list(values)
     n = len(values)
@@ -24,6 +25,7 @@ def median2(values):
         return values[n//2]
     i = n//2
     return (values[i - 1] + values[i])/2.0
+
 
 def variance(values):
     values = list(values)

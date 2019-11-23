@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import multiprocessing
 import os
 
 import neat
@@ -43,7 +44,6 @@ def test_serial():
     # stats.save_genome_fitness(with_cross_validation=True)
 
     assert len(stats.get_fitness_stdev())
-    # stats.get_average_cross_validation_fitness()
     stats.best_unique_genomes(5)
     stats.best_genomes(5)
     stats.best_genome()
@@ -111,7 +111,6 @@ def test_serial_random():
     # stats.save_genome_fitness(with_cross_validation=True)
 
     stats.get_fitness_stdev()
-    # stats.get_average_cross_validation_fitness()
     stats.best_unique_genomes(5)
     stats.best_genomes(5)
     stats.best_genome()
@@ -148,7 +147,6 @@ def test_serial3():
     # stats.save_genome_fitness(with_cross_validation=True)
 
     stats.get_fitness_stdev()
-    # stats.get_average_cross_validation_fitness()
     stats.best_unique_genomes(5)
     stats.best_genomes(5)
     stats.best_genome()
@@ -185,7 +183,6 @@ def test_serial4():
     # stats.save_genome_fitness(with_cross_validation=True)
 
     stats.get_fitness_stdev()
-    # stats.get_average_cross_validation_fitness()
     stats.best_unique_genomes(5)
     stats.best_genomes(5)
     stats.best_genome()
@@ -222,7 +219,6 @@ def test_serial5():
     # stats.save_genome_fitness(with_cross_validation=True)
 
     stats.get_fitness_stdev()
-    # stats.get_average_cross_validation_fitness()
     stats.best_unique_genomes(5)
     stats.best_genomes(5)
     stats.best_genome()
@@ -370,7 +366,7 @@ def test_parallel():
     p.add_reporter(neat.Checkpointer(1, 5))
 
     # Run for up to 19 generations.
-    pe = neat.ParallelEvaluator(4, eval_dummy_genome_nn)
+    pe = neat.ParallelEvaluator(1 + multiprocessing.cpu_count(), eval_dummy_genome_nn)
     p.run(pe.evaluate, 19)
 
     stats.save()

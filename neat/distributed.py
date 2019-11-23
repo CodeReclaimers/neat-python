@@ -134,7 +134,7 @@ def _determine_mode(addr, mode):
     """
     if isinstance(addr, tuple):
         host = addr[0]
-    elif type(addr) == type(b"binary_string"):
+    elif isinstance(addr, bytes):
         host = addr
     else:
         raise TypeError("'addr' needs to be a tuple or an bytestring!")
@@ -261,8 +261,6 @@ class _ExtendedManager(object):
                 "get_namespace",
                 callable=lambda: namespace,
                 )
-
-
         else:
             _EvaluatorSyncManager.register(
                 "get_inqueue",
@@ -363,7 +361,7 @@ class DistributedEvaluator(object):
             self.num_workers = num_workers
         else:
             try:
-                self.num_workers = max(1,multiprocessing.cpu_count())
+                self.num_workers = max(1, multiprocessing.cpu_count())
             except (RuntimeError, AttributeError): # pragma: no cover
                 print("multiprocessing.cpu_count() gave an error; assuming 1",
                       file=sys.stderr)
@@ -388,7 +386,7 @@ class DistributedEvaluator(object):
 
     def is_primary(self):
         """Returns True if the caller is the primary node"""
-        return (self.mode == MODE_PRIMARY)
+        return self.mode == MODE_PRIMARY
 
     def is_master(self): # pragma: no cover
         """Returns True if the caller is the primary (master) node"""
@@ -514,7 +512,7 @@ class DistributedEvaluator(object):
                     if ('Empty' in repr(e)) or ('TimeoutError' in repr(e)):
                         continue
                     if (('EOFError' in repr(e)) or ('PipeError' in repr(e)) or
-                        ('AuthenticationError' in repr(e))): # Second for Python 3.X, Third for 3.6+
+                          ('AuthenticationError' in repr(e))): # Second for Python 3.X, Third for 3.6+
                         break
                     raise
                 if pool is None:
@@ -544,7 +542,7 @@ class DistributedEvaluator(object):
                     if ('Empty' in repr(e)) or ('TimeoutError' in repr(e)):
                         continue
                     if (('EOFError' in repr(e)) or ('PipeError' in repr(e)) or
-                        ('AuthenticationError' in repr(e))): # Second for Python 3.X, Third for 3.6+
+                          ('AuthenticationError' in repr(e))): # Second for Python 3.X, Third for 3.6+
                         break
                     raise
 

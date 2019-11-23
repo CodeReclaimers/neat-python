@@ -4,6 +4,7 @@ in order to evaluate multiple genomes at once.
 """
 from multiprocessing import Pool
 
+
 class ParallelEvaluator(object):
     def __init__(self, num_workers, eval_function, timeout=None):
         """

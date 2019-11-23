@@ -16,6 +16,7 @@ from neat.math_util import mean
 # configuration. This scheme should be adaptive so that species do not evolve
 # to become "cautious" and only make very slow progress.
 
+
 class DefaultReproduction(DefaultClassConfig):
     """
     Implements the default NEAT-python reproduction scheme:
@@ -132,7 +133,7 @@ class DefaultReproduction(DefaultClassConfig):
         # Isn't the effective min_species_size going to be max(min_species_size,
         # self.reproduction_config.elitism)? That would probably produce more accurate tracking
         # of population sizes and relative fitnesses... doing. TODO: document.
-        min_species_size = max(min_species_size,self.reproduction_config.elitism)
+        min_species_size = max(min_species_size, self.reproduction_config.elitism)
         spawn_amounts = self.compute_spawn(adjusted_fitnesses, previous_sizes,
                                            pop_size, min_species_size)
 

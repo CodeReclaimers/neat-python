@@ -46,6 +46,7 @@ class GenomeDistanceCache(object):
 
         return d
 
+
 class DefaultSpeciesSet(DefaultClassConfig):
     """ Encapsulates the default speciation scheme. """
 

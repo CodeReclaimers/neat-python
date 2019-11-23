@@ -16,6 +16,7 @@ or inherit from ParallelEvaluator if you need to do something more complicated.
 
 from __future__ import print_function
 
+import multiprocessing
 import os
 
 import visualize
@@ -63,7 +64,7 @@ def run(config_file):
     p.add_reporter(stats)
 
     # Run for up to 300 generations.
-    pe = neat.ParallelEvaluator(4, eval_genome)
+    pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), eval_genome)
     winner = p.run(pe.evaluate, 300)
 
     # Display the winning genome.

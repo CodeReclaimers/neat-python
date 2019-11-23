@@ -6,6 +6,7 @@ from neat.math_util import stat_functions
 
 # TODO: Add a method for the user to change the "is stagnant" computation.
 
+
 class DefaultStagnation(DefaultClassConfig):
     """Keeps track of whether species are making progress and helps remove ones that are not."""
     @classmethod

@@ -95,6 +95,3 @@ def test_xor_example(uniform_weights=False):
 if __name__ == '__main__':
     test_xor_example()
     test_xor_example_uniform_weights()
-    test_xor_example_multiparam_relu()
-    test_xor_example_multiparam_sigmoid_or_relu()
-    test_xor_example_multiparam_aggregation()
