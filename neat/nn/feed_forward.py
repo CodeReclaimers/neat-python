@@ -1,5 +1,4 @@
 from neat.graphs import feed_forward_layers
-from neat.six_util import itervalues
 
 
 class FeedForwardNetwork(object):
@@ -30,7 +29,7 @@ class FeedForwardNetwork(object):
         """ Receives a genome and returns its phenotype (a FeedForwardNetwork). """
 
         # Gather expressed connections.
-        connections = [cg.key for cg in itervalues(genome.connections) if cg.enabled]
+        connections = [cg.key for cg in genome.connections.values() if cg.enabled]
 
         layers = feed_forward_layers(config.genome_config.input_keys, config.genome_config.output_keys, connections)
         node_evals = []
@@ -45,12 +44,9 @@ class FeedForwardNetwork(object):
                         inputs.append((inode, cg.weight))
                         node_expr.append("v[{}] * {:.7e}".format(inode, cg.weight))
 
-
                 ng = genome.nodes[node]
                 aggregation_function = config.genome_config.aggregation_function_defs.get(ng.aggregation)
                 activation_function = config.genome_config.activation_defs.get(ng.activation)
                 node_evals.append((node, activation_function, aggregation_function, ng.bias, ng.response, inputs))
 
         return FeedForwardNetwork(config.genome_config.input_keys, config.genome_config.output_keys, node_evals)
-
-

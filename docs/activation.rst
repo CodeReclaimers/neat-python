@@ -85,6 +85,27 @@ relu
    :scale: 50 %
    :alt: rectified linear function
 
+elu
+----
+
+.. figure:: activation-elu.png
+   :scale: 50 %
+   :alt: exponential rectified linear function
+
+lelu
+----
+
+.. figure:: activation-lelu.png
+   :scale: 50 %
+   :alt: leaky rectified linear function
+
+selu
+----
+
+.. figure:: activation-selu.png
+   :scale: 50 %
+   :alt: scaled exponential linear function
+
 .. _sigmoid-label:
 
 sigmoid

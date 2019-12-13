@@ -1,5 +1,6 @@
 """Directed graph algorithm implementations."""
 
+
 def creates_cycle(connections, test):
     """
     Returns true if the addition of the 'test' connection would create a cycle,

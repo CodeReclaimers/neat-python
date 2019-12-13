@@ -7,7 +7,6 @@ import csv
 
 from neat.math_util import mean, stdev, median2
 from neat.reporting import BaseReporter
-from neat.six_util import iteritems
 
 
 # TODO: Make a version of this reporter that doesn't continually increase memory usage.
@@ -22,20 +21,15 @@ class StatisticsReporter(BaseReporter):
         BaseReporter.__init__(self)
         self.most_fit_genomes = []
         self.generation_statistics = []
-        #self.generation_cross_validation_statistics = []
 
     def post_evaluate(self, config, population, species, best_genome):
         self.most_fit_genomes.append(copy.deepcopy(best_genome))
 
         # Store the fitnesses of the members of each currently active species.
         species_stats = {}
-        #species_cross_validation_stats = {}
-        for sid, s in iteritems(species.species):
-            species_stats[sid] = dict((k, v.fitness) for k, v in iteritems(s.members))
-            ##species_cross_validation_stats[sid] = dict((k, v.cross_fitness) for
-##                                                       k, v in iteritems(s.members))
+        for sid, s in species.species.items():
+            species_stats[sid] = dict((k, v.fitness) for k, v in s.members.items())
         self.generation_statistics.append(species_stats)
-        #self.generation_cross_validation_statistics.append(species_cross_validation_stats)
 
     def get_fitness_stat(self, f):
         stat = []
@@ -58,17 +52,6 @@ class StatisticsReporter(BaseReporter):
     def get_fitness_median(self):
         """Get the per-generation median fitness."""
         return self.get_fitness_stat(median2)
-
-    def get_average_cross_validation_fitness(self): # pragma: no cover
-        """Get the per-generation average cross_validation fitness."""
-        avg_cross_validation_fitness = []
-        for stats in self.generation_cross_validation_statistics:
-            scores = []
-            for fitness in stats.values():
-                scores.extend(fitness)
-            avg_cross_validation_fitness.append(mean(scores))
-
-        return avg_cross_validation_fitness
 
     def best_unique_genomes(self, n):
         """Returns the most n fit genomes, with no duplication."""
@@ -100,8 +83,7 @@ class StatisticsReporter(BaseReporter):
 
     def save_genome_fitness(self,
                             delimiter=' ',
-                            filename='fitness_history.csv',
-                            with_cross_validation=False):
+                            filename='fitness_history.csv'):
         """ Saves the population's best and average fitness. """
         with open(filename, 'w') as f:
             w = csv.writer(f, delimiter=delimiter)
@@ -109,17 +91,8 @@ class StatisticsReporter(BaseReporter):
             best_fitness = [c.fitness for c in self.most_fit_genomes]
             avg_fitness = self.get_fitness_mean()
 
-            if with_cross_validation: # pragma: no cover
-                cv_best_fitness = [c.cross_fitness for c in self.most_fit_genomes]
-                cv_avg_fitness = self.get_average_cross_validation_fitness()
-                for best, avg, cv_best, cv_avg in zip(best_fitness,
-                                                      avg_fitness,
-                                                      cv_best_fitness,
-                                                      cv_avg_fitness):
-                    w.writerow([best, avg, cv_best, cv_avg])
-            else:
-                for best, avg in zip(best_fitness, avg_fitness):
-                    w.writerow([best, avg])
+            for best, avg in zip(best_fitness, avg_fitness):
+                w.writerow([best, avg])
 
     def save_species_count(self, delimiter=' ', filename='speciation.csv'):
         """ Log speciation throughout evolution. """
@@ -166,5 +139,3 @@ class StatisticsReporter(BaseReporter):
             species_fitness.append(fitness)
 
         return species_fitness
-
-

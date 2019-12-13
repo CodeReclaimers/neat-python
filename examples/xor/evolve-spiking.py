@@ -1,12 +1,15 @@
 """ 2-input XOR example using Izhikevich's spiking neuron model. """
 from __future__ import print_function
 
+import multiprocessing
 import os
-from matplotlib import pylab as plt
+
 from matplotlib import patches
-import neat
+from matplotlib import pylab as plt
 
 import visualize
+
+import neat
 
 # Network inputs and expected outputs.
 xor_inputs = ((0, 0), (0, 1), (1, 0), (1, 1))
@@ -17,7 +20,7 @@ max_time_msec = 20.0
 
 
 def compute_output(t0, t1):
-    '''Compute the network's output based on the "time to first spike" of the two output neurons.'''
+    """Compute the network's output based on the "time to first spike" of the two output neurons."""
     if t0 is None or t1 is None:
         # If neither of the output neurons fired within the allotted time,
         # give a response which produces a large error.
@@ -107,11 +110,8 @@ def run(config_path):
     stats = neat.StatisticsReporter()
     pop.add_reporter(stats)
 
-    if 0:
-        winner = pop.run(eval_genomes, 3000)
-    else:
-        pe = neat.ParallelEvaluator(6, eval_genome)
-        winner = pop.run(pe.evaluate, 3000)
+    pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), eval_genome)
+    winner = pop.run(pe.evaluate, 3000)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))

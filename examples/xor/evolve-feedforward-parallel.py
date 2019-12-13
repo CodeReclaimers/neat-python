@@ -16,13 +16,12 @@ or inherit from ParallelEvaluator if you need to do something more complicated.
 
 from __future__ import print_function
 
-import math
+import multiprocessing
 import os
-import time
-
-import neat
 
 import visualize
+
+import neat
 
 # 2-input XOR inputs and expected outputs.
 xor_inputs = [(0.0, 0.0), (0.0, 1.0), (1.0, 0.0), (1.0, 1.0)]
@@ -65,7 +64,7 @@ def run(config_file):
     p.add_reporter(stats)
 
     # Run for up to 300 generations.
-    pe = neat.ParallelEvaluator(4, eval_genome)
+    pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), eval_genome)
     winner = p.run(pe.evaluate, 300)
 
     # Display the winning genome.

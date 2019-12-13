@@ -1,0 +1,1 @@
+del *.svg *.gv *.mp4 winner-*

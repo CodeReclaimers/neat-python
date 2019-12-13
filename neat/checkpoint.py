@@ -6,9 +6,9 @@ import random
 import time
 
 try:
-    import cPickle as pickle # pylint: disable=import-error
+    import cPickle as pickle  # pylint: disable=import-error
 except ImportError:
-    import pickle # pylint: disable=import-error
+    import pickle  # pylint: disable=import-error
 
 from neat.population import Population
 from neat.reporting import BaseReporter
@@ -19,6 +19,7 @@ class Checkpointer(BaseReporter):
     A reporter class that performs checkpointing using `pickle`
     to save and restore populations (and other aspects of the simulation state).
     """
+
     def __init__(self, generation_interval=100, time_interval_seconds=300,
                  filename_prefix='neat-checkpoint-'):
         """
@@ -62,7 +63,7 @@ class Checkpointer(BaseReporter):
 
     def save_checkpoint(self, config, population, species_set, generation):
         """ Save the current simulation state. """
-        filename = '{0}{1}'.format(self.filename_prefix,generation)
+        filename = '{0}{1}'.format(self.filename_prefix, generation)
         print("Saving checkpoint to {0}".format(filename))
 
         with gzip.open(filename, 'w', compresslevel=5) as f:

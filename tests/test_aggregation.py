@@ -20,36 +20,44 @@ from neat import aggregations
 
 
 def test_sum():
-    assert aggregations.sum_aggregation([1.0,2.0,0.5]) == 3.5
-    assert aggregations.sum_aggregation([1.0,-1.0,0.0]) == 0.0
+    assert aggregations.sum_aggregation([1.0, 2.0, 0.5]) == 3.5
+    assert aggregations.sum_aggregation([1.0, -1.0, 0.0]) == 0.0
+
 
 def test_product():
-    assert aggregations.product_aggregation([1.0,2.0,0.5]) == 1.0
-    assert aggregations.product_aggregation([1.0,0.5,0.0]) == 0.0
-    
+    assert aggregations.product_aggregation([1.0, 2.0, 0.5]) == 1.0
+    assert aggregations.product_aggregation([1.0, 0.5, 0.0]) == 0.0
+
+
 def test_max():
-    assert aggregations.max_aggregation([0.0,1.0,2.0]) == 2.0
-    assert aggregations.max_aggregation([0.0,-1.0,-2.0]) == 0.0
+    assert aggregations.max_aggregation([0.0, 1.0, 2.0]) == 2.0
+    assert aggregations.max_aggregation([0.0, -1.0, -2.0]) == 0.0
+
 
 def test_min():
-    assert aggregations.min_aggregation([0.0,1.0,2.0]) == 0.0
-    assert aggregations.min_aggregation([0.0,-1.0,-2.0]) == -2.0
+    assert aggregations.min_aggregation([0.0, 1.0, 2.0]) == 0.0
+    assert aggregations.min_aggregation([0.0, -1.0, -2.0]) == -2.0
+
 
 def test_maxabs():
-    assert aggregations.maxabs_aggregation([0.0,1.0,2.0]) == 2.0
-    assert aggregations.maxabs_aggregation([0.0,-1.0,-2.0]) == -2.0
+    assert aggregations.maxabs_aggregation([0.0, 1.0, 2.0]) == 2.0
+    assert aggregations.maxabs_aggregation([0.0, -1.0, -2.0]) == -2.0
+
 
 def test_median():
-    assert aggregations.median_aggregation([0.0,1.0,2.0]) == 1.0
-    assert aggregations.median_aggregation([-10.0,1.0,3.0,10.0]) == 2.0
+    assert aggregations.median_aggregation([0.0, 1.0, 2.0]) == 1.0
+    assert aggregations.median_aggregation([-10.0, 1.0, 3.0, 10.0]) == 2.0
+
 
 def test_mean():
-    assert aggregations.mean_aggregation([0.0,1.0,2.0]) == 1.0
-    assert aggregations.mean_aggregation([0.0,-1.0,-2.0]) == -1.0
+    assert aggregations.mean_aggregation([0.0, 1.0, 2.0]) == 1.0
+    assert aggregations.mean_aggregation([0.0, -1.0, -2.0]) == -1.0
+
 
 def minabs_aggregation(x):
     """ Not particularly useful - just a check. """
     return min(x, key=abs)
+
 
 def test_add_minabs():
     local_dir = os.path.dirname(__file__)
@@ -62,8 +70,10 @@ def test_add_minabs():
     assert config.genome_config.aggregation_function_defs['minabs'] is not None
     assert config.genome_config.aggregation_function_defs.is_valid('minabs')
 
+
 def dud_function():
     return 0.0
+
 
 def test_function_set():
     s = aggregations.AggregationFunctionSet()
@@ -92,19 +102,21 @@ def test_function_set():
     else:
         raise Exception("Should have gotten a TypeError for dict lookup of 'foo'")
 
+
 def test_bad_add1():
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'test_configuration')
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_path)
-    
+
     try:
-        config.genome_config.add_aggregation('1.0',1.0)
+        config.genome_config.add_aggregation('1.0', 1.0)
     except TypeError:
         pass
     else:
         raise Exception("Should have had a TypeError/derived for 'function' 1.0")
+
 
 def test_bad_add2():
     local_dir = os.path.dirname(__file__)
@@ -112,13 +124,14 @@ def test_bad_add2():
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_path)
-    
+
     try:
-        config.genome_config.add_aggregation('dud_function',dud_function)
+        config.genome_config.add_aggregation('dud_function', dud_function)
     except TypeError:
         pass
     else:
         raise Exception("Should have had a TypeError/derived for dud_function")
+
 
 if __name__ == '__main__':
     test_sum()

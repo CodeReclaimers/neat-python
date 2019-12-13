@@ -1,16 +1,16 @@
-'''
+"""
 Single-pole balancing experiment using a continuous-time recurrent neural network (CTRNN).
-'''
+"""
 
 from __future__ import print_function
 
+import multiprocessing
 import os
 import pickle
 
 import cart_pole
 
 import neat
-from neat.math_util import mean
 import visualize
 
 runs_per_net = 5
@@ -73,11 +73,8 @@ def run():
     pop.add_reporter(stats)
     pop.add_reporter(neat.StdOutReporter(True))
 
-    if 0:
-        winner = pop.run(eval_genomes)
-    else:
-        pe = neat.ParallelEvaluator(4, eval_genome)
-        winner = pop.run(pe.evaluate)
+    pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), eval_genome)
+    winner = pop.run(pe.evaluate)
 
     # Save the winner.
     with open('winner-ctrnn', 'wb') as f:

@@ -11,7 +11,6 @@ from cart_pole import CartPole, discrete_actuator_force
 from movie import make_movie
 
 import neat
-from neat import nn
 
 # load the winner
 with open('winner-feedforward', 'rb') as f:

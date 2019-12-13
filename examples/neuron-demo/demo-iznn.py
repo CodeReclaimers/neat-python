@@ -61,6 +61,7 @@ def show(title, a, b, c, d):
 
     plot_spikes(spike_train, title)
 
+
 show('regular spiking', **neat.iznn.REGULAR_SPIKING_PARAMS)
 
 show('intrinsically bursting', **neat.iznn.INTRINSICALLY_BURSTING_PARAMS)

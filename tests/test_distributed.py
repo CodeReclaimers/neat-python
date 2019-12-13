@@ -1,18 +1,19 @@
 """tests for neat.distributed"""
 from __future__ import print_function
 
-import socket
-import os
 import multiprocessing
-import random
-import sys
+import os
 import platform
+import random
+import socket
+import sys
 import unittest
 
 try:
     import threading
 except ImportError:
     import dummy_threading as threading
+
     HAVE_THREADING = False
 else:
     HAVE_THREADING = True
@@ -21,7 +22,6 @@ import neat
 from neat.distributed import chunked, MODE_AUTO, MODE_PRIMARY, MODE_SECONDARY, ModeError, _STATE_RUNNING
 
 ON_PYPY = platform.python_implementation().upper().startswith("PYPY")
-
 
 
 def eval_dummy_genome_nn(genome, config):
@@ -37,7 +37,8 @@ def test_chunked():
     d110 = list(range(110))
     d110c = chunked(d110, 10)
     assert len(d110c) == 11, "chunked(range(110), 10) created {0:n} chunks, not 11 chunks!".format(len(d110c))
-    assert len(d110c[0]) == 10, "chunked(range(110), 10) did not create chunks of length 10 (first chunk len is {0:n})!".format(
+    assert len(d110c[
+                   0]) == 10, "chunked(range(110), 10) did not create chunks of length 10 (first chunk len is {0:n})!".format(
         len(d110c[0]))
     rec = []
     for e in d110c:
@@ -61,9 +62,11 @@ def test_chunked():
     d13 = list(range(13))
     d13c = chunked(d13, 3)
     assert len(d13c) == 5, "chunked(range(13), 3) created {0:n} chunks, not 5!".format(len(d13c))
-    assert len(d13c[0]) == 3, "chunked(range(13), 3) did not create chunks of length 3 (first chunk len is {0:n})!".format(
+    assert len(
+        d13c[0]) == 3, "chunked(range(13), 3) did not create chunks of length 3 (first chunk len is {0:n})!".format(
         len(d13c[0]))
-    assert len(d13c[-1]) == 1, "chunked(range(13), 3) created a last chunk of length {0:n}, not 1!".format(len(d13c[-1]))
+    assert len(d13c[-1]) == 1, "chunked(range(13), 3) created a last chunk of length {0:n}, not 1!".format(
+        len(d13c[-1]))
     rec = []
     for e in d13c:
         rec += e
@@ -85,7 +88,7 @@ def test_host_is_local():
     for hostname, islocal in tests:
         try:
             result = neat.host_is_local(hostname)
-        except EnvironmentError: # give more feedback
+        except EnvironmentError:  # give more feedback
             print("test_host_is_local: Error with hostname {0!r} (expected {1!r})".format(hostname,
                                                                                           islocal))
             raise
@@ -186,7 +189,7 @@ def test_DistributedEvaluator_primary_restrictions():
         authkey=u"abcd1234",
         eval_function=eval_dummy_genome_nn,
         mode=MODE_SECONDARY,
-        )
+    )
     try:
         secondary.stop()
     except ModeError:
@@ -219,20 +222,20 @@ def test_distributed_evaluation_multiprocessing(do_mwcp=True):
     mp = multiprocessing.Process(
         name="Primary evaluation process",
         target=run_primary,
-        args=(addr, authkey, 19), # 19 because stagnation is at 20
-        )
+        args=(addr, authkey, 19),  # 19 because stagnation is at 20
+    )
     mp.start()
     if do_mwcp:
         mwcp = multiprocessing.Process(
             name="Child evaluation process (multiple workers)",
             target=run_secondary,
             args=(addr, authkey, 2),
-            )
+        )
     swcp = multiprocessing.Process(
         name="Child evaluation process (direct evaluation)",
         target=run_secondary,
         args=(addr, authkey, 1),
-        )
+    )
     swcp.daemon = True  # we cannot set this on mwcp
     if do_mwcp:
         mwcp.start()
@@ -326,19 +329,19 @@ def test_distributed_evaluation_threaded():
     mp = threading.Thread(
         name="Primary evaluation thread",
         target=run_primary,
-        args=(addr, authkey, 19), # 19 because stagnation is set at 20
-        )
+        args=(addr, authkey, 19),  # 19 because stagnation is set at 20
+    )
     mp.start()
     mwcp = threading.Thread(
         name="Child evaluation thread (multiple workers)",
         target=run_secondary,
         args=(addr, authkey, 2),
-        )
+    )
     swcp = threading.Thread(
         name="Child evaluation thread (direct evaluation)",
         target=run_secondary,
         args=(addr, authkey, 1),
-        )
+    )
     swcp.daemon = True  # we cannot set this on mwcp
     mwcp.start()
     swcp.start()
@@ -369,7 +372,7 @@ def run_primary(addr, authkey, generations):
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
-    p.add_reporter(neat.Checkpointer(max(1, int(generations/3)), 5))
+    p.add_reporter(neat.Checkpointer(max(1, int(generations / 3)), 5))
 
     # Run for the specified number of generations.
     de = neat.DistributedEvaluator(

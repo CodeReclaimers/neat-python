@@ -1,5 +1,4 @@
 from neat.graphs import required_for_output
-from neat.six_util import itervalues, iteritems
 
 
 class RecurrentNetwork(object):
@@ -10,7 +9,7 @@ class RecurrentNetwork(object):
 
         self.values = [{}, {}]
         for v in self.values:
-            for k in inputs + outputs:
+            for k in list(inputs) + list(outputs):
                 v[k] = 0.0
 
             for node, ignored_activation, ignored_aggregation, ignored_bias, ignored_response, links in self.node_evals:
@@ -50,7 +49,7 @@ class RecurrentNetwork(object):
 
         # Gather inputs and expressed connections.
         node_inputs = {}
-        for cg in itervalues(genome.connections):
+        for cg in genome.connections.values():
             if not cg.enabled:
                 continue
 
@@ -64,7 +63,7 @@ class RecurrentNetwork(object):
                 node_inputs[o].append((i, cg.weight))
 
         node_evals = []
-        for node_key, inputs in iteritems(node_inputs):
+        for node_key, inputs in node_inputs.items():
             node = genome.nodes[node_key]
             activation_function = genome_config.activation_defs.get(node.activation)
             aggregation_function = genome_config.aggregation_function_defs.get(node.aggregation)

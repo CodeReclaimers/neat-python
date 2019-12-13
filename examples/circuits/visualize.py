@@ -140,17 +140,14 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
     for k in config.genome_config.input_keys:
         inputs.add(k)
         name = node_names.get(k, str(k))
-        input_attrs = {'style': 'filled',
-                       'shape': 'box'}
-        input_attrs['fillcolor'] = node_colors.get(k, 'lightgray')
+        input_attrs = {'style': 'filled', 'shape': 'box', 'fillcolor': node_colors.get(k, 'lightgray')}
         dot.node(name, _attributes=input_attrs)
 
     outputs = set()
     for k in config.genome_config.output_keys:
         outputs.add(k)
         name = node_names.get(k, str(k))
-        node_attrs = {'style': 'filled'}
-        node_attrs['fillcolor'] = node_colors.get(k, 'lightblue')
+        node_attrs = {'style': 'filled', 'fillcolor': node_colors.get(k, 'lightblue')}
 
         dot.node(name, _attributes=node_attrs)
 
@@ -177,8 +174,7 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
         if n in inputs or n in outputs:
             continue
 
-        attrs = {'style': 'filled'}
-        attrs['fillcolor'] = node_colors.get(n, 'white')
+        attrs = {'style': 'filled', 'fillcolor': node_colors.get(n, 'white')}
         dot.node(str(n), _attributes=attrs)
 
     for cg in genome.connections.values():

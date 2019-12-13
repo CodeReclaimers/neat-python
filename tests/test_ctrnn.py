@@ -27,6 +27,7 @@ def test_basic():
         times.append(net.time_seconds)
         outputs.append(output)
 
+
 #
 #
 # def create_simple():

@@ -2,25 +2,23 @@
 This example produces networks that can remember a variable-length sequence of bits. It is
 intentionally very (overly?) simplistic just to show the usage of the NEAT library. However,
 if you come up with a more interesting or impressive example, please submit a pull request!
-
-This example also demonstrates the use of a custom activation function.
 """
 
 from __future__ import print_function
 
-#import math
 import os
+import multiprocessing
 import random
 
 import neat
 import visualize
 
 # Maximum length of the test sequence.
-max_inputs = 2
+max_inputs = 4
 # Maximum number of ignored inputs
 max_ignore = 2
 # Number of random examples each network is tested against.
-num_tests = 2 ** (max_inputs+max_ignore+1)
+num_tests = 2 ** (max_inputs + max_ignore + 1)
 
 
 def test_network(net, input_sequence, num_ignore):
@@ -30,8 +28,7 @@ def test_network(net, input_sequence, num_ignore):
         inputs = [s, 1.0, 0.0]
         net.activate(inputs)
 
-    # Feed a random number of random inputs to be ignored, with both
-    # record and play bits disabled.
+    # Feed random inputs to be ignored, with both record and play bits disabled.
     for _ in range(num_ignore):
         inputs = [random.choice((0.0, 1.0)), 0.0, 0.0]
         net.activate(inputs)
@@ -59,7 +56,6 @@ def eval_genome(genome, config):
         net.reset()
         outputs = test_network(net, seq, num_ignore)
 
-        # Enable the play bit and get network output.
         for i, o in zip(seq, outputs):
             error += (o[0] - i) ** 2
 
@@ -72,7 +68,6 @@ def eval_genomes(genomes, config):
 
 
 def run():
-
     # Determine path to configuration file.
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'config')
@@ -85,13 +80,17 @@ def run():
     pop.add_reporter(stats)
     pop.add_reporter(neat.StdOutReporter(True))
 
-    pe = neat.ParallelEvaluator(4, eval_genome)
+    pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), eval_genome)
     winner = pop.run(pe.evaluate, 1000)
+
+    # Log statistics.
+    stats.save()
 
     # Show output of the most fit genome against a random input.
     print('\nBest genome:\n{!s}'.format(winner))
     print('\nOutput:')
     winner_net = neat.nn.RecurrentNetwork.create(winner, config)
+    num_correct = 0
     for n in range(num_tests):
         print('\nRun {0} output:'.format(n))
 
@@ -107,10 +106,15 @@ def run():
             print("\texpected {0:1.5f} got {1:1.5f}".format(i, o[0]))
             correct = correct and round(o[0]) == i
         print("OK" if correct else "FAIL")
+        num_correct += 1 if correct else 0
+
+    print("{0} of {1} correct {2:.2f}%".format(num_correct, num_tests, 100.0 * num_correct / num_tests))
 
     node_names = {-1: 'input', -2: 'record', -3: 'play', 0: 'output'}
     visualize.draw_net(config, winner, True, node_names=node_names)
     visualize.plot_stats(stats, ylog=False, view=True)
+    visualize.plot_species(stats, view=True)
+
 
 if __name__ == '__main__':
     run()

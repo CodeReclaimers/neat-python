@@ -178,10 +178,10 @@ class CircuitGenome(object):
         self.connections[key] = connection
 
     def mutate_add_connection(self, config):
-        '''
+        """
         Attempt to add a new connection, the only restriction being that the output
         node cannot be one of the network input pins.
-        '''
+        """
         possible_outputs = list(iterkeys(self.nodes))
         out_node = choice(possible_outputs)
 
@@ -273,7 +273,7 @@ class CircuitGenome(object):
         return distance
 
     def size(self):
-        '''Returns genome 'complexity', taken to be (number of nodes, number of enabled connections)'''
+        """Returns genome 'complexity', taken to be (number of nodes, number of enabled connections)"""
         num_enabled_connections = sum([1 for cg in self.connections.values() if cg.enabled is True])
         return len(self.nodes), num_enabled_connections
 

@@ -4,8 +4,10 @@ import os
 
 import neat
 
+
 def test_xor_example_uniform_weights():
     test_xor_example(uniform_weights=True)
+
 
 def test_xor_example(uniform_weights=False):
     # 2-input XOR inputs and expected outputs.
@@ -70,7 +72,7 @@ def test_xor_example(uniform_weights=False):
             print("input {!r}, expected output {!r}, got {!r}".format(xi, xo, output))
 
     if (checkpointer.last_generation_checkpoint >= 0) and (checkpointer.last_generation_checkpoint < 100):
-        filename = '{0}{1}'.format(filename_prefix,checkpointer.last_generation_checkpoint)
+        filename = '{0}{1}'.format(filename_prefix, checkpointer.last_generation_checkpoint)
         print("Restoring from {!s}".format(filename))
         p2 = neat.checkpoint.Checkpointer.restore_checkpoint(filename)
         p2.add_reporter(neat.StdOutReporter(True))
@@ -79,7 +81,7 @@ def test_xor_example(uniform_weights=False):
 
         winner2 = None
         try:
-            winner2 = p2.run(eval_genomes, (100-checkpointer.last_generation_checkpoint))
+            winner2 = p2.run(eval_genomes, (100 - checkpointer.last_generation_checkpoint))
         except neat.CompleteExtinctionException:
             pass
 
@@ -93,6 +95,3 @@ def test_xor_example(uniform_weights=False):
 if __name__ == '__main__':
     test_xor_example()
     test_xor_example_uniform_weights()
-    test_xor_example_multiparam_relu()
-    test_xor_example_multiparam_sigmoid_or_relu()
-    test_xor_example_multiparam_aggregation()

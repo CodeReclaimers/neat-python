@@ -1,4 +1,5 @@
 import random
+
 from neat.graphs import creates_cycle, required_for_output, feed_forward_layers
 
 

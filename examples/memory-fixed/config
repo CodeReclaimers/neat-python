@@ -1,4 +1,4 @@
-# NEAT configuration for the bit-sequence memory experiment.
+# NEAT configuration for the fixed-length bit-sequence memory experiment.
 
 # The `NEAT` section specifies parameters particular to the NEAT algorithm
 # or the experiment itself.  This is the only required section.

@@ -1,0 +1,1 @@
+del *.csv *.svg *.gv

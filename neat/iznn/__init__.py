@@ -13,7 +13,6 @@ from neat.attributes import FloatAttribute
 from neat.genes import BaseGene, DefaultConnectionGene
 from neat.genome import DefaultGenomeConfig, DefaultGenome
 from neat.graphs import required_for_output
-from neat.six_util import itervalues
 
 # a, b, c, d are the parameters of the Izhikevich model.
 # a: the time scale of the recovery variable
@@ -38,10 +37,10 @@ class IZNodeGene(BaseGene):
     """Contains attributes for the iznn node genes and determines genomic distances."""
 
     _gene_attributes = [FloatAttribute('bias'),
-                           FloatAttribute('a'),
-                           FloatAttribute('b'),
-                           FloatAttribute('c'),
-                           FloatAttribute('d')]
+                        FloatAttribute('a'),
+                        FloatAttribute('b'),
+                        FloatAttribute('c'),
+                        FloatAttribute('d')]
 
     def distance(self, other, config):
         s = abs(self.a - other.a) + abs(self.b - other.b) \
@@ -138,13 +137,13 @@ class IZNN(object):
         if len(inputs) != len(self.inputs):
             raise RuntimeError(
                 "Number of inputs {0:d} does not match number of input nodes {1:d}".format(
-                    len(inputs),len(self.inputs)))
+                    len(inputs), len(self.inputs)))
         for i, v in zip(self.inputs, inputs):
             self.input_values[i] = v
 
     def reset(self):
         """Reset all neurons to their default state."""
-        for n in itervalues(self.neurons):
+        for n in self.neurons.values():
             n.reset()
 
     def get_time_step_msec(self):
@@ -154,7 +153,7 @@ class IZNN(object):
         return 0.05
 
     def advance(self, dt_msec):
-        for n in itervalues(self.neurons):
+        for n in self.neurons.values():
             n.current = n.bias
             for i, w in n.inputs:
                 ineuron = self.neurons.get(i)
@@ -165,7 +164,7 @@ class IZNN(object):
 
                 n.current += ivalue * w
 
-        for n in itervalues(self.neurons):
+        for n in self.neurons.values():
             n.advance(dt_msec)
 
         return [self.neurons[i].fired for i in self.outputs]
@@ -178,7 +177,7 @@ class IZNN(object):
 
         # Gather inputs and expressed connections.
         node_inputs = {}
-        for cg in itervalues(genome.connections):
+        for cg in genome.connections.values():
             if not cg.enabled:
                 continue
 
