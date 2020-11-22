@@ -31,14 +31,18 @@ class DefaultGenomeConfig(object):
                         ConfigParameter('num_outputs', int),
                         ConfigParameter('num_hidden', int),
                         ConfigParameter('feed_forward', bool),
-                        ConfigParameter('compatibility_disjoint_coefficient', float),
-                        ConfigParameter('compatibility_weight_coefficient', float),
+                        ConfigParameter(
+                            'compatibility_disjoint_coefficient', float),
+                        ConfigParameter(
+                            'compatibility_weight_coefficient', float),
                         ConfigParameter('conn_add_prob', float),
                         ConfigParameter('conn_delete_prob', float),
                         ConfigParameter('node_add_prob', float),
                         ConfigParameter('node_delete_prob', float),
-                        ConfigParameter('single_structural_mutation', bool, 'false'),
-                        ConfigParameter('structural_mutation_surer', str, 'default'),
+                        ConfigParameter(
+                            'single_structural_mutation', bool, 'false'),
+                        ConfigParameter(
+                            'structural_mutation_surer', str, 'default'),
                         ConfigParameter('initial_connection', str, 'unconnected')]
 
         # Gather configuration data from the gene classes.
@@ -99,7 +103,8 @@ class DefaultGenomeConfig(object):
             f.write('initial_connection      = {0} {1}\n'.format(self.initial_connection,
                                                                  self.connection_fraction))
         else:
-            f.write('initial_connection      = {0}\n'.format(self.initial_connection))
+            f.write('initial_connection      = {0}\n'.format(
+                self.initial_connection))
 
         assert self.initial_connection in self.allowed_connectivity
 
@@ -247,6 +252,13 @@ class DefaultGenome(object):
             else:
                 # Homologous gene: combine genes from both parents.
                 self.connections[key] = cg1.crossover(cg2)
+        # Equal fitness
+        if genome1.fitness == genome2.fitness:
+            for key, cg2 in parent2.connections.items():
+                cg1 = parent1.connections.get(key)
+                if cg1 is None:
+                    # Excess or disjoint gene
+                    self.connections[key] = cg2.copy()
 
         # Inherit node genes
         parent1_set = parent1.nodes
@@ -369,7 +381,8 @@ class DefaultGenome(object):
 
     def mutate_delete_node(self, config):
         # Do nothing if there are no non-output nodes.
-        available_nodes = [k for k in self.nodes if k not in config.output_keys]
+        available_nodes = [
+            k for k in self.nodes if k not in config.output_keys]
         if not available_nodes:
             return -1
 
@@ -448,7 +461,8 @@ class DefaultGenome(object):
         Returns genome 'complexity', taken to be
         (number of nodes, number of enabled connections)
         """
-        num_enabled_connections = sum([1 for cg in self.connections.values() if cg.enabled])
+        num_enabled_connections = sum(
+            [1 for cg in self.connections.values() if cg.enabled])
         return len(self.nodes), num_enabled_connections
 
     def __str__(self):
@@ -548,7 +562,8 @@ class DefaultGenome(object):
         assert 0 <= config.connection_fraction <= 1
         all_connections = self.compute_full_connections(config, False)
         shuffle(all_connections)
-        num_to_add = int(round(len(all_connections) * config.connection_fraction))
+        num_to_add = int(round(len(all_connections) *
+                               config.connection_fraction))
         for input_id, output_id in all_connections[:num_to_add]:
             connection = self.create_connection(config, input_id, output_id)
             self.connections[connection.key] = connection
@@ -561,7 +576,8 @@ class DefaultGenome(object):
         assert 0 <= config.connection_fraction <= 1
         all_connections = self.compute_full_connections(config, True)
         shuffle(all_connections)
-        num_to_add = int(round(len(all_connections) * config.connection_fraction))
+        num_to_add = int(round(len(all_connections) *
+                               config.connection_fraction))
         for input_id, output_id in all_connections[:num_to_add]:
             connection = self.create_connection(config, input_id, output_id)
             self.connections[connection.key] = connection
