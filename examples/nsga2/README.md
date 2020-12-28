@@ -3,7 +3,7 @@
 The scripts in this directory show examples of using NEAT to control a hoverboard on a game.
 It uses CTRNNs to control the intensity of both left and right thrusters of the hoverboard, based on it's velocity, angular velocity and normal vector. All those informations could be retreived from real world sensors.
 
-![hoverboard-reference](https://i.imgur.com/SfPblbG.gif)
+![hoverboard-reference](https://i.imgur.com/UpJ2HA7.gif)
 
 #### Play the Game
 
@@ -37,7 +37,9 @@ TODO: The NSGA-II method uses multiple fitness values to pick the best performin
 
 #### Visualize
 
-WIP: Run this file to watch the best genomes controlling the hoverboard and gerenate a pyplot image.
+![plot](https://i.ibb.co/5vXpfrm/reference2.png)
+
+WIP: Run this file to watch the best genomes controlling the hoverboard and gerenate a pyplot png.
 ```python
 pip install pygame
 ```
