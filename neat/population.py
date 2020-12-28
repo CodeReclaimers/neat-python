@@ -44,10 +44,10 @@ class Population(object):
             self.species = config.species_set_type(config.species_set_config, self.reporters)
             self.generation = 0
             self.species.speciate(config, self.population, self.generation)
+            self.best_genome = None
         else:
-            self.population, self.species, self.generation = initial_state
+            self.population, self.species, self.best_genome, self.generation = initial_state
 
-        self.best_genome = None
 
     def add_reporter(self, reporter):
         self.reporters.add(reporter)
