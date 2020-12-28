@@ -13,7 +13,7 @@ Minor changes should be necessary on the main code to support list/tuple fitness
 The current repository implements a hoverboard game/simulation to be used as a problem for testing the NSGA-II feature.
 A CPTNN implementation with default reproduction is available as reference. Check the readme on `examples/nsga2` for more details.
 
-![hoverboard-reference](https://i.imgur.com/SfPblbG.gif)
+![hoverboard-reference](https://i.imgur.com/UpJ2HA7.gif)
 
 ## About ##
 
