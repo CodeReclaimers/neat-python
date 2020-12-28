@@ -7,7 +7,7 @@ It uses CTRNNs to control the intensity of both left and right thrusters of the 
 
 #### Play the Game
 
-```
+```python
 pip install pygame
 python hoverboard.py
 ```
@@ -21,9 +21,14 @@ A reference example uses the Default Reproduction method, with a single value of
 
 The evolution converges fast on simple behaviours such as overcoming gravity by boosting both thrusters simultaneously, however a more refined fitness method should include the total variation of velocities and normal vector to help it converge faster to a stable controller.
 
-```
+```python
 pip install pygame
-python evolve-reference.py
+python evolve-reference.py 5
+```
+
+The examples have a Command Line Interface, so if you wan't to check the options do
+```python
+python evolve-reference.py --help
 ```
 
 #### NSGA-II
@@ -32,4 +37,10 @@ TODO: The NSGA-II method uses multiple fitness values to pick the best performin
 
 #### Visualize
 
-TODO: plot checkpoints report with pyplot and watch the simulation.
+WIP: Run this file to watch the best genomes controlling the hoverboard and gerenate a pyplot image.
+```python
+pip install pygame
+```
+#### GUI
+
+This file presents a class for rendering neural networks on pygame.

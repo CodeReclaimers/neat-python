@@ -10,69 +10,105 @@
 from __future__ import print_function
 import neat
 import os
+import math
+import argparse
 
 from hoverboard import Game
+from visualize import watch
 
 GAME_START_ANGLE = 0
 GAME_TIME_STEP = 0.001
 
-# Watch a genome play the game
-def watch(genome, config):
-    net = neat.ctrnn.CTRNN.create(genome, config, 1)
-    game = Game(GAME_START_ANGLE,True)
-    while(True):
-        output = net.advance([game.hoverboard.velocity[0], game.hoverboard.velocity[1], game.hoverboard.ang_velocity, game.hoverboard.normal[0], game.hoverboard.normal[1]], GAME_TIME_STEP, GAME_TIME_STEP)
-        game.hoverboard.set_thrust(output[0], output[1])
-        game.update(GAME_TIME_STEP)
-        if (game.reset_flag): break
+SILENT = False
+FAST_FORWARD = False
 
 # Eval
 
 BEST = None
+GEN = 0
+POPULATION = None
 
+# evaluate the genome using a recurrent network
 def eval(genome, config):
-    net = neat.ctrnn.CTRNN.create(genome, config, 1)
+    net = neat.nn.RecurrentNetwork.create(genome, config)
     game = Game(GAME_START_ANGLE,False)
     genome.fitness = 0
     while(True):
-        output = net.advance([game.hoverboard.velocity[0], game.hoverboard.velocity[1], game.hoverboard.ang_velocity, game.hoverboard.normal[0], game.hoverboard.normal[1]], GAME_TIME_STEP, GAME_TIME_STEP)
+        output = net.activate([game.hoverboard.velocity[0], game.hoverboard.velocity[1], game.hoverboard.ang_velocity, game.hoverboard.normal[0], game.hoverboard.normal[1]])
         game.hoverboard.set_thrust(output[0], output[1])
         game.update(GAME_TIME_STEP)
+
+        # fitness option 1: flight time
         genome.fitness += GAME_TIME_STEP
+
+        # fitness option 2: deviance from the center
+        #genome.fitness -= math.sqrt(game.hoverboard.velocity[0]**2+game.hoverboard.velocity[1]**2)
+        #genome.fitness -= math.sqrt((game.hoverboard.x-0.5)**2+(game.hoverboard.y-0.5)**2)*GAME_TIME_STEP
+        #genome.fitness -= game.hoverboard.ang_velocity**2
+        #genome.fitness -= (game.hoverboard.normal[0]**2)
+
         if (game.reset_flag): break
 
+# evaluate all genomes in generation
+# if the best genome has changed, watch it play
 def eval_genomes(genomes, config):
     global BEST
+    global GEN
+    global POPULATION
     max = None
     for genome_id, genome in genomes:
         eval(genome, config)
         if (max == None or genome.fitness > max.fitness):
             max = genome
-    if (max != BEST):
+    if (not SILENT and max != BEST):
         BEST = max
-        watch(max, config)
+        species = POPULATION.species.get_species_id(BEST.key)
+        watch(GEN, BEST, species, config, GAME_START_ANGLE, GAME_TIME_STEP*(10 if FAST_FORWARD else 1))
+    GEN += 1
 
-# Load configuration.
-config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
-                     neat.DefaultSpeciesSet, neat.DefaultStagnation,
-                     'config')
+def main():
 
-# Create the population, which is the top-level object for a NEAT run.
-p = neat.Population(config)
+    # Parse CLI arguments
+    parser = argparse.ArgumentParser(description='Example of evolving a Neural Network using neat-python to control a 2D hoverboard simulation.')
+    parser.add_argument('angle', help="Starting angle of the platform")
+    parser.add_argument('-c', '--checkpoint', help="Number of a checkpoint on the 'checkpoint-reference' folder to start from")
+    parser.add_argument('-s', '--silent', help="Don't watch the game", nargs='?', const=True, type=bool)
+    parser.add_argument('-f', '--fastfwd', help="Fast forward the game preview (10x)", nargs='?', const=True, type=bool)
+    args = parser.parse_args()
 
-# Add a stdout reporter to show progress in the terminal.
-p.add_reporter(neat.StdOutReporter(False))
+    global GAME_START_ANGLE
+    GAME_START_ANGLE = float(args.angle)
 
-# Add a checkpointer to save population pickles
-if not os.path.exists('checkpoint-reference'):
-    os.makedirs('checkpoint-reference')
-p.add_reporter(neat.Checkpointer(1,filename_prefix='checkpoint-reference/gen-'))
+    global SILENT
+    SILENT = bool(args.silent)
 
-# Run until a solution is found.
-winner = p.run(eval_genomes)
+    global FAST_FORWARD
+    FAST_FORWARD = bool(args.fastfwd)
 
-# Display the winning genome.
-print('\nBest genome:\n{!s}'.format(winner))
+    # Load neat configuration.
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                         'config-reference')
 
-# Watch the winner
-watch(winner)
+    # Create the population or load from checkpoint
+    global POPULATION
+    if (args.checkpoint != None):
+        POPULATION = neat.Checkpointer.restore_checkpoint(os.path.join('checkpoint-reference','gen-'+str(args.checkpoint)), config)
+    else:
+        POPULATION = neat.Population(config)
+
+    # Add a stdout reporter to show progress in the terminal.
+    POPULATION.add_reporter(neat.StdOutReporter(False))
+
+    # Add a checkpointer to save population pickles
+    if not os.path.exists('checkpoint-reference'):
+        os.makedirs('checkpoint-reference')
+    POPULATION.add_reporter(neat.Checkpointer(1,filename_prefix='checkpoint-reference/gen-'))
+
+    # Run until a solution is found.
+    winner = POPULATION.run(eval_genomes)
+
+    # Display the winning genome.
+    print('\nBest genome:\n{!s}'.format(winner))
+
+main()

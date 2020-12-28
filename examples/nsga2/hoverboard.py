@@ -23,25 +23,37 @@
 """
 
 import math
-import pygame
 import sys
+import pygame
 from pygame.locals import QUIT
 
+"""
+    Settings
+"""
+
+# Dimensions
 DISPLAY = (512,512) # w, h
 THRUSTER = (20,300,10) # w, h, padding
 
+# Colors
 COLOR_BACKGROUND = (30,30,30)
 COLOR_PLAYER = (180,200,255)
 COLOR_THRUSTER_OFF = (50,50,50)
 COLOR_THRUSTER_LEFT = (200,0,127)
 COLOR_THRUSTER_RIGHT = (0,127,200)
 
-INPUT_STEP = 0.1
-
+# Physics
 MASS = 2
 GRAVITY = 1.5
 FORCE = 3
-INTERTIA_MOMENTUM = 0.05
+INTERTIA_MOMENTUM = 0.02
+
+# Input
+INPUT_STEP = 0.1
+
+"""
+    Game + Hoverboard
+"""
 
 class Hoverboard:
     def __init__(self, x = 0.5, y = 0.5, w = 100, h = 10, angle = 0, velocity = None, ang_velocity = 0):
@@ -55,8 +67,8 @@ class Hoverboard:
         self.velocity = velocity if (velocity != None) else [0,0]
         self.ang_velocity = ang_velocity
 
-        self.thrust_l = 0.5;
-        self.thrust_r = 0.5;
+        self.last_thrust = [0.5,0.5]
+        self.thrust = [0.5,0.5]
 
         self.surface = pygame.Surface((w,h*5), pygame.SRCALPHA)
 
@@ -66,7 +78,8 @@ class Hoverboard:
         # draw platform
         pygame.draw.rect(self.surface, COLOR_PLAYER, (0, self.h*2, self.w, self.h))
         # draw thruster left
-        th = 2*self.h*self.thrust_l
+        l = (self.thrust[0]+self.last_thrust[0])/2.0     # smooth display
+        th = 2*self.h*l
         for y in range(int(th)):
             for x in range(self.h):
                 self.surface.set_at((x,self.h*3+y),
@@ -75,7 +88,8 @@ class Hoverboard:
                                  COLOR_THRUSTER_LEFT[2],
                                  int(255*(1-y/th))))
         # draw thruster right
-        th = 2*self.h*self.thrust_r
+        r = (self.thrust[1]+self.last_thrust[1])/2.0 # smooth display
+        th = 2*self.h*r
         for y in range(int(th)):
             for x in range(self.w-self.h,self.w):
                 self.surface.set_at((x,self.h*3+y),
@@ -98,9 +112,9 @@ class Hoverboard:
         # gravity
         self.velocity[1] += GRAVITY*delta_t
         # thrust
-        ang_accel_l = (FORCE/INTERTIA_MOMENTUM)*self.thrust_l
-        ang_accel_r = (FORCE/INTERTIA_MOMENTUM)*self.thrust_r
-        accel = (FORCE/MASS)*(self.thrust_l+self.thrust_r)
+        ang_accel_l = (FORCE/INTERTIA_MOMENTUM)*self.thrust[0]
+        ang_accel_r = (FORCE/INTERTIA_MOMENTUM)*self.thrust[1]
+        accel = (FORCE/MASS)*(self.thrust[0]+self.thrust[1])
 
         self.ang_velocity += (ang_accel_r-ang_accel_l)*delta_t
 
@@ -115,18 +129,20 @@ class Hoverboard:
         self.angle += self.ang_velocity*delta_t
 
     def set_thrust(self, left, right):
-        self.thrust_l = left
-        if (self.thrust_l < 0): self.thrust_l = 0
-        elif (self.thrust_l > 1): self.thrust_l = 1
-        self.thrust_r = right
-        if (self.thrust_r < 0): self.thrust_r = 0
-        elif (self.thrust_r > 1): self.thrust_r = 1
+        self.last_thrust = list(self.thrust)
+        self.thrust[0] = left
+        if (self.thrust[0] < 0): self.thrust[0] = 0
+        elif (self.thrust[0] > 1): self.thrust[0] = 1
+        self.thrust[1] = right
+        if (self.thrust[1] < 0): self.thrust[1] = 0
+        elif (self.thrust[1] > 1): self.thrust[1] = 1
 
 class Game:
-    def __init__(self, start_angle = 0, ui = True):
+    def __init__(self, start_angle = 0, ui = True, network_ui = None):
         pygame.init()
         self.start_angle = start_angle
         self.ui = ui
+        self.network_ui = network_ui
         self.reset_flag = False
         self.hoverboard = Hoverboard(angle = start_angle)
         if (self.ui):
@@ -136,11 +152,17 @@ class Game:
         self.screen.fill(COLOR_BACKGROUND)
         self.hoverboard.render(self.screen)
 
-        # thrusters
-        pygame.draw.rect(self.screen, COLOR_THRUSTER_OFF, (THRUSTER[2], (DISPLAY[1]-THRUSTER[1])/2,THRUSTER[0],THRUSTER[1]*(1-self.hoverboard.thrust_l)))
-        pygame.draw.rect(self.screen, COLOR_THRUSTER_LEFT, (THRUSTER[2], (DISPLAY[1]-THRUSTER[1])/2+THRUSTER[1]*(1-self.hoverboard.thrust_l),THRUSTER[0],THRUSTER[1]*self.hoverboard.thrust_l))
-        pygame.draw.rect(self.screen, COLOR_THRUSTER_OFF, (DISPLAY[0]-THRUSTER[0]-THRUSTER[2], (DISPLAY[1]-THRUSTER[1])/2,THRUSTER[0],THRUSTER[1]*(1-self.hoverboard.thrust_r)))
-        pygame.draw.rect(self.screen, COLOR_THRUSTER_RIGHT, (DISPLAY[0]-THRUSTER[0]-THRUSTER[2], (DISPLAY[1]-THRUSTER[1])/2+THRUSTER[1]*(1-self.hoverboard.thrust_r),THRUSTER[0],THRUSTER[1]*self.hoverboard.thrust_r))
+        # Thrusters UI
+        l = (self.hoverboard.thrust[0]+self.hoverboard.last_thrust[0])/2.0 # smooth display
+        r = (self.hoverboard.thrust[1]+self.hoverboard.last_thrust[1])/2.0 # smooth display
+        pygame.draw.rect(self.screen, COLOR_THRUSTER_OFF, (THRUSTER[2], (DISPLAY[1]-THRUSTER[1])/2,THRUSTER[0],THRUSTER[1]*(1-l)))
+        pygame.draw.rect(self.screen, COLOR_THRUSTER_LEFT, (THRUSTER[2], (DISPLAY[1]-THRUSTER[1])/2+THRUSTER[1]*(1-l),THRUSTER[0],THRUSTER[1]*l))
+        pygame.draw.rect(self.screen, COLOR_THRUSTER_OFF, (DISPLAY[0]-THRUSTER[0]-THRUSTER[2], (DISPLAY[1]-THRUSTER[1])/2,THRUSTER[0],THRUSTER[1]*(1-r)))
+        pygame.draw.rect(self.screen, COLOR_THRUSTER_RIGHT, (DISPLAY[0]-THRUSTER[0]-THRUSTER[2], (DISPLAY[1]-THRUSTER[1])/2+THRUSTER[1]*(1-r),THRUSTER[0],THRUSTER[1]*r))
+
+        # Network UI
+        if (self.network_ui != None):
+            self.network_ui.render(self.screen)
 
     def loop(self):
         last_t = pygame.time.get_ticks()
@@ -151,17 +173,17 @@ class Game:
                 # Input
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_q:
-                        self.hoverboard.thrust_l += INPUT_STEP
-                        if (self.hoverboard.thrust_l > 1): self.hoverboard.thrust_l = 1
+                        self.hoverboard.thrust[0] += INPUT_STEP
+                        if (self.hoverboard.thrust[0] > 1): self.hoverboard.thrust[0] = 1
                     if event.key == pygame.K_a:
-                        self.hoverboard.thrust_l -= INPUT_STEP
-                        if (self.hoverboard.thrust_l < 0): self.hoverboard.thrust_l = 0
+                        self.hoverboard.thrust[0] -= INPUT_STEP
+                        if (self.hoverboard.thrust[0] < 0): self.hoverboard.thrust[0] = 0
                     if event.key == pygame.K_p:
-                        self.hoverboard.thrust_r += INPUT_STEP
-                        if (self.hoverboard.thrust_r > 1): self.hoverboard.thrust_r = 1
+                        self.hoverboard.thrust[1] += INPUT_STEP
+                        if (self.hoverboard.thrust[1] > 1): self.hoverboard.thrust[1] = 1
                     if event.key == pygame.K_l:
-                        self.hoverboard.thrust_r -= INPUT_STEP
-                        if (self.hoverboard.thrust_r < 0): self.hoverboard.thrust_r = 0
+                        self.hoverboard.thrust[1] -= INPUT_STEP
+                        if (self.hoverboard.thrust[1] < 0): self.hoverboard.thrust[1] = 0
                 # Quit
                 if event.type == QUIT:
                     pygame.quit()
