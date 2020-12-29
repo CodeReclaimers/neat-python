@@ -1,7 +1,7 @@
 ## NSGA-II examples ##
 
 The scripts in this directory show examples of using NEAT to control a hoverboard on a game.
-It uses CTRNNs to control the intensity of both left and right thrusters of the hoverboard, based on it's velocity, angular velocity and normal vector. All those informations could be retreived from real world sensors.
+It uses Recurrent Networks to control the intensity of both left and right thrusters of the hoverboard, based on it's velocity, angular velocity and normal vector. All those informations could be retreived from real world sensors.
 
 ![hoverboard-reference](https://i.imgur.com/UpJ2HA7.gif)
 
@@ -15,34 +15,35 @@ python hoverboard.py
 - Q/A : +/- left thruster
 - P/L : +/- right thruster
 
-#### Reference (without NSGA-II)
+#### evolve-flightime
 
-A reference example uses the Default Reproduction method, with a single value of fitness: runtime.
+A reference example using a Recurrent Network with the Default Reproduction method, optimizing a single value of fitness: flightime.
 
 The evolution converges fast on simple behaviours such as overcoming gravity by boosting both thrusters simultaneously, however a more refined fitness method should include the total variation of velocities and normal vector to help it converge faster to a stable controller.
 
-```python
-pip install pygame
-python evolve-reference.py 5
+```
+> pip install pygame
+> python evolve-reference.py <START_ANGLE>
 ```
 
-The examples have a Command Line Interface, so if you wan't to check the options do
-```python
-python evolve-reference.py --help
+The examples have a Command Line Interface, so if you wan't to check more options do:
 ```
-
-#### NSGA-II
-
-TODO: The NSGA-II method uses multiple fitness values to pick the best performing genomes of each species.
+> python evolve-reference.py --help
+```
 
 #### Visualize
 
 ![plot](https://i.ibb.co/5vXpfrm/reference2.png)
 
 WIP: Run this file to watch the best genomes controlling the hoverboard and gerenate a pyplot png.
-```python
-pip install pygame
 ```
+> pip install pygame
+```
+
+#### NSGA-II
+
+TODO: The NSGA-II method uses multiple fitness values to pick the best performing genomes of each species.
+
 #### GUI
 
 This file presents a class for rendering neural networks on pygame.
