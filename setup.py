@@ -12,7 +12,7 @@ setup(
     description='A NEAT (NeuroEvolution of Augmenting Topologies) implementation',
     long_description='Python implementation of NEAT (NeuroEvolution of Augmenting Topologies), a method ' +
                      'developed by Kenneth O. Stanley for evolving arbitrary neural networks.',
-    packages=['neat', 'neat/iznn', 'neat/nn', 'neat/ctrnn'],
+    packages=['neat', 'neat/iznn', 'neat/nn', 'neat/ctrnn', 'neat/nsga2'],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',

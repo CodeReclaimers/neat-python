@@ -1,20 +1,27 @@
 """
 
-    Hoverboard: Flight Time (Single Fitness)
+    Hoverboard: Flight Deviance (Double Fitness), using NSGA-II
 
     Small example tool to control the hoverboard game using NEAT.
-    It uses the DefaultReproduction method, with a single fitness value: flight time.
+    It uses the NSGA2Reproduction method, with two fitness values: flight time and total distance from the center.
 
     # USAGE:
-    > python evolve-flightime.py <ANGLE>
-    > python evolve-flightime.py --help
+    > python evolve-flightdvnc.py <ANGLE>
+    > python evolve-flightdvnc.py --help
 
     @author: Hugo Aboud (@hugoaboud)
 
 """
 
 from __future__ import print_function
+
+##  DEBUG
+##  Uses local version of neat-python
+import sys
+sys.path.append('../../')
+##  DEBUG
 import neat
+
 import os
 import math
 import argparse
@@ -25,8 +32,8 @@ from visualize import watch
 # General Parameters
 
 GAME_TIME_STEP = 0.001
-CHECKPOINT_FOLDER = 'checkpoint-flightime'
-CONFIG_FILE = 'config-default'
+CHECKPOINT_FOLDER = 'checkpoint-flightdvnc'
+CONFIG_FILE = 'config-nsga2'
 
 # CLI Parameters
 
@@ -66,8 +73,8 @@ def eval(genome, config):
     net = neat.nn.RecurrentNetwork.create(genome, config)
     # Create game
     game = Game(GAME_START_ANGLE,False)
-    # Run the game and calculate fitness
-    genome.fitness = 0
+    # Run the game and calculate fitness (list)
+    genome.fitness = neat.nsga2.NSGA2Fitness(0,0)
     while(True):
         # Activate Neural Network
         output = net.activate([game.hoverboard.velocity[0], game.hoverboard.velocity[1], game.hoverboard.ang_velocity, game.hoverboard.normal[0], game.hoverboard.normal[1]])
@@ -76,11 +83,12 @@ def eval(genome, config):
         game.hoverboard.set_thrust(output[0], output[1])
         game.update(GAME_TIME_STEP)
 
-        # Fitness (best option): flight time
-        genome.fitness += GAME_TIME_STEP
+        # Fitness 0: flight time
+        # Fitness 1: distance from center (negative)
+        genome.fitness.add( GAME_TIME_STEP,
+                            -math.sqrt((game.hoverboard.x-0.5)**2+(game.hoverboard.y-0.5)**2) )
 
-        # Fitness (alternatives)
-        #genome.fitness -= math.sqrt((game.hoverboard.x-0.5)**2+(game.hoverboard.y-0.5)**2)*GAME_TIME_STEP
+        # Fitness alternatives
         #genome.fitness -= (game.hoverboard.normal[0]**2)
         #genome.fitness -= math.sqrt(game.hoverboard.velocity[0]**2+game.hoverboard.velocity[1]**2)
         #genome.fitness -= game.hoverboard.ang_velocity**2
@@ -88,13 +96,17 @@ def eval(genome, config):
         # End of game
         if (game.reset_flag): break
 
+    genome.fitness.values[1] /= genome.fitness.values[0]
+
 # Evaluate generation
 def eval_genomes(genomes, config):
     # Global evolution flags
     global GEN
-    # Evaluate each genome looking for the best
+    # Evaluate each genome
     for genome_id, genome in genomes:
         eval(genome, config)
+    # NSGA-II required step: non-dominated sorting
+    POPULATION.reproduction.sort(genomes)
     GEN += 1
 
 ##
@@ -120,7 +132,8 @@ def main():
     FAST_FORWARD = bool(args.fastfwd)
 
     # Load neat configuration.
-    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+    # Here's where we load the NSGA-II reproduction module
+    config = neat.Config(neat.DefaultGenome, neat.nsga2.NSGA2Reproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          CONFIG_FILE)
 

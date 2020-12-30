@@ -180,10 +180,10 @@ class NeuralNetworkGUI:
         # if info enabled, render info texts
         if (self.info):
             img = self.font.render(str('GENERATION: {0}'.format(self.generation)), True, COLOR_TEXT)
-            screen.blit(img, (10,DISPLAY[1]-45))
+            screen.blit(img, (DISPLAY[0]-70,DISPLAY[1]-45))
             img = self.font.render(str('SPECIES: {0}'.format(self.species)), True, COLOR_TEXT)
-            screen.blit(img, (10,DISPLAY[1]-30))
+            screen.blit(img, (DISPLAY[0]-70,DISPLAY[1]-30))
             img = self.font.render(str('ID: {0}'.format(self.genome.key)), True, COLOR_TEXT)
-            screen.blit(img, (10,DISPLAY[1]-15))
+            screen.blit(img, (DISPLAY[0]-70,DISPLAY[1]-15))
             img = self.font.render(str('FITNESS: {0}'.format(self.genome.fitness)), True, COLOR_TEXT)
-            screen.blit(img, (DISPLAY[0]-120,DISPLAY[1]-15))
+            screen.blit(img, (10,DISPLAY[1]-15))
