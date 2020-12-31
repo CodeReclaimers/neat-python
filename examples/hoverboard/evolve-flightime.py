@@ -14,13 +14,20 @@
 """
 
 from __future__ import print_function
+
+##  DEBUG
+##  Uses local version of neat-python
+import sys
+sys.path.append('../../')
+##  DEBUG
 import neat
+
 import os
 import math
 import argparse
 
 from hoverboard import Game
-from visualize import watch
+from visualize import GameReporter, watch
 
 # General Parameters
 
@@ -33,28 +40,6 @@ CONFIG_FILE = 'config-default'
 GAME_START_ANGLE = 0
 SILENT = False
 FAST_FORWARD = False
-
-# Evolution Flags
-
-BEST = None
-GEN = 0
-POPULATION = None
-
-##
-#   Reporter
-#   Used to watch the game after each evaluation
-##
-
-class GameReporter(neat.reporting.BaseReporter):
-    def post_evaluate(self, config, population, species, best_genome):
-        global BEST
-        global POPULATION
-        # If watch game is enabled (not silent) and best genome
-        # has changed, watch it
-        if (not SILENT and best_genome != BEST):
-            BEST = best_genome
-            species = POPULATION.species.get_species_id(BEST.key)
-            watch(config, GAME_TIME_STEP*(10 if FAST_FORWARD else 1), GEN, species, BEST, GAME_START_ANGLE)
 
 ##
 #   Evaluation
@@ -90,12 +75,9 @@ def eval(genome, config):
 
 # Evaluate generation
 def eval_genomes(genomes, config):
-    # Global evolution flags
-    global GEN
     # Evaluate each genome looking for the best
     for genome_id, genome in genomes:
         eval(genome, config)
-    GEN += 1
 
 ##
 #   Main
@@ -125,25 +107,25 @@ def main():
                          CONFIG_FILE)
 
     # Create the population or load from checkpoint
-    global POPULATION
     if (args.checkpoint != None):
-        POPULATION = neat.Checkpointer.restore_checkpoint(os.path.join(CHECKPOINT_FOLDER,'gen-'+str(args.checkpoint)), config)
+        population = neat.Checkpointer.restore_checkpoint(os.path.join(CHECKPOINT_FOLDER,'gen-'+str(args.checkpoint)), config)
     else:
-        POPULATION = neat.Population(config)
+        population = neat.Population(config)
 
     # Add a stdout reporter to show progress in the terminal.
-    POPULATION.add_reporter(neat.StdOutReporter(False))
+    population.add_reporter(neat.StdOutReporter(False))
 
     # Add a game reporter to watch the game post evaluation
-    POPULATION.add_reporter(GameReporter())
+    if (not SILENT):
+        population.add_reporter(GameReporter(population, GAME_TIME_STEP*(10 if FAST_FORWARD else 1), GAME_START_ANGLE))
 
     # Add a checkpointer to save population pickles
     if not os.path.exists(CHECKPOINT_FOLDER):
         os.makedirs(CHECKPOINT_FOLDER)
-    POPULATION.add_reporter(neat.Checkpointer(1,filename_prefix=os.path.join(CHECKPOINT_FOLDER,'gen-')))
+    population.add_reporter(neat.Checkpointer(1,filename_prefix=os.path.join(CHECKPOINT_FOLDER,'gen-')))
 
     # Run until a solution is found.
-    winner = POPULATION.run(eval_genomes)
+    winner = population.run(eval_genomes)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))

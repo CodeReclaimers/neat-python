@@ -15,7 +15,15 @@
 
 import os
 import argparse
+
+##  DEBUG
+##  Uses local version of neat-python
+import sys
+sys.path.append('../../')
+##  DEBUG
 import neat
+from neat.math_util import mean
+
 import math
 
 from matplotlib import pyplot as plt
@@ -31,7 +39,28 @@ GAME_TIME_STEP = 0.001
 
 GAME_START_ANGLE = 0
 FAST_FORWARD = False
+JUST_PLOT = False
 EXPERIMENT = 'flightime'
+
+##
+#   Reporter
+#   Used to watch the game after each evaluation
+##
+
+class GameReporter(neat.reporting.BaseReporter):
+    def __init__(self, population, step, angle):
+        self.population = population
+        self.step = step
+        self.angle = angle
+        self.best = None
+        self.gen = 0
+    def post_evaluate(self, config, population, species, best_genome):
+        # If best genome has changed, watch it
+        if (not self.best or best_genome != self.best):
+            self.best = best_genome
+            species = self.population.species.get_species_id(self.best.key)
+            watch(config, self.step, self.gen, species, self.best, self.angle)
+        self.gen += 1
 
 ##
 #   Data
@@ -69,7 +98,7 @@ def load_checkpoints(folder):
 def plot(checkpoints, name):
     ids = [c.generation for c in checkpoints]
     bests = [c.best_genome.fitness for c in checkpoints]
-    avgs = [sum([f.fitness for _, f in c.population.items()])/len(c.population) for c in checkpoints]
+    avgs = [mean([f.fitness for _, f in c.population.items()]) for c in checkpoints]
 
     fig, ax = plt.subplots(figsize = (10,5))
     ax.set_title("Fitness over Generations")
@@ -114,19 +143,22 @@ def main():
     parser.add_argument('angle', help="Starting angle of the platform")
     parser.add_argument('experiment', help="Experiment prefix: (flightime,rundvnc), default: flighttime", const='flighttime', nargs='?')
     parser.add_argument('-f', '--fastfwd', help="Fast forward the game preview (2x)", nargs='?', const=True, type=bool)
+    parser.add_argument('-p', '--just_plot', help="Don't watch the game, just plot", nargs='?', const=True, type=bool)
     args = parser.parse_args()
 
     # Store global parameters
     global GAME_START_ANGLE
     global FAST_FORWARD
+    global JUST_PLOT
     GAME_START_ANGLE = float(args.angle)
     FAST_FORWARD = bool(args.fastfwd)
+    JUST_PLOT = bool(args.just_plot)
 
     # Check experiment argument
     global EXPERIMENT
     if (args.experiment is not None):
         EXPERIMENT = str(args.experiment)
-        if (EXPERIMENT != 'flightime'):
+        if (EXPERIMENT not in ('flightime','flightdvnc')):
             print("ERROR: Invalid experiment '" + EXPERIMENT + "'")
             return
 
@@ -134,7 +166,11 @@ def main():
     checkpoints = load_checkpoints('checkpoint-'+EXPERIMENT)
 
     # create neat config from file
-    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction, neat.DefaultSpeciesSet, neat.DefaultStagnation, 'config-'+EXPERIMENT)
+    cfg_file = {'flightime':'config-default',
+                'flightdvnc':'config-nsga2'}[EXPERIMENT]
+    repro = {'flightime':neat.DefaultReproduction,
+             'flightdvnc':neat.nsga2.NSGA2Reproduction}[EXPERIMENT]
+    config = neat.Config(neat.DefaultGenome, repro, neat.DefaultSpeciesSet, neat.DefaultStagnation, cfg_file)
 
     # run game for the best genome of each checkpoint
     # if it's not the same as the last one
@@ -148,7 +184,8 @@ def main():
         # get species id
         species = checkpoint.species.get_species_id(checkpoint.best_genome.key)
         # watch the genome play
-        watch(config, GAME_TIME_STEP, checkpoint.generation, species, checkpoint.best_genome, GAME_START_ANGLE)
+        if (not JUST_PLOT):
+            watch(config, GAME_TIME_STEP*(2 if FAST_FORWARD else 1), checkpoint.generation, species, checkpoint.best_genome, GAME_START_ANGLE)
 
     # scientific plot
     plot(checkpoints, 'reference')

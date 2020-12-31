@@ -27,7 +27,7 @@ import math
 import argparse
 
 from hoverboard import Game
-from visualize import watch
+from visualize import GameReporter, watch
 
 # General Parameters
 
@@ -41,28 +41,6 @@ GAME_START_ANGLE = 0
 SILENT = False
 FAST_FORWARD = False
 
-# Evolution Flags
-
-BEST = None
-GEN = 0
-POPULATION = None
-
-##
-#   Reporter
-#   Used to watch the game after each evaluation
-##
-
-class GameReporter(neat.reporting.BaseReporter):
-    def post_evaluate(self, config, population, species, best_genome):
-        global BEST
-        global POPULATION
-        # If watch game is enabled (not silent) and best genome
-        # has changed, watch it
-        if (not SILENT and best_genome != BEST):
-            BEST = best_genome
-            species = POPULATION.species.get_species_id(BEST.key)
-            watch(config, GAME_TIME_STEP*(10 if FAST_FORWARD else 1), GEN, species, BEST, GAME_START_ANGLE)
-
 ##
 #   Evaluation
 ##
@@ -75,6 +53,7 @@ def eval(genome, config):
     game = Game(GAME_START_ANGLE,False)
     # Run the game and calculate fitness (list)
     genome.fitness = neat.nsga2.NSGA2Fitness(0,0)
+    last_pos = (0.5,0.5)
     while(True):
         # Activate Neural Network
         output = net.activate([game.hoverboard.velocity[0], game.hoverboard.velocity[1], game.hoverboard.ang_velocity, game.hoverboard.normal[0], game.hoverboard.normal[1]])
@@ -84,30 +63,25 @@ def eval(genome, config):
         game.update(GAME_TIME_STEP)
 
         # Fitness 0: flight time
-        # Fitness 1: distance from center (negative)
+        # Fitness 1: movement from last frame
         genome.fitness.add( GAME_TIME_STEP,
-                            -math.sqrt((game.hoverboard.x-0.5)**2+(game.hoverboard.y-0.5)**2) )
+                            #-math.sqrt((game.hoverboard.x-last_pos[0])**2+(game.hoverboard.y-last_pos[1])**2) )
+                            -math.sqrt((game.hoverboard.x-0.5)**2+(game.hoverboard.y-0.5)**2) ) # distance from center
 
-        # Fitness alternatives
-        #genome.fitness -= (game.hoverboard.normal[0]**2)
-        #genome.fitness -= math.sqrt(game.hoverboard.velocity[0]**2+game.hoverboard.velocity[1]**2)
-        #genome.fitness -= game.hoverboard.ang_velocity**2
+        last_pos = (game.hoverboard.x, game.hoverboard.y)
 
         # End of game
         if (game.reset_flag): break
 
-    genome.fitness.values[1] /= genome.fitness.values[0]
+    #genome.fitness.values[1] /= genome.fitness.values[0]
 
 # Evaluate generation
 def eval_genomes(genomes, config):
-    # Global evolution flags
-    global GEN
     # Evaluate each genome
     for genome_id, genome in genomes:
         eval(genome, config)
     # NSGA-II required step: non-dominated sorting
-    POPULATION.reproduction.sort(genomes)
-    GEN += 1
+    population.reproduction.sort(genomes)
 
 ##
 #   Main
@@ -138,25 +112,26 @@ def main():
                          CONFIG_FILE)
 
     # Create the population or load from checkpoint
-    global POPULATION
+    global population
     if (args.checkpoint != None):
-        POPULATION = neat.Checkpointer.restore_checkpoint(os.path.join(CHECKPOINT_FOLDER,'gen-'+str(args.checkpoint)), config)
+        population = neat.Checkpointer.restore_checkpoint(os.path.join(CHECKPOINT_FOLDER,'gen-'+str(args.checkpoint)), config)
     else:
-        POPULATION = neat.Population(config)
+        population = neat.Population(config)
 
     # Add a stdout reporter to show progress in the terminal.
-    POPULATION.add_reporter(neat.StdOutReporter(False))
+    population.add_reporter(neat.StdOutReporter(False))
 
     # Add a game reporter to watch the game post evaluation
-    POPULATION.add_reporter(GameReporter())
+    if (not SILENT):
+        population.add_reporter(GameReporter(population, GAME_TIME_STEP*(10 if FAST_FORWARD else 1), GAME_START_ANGLE))
 
     # Add a checkpointer to save population pickles
     if not os.path.exists(CHECKPOINT_FOLDER):
         os.makedirs(CHECKPOINT_FOLDER)
-    POPULATION.add_reporter(neat.Checkpointer(1,filename_prefix=os.path.join(CHECKPOINT_FOLDER,'gen-')))
+    population.add_reporter(neat.Checkpointer(1,filename_prefix=os.path.join(CHECKPOINT_FOLDER,'gen-')))
 
     # Run until a solution is found.
-    winner = POPULATION.run(eval_genomes)
+    winner = population.run(eval_genomes)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))

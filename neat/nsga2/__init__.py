@@ -1,49 +1,9 @@
 """
 
     Implementation of NSGA-II as a reproduction method for NEAT.
+    More details on the README.md file.
 
     @autor: Hugo Aboud (@hugoaboud)
-
-    # OVERVIEW
-
-    NSGA-II is en Elitist Multiobjective Genetic Algorithm, designed to
-    efficiently sort populations based on multiple fitness values.
-
-    The algorithm is proposed in two steps:
-        - 1: Fast Non-dominated Sorting
-        - 2: Crowding Distance Sorting
-
-    Step 1 sorts the population in Parento-Front groups.
-    Step 2 creates a new population from the sorted old one
-
-    # IMPLEMENTATION NOTES
-
-    - In order to avoid unecessary changes to the neat-python library, a class
-    named NSGA2Fitness was created. It overloads the operators used by the lib,
-    keeping it concise with the definition.
-    - In order to comply with the single fitness progress/threshold, the first
-    fitness value is used for thresholding and when it's converted to a float
-    (like in mean methods).
-    - In order to use the multiobjective crowded-comparison operator, fitness
-    functions config should always be set to 'max'.
-    - Ranks are negative, so it's a maximization problem, as the default examples
-
-    # IMPLEMENTATION
-
-    - A NSGA2Fitness class is used to store multiple fitness values
-      during evaluation
-    - NSGA2Reproduction keeps track of parent population and species
-    - After all new genomes are evaluated, sort() method must be run
-    - sort() merges the current and parent population and sorts it
-      in parento-fronts, assigning a rank value to each
-    - When reproduce() is called by population, the default species
-      stagnation runs
-    - Then, Crowding Distance Sorting is used to remove the worst
-      genomes from the remaining species.
-    - The best <pop_size> genomes are stored as the parent population
-    - Each species then doubles in size by sexual/asexual reproduction
-    - TODO: If pop_size was not reached, cross genomes from different fronts
-      to incentivize innovation
 
 """
 from __future__ import division
@@ -55,6 +15,7 @@ from operator import add
 
 from neat.config import ConfigParameter, DefaultClassConfig
 from neat.math_util import mean
+from neat.species import Species
 
 ##
 #   NSGA-II Fitness
@@ -158,6 +119,7 @@ class NSGA2Reproduction(DefaultClassConfig):
     # after a NSGA2Fitness was assigned to each genome
     def sort(self, genomes):
         print("NSGA-II step 1: non-dominated sorting")
+        # Merge parent population
         genomes = [g[1] for g in genomes] + self.parent_pop
         # algorithm data
         S = {} # genomes dominated by key genome
@@ -212,41 +174,64 @@ class NSGA2Reproduction(DefaultClassConfig):
         # fitness.values[0] is used for fitness threshold and reporting, but not in here
         print("NSGA-II step 2: crowding distance sorting")
 
-        # append parent species to list, so all front genomes are covered
-        species.species.update(self.parent_species)
+        # First part of the merge is done on sorting(), parent and children
+        # genomes are merged into parento fronts
+        # Merge parent species to list, so parent genomes are covered by species.species
+        for id, sp in self.parent_species.items():
+            if (id in species.species):
+                species.species[id].members.update(sp.members)
+            else:
+                species.species[id] = sp
 
-        # Default Stagnation without fitness calculation
+        # Default Stagnation (without fitness calculation)
         # Filter out stagnated species genomes, collect the set of non-stagnated
-        remaining_species = {}
+        stagnant_genomes = [] # genomes to be removed from fronts
+        self.parent_species = {} # remaining species
         for stag_sid, stag_s, stagnant in self.stagnation.update(species, generation):
+            # stagnant species: append genomes to stagnant genomes list
             if stagnant:
                 self.reporters.species_stagnant(stag_sid, stag_s)
+                stagnant_genomes += list(stag_s.members.values())
+            # non stagnant species: append species to parent species dictionary
             else:
-                remaining_species[stag_sid] = stag_s
+                self.parent_species[stag_sid] = stag_s
 
         # No genomes left.
-        if not remaining_species:
+        if not self.parent_species:
             species.species = {}
             return {}
 
-        # Crowding distance assignment
+        ## Crowding Distance Sorting
         # Create new parent population from the best fronts
         self.parent_pop = []
         for front in self.fronts:
+            # Remove stagnant genomes (of stagnant species) from front
+            front = [f for f in front if f not in stagnant_genomes]
+            # If no members left on front, move on to the next one
+            if (len(front) == 0): continue
 
-            ## WIP: Calculate crowd-distance
+            ## Calculate crowd-distance of fitnesses
+            # First set distance to zero
             for genome in front:
                 genome.dist = 0
+            # List of fitnesses to be used for distance calculation
             fitnesses = [f.fitness for f in front]
+            # Iterate each fitness parameter (values)
             for m in range(len(fitnesses[0].values)):
+                # Sort fitnesses by parameter
                 fitnesses.sort(key=lambda f: f.values[m])
+                # Get scale for normalizing values
                 scale = (fitnesses[-1].values[m]-fitnesses[0].values[m])
+                # Set edges distance to infinite, to ensure are picked by the next step
+                # This helps keeping the population diverse
                 fitnesses[0].dist = float('inf')
                 fitnesses[-1].dist = float('inf')
+                # Increment distance values for each fitness
                 if (scale > 0):
                     for i in range(1,len(fitnesses)-1):
                         fitnesses[i].dist += abs(fitnesses[i+1].values[0]-fitnesses[i-1].values[0])/scale
 
+            ## Assemble new parent population
             # front fits entirely on the parent population, just append it
             if (len(self.parent_pop) + len(front) < pop_size):
                 self.parent_pop += front
@@ -256,40 +241,52 @@ class NSGA2Reproduction(DefaultClassConfig):
                 front.sort(key=lambda g: g.fitness)
                 self.parent_pop += front[:pop_size-len(self.parent_pop)]
 
-        # Map parent species, by removing the genomes from remaining_species
-        # that haven't passed the crowding-distance step
-        self.parent_species = remaining_species
-        for _, sp in remaining_species.items():
-            # filter genomes from each species
-            sp.member = [g for g in sp.members if g in self.parent_pop]
-
+        ## Clean-up of remaining species
+        # Remove the genomes that haven't passed the crowding-distance step
+        # (The ones stagnated are already not on this dict)
+        for _, sp in self.parent_species.items():
+            sp.members = {id:g for id,g in sp.members.items() if g in self.parent_pop}
         # Remove empty species
         self.parent_species = {id:sp for id,sp in self.parent_species.items() if len(sp.members) > 0}
 
-        # Reproduce species of parent population into new population
-        # Each species doubles in size
+        ## Tournament
+        # Each species remains the same size (they grow and shrink based on pareto-fronts)
+        # Only the <survival_threshold> best are used for mating
+        # Mating can be sexual or asexual
         new_population = {}
         for _, species in self.parent_species.items():
+            # Sort species members by crowd distance
+            members = list(species.members.values())
+            members.sort(key=lambda g: g.fitness, reverse=True)
+            # Survival threshold: how many members should be used as parents
+            repro_cutoff = int(math.ceil(self.reproduction_config.survival_threshold * len(members)))
+            # Use at least two parents no matter what the threshold fraction result is.
+            members = members[:max(repro_cutoff, 2)]
             # spawn the number of members on the species
+            # species grow and shrink throught the pareto-front optimization
             spawn = len(species.members)
-            # special case: single member, asexual reproduction
-            if (spawn == 1):
-                parent = [g for _, g in species.members.items()][0]
+            for i in range(spawn):
+                # pick two random parents
+                parent_a = random.choice(members)
+                parent_b = random.choice(members)
+                # sexual reproduction
                 gid = next(self.genome_indexer)
                 child = config.genome_type(gid)
-                child.configure_crossover(parent, parent, config.genome_config)
+                child.configure_crossover(parent_a, parent_b, config.genome_config)
                 child.mutate(config.genome_config)
                 new_population[gid] = child
-            # usual case: n > 1 members, sexual reproduction
-            else:
-                for i in range(spawn):
-                    # pick two random parents
-                    parents = random.sample(list(species.members.values()), 2)
-                    # sexual reproduction
-                    gid = next(self.genome_indexer)
-                    child = config.genome_type(gid)
-                    child.configure_crossover(parents[0], parents[1], config.genome_config)
-                    child.mutate(config.genome_config)
-                    new_population[gid] = child
+
+        # Prepare species dictionaries for speciation and next reproduction pass
+        # - species.species will be used by species.speciate to group genomes
+        #   and create new species. it relies on the last 'representative' member
+        species.species = self.parent_species
+        # - self.parent_species should be a deepcopy of the species dictionary,
+        #   serving two purposes:
+        #       - merge species on the merge step
+        #       - give species a chance to overcome extinction if they are doing generally well
+        self.parent_species = {}
+        for id, sp in species.species.items():
+            self.parent_species[id] = Species(id, sp.created)
+            self.parent_species[id].members = dict(sp.members)
 
         return new_population
