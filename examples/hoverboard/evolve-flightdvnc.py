@@ -73,15 +73,13 @@ def eval(genome, config):
         # End of game
         if (game.reset_flag): break
 
-    #genome.fitness.values[1] /= genome.fitness.values[0]
+    genome.fitness.values[1] /= genome.fitness.values[0]
 
 # Evaluate generation
 def eval_genomes(genomes, config):
     # Evaluate each genome
     for genome_id, genome in genomes:
         eval(genome, config)
-    # NSGA-II required step: non-dominated sorting
-    population.reproduction.sort(genomes)
 
 ##
 #   Main

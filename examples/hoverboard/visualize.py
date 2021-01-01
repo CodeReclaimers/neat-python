@@ -101,7 +101,7 @@ def plot(checkpoints, name):
     avgs = [mean([f.fitness for _, f in c.population.items()]) for c in checkpoints]
 
     fig, ax = plt.subplots(figsize = (10,5))
-    ax.set_title("Fitness over Generations")
+    ax.set_title(name+" - Fitness over Generations")
     ax.plot(ids, bests, color='blue', linewidth=1, label="Best")
     ax.plot(ids, avgs, color='black', linewidth=1, label="Average")
     ax.legend()
@@ -188,7 +188,7 @@ def main():
             watch(config, GAME_TIME_STEP*(2 if FAST_FORWARD else 1), checkpoint.generation, species, checkpoint.best_genome, GAME_START_ANGLE)
 
     # scientific plot
-    plot(checkpoints, 'reference')
+    plot(checkpoints, EXPERIMENT)
 
 if __name__ == "__main__":
    main()
