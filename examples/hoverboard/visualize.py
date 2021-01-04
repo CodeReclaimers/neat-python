@@ -272,11 +272,11 @@ def main():
         species = checkpoint.species.get_species_id(checkpoint.best_genome.key)
         # watch the genome play
         if (not JUST_PLOT and not WATCH_LAST):
-            watch(config, GAME_TIME_STEP*(2 if FAST_FORWARD else 1), checkpoint.generation, species, checkpoint.best_genome, GAME_START_ANGLE)
+            watch(config, GAME_TIME_STEP*(2 if FAST_FORWARD else 1), checkpoint.generation, species, checkpoint.best_genome, GAME_START_ANGLE, EXPERIMENT in ['timedist'])
 
     # watch the last game
     if (WATCH_LAST):
-        watch(config, GAME_TIME_STEP*(2 if FAST_FORWARD else 1), checkpoint.generation, species, checkpoint.best_genome, GAME_START_ANGLE)
+        watch(config, GAME_TIME_STEP*(2 if FAST_FORWARD else 1), checkpoint.generation, species, checkpoint.best_genome, GAME_START_ANGLE, EXPERIMENT in ['timedist'])
 
     # scientific plot
     plot_fitness(checkpoints, EXPERIMENT)
