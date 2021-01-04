@@ -17,7 +17,7 @@ This seems to keep species more stable over the generations, while also improvin
 Below is an schematic of the reproduction method.
 It's described following the [original article](https://www.iitk.ac.in/kangal/Deb_NSGA-II.pdf) Main Loop, on pages 185 and 186.
 
-![nsga-ii concept](https://raw.githubusercontent.com/hugoaboud/neat-python/02cafdaa29dccf5cd00321044d1dd8099a3a1173/neat/nsga2/nsga2neat.svg)
+![nsga-ii concept](https://raw.githubusercontent.com/hugoaboud/neat-python/a4c90ad777439482831a7c5c6067899e64805a92/neat/nsga2/nsga2neat.svg)
 
 - The current implementation does not differentiate the first generation, it runs the second procedure with an empty parent population, so the results are the same as the proposed first step;
 - Please note that the sorting results on the picture might not be accurate;
