@@ -4,16 +4,15 @@
 ## FORK STATUS ##
 
 This is a fork from [CodeReclaimers](https://github.com/CodeReclaimers/neat-python).
-The main focus of this fork is to offer Non-dominated Sorting for Multiobjective Fitness. That means having more than one fitness value that should be optimized.
-This should be done throught the implementation of [NSGA-II](https://ieeexplore.ieee.org/document/996017) as a Reproduction method.
-Minor changes should be necessary on the main code to support list/tuple fitness values.
+The main focus is Non-dominated Sorting for Multiobjective Fitness. That means having more than one fitness value that should be optimized.
+This is done throught the implementation of [NSGA-II](https://ieeexplore.ieee.org/document/996017) as a Reproduction method. More details on the `neat/nsga2/` readme.
 
-**NSGA-II is not currently implemented**
+The current repository also presents a hoverboard game/simulation to be used as a problem for testing the NSGA-II feature, as well as examples for training it with and without NSGA-II.
+Check the readme on `examples/nsga2` for more details.
 
-The current repository implements a hoverboard game/simulation to be used as a problem for testing the NSGA-II feature.
-A CPTNN implementation with default reproduction is available as reference. Check the readme on `examples/nsga2` for more details.
+![hoverboard-reference](https://i.imgur.com/CfrdHmr.gif)
 
-![hoverboard-reference](https://i.imgur.com/UpJ2HA7.gif)
+I've tried keeping the minimal amount of change to the core library, so merging to the main fork should be easy. All these changes are backwards-compatible.
 
 ## About ##
 
