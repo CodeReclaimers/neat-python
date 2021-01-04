@@ -1,13 +1,17 @@
 """
 
-    Hoverboard: Flight Deviance (Double Fitness), using NSGA-II
+    Hoverboard: evolve Flight Time + Distance from Center (2 fitnesses), using NSGA-II
 
     Small example tool to control the hoverboard game using NEAT.
-    It uses the NSGA2Reproduction method, with two fitness values: flight time and total distance from the center.
+    It uses the NSGA2Reproduction method, with two fitness values: flight time and average squared distance from the center.
+
+    Each genome is evaluated starting from 5 preset points (including center),
+    with a given starting angle and it's inverse (ex. 5° and -5°).
+    The total fitness is the average for the 10 runs.
 
     # USAGE:
-    > python evolve-flightdvnc.py <ANGLE>
-    > python evolve-flightdvnc.py --help
+    > python evolve-timedist.py <ANGLE>
+    > python evolve-timedist.py --help
 
     @author: Hugo Aboud (@hugoaboud)
 
@@ -32,7 +36,7 @@ from visualize import GameReporter, watch
 # General Parameters
 
 GAME_TIME_STEP = 0.001
-CHECKPOINT_FOLDER = 'checkpoint-flightdvnc'
+CHECKPOINT_FOLDER = 'checkpoint-timedist'
 CONFIG_FILE = 'config-nsga2'
 
 # CLI Parameters
@@ -49,30 +53,39 @@ FAST_FORWARD = False
 def eval(genome, config):
     # Create network
     net = neat.nn.RecurrentNetwork.create(genome, config)
-    # Create game
-    game = Game(GAME_START_ANGLE,False)
-    # Run the game and calculate fitness (list)
+    # Genome fitness to be accumulated
     genome.fitness = neat.nsga2.NSGA2Fitness(0,0)
-    last_pos = (0.5,0.5)
-    while(True):
-        # Activate Neural Network
-        output = net.activate([game.hoverboard.velocity[0], game.hoverboard.velocity[1], game.hoverboard.ang_velocity, game.hoverboard.normal[0], game.hoverboard.normal[1]])
+    # Eval starting from 5 points
+    for start in [(0.5,0.5),(0.25,0.25),(0.25,0.75),(0.75,0.25),(0.75,0.75)]:
+        # Eval with angle and inverse angle
+        for angle in [GAME_START_ANGLE,-GAME_START_ANGLE]:
+            # Create game
+            game = Game(GAME_START_ANGLE,False,start=start)
+            # Run the game and calculate fitness (list)
+            fitness = [0,0]
+            while(True):
+                # Activate Neural Network
+                dir = [0.5-game.hoverboard.x, 0.5-game.hoverboard.y]
+                output = net.activate([game.hoverboard.velocity[0], game.hoverboard.velocity[1], game.hoverboard.ang_velocity, game.hoverboard.normal[0], game.hoverboard.normal[1], dir[0], dir[1]])
 
-        # Update game state from output and then update physics
-        game.hoverboard.set_thrust(output[0], output[1])
-        game.update(GAME_TIME_STEP)
+                # Update game state from output and then update physics
+                game.hoverboard.set_thrust(output[0], output[1])
+                game.update(GAME_TIME_STEP)
 
-        # Fitness 0: flight time
-        # Fitness 1: movement from last frame
-        genome.fitness.add( GAME_TIME_STEP,
-                            #-math.sqrt((game.hoverboard.x-last_pos[0])**2+(game.hoverboard.y-last_pos[1])**2) )
-                            -math.sqrt((game.hoverboard.x-0.5)**2+(game.hoverboard.y-0.5)**2) ) # distance from center
+                # Fitness 0: flight time
+                fitness[0] += GAME_TIME_STEP
+                # Fitness 1: distance from center (target)
+                dist = dir[0]**2+dir[1]**2
+                fitness[1] -= dist
 
-        last_pos = (game.hoverboard.x, game.hoverboard.y)
+                # End of game
+                if (game.reset_flag): break
+            # Add fitness to genome fitness
+            genome.fitness.add(fitness[0],fitness[1])
 
-        # End of game
-        if (game.reset_flag): break
-
+    # Take average of runs
+    genome.fitness.values[0] /= 10
+    genome.fitness.values[1] /= 10
     genome.fitness.values[1] /= genome.fitness.values[0]
 
 # Evaluate generation
@@ -121,7 +134,7 @@ def main():
 
     # Add a game reporter to watch the game post evaluation
     if (not SILENT):
-        population.add_reporter(GameReporter(population, GAME_TIME_STEP*(10 if FAST_FORWARD else 1), GAME_START_ANGLE))
+        population.add_reporter(GameReporter(population, GAME_TIME_STEP*(10 if FAST_FORWARD else 1), GAME_START_ANGLE, True))
 
     # Add a checkpointer to save population pickles
     if not os.path.exists(CHECKPOINT_FOLDER):

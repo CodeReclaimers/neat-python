@@ -20,23 +20,25 @@ NN_OUTPUT_X = 384
 NN_Y_STEP = 25
 NN_NODE_RADIUS = 7
 NN_CONN_THICK = 1
-NN_INPUT_NAMES = ['      velocity X',
+NN_INPUT_NAMES = ['      velocity Y',
                   '      velocity Y',
                   'angular velocity',
                   '        normal X',
-                  '        normal Y']
+                  '        normal Y',
+                  '           dir X',
+                  '           dir Y']
 NN_OUTPUT_COLORS = [(200,0,127),
                     (0,127,200)]
 
 # Colors
 COLOR_TEXT = (200,200,200)
-COLOR_NN_NODE_INPUT = ((200, 0, 0), (0, 0, 200))
+COLOR_NN_NODE_INPUT = ((200, 150, 0), (0, 150, 200))
 COLOR_NN_NODE = {'relu' : ((200, 100, 100), (100, 100, 200)),
                  'tanh' : ((100, 200, 100), (200, 100, 200)),
                  'gauss' : ((100, 100, 200), (200, 100, 100)),
                  'softplus' : ((100, 100, 200), (200, 100, 100)),
                  'sigmoid' : ((100, 100, 200), (200, 100, 100))}
-COLOR_NN_CONNECTION = ((200, 100, 100), (100, 100, 200))
+COLOR_NN_CONNECTION = ((200, 150, 0), (0, 150, 200))
 NN_WEIGHT_SCALE = 10
 
 ##
@@ -79,7 +81,7 @@ class NeuralNetworkGUI:
         def set(self, value):
             self.last_value = self.value
             self.value = value
-            if (self.value < 0): self.value = 0
+            if (self.value < -1): self.value = -1
             elif (self.value > 1): self.value = 1
 
     def __init__(self, generation, genome, species, net, info=True):
@@ -167,8 +169,9 @@ class NeuralNetworkGUI:
             if (id in values):
                 node.set(values[id])
             node.render(screen)
+
         # render input names
-        for i in range(len(NN_INPUT_NAMES)):
+        for i in range(len(self.net.input_nodes)):
             img = self.font.render(NN_INPUT_NAMES[i], True, COLOR_TEXT)
             screen.blit(img, (NN_INPUT_X-70,NN_PADDING_TOP+i*NN_Y_STEP-6))
 

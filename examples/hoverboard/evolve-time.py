@@ -1,13 +1,15 @@
 """
 
-    Hoverboard: Flight Time (Single Fitness)
+    Hoverboard: evolve Flight Time (1 fitness)
 
     Small example tool to control the hoverboard game using NEAT.
     It uses the DefaultReproduction method, with a single fitness value: flight time.
 
+    Each genome is evaluated starting from the center, with a given starting angle.
+
     # USAGE:
-    > python evolve-flightime.py <ANGLE>
-    > python evolve-flightime.py --help
+    > python evolve-time.py <ANGLE>
+    > python evolve-time.py --help
 
     @author: Hugo Aboud (@hugoaboud)
 
@@ -32,7 +34,7 @@ from visualize import GameReporter, watch
 # General Parameters
 
 GAME_TIME_STEP = 0.001
-CHECKPOINT_FOLDER = 'checkpoint-flightime'
+CHECKPOINT_FOLDER = 'checkpoint-time'
 CONFIG_FILE = 'config-default'
 
 # CLI Parameters

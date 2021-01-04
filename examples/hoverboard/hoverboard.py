@@ -8,9 +8,6 @@
     <How to Run>
     > pip install pygame
     > python hoverboard.py
-    > Have a little fun with it
-    > Get frustrated
-    > Go check the NEAT-NSGA2 controller
 
     <How to Play>
     Q : ++ left thruster
@@ -160,7 +157,7 @@ class Hoverboard:
 ##
 
 class Game:
-    def __init__(self, start_angle = 0, frontend = True, network_gui = None):
+    def __init__(self, start_angle = 0, frontend = True, network_gui = None, start=(0.5,0.5)):
         self.start_angle = start_angle
         self.frontend = frontend
 
@@ -173,7 +170,7 @@ class Game:
         self.reset_flag = False
 
         # create hoverboard
-        self.hoverboard = Hoverboard(angle = start_angle)
+        self.hoverboard = Hoverboard(start[0], start[1], angle = start_angle)
 
         # initialize pygame modules
         pygame.init()

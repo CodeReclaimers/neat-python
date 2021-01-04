@@ -47,7 +47,7 @@ node_delete_prob        = 0.4
 
 # network parameters
 num_hidden              = 0
-num_inputs              = 5
+num_inputs              = 7
 num_outputs             = 2
 
 # node response options
@@ -69,7 +69,7 @@ weight_mutate_rate      = 0.8
 weight_replace_rate     = 0.3
 
 [DefaultSpeciesSet]
-compatibility_threshold = 15.0
+compatibility_threshold = 20.0
 
 [DefaultStagnation]
 species_fitness_func = max
@@ -77,5 +77,4 @@ max_stagnation       = 20
 species_elitism      = 2
 
 [NSGA2Reproduction]
-elitism            = 1
 survival_threshold = 0.2
