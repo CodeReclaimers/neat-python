@@ -87,6 +87,12 @@ class Population(object):
             # Evaluate all genomes using the user-provided function.
             fitness_function(list(self.population.items()), self.config)
 
+            # Call sorting method of NSGA2Reproduction
+            # This is the only modification made to the main code, so the best
+            # genome is evaluated before tournament, to ensure elitism
+            if (callable(getattr(self.reproduction,'sort',None))):
+                self.population = self.reproduction.sort(self.population, self.species, self.config.pop_size, self.generation)
+
             # Gather and report statistics.
             best = None
             for g in self.population.values():
