@@ -1,5 +1,7 @@
 """Directed graph algorithm implementations."""
 
+from typing import List, Tuple, Set
+
 
 def creates_cycle(connections, test):
     """
@@ -25,7 +27,7 @@ def creates_cycle(connections, test):
             return False
 
 
-def required_for_output(inputs, outputs, connections):
+def required_for_output(inputs: List[int], outputs: List[int], connections: List[Tuple[int, int]]) -> Set[int]:
     """
     Collect the nodes whose state is required to compute the final network output(s).
     :param inputs: list of the input identifiers
@@ -37,16 +39,16 @@ def required_for_output(inputs, outputs, connections):
     Returns a set of identifiers of required nodes.
     """
 
-    required = set(outputs)
-    s = set(outputs)
+    required: Set[int] = set(outputs)
+    s: Set[int] = set(outputs)
     while 1:
         # Find nodes not in S whose output is consumed by a node in s.
-        t = set(a for (a, b) in connections if b in s and a not in s)
+        t: Set[int] = set(a for (a, b) in connections if b in s and a not in s)
 
         if not t:
             break
 
-        layer_nodes = set(x for x in t if x not in inputs)
+        layer_nodes: Set[int] = set(x for x in t if x not in inputs)
         if not layer_nodes:
             break
 
@@ -56,7 +58,7 @@ def required_for_output(inputs, outputs, connections):
     return required
 
 
-def feed_forward_layers(inputs, outputs, connections):
+def feed_forward_layers(inputs: List[int], outputs: List[int], connections: List[Tuple[int, int]]) -> List[Set[int]]:
     """
     Collect the layers whose members can be evaluated in parallel in a feed-forward network.
     :param inputs: list of the network input nodes
@@ -68,16 +70,16 @@ def feed_forward_layers(inputs, outputs, connections):
     never used to compute the final network output.
     """
 
-    required = required_for_output(inputs, outputs, connections)
+    required: Set[int] = required_for_output(inputs, outputs, connections)
 
-    layers = []
+    layers: List[Set[int]] = []
     s = set(inputs)
     while 1:
         # Find candidate nodes c for the next layer.  These nodes should connect
         # a node in s to a node not in s.
         c = set(b for (a, b) in connections if a in s and b not in s)
         # Keep only the used nodes whose entire input set is contained in s.
-        t = set()
+        t: Set[int] = set()
         for n in c:
             if n in required and all(a in s for (a, b) in connections if b == n):
                 t.add(n)
@@ -89,5 +91,3 @@ def feed_forward_layers(inputs, outputs, connections):
         s = s.union(t)
 
     return layers
-
-
