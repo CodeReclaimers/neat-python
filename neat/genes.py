@@ -1,7 +1,12 @@
 """Handles node and connection genes."""
 import warnings
+
 from random import random
+from typing import List, Optional, Dict, Set
+from neat import genome
 from neat.attributes import FloatAttribute, BoolAttribute, StringAttribute
+from neat.config import ConfigParameter
+
 
 # TODO: There is probably a lot of room for simplification of these classes using metaprogramming.
 # TODO: Evaluate using __slots__ for performance/memory usage improvement.
@@ -12,15 +17,16 @@ class BaseGene(object):
     Handles functions shared by multiple types of genes (both node and connection),
     including crossover and calling mutation methods.
     """
-    def __init__(self, key):
-        self.key = key
 
-    def __str__(self):
+    def __init__(self, key: int) -> None:
+        self.key: int = key
+
+    def __str__(self) -> str:
         attrib = ['key'] + [a.name for a in self._gene_attributes]
         attrib = ['{0}={1}'.format(a, getattr(self, a)) for a in attrib]
         return '{0}({1})'.format(self.__class__.__name__, ", ".join(attrib))
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         assert isinstance(self.key, type(other.key)), "Cannot compare keys {0!r} and {1!r}".format(self.key, other.key)
         return self.key < other.key
 
@@ -29,8 +35,8 @@ class BaseGene(object):
         pass
 
     @classmethod
-    def get_config_params(cls):
-        params = []
+    def get_config_params(cls) -> List[ConfigParameter]:
+        params: List[ConfigParameter] = []
         if not hasattr(cls, '_gene_attributes'):
             setattr(cls, '_gene_attributes', getattr(cls, '__gene_attributes__'))
             warnings.warn(
@@ -39,13 +45,14 @@ class BaseGene(object):
                 DeprecationWarning)
         for a in cls._gene_attributes:
             params += a.get_config_params()
+        # 遺伝子に関わるConfigParameterがすべて入る
         return params
 
-    def init_attributes(self, config):
+    def init_attributes(self, config: genome.DefaultGenomeConfig):
         for a in self._gene_attributes:
             setattr(self, a.name, a.init_value(config))
 
-    def mutate(self, config):
+    def mutate(self, config: genome.DefaultGenomeConfig):
         for a in self._gene_attributes:
             v = getattr(self, a.name)
             setattr(self, a.name, a.mutate_value(v, config))
@@ -114,4 +121,3 @@ class DefaultConnectionGene(BaseGene):
         if self.enabled != other.enabled:
             d += 1.0
         return d * config.compatibility_weight_coefficient
-
