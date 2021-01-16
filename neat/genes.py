@@ -66,7 +66,7 @@ class BaseGene(object):
 
     def mutate(self, config):
         for a in self._gene_attributes:
-            v = getattr(self, a.name)
+            v: float = getattr(self, a.name)
             setattr(self, a.name, a.mutate_value(v, config))
 
     def copy(self) -> BaseGene:
