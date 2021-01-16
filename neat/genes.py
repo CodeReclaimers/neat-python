@@ -1,10 +1,11 @@
 """Handles node and connection genes."""
+from __future__ import annotations
+
 import warnings
 
 from random import random
-from typing import List, Optional, Dict, Set
-from neat import genome
-from neat.attributes import FloatAttribute, BoolAttribute, StringAttribute
+from typing import List, Optional, Dict, Set, Tuple, Union, Final
+from neat.attributes import FloatAttribute, BoolAttribute, StringAttribute, BaseAttribute
 from neat.config import ConfigParameter
 
 
@@ -18,15 +19,26 @@ class BaseGene(object):
     including crossover and calling mutation methods.
     """
 
-    def __init__(self, key: int) -> None:
-        self.key: int = key
+    # これもまずかったら即消せ
+    _gene_attributes: List[BaseAttribute]
+
+    def __init__(self, key: Union[int, Tuple[int, int]]) -> None:
+        self.key: Final[Union[int, Tuple[int, int]]] = key
+
+        # add init (まずかったら即消せ)
+        self.bias: float = 0
+        self.weight: float = 0
+        self.response: float = 0
+        self.enabled: bool = True
+        self.activation: str = ""
+        self.aggregation: str = ""
 
     def __str__(self) -> str:
         attrib = ['key'] + [a.name for a in self._gene_attributes]
         attrib = ['{0}={1}'.format(a, getattr(self, a)) for a in attrib]
         return '{0}({1})'.format(self.__class__.__name__, ", ".join(attrib))
 
-    def __lt__(self, other) -> bool:
+    def __lt__(self, other: BaseGene) -> bool:
         assert isinstance(self.key, type(other.key)), "Cannot compare keys {0!r} and {1!r}".format(self.key, other.key)
         return self.key < other.key
 
@@ -48,29 +60,29 @@ class BaseGene(object):
         # 遺伝子に関わるConfigParameterがすべて入る
         return params
 
-    def init_attributes(self, config: genome.DefaultGenomeConfig):
+    def init_attributes(self, config):
         for a in self._gene_attributes:
             setattr(self, a.name, a.init_value(config))
 
-    def mutate(self, config: genome.DefaultGenomeConfig):
+    def mutate(self, config):
         for a in self._gene_attributes:
             v = getattr(self, a.name)
             setattr(self, a.name, a.mutate_value(v, config))
 
-    def copy(self):
-        new_gene = self.__class__(self.key)
+    def copy(self) -> BaseGene:
+        new_gene: BaseGene = self.__class__(self.key)
         for a in self._gene_attributes:
             setattr(new_gene, a.name, getattr(self, a.name))
 
         return new_gene
 
-    def crossover(self, gene2):
+    def crossover(self, gene2: BaseGene) -> BaseGene:
         """ Creates a new gene randomly inheriting attributes from its parents."""
         assert self.key == gene2.key
 
         # Note: we use "a if random() > 0.5 else b" instead of choice((a, b))
         # here because `choice` is substantially slower.
-        new_gene = self.__class__(self.key)
+        new_gene: BaseGene = self.__class__(self.key)
         for a in self._gene_attributes:
             if random() > 0.5:
                 setattr(new_gene, a.name, getattr(self, a.name))
@@ -84,16 +96,16 @@ class BaseGene(object):
 
 
 class DefaultNodeGene(BaseGene):
-    _gene_attributes = [FloatAttribute('bias'),
-                        FloatAttribute('response'),
-                        StringAttribute('activation', options='sigmoid'),
-                        StringAttribute('aggregation', options='sum')]
+    _gene_attributes: List[BaseAttribute] = [FloatAttribute('bias'),
+                                             FloatAttribute('response'),
+                                             StringAttribute('activation', options='sigmoid'),
+                                             StringAttribute('aggregation', options='sum')]
 
-    def __init__(self, key):
+    def __init__(self, key: int):
         assert isinstance(key, int), "DefaultNodeGene key must be an int, not {!r}".format(key)
         BaseGene.__init__(self, key)
 
-    def distance(self, other, config):
+    def distance(self, other: DefaultNodeGene, config) -> float:
         d = abs(self.bias - other.bias) + abs(self.response - other.response)
         if self.activation != other.activation:
             d += 1.0
@@ -109,14 +121,14 @@ class DefaultNodeGene(BaseGene):
 # `product` aggregation function is rather more important than one giving
 # an output of 1 from the connection, for instance!)
 class DefaultConnectionGene(BaseGene):
-    _gene_attributes = [FloatAttribute('weight'),
-                        BoolAttribute('enabled')]
+    _gene_attributes: List[BaseAttribute] = [FloatAttribute('weight'),
+                                             BoolAttribute('enabled')]
 
-    def __init__(self, key):
+    def __init__(self, key: Tuple[int, int]):
         assert isinstance(key, tuple), "DefaultConnectionGene key must be a tuple, not {!r}".format(key)
         BaseGene.__init__(self, key)
 
-    def distance(self, other, config):
+    def distance(self, other: DefaultConnectionGene, config) -> float:
         d = abs(self.weight - other.weight)
         if self.enabled != other.enabled:
             d += 1.0
