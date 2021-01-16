@@ -1,40 +1,48 @@
 """Divides the population into species based on genomic distances."""
+from __future__ import annotations
+
 from itertools import count
+from typing import List, Dict, Set, Tuple, Optional, TYPE_CHECKING
 
 from neat.config import ConfigParameter, DefaultClassConfig
 from neat.math_util import mean, stdev
 
+if TYPE_CHECKING:
+    from neat.config import DefaultClassConfig, Config
+    from neat.reporting import ReporterSet
+    from neat.genome import DefaultGenome, DefaultGenomeConfig
+
 
 class Species(object):
-    def __init__(self, key, generation):
-        self.key = key
-        self.created = generation
-        self.last_improved = generation
-        self.representative = None
-        self.members = {}
-        self.fitness = None
-        self.adjusted_fitness = None
-        self.fitness_history = []
+    def __init__(self, key: int, generation: int):
+        self.key: int = key
+        self.created: int = generation
+        self.last_improved: int = generation
+        self.representative: Optional[DefaultGenome] = None
+        self.members: Dict[int, DefaultGenome] = {}
+        self.fitness: Optional[float] = None
+        self.adjusted_fitness: Optional[float] = None
+        self.fitness_history: List[float] = []
 
-    def update(self, representative, members):
+    def update(self, representative: DefaultGenome, members: Dict[int, DefaultGenome]):
         self.representative = representative
         self.members = members
 
-    def get_fitnesses(self):
+    def get_fitnesses(self) -> List[float]:
         return [m.fitness for m in self.members.values()]
 
 
 class GenomeDistanceCache(object):
-    def __init__(self, config):
-        self.distances = {}
-        self.config = config
-        self.hits = 0
-        self.misses = 0
+    def __init__(self, config: DefaultGenomeConfig):
+        self.distances: Dict[Tuple[int, int], float] = {}
+        self.config: DefaultGenomeConfig = config
+        self.hits: int = 0
+        self.misses: int = 0
 
-    def __call__(self, genome0, genome1):
-        g0 = genome0.key
-        g1 = genome1.key
-        d = self.distances.get((g0, g1))
+    def __call__(self, genome0, genome1) -> float:
+        g0: int = genome0.key
+        g1: int = genome1.key
+        d: float = self.distances.get((g0, g1))
         if d is None:
             # Distance is not already computed.
             d = genome0.distance(genome1, self.config)
@@ -50,20 +58,20 @@ class GenomeDistanceCache(object):
 class DefaultSpeciesSet(DefaultClassConfig):
     """ Encapsulates the default speciation scheme. """
 
-    def __init__(self, config, reporters):
+    def __init__(self, config: DefaultClassConfig, reporters: ReporterSet):
         # pylint: disable=super-init-not-called
-        self.species_set_config = config
-        self.reporters = reporters
-        self.indexer = count(1)
+        self.species_set_config: DefaultClassConfig = config
+        self.reporters: ReporterSet = reporters
+        self.indexer: count = count(1)
         self.species = {}
         self.genome_to_species = {}
 
     @classmethod
-    def parse_config(cls, param_dict):
+    def parse_config(cls, param_dict: Dict[str, str]) -> DefaultClassConfig:
         return DefaultClassConfig(param_dict,
                                   [ConfigParameter('compatibility_threshold', float)])
 
-    def speciate(self, config, population, generation):
+    def speciate(self, config: Config, population: Dict[int, DefaultGenome], generation: int):
         """
         Place genomes into species by genetic similarity.
 
@@ -75,13 +83,13 @@ class DefaultSpeciesSet(DefaultClassConfig):
         """
         assert isinstance(population, dict)
 
-        compatibility_threshold = self.species_set_config.compatibility_threshold
+        compatibility_threshold: float = self.species_set_config.compatibility_threshold
 
         # Find the best representatives for each existing species.
-        unspeciated = set(population)
-        distances = GenomeDistanceCache(config.genome_config)
-        new_representatives = {}
-        new_members = {}
+        unspeciated: Set[int] = set(population)
+        distances: GenomeDistanceCache = GenomeDistanceCache(config.genome_config)
+        new_representatives: Dict[int, int] = {}
+        new_members: Dict[int, List[int]] = {}
         for sid, s in self.species.items():
             candidates = []
             for gid in unspeciated:
@@ -98,14 +106,14 @@ class DefaultSpeciesSet(DefaultClassConfig):
 
         # Partition population into species based on genetic similarity.
         while unspeciated:
-            gid = unspeciated.pop()
-            g = population[gid]
+            gid: int = unspeciated.pop()
+            g: DefaultGenome = population[gid]
 
             # Find the species with the most similar representative.
             candidates = []
             for sid, rid in new_representatives.items():
-                rep = population[rid]
-                d = distances(rep, g)
+                rep: DefaultGenome = population[rid]
+                d: float = distances(rep, g)
                 if d < compatibility_threshold:
                     candidates.append((d, sid))
 
@@ -115,33 +123,33 @@ class DefaultSpeciesSet(DefaultClassConfig):
             else:
                 # No species is similar enough, create a new species, using
                 # this genome as its representative.
-                sid = next(self.indexer)
+                sid: int = next(self.indexer)
                 new_representatives[sid] = gid
                 new_members[sid] = [gid]
 
         # Update species collection based on new speciation.
         self.genome_to_species = {}
         for sid, rid in new_representatives.items():
-            s = self.species.get(sid)
+            s: Optional[Species] = self.species.get(sid)
             if s is None:
                 s = Species(sid, generation)
                 self.species[sid] = s
 
-            members = new_members[sid]
+            members: List[int] = new_members[sid]
             for gid in members:
                 self.genome_to_species[gid] = sid
 
-            member_dict = dict((gid, population[gid]) for gid in members)
+            member_dict: Dict[int, DefaultGenome] = dict((gid, population[gid]) for gid in members)
             s.update(population[rid], member_dict)
 
-        gdmean = mean(distances.distances.values())
-        gdstdev = stdev(distances.distances.values())
+        gdmean: float = mean(distances.distances.values())
+        gdstdev: float = stdev(distances.distances.values())
         self.reporters.info(
             'Mean genetic distance {0:.3f}, standard deviation {1:.3f}'.format(gdmean, gdstdev))
 
-    def get_species_id(self, individual_id):
+    def get_species_id(self, individual_id: int) -> int:
         return self.genome_to_species[individual_id]
 
-    def get_species(self, individual_id):
+    def get_species(self, individual_id: int):
         sid = self.genome_to_species[individual_id]
         return self.species[sid]

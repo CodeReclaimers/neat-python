@@ -3,7 +3,7 @@ from __future__ import print_function, annotations
 
 import os
 import warnings
-from typing import Dict, List, Optional, Any, Union, TYPE_CHECKING
+from typing import Dict, List, Optional, Any, Type, Union, TYPE_CHECKING
 from configparser import ConfigParser
 
 if TYPE_CHECKING:
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from neat.species import DefaultSpeciesSet
     from neat.stagnation import DefaultStagnation
 
-ConfigValueType = Union[str, int, float, bool, list]
+ConfigValueType = Union[Type[str], Type[int], Type[float], Type[bool], Type[list]]
 
 
 class ConfigParameter(object):
@@ -125,7 +125,7 @@ class DefaultClassConfig(object):
     for reproduction, species_set, and stagnation classes.
     """
 
-    def __init__(self, param_dict: Dict[str, str], param_list: List[ConfigParameter]):
+    def __init__(self, param_dict: Dict[str, str], param_list: List[ConfigParameter]) -> None:
         self._params: List[ConfigParameter] = param_list
         param_list_names: List[str] = []
         for p in param_list:
@@ -139,7 +139,7 @@ class DefaultClassConfig(object):
             raise UnknownConfigItemError("Unknown configuration item {!s}".format(unknown_list[0]))
 
     @classmethod
-    def write_config(cls, f, config):
+    def write_config(cls, f, config) -> None:
         # pylint: disable=protected-access
         write_pretty_params(f, config, config._params)
 
@@ -153,7 +153,7 @@ class Config(object):
                                        ConfigParameter('reset_on_extinction', bool),
                                        ConfigParameter('no_fitness_termination', bool, False)]
 
-    def __init__(self, genome_type: DefaultGenome, reproduction_type: DefaultReproduction, species_set_type: DefaultSpeciesSet, stagnation_type: DefaultStagnation, filename: str) -> None:
+    def __init__(self, genome_type: Type[DefaultGenome], reproduction_type: DefaultReproduction, species_set_type: DefaultSpeciesSet, stagnation_type: DefaultStagnation, filename: str) -> None:
 
         # members
         self.fitness_criterion: str = ""
@@ -168,7 +168,7 @@ class Config(object):
         assert hasattr(species_set_type, 'parse_config')
         assert hasattr(stagnation_type, 'parse_config')
 
-        self.genome_type: DefaultGenome = genome_type
+        self.genome_type: Type[DefaultGenome] = genome_type
         self.reproduction_type: DefaultReproduction = reproduction_type
         self.species_set_type: DefaultSpeciesSet = species_set_type
         self.stagnation_type: DefaultStagnation = stagnation_type
