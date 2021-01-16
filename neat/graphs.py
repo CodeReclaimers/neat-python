@@ -3,7 +3,7 @@
 from typing import List, Tuple, Set
 
 
-def creates_cycle(connections, test):
+def creates_cycle(connections: List[Tuple[int, int]], test: Tuple[int, int]) -> bool:
     """
     Returns true if the addition of the 'test' connection would create a cycle,
     assuming that no cycle already exists in the graph represented by 'connections'.

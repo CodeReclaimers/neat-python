@@ -2,11 +2,18 @@
 Gathers (via the reporting interface) and provides (to callers and/or a file)
 the most-fit genomes and information on genome/species fitness and species sizes.
 """
+from __future__ import annotations
 import copy
 import csv
 
+from typing import List, Set, Tuple, Optional, Dict, TYPE_CHECKING
 from neat.math_util import mean, stdev, median2
 from neat.reporting import BaseReporter
+
+if TYPE_CHECKING:
+    from neat.genome import DefaultGenome
+    from neat.config import Config
+    from neat.species import DefaultSpeciesSet
 
 
 # TODO: Make a version of this reporter that doesn't continually increase memory usage.
@@ -17,17 +24,18 @@ class StatisticsReporter(BaseReporter):
     Gathers (via the reporting interface) and provides (to callers and/or a file)
     the most-fit genomes and information on genome/species fitness and species sizes.
     """
+
     def __init__(self):
         BaseReporter.__init__(self)
-        self.most_fit_genomes = []
-        self.generation_statistics = []
+        self.most_fit_genomes: List[DefaultGenome] = []
+        self.generation_statistics: List[Dict[int, Dict[int, int]]] = []
 
-    def post_evaluate(self, config, population, species, best_genome):
+    def post_evaluate(self, config: Config, population: Dict[int, DefaultGenome], species_set: DefaultSpeciesSet, best_genome: DefaultGenome) -> None:
         self.most_fit_genomes.append(copy.deepcopy(best_genome))
 
         # Store the fitnesses of the members of each currently active species.
-        species_stats = {}
-        for sid, s in species.species.items():
+        species_stats: Dict[int, Dict[int, int]] = {}
+        for sid, s in species_set.species.items():
             species_stats[sid] = dict((k, v.fitness) for k, v in s.members.items())
         self.generation_statistics.append(species_stats)
 
@@ -67,6 +75,7 @@ class StatisticsReporter(BaseReporter):
 
     def best_genomes(self, n):
         """Returns the n most fit genomes ever seen."""
+
         def key(g):
             return g.fitness
 
