@@ -1,10 +1,18 @@
 """Does general configuration parsing; used by other classes for their configuration."""
-from __future__ import print_function
+from __future__ import print_function, annotations
 
 import os
 import warnings
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Union, TYPE_CHECKING
 from configparser import ConfigParser
+
+if TYPE_CHECKING:
+    from neat.genome import DefaultGenome
+    from neat.reproduction import DefaultReproduction
+    from neat.species import DefaultSpeciesSet
+    from neat.stagnation import DefaultStagnation
+
+ConfigValueType = Union[str, int, float, bool, list]
 
 
 class ConfigParameter(object):
@@ -13,9 +21,9 @@ class ConfigParameter(object):
     一つの設定アイテムの情報を持つ。
     """
 
-    def __init__(self, name: str, value_type: Any, default=None):
-        self.name = name
-        self.value_type = value_type
+    def __init__(self, name: str, value_type: ConfigValueType, default=None):
+        self.name: str = name
+        self.value_type: ConfigValueType = value_type
         self.default = default
 
     def __repr__(self):
@@ -47,7 +55,7 @@ class ConfigParameter(object):
 
         raise RuntimeError("Unexpected configuration type: " + repr(self.value_type))
 
-    def interpret(self, config_dict: Dict[str, str]) -> Optional[Any]:
+    def interpret(self, config_dict: Dict[str, str]) -> Optional[ConfigValueType]:
         """
         Converts the config_parser output into the proper type,
         supplies defaults if available and needed, and checks for some errors.
@@ -145,17 +153,25 @@ class Config(object):
                                        ConfigParameter('reset_on_extinction', bool),
                                        ConfigParameter('no_fitness_termination', bool, False)]
 
-    def __init__(self, genome_type, reproduction_type, species_set_type, stagnation_type, filename: str) -> None:
+    def __init__(self, genome_type: DefaultGenome, reproduction_type: DefaultReproduction, species_set_type: DefaultSpeciesSet, stagnation_type: DefaultStagnation, filename: str) -> None:
+
+        # members
+        self.fitness_criterion: str = ""
+        self.fitness_threshold: float = 0
+        self.pop_size: int = 0
+        self.reset_on_extinction: bool = False
+        self.no_fitness_termination: bool = False
+
         # Check that the provided types have the required methods.
         assert hasattr(genome_type, 'parse_config')
         assert hasattr(reproduction_type, 'parse_config')
         assert hasattr(species_set_type, 'parse_config')
         assert hasattr(stagnation_type, 'parse_config')
 
-        self.genome_type = genome_type
-        self.reproduction_type = reproduction_type
-        self.species_set_type = species_set_type
-        self.stagnation_type = stagnation_type
+        self.genome_type: DefaultGenome = genome_type
+        self.reproduction_type: DefaultReproduction = reproduction_type
+        self.species_set_type: DefaultSpeciesSet = species_set_type
+        self.stagnation_type: DefaultStagnation = stagnation_type
 
         if not os.path.isfile(filename):
             raise Exception('No such config file: ' + os.path.abspath(filename))

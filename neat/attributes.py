@@ -31,6 +31,8 @@ class BaseAttribute(object):
         self.replace_rate_name: str = ""
         self.default_name: str = ""
         self.options_name: str = ""
+        self.rate_to_false_add_name: str = ""
+        self.rate_to_true_add_name: str = ""
 
         for n, default in default_dict.items():
             self._config_items[n] = [self._config_items[n][0], default]

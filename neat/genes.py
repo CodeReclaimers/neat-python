@@ -4,9 +4,12 @@ from __future__ import annotations
 import warnings
 
 from random import random
-from typing import List, Optional, Dict, Set, Tuple, Union, Final
+from typing import List, Optional, Dict, Set, Tuple, Union, Final, TYPE_CHECKING
 from neat.attributes import FloatAttribute, BoolAttribute, StringAttribute, BaseAttribute
 from neat.config import ConfigParameter
+
+if TYPE_CHECKING:
+    from neat.genome import DefaultGenomeConfig
 
 
 # TODO: There is probably a lot of room for simplification of these classes using metaprogramming.
@@ -60,11 +63,11 @@ class BaseGene(object):
         # 遺伝子に関わるConfigParameterがすべて入る
         return params
 
-    def init_attributes(self, config):
+    def init_attributes(self, config: DefaultGenomeConfig):
         for a in self._gene_attributes:
             setattr(self, a.name, a.init_value(config))
 
-    def mutate(self, config):
+    def mutate(self, config: DefaultGenomeConfig):
         for a in self._gene_attributes:
             v: float = getattr(self, a.name)
             setattr(self, a.name, a.mutate_value(v, config))
@@ -105,7 +108,7 @@ class DefaultNodeGene(BaseGene):
         assert isinstance(key, int), "DefaultNodeGene key must be an int, not {!r}".format(key)
         BaseGene.__init__(self, key)
 
-    def distance(self, other: DefaultNodeGene, config) -> float:
+    def distance(self, other: DefaultNodeGene, config: DefaultGenomeConfig) -> float:
         d = abs(self.bias - other.bias) + abs(self.response - other.response)
         if self.activation != other.activation:
             d += 1.0
@@ -128,7 +131,7 @@ class DefaultConnectionGene(BaseGene):
         assert isinstance(key, tuple), "DefaultConnectionGene key must be a tuple, not {!r}".format(key)
         BaseGene.__init__(self, key)
 
-    def distance(self, other: DefaultConnectionGene, config) -> float:
+    def distance(self, other: DefaultConnectionGene, config: DefaultGenomeConfig) -> float:
         d = abs(self.weight - other.weight)
         if self.enabled != other.enabled:
             d += 1.0

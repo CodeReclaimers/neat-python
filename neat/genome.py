@@ -21,6 +21,19 @@ class DefaultGenomeConfig(object):
                                        'partial_nodirect', 'partial', 'partial_direct']
 
     def __init__(self, params: Dict[str, Union[str, DefaultNodeGene, DefaultConnectionGene]]):
+        # parameters
+        self.compatibility_disjoint_coefficient: float = 0
+        self.compatibility_weight_coefficient: float = 0
+        self.conn_add_prob: float = 0
+        self.feed_forward: bool = True
+        self.node_add_prob: float = 0
+        self.num_inputs: int = 0
+        self.num_hidden: int = 0
+        self.num_outputs: int = 0
+        self.single_structural_mutation: bool = False
+        self.node_gene_type: DefaultNodeGene
+        self.connection_gene_type: DefaultConnectionGene
+
         # Create full set of available activation functions.
         self.activation_defs: ActivationFunctionSet = ActivationFunctionSet()
         # ditto for aggregation functions - name difference for backward compatibility
@@ -171,7 +184,7 @@ class DefaultGenome(object):
         self.nodes: Dict[int, DefaultNodeGene] = {}
 
         # Fitness results.
-        self.fitness = None
+        self.fitness: Optional[float] = None
 
     def configure_new(self, config: DefaultGenomeConfig) -> None:
         """Configure a new genome based on the given configuration."""
@@ -472,7 +485,7 @@ class DefaultGenome(object):
         return node
 
     @staticmethod
-    def create_connection(config, input_id: int, output_id: int) -> DefaultConnectionGene:
+    def create_connection(config: DefaultGenomeConfig, input_id: int, output_id: int) -> DefaultConnectionGene:
         connection: DefaultConnectionGene = config.connection_gene_type((input_id, output_id))
         connection.init_attributes(config)
         return connection

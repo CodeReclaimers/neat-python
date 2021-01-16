@@ -1,43 +1,44 @@
 """Commonly used functions not available in the Python2 standard library."""
 from __future__ import division
+from typing import List, Iterable, Dict, Callable
 
 from math import sqrt, exp
 
 
-def mean(values):
+def mean(values: Iterable[float]) -> float:
     values = list(values)
     return sum(map(float, values)) / len(values)
 
 
-def median(values):
+def median(values: Iterable[float]) -> float:
     values = list(values)
     values.sort()
     return values[len(values) // 2]
 
 
-def median2(values):
+def median2(values: Iterable[float]) -> float:
     values = list(values)
     n = len(values)
     if n <= 2:
         return mean(values)
     values.sort()
     if (n % 2) == 1:
-        return values[n//2]
-    i = n//2
-    return (values[i - 1] + values[i])/2.0
+        return values[n // 2]
+    i = n // 2
+    return (values[i - 1] + values[i]) / 2.0
 
 
-def variance(values):
+def variance(values: Iterable[float]) -> float:
     values = list(values)
     m = mean(values)
     return sum((v - m) ** 2 for v in values) / len(values)
 
 
-def stdev(values):
+def stdev(values: Iterable[float]) -> float:
     return sqrt(variance(values))
 
 
-def softmax(values):
+def softmax(values: Iterable[float]) -> List[float]:
     """
     Compute the softmax of the given value set, v_i = exp(v_i) / s,
     where s = sum(exp(v_0), exp(v_1), ..)."""
@@ -48,5 +49,5 @@ def softmax(values):
 
 
 # Lookup table for commonly used {value} -> value functions.
-stat_functions = {'min': min, 'max': max, 'mean': mean, 'median': median,
-                  'median2': median2}
+stat_functions: Dict[str, Callable] = {'min': min, 'max': max, 'mean': mean, 'median': median,
+                                       'median2': median2}

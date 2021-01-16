@@ -6,19 +6,19 @@ from multiprocessing import Pool
 
 
 class ParallelEvaluator(object):
-    def __init__(self, num_workers, eval_function, timeout=None):
+    def __init__(self, num_workers: int, eval_function, timeout=None):
         """
         eval_function should take one argument, a tuple of
         (genome object, config object), and return
         a single float (the genome's fitness).
         """
-        self.num_workers = num_workers
+        self.num_workers: int = num_workers
         self.eval_function = eval_function
         self.timeout = timeout
         self.pool = Pool(num_workers)
 
     def __del__(self):
-        self.pool.close() # should this be terminate?
+        self.pool.close()  # should this be terminate?
         self.pool.join()
 
     def evaluate(self, genomes, config):
