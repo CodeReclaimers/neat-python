@@ -3,13 +3,17 @@ from __future__ import print_function
 
 import os
 import warnings
+from typing import Dict, List, Optional, Any
 from configparser import ConfigParser
 
 
 class ConfigParameter(object):
-    """Contains information about one configuration item."""
+    """Contains information about one configuration item.
 
-    def __init__(self, name, value_type, default=None):
+    一つの設定アイテムの情報を持つ。
+    """
+
+    def __init__(self, name: str, value_type: Any, default=None):
         self.name = name
         self.value_type = value_type
         self.default = default
@@ -22,7 +26,13 @@ class ConfigParameter(object):
                                                           self.value_type,
                                                           self.default)
 
-    def parse(self, section, config_parser):
+    def parse(self, section: str, config_parser: ConfigParser):
+        """ある一つの情報をパースする.
+
+        sectionは設定ファイルの[NEAT], [DefaultGeneme]
+        などのNEATの部分（おそらく）
+        なんかsection = NEATしか入ってない
+        """
         if int == self.value_type:
             return config_parser.getint(section, self.name)
         if bool == self.value_type:
@@ -35,13 +45,15 @@ class ConfigParameter(object):
         if str == self.value_type:
             return config_parser.get(section, self.name)
 
-        raise RuntimeError("Unexpected configuration type: "
-                           + repr(self.value_type))
+        raise RuntimeError("Unexpected configuration type: " + repr(self.value_type))
 
-    def interpret(self, config_dict):
+    def interpret(self, config_dict: Dict[str, str]) -> Optional[Any]:
         """
         Converts the config_parser output into the proper type,
         supplies defaults if available and needed, and checks for some errors.
+
+        正しい形で一つの設定アイテム情報を返却する
+        デフォルト値も設定する
         """
         value = config_dict.get(self.name)
         if value is None:
@@ -105,9 +117,9 @@ class DefaultClassConfig(object):
     for reproduction, species_set, and stagnation classes.
     """
 
-    def __init__(self, param_dict, param_list):
-        self._params = param_list
-        param_list_names = []
+    def __init__(self, param_dict: Dict[str, str], param_list: List[ConfigParameter]):
+        self._params: List[ConfigParameter] = param_list
+        param_list_names: List[str] = []
         for p in param_list:
             setattr(self, p.name, p.interpret(param_dict))
             param_list_names.append(p.name)
@@ -127,13 +139,13 @@ class DefaultClassConfig(object):
 class Config(object):
     """A simple container for user-configurable parameters of NEAT."""
 
-    __params = [ConfigParameter('pop_size', int),
-                ConfigParameter('fitness_criterion', str),
-                ConfigParameter('fitness_threshold', float),
-                ConfigParameter('reset_on_extinction', bool),
-                ConfigParameter('no_fitness_termination', bool, False)]
+    __params: List[ConfigParameter] = [ConfigParameter('pop_size', int),
+                                       ConfigParameter('fitness_criterion', str),
+                                       ConfigParameter('fitness_threshold', float),
+                                       ConfigParameter('reset_on_extinction', bool),
+                                       ConfigParameter('no_fitness_termination', bool, False)]
 
-    def __init__(self, genome_type, reproduction_type, species_set_type, stagnation_type, filename):
+    def __init__(self, genome_type, reproduction_type, species_set_type, stagnation_type, filename: str) -> None:
         # Check that the provided types have the required methods.
         assert hasattr(genome_type, 'parse_config')
         assert hasattr(reproduction_type, 'parse_config')
@@ -148,7 +160,7 @@ class Config(object):
         if not os.path.isfile(filename):
             raise Exception('No such config file: ' + os.path.abspath(filename))
 
-        parameters = ConfigParser()
+        parameters: ConfigParser = ConfigParser()
         with open(filename) as f:
             if hasattr(parameters, 'read_file'):
                 parameters.read_file(f)
@@ -159,7 +171,7 @@ class Config(object):
         if not parameters.has_section('NEAT'):
             raise RuntimeError("'NEAT' section not found in NEAT configuration file.")
 
-        param_list_names = []
+        param_list_names: List[str] = []
         for p in self.__params:
             if p.default is None:
                 setattr(self, p.name, p.parse('NEAT', parameters))
@@ -171,7 +183,7 @@ class Config(object):
                     warnings.warn("Using default {!r} for '{!s}'".format(p.default, p.name),
                                   DeprecationWarning)
             param_list_names.append(p.name)
-        param_dict = dict(parameters.items('NEAT'))
+        param_dict: Dict[str, str] = dict(parameters.items('NEAT'))
         unknown_list = [x for x in param_dict if x not in param_list_names]
         if unknown_list:
             if len(unknown_list) > 1:
@@ -181,19 +193,19 @@ class Config(object):
                 "Unknown (section 'NEAT') configuration item {!s}".format(unknown_list[0]))
 
         # Parse type sections.
-        genome_dict = dict(parameters.items(genome_type.__name__))
+        genome_dict: Dict[str, str] = dict(parameters.items(genome_type.__name__))
         self.genome_config = genome_type.parse_config(genome_dict)
 
-        species_set_dict = dict(parameters.items(species_set_type.__name__))
+        species_set_dict: Dict[str, str] = dict(parameters.items(species_set_type.__name__))
         self.species_set_config = species_set_type.parse_config(species_set_dict)
 
-        stagnation_dict = dict(parameters.items(stagnation_type.__name__))
+        stagnation_dict: Dict[str, str] = dict(parameters.items(stagnation_type.__name__))
         self.stagnation_config = stagnation_type.parse_config(stagnation_dict)
 
-        reproduction_dict = dict(parameters.items(reproduction_type.__name__))
+        reproduction_dict: Dict[str, str] = dict(parameters.items(reproduction_type.__name__))
         self.reproduction_config = reproduction_type.parse_config(reproduction_dict)
 
-    def save(self, filename):
+    def save(self, filename: str) -> None:
         with open(filename, 'w') as f:
             f.write('# The `NEAT` section specifies parameters particular to the NEAT algorithm\n')
             f.write('# or the experiment itself.  This is the only required section.\n')
