@@ -1,7 +1,11 @@
 """Deals with the attributes (variable parameters) of genes"""
+from __future__ import annotations
 from random import choice, gauss, random, uniform
 from neat.config import ConfigParameter
-from typing import List, Final, Dict, Any, Optional
+from typing import List, Final, Dict, Any, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from neat.genome import DefaultGenomeConfig
 
 
 # TODO: There is probably a lot of room for simplification of these classes using metaprogramming.
@@ -12,7 +16,6 @@ class BaseAttribute(object):
 
     init_mean, init_strdev, init_type, mutate_rate
     など特定のGeneに関する設定プロパティをgetattrで動的にメンバに追加する
-
     """
     _config_items: Dict[str, List[Any]]
 
@@ -43,7 +46,7 @@ class BaseAttribute(object):
                                 self._config_items[n][1])
                 for n in self._config_items]
 
-    def init_value(self, config):
+    def init_value(self, config: DefaultGenomeConfig):
         pass
 
 
@@ -62,12 +65,12 @@ class FloatAttribute(BaseAttribute):
                                            "min_value": [float, None]}
 
     # config is genome.DefaultGenomeConfig
-    def clamp(self, value: float, config) -> float:
+    def clamp(self, value: float, config: DefaultGenomeConfig) -> float:
         min_value: float = getattr(config, self.min_value_name)
         max_value: float = getattr(config, self.max_value_name)
         return max(min(value, max_value), min_value)
 
-    def init_value(self, config) -> float:
+    def init_value(self, config: DefaultGenomeConfig) -> float:
         mean: float = getattr(config, self.init_mean_name)
         stdev: float = getattr(config, self.init_stdev_name)
         init_type: str = getattr(config, self.init_type_name).lower()
@@ -86,7 +89,7 @@ class FloatAttribute(BaseAttribute):
                                                                             self.init_type_name),
                                                                     self.init_type_name))
 
-    def mutate_value(self, value: float, config) -> float:
+    def mutate_value(self, value: float, config: DefaultGenomeConfig) -> float:
         # mutate_rate is usually no lower than replace_rate, and frequently higher -
         # so put first for efficiency
         # ConfigとAttributes（設定ファイル）を元に変化させた値を返す
@@ -104,7 +107,7 @@ class FloatAttribute(BaseAttribute):
 
         return value
 
-    def validate(self, config):  # pragma: no cover
+    def validate(self, config: DefaultGenomeConfig):  # pragma: no cover
         pass
 
 
@@ -115,7 +118,7 @@ class BoolAttribute(BaseAttribute):
                                            "rate_to_true_add": [float, 0.0],
                                            "rate_to_false_add": [float, 0.0]}
 
-    def init_value(self, config) -> bool:
+    def init_value(self, config: DefaultGenomeConfig) -> bool:
         default: str = str(getattr(config, self.default_name)).lower()
 
         if default in ('1', 'on', 'yes', 'true'):
@@ -128,7 +131,7 @@ class BoolAttribute(BaseAttribute):
         raise RuntimeError("Unknown default value {!r} for {!s}".format(default,
                                                                         self.name))
 
-    def mutate_value(self, value: bool, config) -> bool:
+    def mutate_value(self, value: bool, config: DefaultGenomeConfig) -> bool:
         mutate_rate: float = getattr(config, self.mutate_rate_name)
 
         if value:
@@ -147,7 +150,7 @@ class BoolAttribute(BaseAttribute):
 
         return value
 
-    def validate(self, config):  # pragma: no cover
+    def validate(self, config: DefaultGenomeConfig):  # pragma: no cover
         pass
 
 
@@ -160,7 +163,7 @@ class StringAttribute(BaseAttribute):
                      "options": [list, None],
                      "mutate_rate": [float, None]}
 
-    def init_value(self, config) -> str:
+    def init_value(self, config: DefaultGenomeConfig) -> str:
         default: str = getattr(config, self.default_name)
 
         if default.lower() in ('none', 'random'):
@@ -169,7 +172,7 @@ class StringAttribute(BaseAttribute):
 
         return default
 
-    def mutate_value(self, value: str, config) -> str:
+    def mutate_value(self, value: str, config: DefaultGenomeConfig) -> str:
         mutate_rate: float = getattr(config, self.mutate_rate_name)
 
         if mutate_rate > 0:
@@ -180,5 +183,5 @@ class StringAttribute(BaseAttribute):
 
         return value
 
-    def validate(self, config):  # pragma: no cover
+    def validate(self, config: DefaultGenomeConfig):  # pragma: no cover
         pass

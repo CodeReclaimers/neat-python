@@ -58,7 +58,7 @@ def validate_aggregation(function: Callable[[List[float]], float]):  # TODO: Rec
 class AggregationFunctionSet(object):
     """Contains aggregation functions and methods to add and retrieve them."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.functions: Dict[str, Callable[[List[float]], float]] = {}
         self.add('product', product_aggregation)
         self.add('sum', sum_aggregation)
@@ -73,7 +73,7 @@ class AggregationFunctionSet(object):
         self.functions[name] = function
 
     def get(self, name: str) -> Optional[Callable[[List[float]], float]]:
-        f = self.functions.get(name)
+        f: Callable[[List[float]], float] = self.functions.get(name)
         if f is None:
             raise InvalidAggregationFunction("No such aggregation function: {0!r}".format(name))
 
