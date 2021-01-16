@@ -2,11 +2,17 @@
 Implementation of reporter classes, which are triggered on particular events. Reporters
 are generally intended to  provide information to the user, store checkpoints, etc.
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, annotations
 
 import time
+from typing import Dict, Set, List, Optional, Callable, Tuple, TYPE_CHECKING
 
 from neat.math_util import mean, stdev
+
+if TYPE_CHECKING:
+    from neat.config import Config
+    from neat.genome import DefaultGenome
+    from neat.species import DefaultSpeciesSet, Species
 
 
 class ReporterSet(object):
@@ -14,51 +20,53 @@ class ReporterSet(object):
     Keeps track of the set of reporters
     and gives methods to dispatch them at appropriate points.
     """
-    def __init__(self):
-        self.reporters = []
 
-    def add(self, reporter):
+    def __init__(self):
+        self.reporters: List[BaseReporter] = []
+
+    def add(self, reporter: BaseReporter) -> None:
         self.reporters.append(reporter)
 
-    def remove(self, reporter):
+    def remove(self, reporter: BaseReporter) -> None:
         self.reporters.remove(reporter)
 
-    def start_generation(self, gen):
+    def start_generation(self, gen: int) -> None:
         for r in self.reporters:
             r.start_generation(gen)
 
-    def end_generation(self, config, population, species_set):
+    def end_generation(self, config: Config, population: Dict[int, DefaultGenome], species_set: DefaultSpeciesSet) -> None:
         for r in self.reporters:
             r.end_generation(config, population, species_set)
 
-    def post_evaluate(self, config, population, species, best_genome):
+    def post_evaluate(self, config: Config, population: Dict[int, DefaultGenome], species_set: DefaultSpeciesSet, best_genome: DefaultGenome) -> None:
         for r in self.reporters:
-            r.post_evaluate(config, population, species, best_genome)
+            r.post_evaluate(config, population, species_set, best_genome)
 
-    def post_reproduction(self, config, population, species):
+    def post_reproduction(self, config: Config, population: Dict[int, DefaultGenome], species_set: DefaultSpeciesSet) -> None:
         for r in self.reporters:
-            r.post_reproduction(config, population, species)
+            r.post_reproduction(config, population, species_set)
 
-    def complete_extinction(self):
+    def complete_extinction(self) -> None:
         for r in self.reporters:
             r.complete_extinction()
 
-    def found_solution(self, config, generation, best):
+    def found_solution(self, config: Config, generation: int, best: DefaultGenome) -> None:
         for r in self.reporters:
             r.found_solution(config, generation, best)
 
-    def species_stagnant(self, sid, species):
+    def species_stagnant(self, sid: int, species: DefaultSpeciesSet) -> None:
         for r in self.reporters:
             r.species_stagnant(sid, species)
 
-    def info(self, msg):
+    def info(self, msg: str) -> None:
         for r in self.reporters:
             r.info(msg)
 
 
 class BaseReporter(object):
     """Definition of the reporter interface expected by ReporterSet."""
-    def start_generation(self, generation):
+
+    def start_generation(self, generation: int):
         pass
 
     def end_generation(self, config, population, species_set):
@@ -73,18 +81,19 @@ class BaseReporter(object):
     def complete_extinction(self):
         pass
 
-    def found_solution(self, config, generation, best):
+    def found_solution(self, config, generation: int, best: DefaultGenome):
         pass
 
-    def species_stagnant(self, sid, species):
+    def species_stagnant(self, sid: int, species: DefaultSpeciesSet):
         pass
 
-    def info(self, msg):
+    def info(self, msg: str):
         pass
 
 
 class StdOutReporter(BaseReporter):
     """Uses `print` to output information about the run; an example reporter class."""
+
     def __init__(self, show_species_detail):
         self.show_species_detail = show_species_detail
         self.generation = None
@@ -92,7 +101,7 @@ class StdOutReporter(BaseReporter):
         self.generation_times = []
         self.num_extinctions = 0
 
-    def start_generation(self, generation):
+    def start_generation(self, generation: int):
         self.generation = generation
         print('\n ****** Running generation {0} ****** \n'.format(generation))
         self.generation_start_time = time.time()
@@ -139,17 +148,17 @@ class StdOutReporter(BaseReporter):
                                                                                  best_species_id,
                                                                                  best_genome.key))
 
-    def complete_extinction(self):
+    def complete_extinction(self) -> None:
         self.num_extinctions += 1
         print('All species extinct.')
 
-    def found_solution(self, config, generation, best):
+    def found_solution(self, config, generation, best) -> None:
         print('\nBest individual in generation {0} meets fitness threshold - complexity: {1!r}'.format(
             self.generation, best.size()))
 
-    def species_stagnant(self, sid, species):
+    def species_stagnant(self, sid, species: Species) -> None:
         if self.show_species_detail:
             print("\nSpecies {0} with {1} members is stagnated: removing it".format(sid, len(species.members)))
 
-    def info(self, msg):
+    def info(self, msg: str) -> None:
         print(msg)
