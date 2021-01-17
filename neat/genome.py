@@ -6,7 +6,7 @@ from random import choice, random, shuffle
 
 import sys
 
-from typing import Dict, List, Optional, Any, Union, Tuple, Set
+from typing import Dict, List, Optional, Any, Type, Union, Tuple, Set
 from neat.activations import ActivationFunctionSet
 from neat.aggregations import AggregationFunctionSet
 from neat.config import ConfigParameter, write_pretty_params
@@ -20,8 +20,10 @@ class DefaultGenomeConfig(object):
                                        'full_nodirect', 'full', 'full_direct',
                                        'partial_nodirect', 'partial', 'partial_direct']
 
-    def __init__(self, params: Dict[str, Union[str, DefaultNodeGene, DefaultConnectionGene]]):
+    def __init__(self, params: Dict[str, Union[str, Type[DefaultNodeGene], Type[DefaultConnectionGene]]]) -> None:
         # parameters
+        self.conn_delete_prob: float = 0
+        self.node_delete_prob: float = 0
         self.compatibility_disjoint_coefficient: float = 0
         self.compatibility_weight_coefficient: float = 0
         self.conn_add_prob: float = 0
@@ -55,13 +57,13 @@ class DefaultGenomeConfig(object):
                                                ConfigParameter('initial_connection', str, 'unconnected')]
 
         # Gather configuration data from the gene classes.
-        self.node_gene_type: DefaultNodeGene = params['node_gene_type']
+        self.node_gene_type: Type[DefaultNodeGene] = params['node_gene_type']
         self._params += self.node_gene_type.get_config_params()
-        self.connection_gene_type: DefaultConnectionGene = params['connection_gene_type']
+        self.connection_gene_type: Type[DefaultConnectionGene] = params['connection_gene_type']
         self._params += self.connection_gene_type.get_config_params()
 
         # Use the configuration data to interpret the supplied parameters.
-        # `num_inputs`, `num_outputs`などGenomeに関するプロパティを型を解釈して設定する
+        # `num_inputs`, `num_outputs`などGenomeに関するプロパティを型を解釈してクラスメンバに実数値を設定する
         for p in self._params:
             setattr(self, p.name, p.interpret(params))
 
@@ -166,7 +168,7 @@ class DefaultGenome(object):
     """
 
     @classmethod
-    def parse_config(cls, param_dict: Dict):
+    def parse_config(cls, param_dict: Dict) -> DefaultGenomeConfig:
         param_dict['node_gene_type'] = DefaultNodeGene
         param_dict['connection_gene_type'] = DefaultConnectionGene
         return DefaultGenomeConfig(param_dict)
@@ -180,7 +182,7 @@ class DefaultGenome(object):
         self.key: int = key
 
         # (gene_key, gene) pairs for gene sets.
-        self.connections: [int, DefaultConnectionGene] = {}
+        self.connections: Dict[Tuple[int, int], DefaultConnectionGene] = {}
         self.nodes: Dict[int, DefaultNodeGene] = {}
 
         # Fitness results.
@@ -467,7 +469,7 @@ class DefaultGenome(object):
         num_enabled_connections: int = sum([1 for cg in self.connections.values() if cg.enabled])
         return len(self.nodes), num_enabled_connections
 
-    def __str__(self):
+    def __str__(self) -> str:
         s = "Key: {0}\nFitness: {1}\nNodes:".format(self.key, self.fitness)
         for k, ng in self.nodes.items():
             s += "\n\t{0} {1!s}".format(k, ng)

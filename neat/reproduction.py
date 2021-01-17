@@ -93,7 +93,7 @@ class DefaultReproduction(DefaultClassConfig):
 
         return spawn_amounts
 
-    def reproduce(self, config: Config, species: DefaultSpeciesSet, pop_size: int, generation: int) -> Dict[int, DefaultGenome]:
+    def reproduce(self, config: Config, species_set: DefaultSpeciesSet, pop_size: int, generation: int) -> Dict[int, DefaultGenome]:
         """
         Handles creation of genomes, either from scratch or by sexual or
         asexual reproduction from parents.
@@ -108,7 +108,7 @@ class DefaultReproduction(DefaultClassConfig):
         # interfering with the shared fitness scheme.
         all_fitnesses: List[float] = []
         remaining_species: List[Species] = []
-        for stag_sid, stag_s, stagnant in self.stagnation.update(species, generation):
+        for stag_sid, stag_s, stagnant in self.stagnation.update(species_set, generation):
             if stagnant:
                 self.reporters.species_stagnant(stag_sid, stag_s)
             else:
@@ -119,7 +119,7 @@ class DefaultReproduction(DefaultClassConfig):
 
         # No species left.
         if not remaining_species:
-            species.species = {}
+            species_set.species = {}
             return {}  # was []
 
         # Find minimum/maximum fitness across the entire population, for use in
@@ -149,8 +149,8 @@ class DefaultReproduction(DefaultClassConfig):
         spawn_amounts: List[int] = self.compute_spawn(adjusted_fitnesses, previous_sizes,
                                                       pop_size, min_species_size)
 
-        new_population = {}
-        species.species = {}
+        new_population: Dict[int, DefaultGenome] = {}
+        species_set.species = {}
         for spawn, s in zip(spawn_amounts, remaining_species):
             # If elitism is enabled, each species always at least gets to retain its elites.
             spawn: int = max(spawn, self.reproduction_config.elitism)
@@ -160,7 +160,7 @@ class DefaultReproduction(DefaultClassConfig):
             # The species has at least one member for the next generation, so retain it.
             old_members: List[Tuple[int, DefaultGenome]] = list(s.members.items())
             s.members = {}
-            species.species[s.key] = s
+            species_set.species[s.key] = s
 
             # Sort members in order of descending fitness.
             old_members.sort(reverse=True, key=lambda x: x[1].fitness)

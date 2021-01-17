@@ -6,7 +6,7 @@
         "type_comments": [
             "(float) -> float"
         ],
-        "samples": 500
+        "samples": 212
     },
     {
         "path": "neat/activations.py",
@@ -42,7 +42,7 @@
         "type_comments": [
             "(str) -> function"
         ],
-        "samples": 165
+        "samples": 56
     },
     {
         "path": "neat/aggregations.py",
@@ -51,7 +51,7 @@
         "type_comments": [
             "(List[float]) -> float"
         ],
-        "samples": 500
+        "samples": 212
     },
     {
         "path": "neat/aggregations.py",
@@ -87,11 +87,11 @@
         "type_comments": [
             "(str) -> function"
         ],
-        "samples": 165
+        "samples": 56
     },
     {
         "path": "neat/attributes.py",
-        "line": 40,
+        "line": 42,
         "func_name": "BaseAttribute.config_item_name",
         "type_comments": [
             "(str) -> str"
@@ -100,7 +100,7 @@
     },
     {
         "path": "neat/attributes.py",
-        "line": 43,
+        "line": 45,
         "func_name": "BaseAttribute.get_config_params",
         "type_comments": [
             "() -> List[neat.config.ConfigParameter]"
@@ -109,104 +109,104 @@
     },
     {
         "path": "neat/attributes.py",
-        "line": 68,
+        "line": 70,
         "func_name": "FloatAttribute.clamp",
         "type_comments": [
             "(float, neat.genome.DefaultGenomeConfig) -> float"
         ],
-        "samples": 500
+        "samples": 178
     },
     {
         "path": "neat/attributes.py",
-        "line": 73,
+        "line": 75,
         "func_name": "FloatAttribute.init_value",
         "type_comments": [
             "(neat.genome.DefaultGenomeConfig) -> float"
         ],
-        "samples": 160
+        "samples": 61
     },
     {
         "path": "neat/attributes.py",
-        "line": 92,
+        "line": 94,
         "func_name": "FloatAttribute.mutate_value",
         "type_comments": [
             "(float, neat.genome.DefaultGenomeConfig) -> float"
         ],
-        "samples": 500
+        "samples": 212
     },
     {
         "path": "neat/attributes.py",
-        "line": 121,
+        "line": 123,
         "func_name": "BoolAttribute.init_value",
         "type_comments": [
             "(neat.genome.DefaultGenomeConfig) -> bool"
         ],
-        "samples": 57
+        "samples": 26
     },
     {
         "path": "neat/attributes.py",
-        "line": 134,
+        "line": 136,
         "func_name": "BoolAttribute.mutate_value",
         "type_comments": [
             "(bool, neat.genome.DefaultGenomeConfig) -> bool"
         ],
-        "samples": 370
+        "samples": 101
     },
     {
         "path": "neat/attributes.py",
-        "line": 166,
+        "line": 168,
         "func_name": "StringAttribute.init_value",
         "type_comments": [
             "(neat.genome.DefaultGenomeConfig) -> str"
         ],
-        "samples": 47
+        "samples": 24
     },
     {
         "path": "neat/attributes.py",
-        "line": 175,
+        "line": 177,
         "func_name": "StringAttribute.mutate_value",
         "type_comments": [
             "(str, neat.genome.DefaultGenomeConfig) -> str"
         ],
-        "samples": 456
+        "samples": 116
     },
     {
         "path": "neat/config.py",
-        "line": 16,
+        "line": 24,
         "func_name": "ConfigParameter.__init__",
         "type_comments": [
-            "(str, type, int) -> None",
-            "(str, type, None) -> None"
+            "(str, type, None) -> None",
+            "(str, type, int) -> None"
         ],
         "samples": 6
     },
     {
         "path": "neat/config.py",
-        "line": 29,
+        "line": 37,
         "func_name": "ConfigParameter.parse",
         "type_comments": [
             "(str, configparser.ConfigParser) -> pyannotate_runtime.collect_types.NoReturnType",
             "(str, configparser.ConfigParser) -> str",
             "(str, configparser.ConfigParser) -> float",
-            "(str, configparser.ConfigParser) -> bool",
-            "(str, configparser.ConfigParser) -> int"
+            "(str, configparser.ConfigParser) -> int",
+            "(str, configparser.ConfigParser) -> bool"
         ],
         "samples": 5
     },
     {
         "path": "neat/config.py",
-        "line": 50,
+        "line": 58,
         "func_name": "ConfigParameter.interpret",
         "type_comments": [
-            "(Dict[str, str]) -> int",
             "(Dict[str, str]) -> float",
+            "(Dict[str, str]) -> int",
             "(Dict[str, str]) -> bool"
         ],
         "samples": 6
     },
     {
         "path": "neat/config.py",
-        "line": 120,
+        "line": 128,
         "func_name": "DefaultClassConfig.__init__",
         "type_comments": [
             "(Dict[str, str], List[neat.config.ConfigParameter]) -> None"
@@ -215,7 +215,7 @@
     },
     {
         "path": "neat/config.py",
-        "line": 148,
+        "line": 156,
         "func_name": "Config.__init__",
         "type_comments": [
             "(type, type, type, type, str) -> None"
@@ -224,17 +224,17 @@
     },
     {
         "path": "neat/genes.py",
-        "line": 25,
+        "line": 28,
         "func_name": "BaseGene.__init__",
         "type_comments": [
-            "(Tuple[int, int]) -> None",
-            "(int) -> None"
+            "(int) -> None",
+            "(Tuple[int, int]) -> None"
         ],
-        "samples": 500
+        "samples": 194
     },
     {
         "path": "neat/genes.py",
-        "line": 36,
+        "line": 39,
         "func_name": "BaseGene.__str__",
         "type_comments": [
             "() -> str"
@@ -243,7 +243,7 @@
     },
     {
         "path": "neat/genes.py",
-        "line": 41,
+        "line": 44,
         "func_name": "BaseGene.__lt__",
         "type_comments": [
             "(neat.genes.DefaultConnectionGene) -> bool"
@@ -252,7 +252,7 @@
     },
     {
         "path": "neat/genes.py",
-        "line": 49,
+        "line": 52,
         "func_name": "get_config_params",
         "type_comments": [
             "() -> List[neat.config.ConfigParameter]"
@@ -261,77 +261,77 @@
     },
     {
         "path": "neat/genes.py",
-        "line": 63,
+        "line": 66,
         "func_name": "BaseGene.init_attributes",
         "type_comments": [
             "(neat.genome.DefaultGenomeConfig) -> None"
         ],
-        "samples": 79
+        "samples": 36
     },
     {
         "path": "neat/genes.py",
-        "line": 67,
+        "line": 70,
         "func_name": "BaseGene.mutate",
         "type_comments": [
             "(neat.genome.DefaultGenomeConfig) -> None"
         ],
-        "samples": 500
+        "samples": 157
     },
     {
         "path": "neat/genes.py",
-        "line": 72,
+        "line": 75,
         "func_name": "BaseGene.copy",
         "type_comments": [
             "() -> neat.genes.DefaultConnectionGene",
             "() -> neat.genes.DefaultNodeGene"
         ],
-        "samples": 199
+        "samples": 42
     },
     {
         "path": "neat/genes.py",
-        "line": 79,
+        "line": 82,
         "func_name": "BaseGene.crossover",
         "type_comments": [
             "(neat.genes.DefaultConnectionGene) -> neat.genes.DefaultConnectionGene",
             "(neat.genes.DefaultNodeGene) -> neat.genes.DefaultNodeGene"
         ],
-        "samples": 429
+        "samples": 126
     },
     {
         "path": "neat/genes.py",
-        "line": 104,
+        "line": 107,
         "func_name": "DefaultNodeGene.__init__",
         "type_comments": [
             "(int) -> None"
         ],
-        "samples": 247
+        "samples": 67
     },
     {
         "path": "neat/genes.py",
-        "line": 108,
+        "line": 111,
         "func_name": "DefaultNodeGene.distance",
         "type_comments": [
             "(neat.genes.DefaultNodeGene, neat.genome.DefaultGenomeConfig) -> float"
         ],
-        "samples": 494
+        "samples": 137
     },
     {
         "path": "neat/genes.py",
-        "line": 127,
+        "line": 130,
         "func_name": "DefaultConnectionGene.__init__",
         "type_comments": [
             "(Tuple[int, int]) -> None"
         ],
-        "samples": 454
+        "samples": 132
     },
     {
         "path": "neat/genes.py",
-        "line": 131,
+        "line": 134,
         "func_name": "DefaultConnectionGene.distance",
         "type_comments": [
             "(neat.genes.DefaultConnectionGene, neat.genome.DefaultGenomeConfig) -> float"
         ],
-        "samples": 443
+        "samples": 174
     },
     {
         "path": "neat/genome.py",
@@ -344,25 +344,25 @@
     },
     {
         "path": "neat/genome.py",
-        "line": 110,
+        "line": 123,
         "func_name": "DefaultGenomeConfig.get_new_node_key",
         "type_comments": [
             "(Dict[int, neat.genes.DefaultNodeGene]) -> int"
         ],
-        "samples": 23
+        "samples": 11
     },
     {
         "path": "neat/genome.py",
-        "line": 120,
+        "line": 133,
         "func_name": "DefaultGenomeConfig.check_structural_mutation_surer",
         "type_comments": [
             "() -> bool"
         ],
-        "samples": 24
+        "samples": 14
     },
     {
         "path": "neat/genome.py",
-        "line": 155,
+        "line": 168,
         "func_name": "parse_config",
         "type_comments": [
             "(Dict[str, str]) -> neat.genome.DefaultGenomeConfig"
@@ -371,16 +371,16 @@
     },
     {
         "path": "neat/genome.py",
-        "line": 165,
+        "line": 178,
         "func_name": "DefaultGenome.__init__",
         "type_comments": [
             "(int) -> None"
         ],
-        "samples": 95
+        "samples": 43
     },
     {
         "path": "neat/genome.py",
-        "line": 176,
+        "line": 189,
         "func_name": "DefaultGenome.configure_new",
         "type_comments": [
             "(neat.genome.DefaultGenomeConfig) -> None"
@@ -389,79 +389,79 @@
     },
     {
         "path": "neat/genome.py",
-        "line": 235,
+        "line": 248,
         "func_name": "DefaultGenome.configure_crossover",
         "type_comments": [
             "(neat.genome.DefaultGenome, neat.genome.DefaultGenome, neat.genome.DefaultGenomeConfig) -> None"
         ],
-        "samples": 92
+        "samples": 40
     },
     {
         "path": "neat/genome.py",
-        "line": 266,
+        "line": 279,
         "func_name": "DefaultGenome.mutate",
         "type_comments": [
             "(neat.genome.DefaultGenomeConfig) -> None"
         ],
-        "samples": 92
+        "samples": 40
     },
     {
         "path": "neat/genome.py",
-        "line": 304,
+        "line": 317,
         "func_name": "DefaultGenome.mutate_add_node",
         "type_comments": [
             "(neat.genome.DefaultGenomeConfig) -> None"
         ],
-        "samples": 23
-    },
-    {
-        "path": "neat/genome.py",
-        "line": 326,
-        "func_name": "DefaultGenome.add_connection",
-        "type_comments": [
-            "(neat.genome.DefaultGenomeConfig, int, int, float, bool) -> None"
-        ],
-        "samples": 41
+        "samples": 11
     },
     {
         "path": "neat/genome.py",
         "line": 339,
+        "func_name": "DefaultGenome.add_connection",
+        "type_comments": [
+            "(neat.genome.DefaultGenomeConfig, int, int, float, bool) -> None"
+        ],
+        "samples": 18
+    },
+    {
+        "path": "neat/genome.py",
+        "line": 352,
         "func_name": "DefaultGenome.mutate_add_connection",
         "type_comments": [
             "(neat.genome.DefaultGenomeConfig) -> None"
         ],
-        "samples": 48
+        "samples": 22
     },
     {
         "path": "neat/genome.py",
-        "line": 372,
+        "line": 385,
         "func_name": "DefaultGenome.mutate_delete_node",
         "type_comments": [
             "(neat.genome.DefaultGenomeConfig) -> int"
         ],
-        "samples": 23
+        "samples": 11
     },
     {
         "path": "neat/genome.py",
-        "line": 393,
+        "line": 406,
         "func_name": "DefaultGenome.mutate_delete_connection",
         "type_comments": [
             "() -> None"
         ],
-        "samples": 48
+        "samples": 22
     },
     {
         "path": "neat/genome.py",
-        "line": 398,
+        "line": 411,
         "func_name": "DefaultGenome.distance",
         "type_comments": [
             "(neat.genome.DefaultGenome, neat.genome.DefaultGenomeConfig) -> float"
         ],
-        "samples": 360
+        "samples": 137
     },
     {
         "path": "neat/genome.py",
-        "line": 449,
+        "line": 462,
         "func_name": "DefaultGenome.size",
         "type_comments": [
             "() -> Tuple[int, int]"
@@ -470,7 +470,7 @@
     },
     {
         "path": "neat/genome.py",
-        "line": 457,
+        "line": 470,
         "func_name": "DefaultGenome.__str__",
         "type_comments": [
             "() -> str"
@@ -479,25 +479,25 @@
     },
     {
         "path": "neat/genome.py",
-        "line": 468,
+        "line": 481,
         "func_name": "create_node",
         "type_comments": [
             "(neat.genome.DefaultGenomeConfig, int) -> neat.genes.DefaultNodeGene"
         ],
-        "samples": 26
+        "samples": 14
     },
     {
         "path": "neat/genome.py",
-        "line": 474,
+        "line": 487,
         "func_name": "create_connection",
         "type_comments": [
             "(neat.genome.DefaultGenomeConfig, int, int) -> neat.genes.DefaultConnectionGene"
         ],
-        "samples": 20
+        "samples": 12
     },
     {
         "path": "neat/genome.py",
-        "line": 502,
+        "line": 515,
         "func_name": "DefaultGenome.compute_full_connections",
         "type_comments": [
             "(neat.genome.DefaultGenomeConfig, bool) -> List[Tuple[int, int]]"
@@ -506,7 +506,7 @@
     },
     {
         "path": "neat/genome.py",
-        "line": 533,
+        "line": 546,
         "func_name": "DefaultGenome.connect_full_nodirect",
         "type_comments": [
             "(neat.genome.DefaultGenomeConfig) -> None"
@@ -515,73 +515,72 @@
     },
     {
         "path": "neat/graphs.py",
-        "line": 4,
+        "line": 6,
         "func_name": "creates_cycle",
         "type_comments": [
             "(List[Tuple[int, int]], Tuple[int, int]) -> bool"
         ],
-        "samples": 23
+        "samples": 8
     },
     {
         "path": "neat/graphs.py",
-        "line": 28,
+        "line": 30,
         "func_name": "required_for_output",
         "type_comments": [
-            "(List[int], List[int], List[Tuple[int, int]]) -> Set[int]",
-            "(List[int], List[int], List) -> Set[int]"
+            "(List[int], List[int], List) -> Set[int]",
+            "(List[int], List[int], List[Tuple[int, int]]) -> Set[int]"
         ],
-        "samples": 98
+        "samples": 44
     },
     {
         "path": "neat/graphs.py",
-        "line": 59,
+        "line": 61,
         "func_name": "feed_forward_layers",
         "type_comments": [
-            "(List[int], List[int], List[Tuple[int, int]]) -> List[Set[int]]",
             "(List[int], List[int], List) -> List",
-            "(List[int], List[int], List[Tuple[int, int]]) -> List"
+            "(List[int], List[int], List[Tuple[int, int]]) -> List[Set[int]]"
         ],
-        "samples": 98
+        "samples": 44
     },
     {
         "path": "neat/math_util.py",
-        "line": 7,
+        "line": 8,
         "func_name": "mean",
         "type_comments": [
-            "(dict_values) -> float",
-            "(List[float]) -> float"
+            "(List[float]) -> float",
+            "(dict_values) -> float"
         ],
-        "samples": 9
+        "samples": 6
     },
     {
         "path": "neat/math_util.py",
-        "line": 30,
+        "line": 31,
         "func_name": "variance",
         "type_comments": [
-            "(dict_values) -> float",
-            "(List[float]) -> float"
+            "(List[float]) -> float",
+            "(dict_values) -> float"
         ],
-        "samples": 6
+        "samples": 5
     },
     {
         "path": "neat/math_util.py",
-        "line": 36,
+        "line": 37,
         "func_name": "stdev",
         "type_comments": [
-            "(dict_values) -> float",
-            "(List[float]) -> float"
+            "(List[float]) -> float",
+            "(dict_values) -> float"
         ],
-        "samples": 6
+        "samples": 5
     },
     {
         "path": "neat/nn/feed_forward.py",
         "line": 5,
         "func_name": "FeedForwardNetwork.__init__",
         "type_comments": [
-            "(List[int], List[int], List) -> None",
-            "(List[int], List[int], List[Tuple[int, function, function, float, float, List[Tuple[int, float]]]]) -> None"
+            "(List[int], List[int], List[Tuple[int, function, function, float, float, List[Tuple[int, float]]]]) -> None",
+            "(List[int], List[int], List) -> None"
         ],
-        "samples": 98
+        "samples": 44
     },
     {
         "path": "neat/nn/feed_forward.py",
@@ -590,7 +589,7 @@
         "type_comments": [
             "(Tuple[float, float]) -> List[float]"
         ],
-        "samples": 377
+        "samples": 161
     },
     {
         "path": "neat/nn/feed_forward.py",
@@ -599,11 +598,11 @@
         "type_comments": [
             "(neat.genome.DefaultGenome, neat.config.Config) -> neat.nn.feed_forward.FeedForwardNetwork"
         ],
-        "samples": 98
+        "samples": 44
     },
     {
         "path": "neat/population.py",
-        "line": 22,
+        "line": 33,
         "func_name": "Population.__init__",
         "type_comments": [
             "(neat.config.Config, None) -> None"
@@ -612,17 +611,17 @@
     },
     {
         "path": "neat/population.py",
-        "line": 52,
+        "line": 61,
         "func_name": "Population.add_reporter",
         "type_comments": [
-            "(neat.statistics.StatisticsReporter) -> None",
-            "(neat.reporting.StdOutReporter) -> None"
+            "(neat.reporting.StdOutReporter) -> None",
+            "(neat.statistics.StatisticsReporter) -> None"
         ],
         "samples": 2
     },
     {
         "path": "neat/population.py",
-        "line": 58,
+        "line": 67,
         "func_name": "Population.run",
         "type_comments": [
             "(function, int) -> neat.genome.DefaultGenome"
@@ -631,7 +630,7 @@
     },
     {
         "path": "neat/reporting.py",
-        "line": 17,
+        "line": 24,
         "func_name": "ReporterSet.__init__",
         "type_comments": [
             "() -> None"
@@ -640,17 +639,17 @@
     },
     {
         "path": "neat/reporting.py",
-        "line": 20,
+        "line": 27,
         "func_name": "ReporterSet.add",
         "type_comments": [
-            "(neat.statistics.StatisticsReporter) -> None",
-            "(neat.reporting.StdOutReporter) -> None"
+            "(neat.reporting.StdOutReporter) -> None",
+            "(neat.statistics.StatisticsReporter) -> None"
         ],
         "samples": 2
     },
     {
         "path": "neat/reporting.py",
-        "line": 26,
+        "line": 33,
         "func_name": "ReporterSet.start_generation",
         "type_comments": [
             "(int) -> None"
@@ -659,7 +658,7 @@
     },
     {
         "path": "neat/reporting.py",
-        "line": 30,
+        "line": 37,
         "func_name": "ReporterSet.end_generation",
         "type_comments": [
             "(neat.config.Config, Dict[int, neat.genome.DefaultGenome], neat.species.DefaultSpeciesSet) -> None"
@@ -668,7 +667,7 @@
     },
     {
         "path": "neat/reporting.py",
-        "line": 34,
+        "line": 41,
         "func_name": "ReporterSet.post_evaluate",
         "type_comments": [
             "(neat.config.Config, Dict[int, neat.genome.DefaultGenome], neat.species.DefaultSpeciesSet, neat.genome.DefaultGenome) -> None"
@@ -677,7 +676,7 @@
     },
     {
         "path": "neat/reporting.py",
-        "line": 46,
+        "line": 53,
         "func_name": "ReporterSet.found_solution",
         "type_comments": [
             "(neat.config.Config, int, neat.genome.DefaultGenome) -> None"
@@ -686,16 +685,16 @@
     },
     {
         "path": "neat/reporting.py",
-        "line": 54,
+        "line": 61,
         "func_name": "ReporterSet.info",
         "type_comments": [
             "(str) -> None"
         ],
-        "samples": 6
+        "samples": 5
     },
     {
         "path": "neat/reporting.py",
-        "line": 61,
+        "line": 69,
         "func_name": "BaseReporter.start_generation",
         "type_comments": [
             "(int) -> None"
@@ -704,7 +703,7 @@
     },
     {
         "path": "neat/reporting.py",
-        "line": 64,
+        "line": 72,
         "func_name": "BaseReporter.end_generation",
         "type_comments": [
             "(neat.config.Config, Dict[int, neat.genome.DefaultGenome], neat.species.DefaultSpeciesSet) -> None"
@@ -713,7 +712,7 @@
     },
     {
         "path": "neat/reporting.py",
-        "line": 76,
+        "line": 84,
         "func_name": "BaseReporter.found_solution",
         "type_comments": [
             "(neat.config.Config, int, neat.genome.DefaultGenome) -> None"
@@ -722,16 +721,16 @@
     },
     {
         "path": "neat/reporting.py",
-        "line": 82,
+        "line": 90,
         "func_name": "BaseReporter.info",
         "type_comments": [
             "(str) -> None"
         ],
-        "samples": 6
+        "samples": 5
     },
     {
         "path": "neat/reporting.py",
-        "line": 88,
+        "line": 97,
         "func_name": "StdOutReporter.__init__",
         "type_comments": [
             "(bool) -> None"
@@ -740,7 +739,7 @@
     },
     {
         "path": "neat/reporting.py",
-        "line": 95,
+        "line": 104,
         "func_name": "StdOutReporter.start_generation",
         "type_comments": [
             "(int) -> None"
@@ -749,7 +748,7 @@
     },
     {
         "path": "neat/reporting.py",
-        "line": 100,
+        "line": 109,
         "func_name": "StdOutReporter.end_generation",
         "type_comments": [
             "(neat.config.Config, Dict[int, neat.genome.DefaultGenome], neat.species.DefaultSpeciesSet) -> None"
@@ -758,7 +757,7 @@
     },
     {
         "path": "neat/reporting.py",
-        "line": 129,
+        "line": 138,
         "func_name": "StdOutReporter.post_evaluate",
         "type_comments": [
             "(neat.config.Config, Dict[int, neat.genome.DefaultGenome], neat.species.DefaultSpeciesSet, neat.genome.DefaultGenome) -> None"
@@ -767,7 +766,7 @@
     },
     {
         "path": "neat/reporting.py",
-        "line": 146,
+        "line": 155,
         "func_name": "StdOutReporter.found_solution",
         "type_comments": [
             "(neat.config.Config, int, neat.genome.DefaultGenome) -> None"
@@ -776,16 +775,16 @@
     },
     {
         "path": "neat/reporting.py",
-        "line": 154,
+        "line": 163,
         "func_name": "StdOutReporter.info",
         "type_comments": [
             "(str) -> None"
         ],
-        "samples": 6
+        "samples": 5
     },
     {
         "path": "neat/reproduction.py",
-        "line": 26,
+        "line": 37,
         "func_name": "parse_config",
         "type_comments": [
             "(Dict[str, str]) -> neat.config.DefaultClassConfig"
@@ -794,7 +793,7 @@
     },
     {
         "path": "neat/reproduction.py",
-        "line": 33,
+        "line": 44,
         "func_name": "DefaultReproduction.__init__",
         "type_comments": [
             "(neat.config.DefaultClassConfig, neat.reporting.ReporterSet, neat.stagnation.DefaultStagnation) -> None"
@@ -803,7 +802,7 @@
     },
     {
         "path": "neat/reproduction.py",
-        "line": 41,
+        "line": 52,
         "func_name": "DefaultReproduction.create_new",
         "type_comments": [
             "(type, neat.genome.DefaultGenomeConfig, int) -> Dict[int, neat.genome.DefaultGenome]"
@@ -812,7 +811,7 @@
     },
     {
         "path": "neat/reproduction.py",
-        "line": 52,
+        "line": 63,
         "func_name": "compute_spawn",
         "type_comments": [
             "(List[float], List[int], int, int) -> List[int]"
@@ -821,7 +820,7 @@
     },
     {
         "path": "neat/reproduction.py",
-        "line": 84,
+        "line": 96,
         "func_name": "DefaultReproduction.reproduce",
         "type_comments": [
             "(neat.config.Config, neat.species.DefaultSpeciesSet, int, int) -> Dict[int, neat.genome.DefaultGenome]"
@@ -830,7 +829,7 @@
     },
     {
         "path": "neat/species.py",
-        "line": 9,
+        "line": 17,
         "func_name": "Species.__init__",
         "type_comments": [
             "(int, int) -> None"
@@ -839,25 +838,25 @@
     },
     {
         "path": "neat/species.py",
-        "line": 19,
+        "line": 27,
         "func_name": "Species.update",
         "type_comments": [
             "(neat.genome.DefaultGenome, Dict[int, neat.genome.DefaultGenome]) -> None"
         ],
-        "samples": 6
+        "samples": 5
     },
     {
         "path": "neat/species.py",
-        "line": 23,
+        "line": 31,
         "func_name": "Species.get_fitnesses",
         "type_comments": [
             "() -> List[float]"
         ],
-        "samples": 6
+        "samples": 5
     },
     {
         "path": "neat/species.py",
-        "line": 28,
+        "line": 36,
         "func_name": "GenomeDistanceCache.__init__",
         "type_comments": [
             "(neat.genome.DefaultGenomeConfig) -> None"
@@ -866,16 +865,16 @@
     },
     {
         "path": "neat/species.py",
-        "line": 34,
+        "line": 42,
         "func_name": "GenomeDistanceCache.__call__",
         "type_comments": [
             "(neat.genome.DefaultGenome, neat.genome.DefaultGenome) -> float"
         ],
-        "samples": 372
+        "samples": 137
     },
     {
         "path": "neat/species.py",
-        "line": 53,
+        "line": 61,
         "func_name": "DefaultSpeciesSet.__init__",
         "type_comments": [
             "(neat.config.DefaultClassConfig, neat.reporting.ReporterSet) -> None"
@@ -884,7 +883,7 @@
     },
     {
         "path": "neat/species.py",
-        "line": 61,
+        "line": 69,
         "func_name": "parse_config",
         "type_comments": [
             "(Dict[str, str]) -> neat.config.DefaultClassConfig"
@@ -893,7 +892,7 @@
     },
     {
         "path": "neat/species.py",
-        "line": 66,
+        "line": 74,
         "func_name": "DefaultSpeciesSet.speciate",
         "type_comments": [
             "(neat.config.Config, Dict[int, neat.genome.DefaultGenome], int) -> None"
@@ -902,7 +901,7 @@
     },
     {
         "path": "neat/species.py",
-        "line": 142,
+        "line": 150,
         "func_name": "DefaultSpeciesSet.get_species_id",
         "type_comments": [
             "(int) -> int"
@@ -911,7 +910,7 @@
     },
     {
         "path": "neat/stagnation.py",
-        "line": 12,
+        "line": 21,
         "func_name": "parse_config",
         "type_comments": [
             "(Dict[str, str]) -> neat.config.DefaultClassConfig"
@@ -920,7 +919,7 @@
     },
     {
         "path": "neat/stagnation.py",
-        "line": 19,
+        "line": 28,
         "func_name": "DefaultStagnation.__init__",
         "type_comments": [
             "(neat.config.DefaultClassConfig, neat.reporting.ReporterSet) -> None"
@@ -929,7 +928,7 @@
     },
     {
         "path": "neat/stagnation.py",
-        "line": 30,
+        "line": 39,
         "func_name": "DefaultStagnation.update",
         "type_comments": [
             "(neat.species.DefaultSpeciesSet, int) -> List[Tuple[int, neat.species.Species, bool]]"
@@ -938,7 +937,7 @@
     },
     {
         "path": "neat/statistics.py",
-        "line": 20,
+        "line": 28,
         "func_name": "StatisticsReporter.__init__",
         "type_comments": [
             "() -> None"
@@ -947,7 +946,7 @@
     },
     {
         "path": "neat/statistics.py",
-        "line": 25,
+        "line": 33,
         "func_name": "StatisticsReporter.post_evaluate",
         "type_comments": [
             "(neat.config.Config, Dict[int, neat.genome.DefaultGenome], neat.species.DefaultSpeciesSet, neat.genome.DefaultGenome) -> None"

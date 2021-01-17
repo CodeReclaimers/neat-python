@@ -16,6 +16,7 @@ class BaseAttribute(object):
 
     init_mean, init_strdev, init_type, mutate_rate
     など特定のGeneに関する設定プロパティをgetattrで動的にメンバに追加する
+    遺伝子に利用される
     """
     _config_items: Dict[str, List[Any]]
 
@@ -51,11 +52,16 @@ class BaseAttribute(object):
     def init_value(self, config: DefaultGenomeConfig):
         pass
 
+    def mutate_value(self, v, config: DefaultGenomeConfig):
+        pass
+
 
 class FloatAttribute(BaseAttribute):
     """
     Class for numeric attributes,
     such as the response of a node or the weight of a connection.
+
+    数値的な設定値を管理するクラス init_meanなど
     """
     _config_items: Dict[str, List[Any]] = {"init_mean": [float, None],
                                            "init_stdev": [float, None],
@@ -66,7 +72,6 @@ class FloatAttribute(BaseAttribute):
                                            "max_value": [float, None],
                                            "min_value": [float, None]}
 
-    # config is genome.DefaultGenomeConfig
     def clamp(self, value: float, config: DefaultGenomeConfig) -> float:
         min_value: float = getattr(config, self.min_value_name)
         max_value: float = getattr(config, self.max_value_name)

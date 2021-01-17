@@ -7,18 +7,21 @@ from typing import Dict, List, Optional, Any, Type, Union, TYPE_CHECKING
 from configparser import ConfigParser
 
 if TYPE_CHECKING:
-    from neat.genome import DefaultGenome
+    from neat.genome import DefaultGenome, DefaultGenomeConfig
     from neat.reproduction import DefaultReproduction
     from neat.species import DefaultSpeciesSet
     from neat.stagnation import DefaultStagnation
 
 ConfigValueType = Union[Type[str], Type[int], Type[float], Type[bool], Type[list]]
+ConfigInstanceType = Union[str, int, float, bool, list]
 
 
 class ConfigParameter(object):
     """Contains information about one configuration item.
 
-    一つの設定アイテムの情報を持つ。
+    一つの設定アイテムの名前タイプ情報を持つ。
+    **実際の値はもたない。**
+    parseメソッドで、値を持つconfig_parserから該当するself.nameの値を返している（そのため、Parameter自体は値を保持しない　タイプ情報と名前のみ）
     """
 
     def __init__(self, name: str, value_type: ConfigValueType, default=None):
@@ -34,7 +37,7 @@ class ConfigParameter(object):
                                                           self.value_type,
                                                           self.default)
 
-    def parse(self, section: str, config_parser: ConfigParser):
+    def parse(self, section: str, config_parser: ConfigParser) -> ConfigInstanceType:
         """ある一つの情報をパースする.
 
         sectionは設定ファイルの[NEAT], [DefaultGeneme]
@@ -55,15 +58,16 @@ class ConfigParameter(object):
 
         raise RuntimeError("Unexpected configuration type: " + repr(self.value_type))
 
-    def interpret(self, config_dict: Dict[str, str]) -> Optional[ConfigValueType]:
+    def interpret(self, config_dict: Dict[str, str]) -> ConfigInstanceType:
         """
         Converts the config_parser output into the proper type,
         supplies defaults if available and needed, and checks for some errors.
 
         正しい形で一つの設定アイテム情報を返却する
         デフォルト値も設定する
+        Genomeクラスで使われている　（ConfigParametaの型とconfig_dictが与えられて　Parameterの型にキャストした実際の値を返す）
         """
-        value = config_dict.get(self.name)
+        value: str = config_dict.get(self.name)
         if value is None:
             if self.default is None:
                 raise RuntimeError('Missing configuration item: ' + self.name)
@@ -123,6 +127,14 @@ class DefaultClassConfig(object):
     """
     Replaces at least some boilerplate configuration code
     for reproduction, species_set, and stagnation classes.
+
+    - compatibility-threshold
+    - species-fitness-func, max-stagnation
+    - elitism, survival_threashold
+
+    のようにDefaultSpeciesSet, DefaultStagnation, DefaultReproductionが**それぞれ**でparam_dict, param_listで与えられる
+    種類ごとにデフォルトクラスコンフィグが作られる
+    おそらくSpeciesSetのように特定クラスのために設定値をいれるもの？
     """
 
     def __init__(self, param_dict: Dict[str, str], param_list: List[ConfigParameter]) -> None:
@@ -145,7 +157,11 @@ class DefaultClassConfig(object):
 
 
 class Config(object):
-    """A simple container for user-configurable parameters of NEAT."""
+    """A simple container for user-configurable parameters of NEAT.
+
+    設定ファイルの`NEAT`のみの値を入れるものっぽい
+    と思ったけどすべての項目がConfigに入る
+    """
 
     __params: List[ConfigParameter] = [ConfigParameter('pop_size', int),
                                        ConfigParameter('fitness_criterion', str),
@@ -153,7 +169,7 @@ class Config(object):
                                        ConfigParameter('reset_on_extinction', bool),
                                        ConfigParameter('no_fitness_termination', bool, False)]
 
-    def __init__(self, genome_type: Type[DefaultGenome], reproduction_type: DefaultReproduction, species_set_type: DefaultSpeciesSet, stagnation_type: DefaultStagnation, filename: str) -> None:
+    def __init__(self, genome_type: Type[DefaultGenome], reproduction_type: Type[DefaultReproduction], species_set_type: Type[DefaultSpeciesSet], stagnation_type: Type[DefaultStagnation], filename: str) -> None:
 
         # members
         self.fitness_criterion: str = ""
@@ -169,9 +185,9 @@ class Config(object):
         assert hasattr(stagnation_type, 'parse_config')
 
         self.genome_type: Type[DefaultGenome] = genome_type
-        self.reproduction_type: DefaultReproduction = reproduction_type
-        self.species_set_type: DefaultSpeciesSet = species_set_type
-        self.stagnation_type: DefaultStagnation = stagnation_type
+        self.reproduction_type: Type[DefaultReproduction] = reproduction_type
+        self.species_set_type: Type[DefaultSpeciesSet] = species_set_type
+        self.stagnation_type: Type[DefaultStagnation] = stagnation_type
 
         if not os.path.isfile(filename):
             raise Exception('No such config file: ' + os.path.abspath(filename))
@@ -209,17 +225,20 @@ class Config(object):
                 "Unknown (section 'NEAT') configuration item {!s}".format(unknown_list[0]))
 
         # Parse type sections.
+        # genome_type=DefaultGenomeに関する設定値をgenome_dictにDictとして入れる
+        # そしてParseしてint, strのようなそれぞれの値にしている
+        # GenomeだけはDefaultGenomeConfig　それ以外はDefaultClassConfig
         genome_dict: Dict[str, str] = dict(parameters.items(genome_type.__name__))
-        self.genome_config = genome_type.parse_config(genome_dict)
+        self.genome_config: DefaultGenomeConfig = genome_type.parse_config(genome_dict)
 
         species_set_dict: Dict[str, str] = dict(parameters.items(species_set_type.__name__))
-        self.species_set_config = species_set_type.parse_config(species_set_dict)
+        self.species_set_config: DefaultClassConfig = species_set_type.parse_config(species_set_dict)
 
         stagnation_dict: Dict[str, str] = dict(parameters.items(stagnation_type.__name__))
-        self.stagnation_config = stagnation_type.parse_config(stagnation_dict)
+        self.stagnation_config: DefaultClassConfig = stagnation_type.parse_config(stagnation_dict)
 
         reproduction_dict: Dict[str, str] = dict(parameters.items(reproduction_type.__name__))
-        self.reproduction_config = reproduction_type.parse_config(reproduction_dict)
+        self.reproduction_config: DefaultClassConfig = reproduction_type.parse_config(reproduction_dict)
 
     def save(self, filename: str) -> None:
         with open(filename, 'w') as f:

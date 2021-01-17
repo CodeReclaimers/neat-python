@@ -63,8 +63,8 @@ class DefaultSpeciesSet(DefaultClassConfig):
         self.species_set_config: DefaultClassConfig = config
         self.reporters: ReporterSet = reporters
         self.indexer: count = count(1)
-        self.species = {}
-        self.genome_to_species = {}
+        self.species: Dict[int, Species] = {}
+        self.genome_to_species: Dict[int, int] = {}
 
     @classmethod
     def parse_config(cls, param_dict: Dict[str, str]) -> DefaultClassConfig:
@@ -91,7 +91,7 @@ class DefaultSpeciesSet(DefaultClassConfig):
         new_representatives: Dict[int, int] = {}
         new_members: Dict[int, List[int]] = {}
         for sid, s in self.species.items():
-            candidates = []
+            candidates: List[Tuple[float, DefaultGenome]] = []
             for gid in unspeciated:
                 g = population[gid]
                 d = distances(s.representative, g)
@@ -99,7 +99,7 @@ class DefaultSpeciesSet(DefaultClassConfig):
 
             # The new representative is the genome closest to the current representative.
             ignored_rdist, new_rep = min(candidates, key=lambda x: x[0])
-            new_rid = new_rep.key
+            new_rid: int = new_rep.key
             new_representatives[sid] = new_rid
             new_members[sid] = [new_rid]
             unspeciated.remove(new_rid)
@@ -110,7 +110,7 @@ class DefaultSpeciesSet(DefaultClassConfig):
             g: DefaultGenome = population[gid]
 
             # Find the species with the most similar representative.
-            candidates = []
+            candidates: List[Tuple[float, int]] = []
             for sid, rid in new_representatives.items():
                 rep: DefaultGenome = population[rid]
                 d: float = distances(rep, g)
@@ -128,7 +128,7 @@ class DefaultSpeciesSet(DefaultClassConfig):
                 new_members[sid] = [gid]
 
         # Update species collection based on new speciation.
-        self.genome_to_species = {}
+        self.genome_to_species: Dict[int, int] = {}
         for sid, rid in new_representatives.items():
             s: Optional[Species] = self.species.get(sid)
             if s is None:
@@ -148,8 +148,14 @@ class DefaultSpeciesSet(DefaultClassConfig):
             'Mean genetic distance {0:.3f}, standard deviation {1:.3f}'.format(gdmean, gdstdev))
 
     def get_species_id(self, individual_id: int) -> int:
+        """
+        個体iが所属する種のIDを返す
+        """
         return self.genome_to_species[individual_id]
 
     def get_species(self, individual_id: int):
+        """
+        個体iが所属する種を返す
+        """
         sid = self.genome_to_species[individual_id]
         return self.species[sid]

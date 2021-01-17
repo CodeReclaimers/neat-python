@@ -54,7 +54,7 @@ class ReporterSet(object):
         for r in self.reporters:
             r.found_solution(config, generation, best)
 
-    def species_stagnant(self, sid: int, species: DefaultSpeciesSet) -> None:
+    def species_stagnant(self, sid: int, species: Species) -> None:
         for r in self.reporters:
             r.species_stagnant(sid, species)
 
@@ -84,7 +84,7 @@ class BaseReporter(object):
     def found_solution(self, config, generation: int, best: DefaultGenome):
         pass
 
-    def species_stagnant(self, sid: int, species: DefaultSpeciesSet):
+    def species_stagnant(self, sid: int, species: Species):
         pass
 
     def info(self, msg: str):

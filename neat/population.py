@@ -1,7 +1,7 @@
 """Implements the core evolution algorithm."""
 from __future__ import print_function, annotations
 
-from typing import List, Dict, Set, Optional, Callable, TYPE_CHECKING
+from typing import List, Dict, Set, Tuple, Optional, Callable, TYPE_CHECKING
 from neat.math_util import mean
 from neat.reporting import ReporterSet
 
@@ -64,7 +64,7 @@ class Population(object):
     def remove_reporter(self, reporter: BaseReporter) -> None:
         self.reporters.remove(reporter)
 
-    def run(self, fitness_function: Callable[[List[Dict[int, DefaultGenome]], Config], None], n: Optional[int] = None) \
+    def run(self, fitness_function: Callable[[List[Tuple[int, DefaultGenome]], Config], None], n: Optional[int] = None) \
             -> Optional[DefaultGenome]:
         """
         Runs NEAT's genetic algorithm for at most n generations.  If n

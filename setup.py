@@ -1,13 +1,13 @@
 from setuptools import setup
 
 setup(
-    name='neat-python',
-    version='0.92',
-    author='cesar.gomes, mirrorballu2',
+    name='ganariya-ne',
+    version='0.0.1',
+    author='cesar.gomes, mirrorballu2, ganariya',
     author_email='nobody@nowhere.com',
     maintainer='CodeReclaimers, LLC',
-    maintainer_email='alan@codereclaimers.com',
-    url='https://github.com/CodeReclaimers/neat-python',
+    maintainer_email='ganariya2525@gmail.com',
+    url='https://github.com/ganariya/neat-python',
     license="BSD",
     description='A NEAT (NeuroEvolution of Augmenting Topologies) implementation',
     long_description='Python implementation of NEAT (NeuroEvolution of Augmenting Topologies), a method ' +

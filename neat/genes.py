@@ -20,9 +20,12 @@ class BaseGene(object):
     """
     Handles functions shared by multiple types of genes (both node and connection),
     including crossover and calling mutation methods.
+
+    ノード遺伝子と接続遺伝子のベースクラス
     """
 
     # これもまずかったら即消せ
+    # Geneに関するユーザ設定値
     _gene_attributes: List[BaseAttribute]
 
     def __init__(self, key: Union[int, Tuple[int, int]]) -> None:
@@ -51,6 +54,12 @@ class BaseGene(object):
 
     @classmethod
     def get_config_params(cls) -> List[ConfigParameter]:
+        """
+        ノードに関するConfigParameterのリストを返す
+        ConfigParameterがある一つのアイテム（本当にひとつ）のユーザパラメータを扱うレコード
+        たとえば、`bias_mutate_power`などが一つのConfigParameter
+        このとき、返すListに値自体は設定されていない
+        """
         params: List[ConfigParameter] = []
         if not hasattr(cls, '_gene_attributes'):
             setattr(cls, '_gene_attributes', getattr(cls, '__gene_attributes__'))
@@ -64,6 +73,9 @@ class BaseGene(object):
         return params
 
     def init_attributes(self, config: DefaultGenomeConfig):
+        """
+        geneに関するweight, enabledなどのみを初期化する
+        """
         for a in self._gene_attributes:
             setattr(self, a.name, a.init_value(config))
 

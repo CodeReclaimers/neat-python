@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 pyannotate = "*"
+wheel = "*"
+twine = "*"
 
 [dev-packages]
 
