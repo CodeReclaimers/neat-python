@@ -50,11 +50,11 @@ class Population(object):
             self.population: Dict[int, DefaultGenome] = self.reproduction.create_new(config.genome_type,
                                                                                      config.genome_config,
                                                                                      config.pop_size)
-            self.species: DefaultSpeciesSet = config.species_set_type(config.species_set_config, self.reporters)
+            self.species_set: DefaultSpeciesSet = config.species_set_type(config.species_set_config, self.reporters)
             self.generation: int = 0
-            self.species.speciate(config, self.population, self.generation)
+            self.species_set.speciate(config, self.population, self.generation)
         else:
-            self.population, self.species, self.generation = initial_state
+            self.population, self.species_set, self.generation = initial_state
 
         self.best_genome: Optional[DefaultGenome] = None
 
@@ -107,7 +107,7 @@ class Population(object):
 
                 if best is None or g.fitness > best.fitness:
                     best = g
-            self.reporters.post_evaluate(self.config, self.population, self.species, best)
+            self.reporters.post_evaluate(self.config, self.population, self.species_set, best)
 
             # Track the best genome ever seen.
             if self.best_genome is None or best.fitness > self.best_genome.fitness:
@@ -121,11 +121,11 @@ class Population(object):
                     break
 
             # Create the next generation from the current generation.
-            self.population = self.reproduction.reproduce(self.config, self.species,
+            self.population = self.reproduction.reproduce(self.config, self.species_set,
                                                           self.config.pop_size, self.generation)
 
             # Check for complete extinction.
-            if not self.species.species:
+            if not self.species_set.species:
                 self.reporters.complete_extinction()
 
                 # If requested by the user, create a completely new population,
@@ -138,9 +138,9 @@ class Population(object):
                     raise CompleteExtinctionException()
 
             # Divide the new population into species.
-            self.species.speciate(self.config, self.population, self.generation)
+            self.species_set.speciate(self.config, self.population, self.generation)
 
-            self.reporters.end_generation(self.config, self.population, self.species)
+            self.reporters.end_generation(self.config, self.population, self.species_set)
 
             self.generation += 1
 
