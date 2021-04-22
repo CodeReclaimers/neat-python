@@ -44,10 +44,12 @@ class Population(object):
             self.species = config.species_set_type(config.species_set_config, self.reporters)
             self.generation = 0
             self.species.speciate(config, self.population, self.generation)
-        else:
-            self.population, self.species, self.generation = initial_state
 
-        self.best_genome = None
+            self.best_genome = None
+        else:
+            self.population, self.species, self.generation, self.best_genome = initial_state
+
+        
 
     def add_reporter(self, reporter):
         self.reporters.add(reporter)
@@ -128,7 +130,7 @@ class Population(object):
             # Divide the new population into species.
             self.species.speciate(self.config, self.population, self.generation)
 
-            self.reporters.end_generation(self.config, self.population, self.species)
+            self.reporters.end_generation(self.config, self.population, self.species, self.best_genome)
 
             self.generation += 1
 
