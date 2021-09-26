@@ -2,7 +2,6 @@
 from __future__ import print_function
 
 import gzip
-import random
 import time
 
 try:
@@ -12,6 +11,7 @@ except ImportError:
 
 from neat.population import Population
 from neat.reporting import BaseReporter
+from neat import random
 
 
 class Checkpointer(BaseReporter):

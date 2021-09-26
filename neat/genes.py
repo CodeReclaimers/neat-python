@@ -1,7 +1,7 @@
 """Handles node and connection genes."""
 import warnings
-from random import random
 from neat.attributes import FloatAttribute, BoolAttribute, StringAttribute
+from neat.random import random
 
 # TODO: There is probably a lot of room for simplification of these classes using metaprogramming.
 # TODO: Evaluate using __slots__ for performance/memory usage improvement.

@@ -3,7 +3,6 @@ from __future__ import division, print_function
 
 
 from itertools import count
-from random import choice, random, shuffle
 
 import sys
 
@@ -12,6 +11,7 @@ from neat.aggregations import AggregationFunctionSet
 from neat.config import ConfigParameter, write_pretty_params
 from neat.genes import DefaultConnectionGene, DefaultNodeGene
 from neat.graphs import creates_cycle
+from neat.random import choice, random, shuffle
 
 
 class DefaultGenomeConfig(object):
