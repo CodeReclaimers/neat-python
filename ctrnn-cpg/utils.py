@@ -57,8 +57,10 @@ def is_oscillating(sequence):
                 oscillator = False
                 break
 
-    if corr_coeffficient < 0.5: periodic = False
-    else: periodic = True
+    if corr_coeffficient < 0.5:
+        periodic = False
+    else:
+        periodic = True
 
 
     return corr_coeffficient, period, oscillator and periodic

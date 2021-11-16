@@ -62,7 +62,8 @@ def test_is_oscillating():
     a = 1/t
     b = np.sqrt(t)
     cosinus = np.cos(t)
-    r_coefficient, rhythmic = utils.is_oscillating(sinus)
+    signal = sinus + cosinus
+    r_coefficient, period, rhythmic = utils.is_oscillating(signal)
     print(r_coefficient, rhythmic)
     #print(utils.is_oscillating(line))
     #print(utils.is_oscillating(a))
@@ -111,7 +112,7 @@ if __name__ == '__main__':
     #test_discrete_differential()
     #test_find_extrema()
     #test_autocorr()
-    #test_is_oscillating()
+    test_is_oscillating()
     #test_score_frequency()
     #test_simulate()
-    test_freq_anlysis()
+    #test_freq_anlysis()
