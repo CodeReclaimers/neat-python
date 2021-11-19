@@ -1,4 +1,5 @@
 import os
+import multiprocessing
 import pickle
 import numpy as np
 import matplotlib.pylab as plt
@@ -107,12 +108,37 @@ def test_freq_anlysis():
     plt.plot(t, time_series)
     plt.show()
 
+def dummy_eval(genomes, config):
+    for genome_id, genome in genomes:
+        genome.fitness = 50.0
+        net = neat.ctrnn.CTRNN.create(genome, config, time_constant=0.1)
+        if genome_id % 2 == 0:
+            genome.fitness -= 5.0
+        else:
+            genome.fitness -= 10.0
+
+def test_min_pop():
+    print("Running test: test_min_pop()")
+    local_dir = os.path.dirname(__file__)
+    config_path = os.path.join(local_dir, 'config-test')
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                         config_path)
+
+    pop = neat.Population(config)
+    stats = neat.StatisticsReporter()
+    pop.add_reporter(stats)
+    pop.add_reporter(neat.StdOutReporter(True))
+
+    pop.run(dummy_eval, n=10)
+
 if __name__ == '__main__':
     #test_eval_genome()
     #test_discrete_differential()
     #test_find_extrema()
     #test_autocorr()
-    test_is_oscillating()
+    #test_is_oscillating()
     #test_score_frequency()
     #test_simulate()
     #test_freq_anlysis()
+    test_min_pop()
