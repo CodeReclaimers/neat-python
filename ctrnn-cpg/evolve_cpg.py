@@ -27,7 +27,7 @@ def simulate(ctrnn, control_sig, simulation_timestep=0.01, simulation_seconds=20
         control_sig (float): a value in [0.0, 1.0]
 
         simulation_timestep (float): the length of each time step in the simulation
-        simulation_seconds (flaot): the number of seconds for the simulation run
+        simulation_seconds (float): the number of seconds for the simulation run
         variate_input (boolean): a boolaen to control whether or not to vary the control signal
             during the simulation
     Returns:
@@ -65,16 +65,16 @@ def score_frequency(sequence, control_signal):
     """
     n = sequence.size
     fourier = np.fft.fft(sequence)[:(n//2)+1]
-    freqs = np.fft.fftfreq(n)[:(n//2)+1]
+    freqs = np.fft.fftfreq(n)[:(n//2)+1]*100
 
     max_coeff = np.argmax(np.abs(fourier))
     freq = freqs[max_coeff]
-    target_freq = control_signal/400  #scale down control signal into values between [0, 0.25]
+    target_freq = control_signal/10  #scale down control signal into values between [0, 0.25]
 
     if np.abs(freq - target_freq) < 0.01:
         return 100.0
     else:
-        return 0.1/np.abs(freq - target_freq)
+        return 1/np.abs(freq - target_freq)
 
 def eval_genome(genome, config):
     """
@@ -105,7 +105,6 @@ def eval_genome(genome, config):
     for result in sim_results:
         r_coefficient, period, oscillating = utils.is_oscillating(result[1])
         if oscillating:
-            print("Oscillation found.")
             frequency_score = score_frequency(result[1], result[0])
             fitness *= frequency_score
 

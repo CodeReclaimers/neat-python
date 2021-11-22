@@ -126,9 +126,9 @@ def test_min_pop():
                          config_path)
 
     pop = neat.Population(config)
-    stats = neat.StatisticsReporter()
-    pop.add_reporter(stats)
-    pop.add_reporter(neat.StdOutReporter(True))
+    #stats = neat.StatisticsReporter()
+    #pop.add_reporter(stats)
+    #pop.add_reporter(neat.StdOutReporter(True))
 
     pop.run(dummy_eval, n=10)
 
