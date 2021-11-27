@@ -4,8 +4,8 @@
 # or the experiment itself.  This is the only required section.
 
 [NEAT]
-fitness_criterion   = max
-fitness_threshold   = 1000000000000
+fitness_criterion   = min
+fitness_threshold   = 0.001
 no_fitness_termination = True
 pop_size            = 100
 reset_on_extinction = 1
@@ -18,10 +18,10 @@ initial_connection      = partial_direct 0.5
 feed_forward            = False
 compatibility_disjoint_coefficient    = 1.0
 compatibility_weight_coefficient      = 0.6
-conn_add_prob           = 0.2
-conn_delete_prob        = 0.2
-node_add_prob           = 0.2
-node_delete_prob        = 0.2
+conn_add_prob           = 0.8
+conn_delete_prob        = 0.6
+node_add_prob           = 0.8
+node_delete_prob        = 0.6
 activation_default      = tanh
 activation_options      = tanh
 activation_mutate_rate  = 0.0
@@ -57,7 +57,7 @@ enabled_mutate_rate     = 0.01
 compatibility_threshold = 3.0
 
 [DefaultStagnation]
-species_fitness_func = max
+species_fitness_func = min
 max_stagnation  = 20
 
 [DefaultReproduction]

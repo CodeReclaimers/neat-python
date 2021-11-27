@@ -88,25 +88,27 @@ class Population(object):
             fitness_function(list(self.population.items()), self.config)
 
             # Gather and report statistics.
+
             best = None
+
             for g in self.population.values():
                 if g.fitness is None:
                     raise RuntimeError("Fitness not assigned to genome {}".format(g.key))
 
-                if best is None or g.fitness < best.fitness:
+                # Decide best genome according to fitness criterion. (TODO: implement for 'mean' criterion).
+                if best is None or g.fitness == self.fitness_criterion(g.fitness, best.fitness):
                     best = g
             self.reporters.post_evaluate(self.config, self.population, self.species, best)
 
-            print("This change took effect.")
 
             # Track the best genome ever seen.
-            if self.best_genome is None or best.fitness < self.best_genome.fitness:
+            if self.best_genome is None or best.fitness == self.fitness_criterion(best.fitness, self.best_genome.fitness):
                 self.best_genome = best
 
             if not self.config.no_fitness_termination:
                 # End if the fitness threshold is reached.
                 fv = self.fitness_criterion(g.fitness for g in self.population.values())
-                if fv >= self.config.fitness_threshold:
+                if fv == self.fitness_criterion(fv, self.config.fitness_threshold):
                     self.reporters.found_solution(self.config, self.generation, best)
                     break
 

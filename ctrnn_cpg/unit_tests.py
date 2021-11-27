@@ -4,8 +4,8 @@ import pickle
 import numpy as np
 import matplotlib.pylab as plt
 
-import evolve_cpg as cpg
-import utils
+from ctrnn_cpg import evolve_cpg as cpg
+from ctrnn_cpg import utils
 import neat
 
 def test_eval_genome():
@@ -15,11 +15,12 @@ def test_eval_genome():
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_path)
 
-    pop = neat.Population(config)
-    pop.population.pop(2) #Population size minimum during creation is 2, so we remove one to reduce it to 1.
-    print(pop.population)
 
-    pop.run(cpg.eval_genome)
+    pop = neat.Population(config)
+    #pop.population.pop(2) #Population size minimum during creation is 2, so we remove one to reduce it to 1.
+    #print(pop.population)
+    pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), cpg.eval_genome)
+    pop.run(pe.evaluate, n=5)
 
 #def test_autocorr():
 
@@ -71,12 +72,12 @@ def test_is_oscillating():
     #print(utils.is_oscillating(b))
     #print(utils.is_oscillating(cosinus))
 
-def test_score_frequency():
+def test_frequency_error():
     t = np.linspace(0, 25, 50)
     Fs = 50/25
     signal = np.cos(t)
-    freq = cpg.score_frequency(signal, 1.0)
-    print(np.abs(freq)*Fs)
+    error = cpg.frequency_error(signal, 1.0)
+    print(error)
 
 def test_simulate():
     print("Running test: test_simulate.")
@@ -126,11 +127,11 @@ def test_min_pop():
                          config_path)
 
     pop = neat.Population(config)
-    #stats = neat.StatisticsReporter()
-    #pop.add_reporter(stats)
-    #pop.add_reporter(neat.StdOutReporter(True))
+    stats = neat.StatisticsReporter()
+    pop.add_reporter(stats)
+    pop.add_reporter(neat.StdOutReporter(True))
 
-    pop.run(dummy_eval, n=10)
+    print(pop.run(dummy_eval, n=2))
 
 if __name__ == '__main__':
     #test_eval_genome()

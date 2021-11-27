@@ -151,7 +151,10 @@ class DefaultReproduction(DefaultClassConfig):
             species.species[s.key] = s
 
             # Sort members in order of descending fitness.
-            old_members.sort(reverse=True, key=lambda x: x[1].fitness)
+            if config.fitness_criterion == 'min':
+                old_members.sort(reverse=False, key=lambda x: x[1].fitness)
+            else:
+                old_members.sort(reverse=True, key=lambda x: x[1].fitness)
 
             # Transfer elites to new generation.
             if self.reproduction_config.elitism > 0:
