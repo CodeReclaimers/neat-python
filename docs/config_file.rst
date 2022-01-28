@@ -150,6 +150,22 @@ required for your particular implementation.
 .. index:: genome
 .. index:: DefaultGenome
 
+[DefaultSpeciesSet] section
+-----------------------
+The ``DefaultSpeciesSet`` section specifies parameters for the builtin `DefaultSpeciesSet` class.
+This section is only necessary if you specify this class as the genome implementation when
+creating the `Config` instance; otherwise you need to include whatever configuration (if any) is
+required for your particular implementation.
+
+.. _compatibility-threshold-label:
+
+.. index:: genomic distance
+.. index:: ! compatibility_threshold
+.. index:: species
+
+* *compatibility_threshold*
+    Individuals whose :term:`genomic distance` is less than this threshold are considered to be in the same :term:`species`.
+
 [DefaultGenome] section
 -----------------------
 
@@ -266,15 +282,6 @@ required for your particular implementation.
 * *bias_replace_rate*
     The probability that :term:`mutation` will replace the bias of a node with a newly :py:meth:`chosen <attributes.FloatAttribute.init_value>`
     random value (as if it were a new node).
-
-.. _compatibility-threshold-label:
-
-.. index:: genomic distance
-.. index:: ! compatibility_threshold
-.. index:: species
-
-* *compatibility_threshold*
-    Individuals whose :term:`genomic distance` is less than this threshold are considered to be in the same :term:`species`.
 
 .. _compatibility-disjoint-coefficient-label:
 
