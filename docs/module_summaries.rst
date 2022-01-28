@@ -1800,7 +1800,7 @@ Runs evaluation functions in parallel subprocesses in order to evaluate multiple
   .. index:: fitness function
   .. index:: fitness
 
-  .. py:class:: ParallelEvaluator(num_workers, eval_function, timeout=None)
+  .. py:class:: ParallelEvaluator(num_workers, eval_function, timeout=None, maxtasksperchild=None)
 
     Runs evaluation functions in parallel subprocesses in order to evaluate multiple genomes at once. The analogous :py:mod:`threaded` is probably preferable
     for python implementations without a :pygloss:`GIL` (Global Interpreter Lock); note that neat-python is not currently tested vs any such implementations.
@@ -1810,6 +1810,8 @@ Runs evaluation functions in parallel subprocesses in order to evaluate multiple
     :type eval_function: `function`
     :param timeout: How long (in seconds) each subprocess will be given before an exception is raised (unlimited if `None`).
     :type timeout: :pytypes:`int <typesnumeric>` or None
+    :param maxtasksperchild: is the number of tasks a worker process can complete before it will exit and be replaced with a fresh worker process, to enable unused resources to be freed. The default maxtasksperchild is None, which means worker processes will live as long as the pool.
+    :type maxtasksperchild: :pytypes:`int <typesnumeric>` or None
 
     .. py:method:: __del__()
 
