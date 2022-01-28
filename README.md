@@ -1,13 +1,18 @@
 [![Build Status](https://travis-ci.org/CodeReclaimers/neat-python.svg)](https://travis-ci.org/CodeReclaimers/neat-python)
 [![Coverage Status](https://coveralls.io/repos/CodeReclaimers/neat-python/badge.svg?branch=master&service=github)](https://coveralls.io/github/CodeReclaimers/neat-python?branch=master)
 
-## STATUS NOTE ##
+## FORK STATUS ##
 
-This project is currently in maintenance-only mode. I will make bug fixes, do cleanup, and possibly improve sample code
-as I have time, but I will not be adding any new features.  The forks by
-[@drallensmith](https://github.com/drallensmith/neat-python) and [@bennr01](https://github.com/bennr01/neat-python) have
-been extended beyond this implementation a great deal, so those might be better starting points if you need more
-features than what you see here.
+This is a fork from [CodeReclaimers](https://github.com/CodeReclaimers/neat-python).
+The main focus is Non-dominated Sorting for Multiobjective Fitness. That means having more than one fitness value that should be optimized.
+This is done throught the implementation of [NSGA-II](https://ieeexplore.ieee.org/document/996017) as a Reproduction method. More details on the `neat/nsga2/` readme.
+
+The current repository also presents a hoverboard game/simulation to be used as a problem for testing the NSGA-II feature, as well as examples for training it with and without NSGA-II.
+Check the readme on `examples/nsga2` for more details.
+
+![hoverboard-reference](https://i.imgur.com/CfrdHmr.gif)
+
+I've tried keeping the minimal amount of change to the core library, so merging to the main fork should be easy. All these changes are backwards-compatible.
 
 ## About ##
 
@@ -31,7 +36,7 @@ The documentation, is available on [Read The Docs](http://neat-python.readthedoc
 ## Citing ##
 
 Here is a Bibtex entry you can use to cite this project in a publication. The listed authors are the maintainers of
-all iterations of the project up to this point. 
+all iterations of the project up to this point.
 
 ```
 @misc{neat-python,

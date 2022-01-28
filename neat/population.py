@@ -44,10 +44,10 @@ class Population(object):
             self.species = config.species_set_type(config.species_set_config, self.reporters)
             self.generation = 0
             self.species.speciate(config, self.population, self.generation)
+            self.best_genome = None
         else:
-            self.population, self.species, self.generation = initial_state
+            self.population, self.species, self.best_genome, self.generation = initial_state
 
-        self.best_genome = None
 
     def add_reporter(self, reporter):
         self.reporters.add(reporter)
@@ -86,6 +86,12 @@ class Population(object):
 
             # Evaluate all genomes using the user-provided function.
             fitness_function(list(self.population.items()), self.config)
+
+            # Call sorting method of NSGA2Reproduction
+            # This is the only modification made to the main code, so the best
+            # genome is evaluated before tournament, to ensure elitism
+            if (callable(getattr(self.reproduction,'sort',None))):
+                self.population = self.reproduction.sort(self.population, self.species, self.config.pop_size, self.generation)
 
             # Gather and report statistics.
             best = None

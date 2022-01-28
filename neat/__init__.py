@@ -2,6 +2,7 @@
 import neat.nn as nn
 import neat.ctrnn as ctrnn
 import neat.iznn as iznn
+import neat.nsga2 as nsga2
 import neat.distributed as distributed
 
 from neat.config import Config
