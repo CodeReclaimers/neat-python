@@ -3,8 +3,7 @@
 
 ## STATUS NOTE ##
 
-This project is currently in maintenance-only mode. I will make bug fixes, do cleanup, and possibly improve sample code
-as I have time, but I will not be adding any new features.  The forks by
+This project is no longer under active development. The forks by
 [@drallensmith](https://github.com/drallensmith/neat-python) and [@bennr01](https://github.com/bennr01/neat-python) have
 been extended beyond this implementation a great deal, so those might be better starting points if you need more
 features than what you see here.
