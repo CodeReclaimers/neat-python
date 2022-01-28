@@ -9,7 +9,7 @@ class RecurrentNetwork(object):
 
         self.values = [{}, {}]
         for v in self.values:
-            for k in list(inputs) + list(outputs):
+            for k in [*inputs, *outputs]:
                 v[k] = 0.0
 
             for node, ignored_activation, ignored_aggregation, ignored_bias, ignored_response, links in self.node_evals:
