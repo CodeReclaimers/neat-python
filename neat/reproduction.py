@@ -28,7 +28,7 @@ class DefaultReproduction(DefaultClassConfig):
         return DefaultClassConfig(param_dict,
                                   [ConfigParameter('elitism', int, 0),
                                    ConfigParameter('survival_threshold', float, 0.2),
-                                   ConfigParameter('min_species_size', int, 2)])
+                                   ConfigParameter('min_species_size', int, 1)])
 
     def __init__(self, config, reporters, stagnation):
         # pylint: disable=super-init-not-called
