@@ -62,6 +62,7 @@ def run_primary(addr, authkey, generations):
     winner = p.run(de.evaluate, generations)
     print("===== stopping DistributedEvaluator =====")
     de.stop(wait=3, shutdown=True, force_secondary_shutdown=False)
+    print("===== DistributedEvaluator stopped. =====")
 
     if winner:
         # Display the winning genome.
@@ -85,9 +86,11 @@ def run_primary(addr, authkey, generations):
         winner2 = None
         time.sleep(3)
         de.start()
+        winner2 = p2.run(de.evaluate, (100-checkpointer.last_generation_checkpoint))
         winner2 = p2.run(de.evaluate, (100 - checkpointer.last_generation_checkpoint))
         print("===== stopping DistributedEvaluator (forced) =====")
         de.stop(wait=3, shutdown=True, force_secondary_shutdown=True)
+        print("===== DistributedEvaluator stopped. =====")
 
         if winner2:
             if not winner:
@@ -123,24 +126,30 @@ def run_secondary(addr, authkey, num_workers=1):
         eval_function=eval_genome_distributed,
         mode=MODE_SECONDARY,
         num_workers=num_workers,
-    )
-    try:
-        de.start(secondary_wait=3, exit_on_stop=True, reconnect=True)
-    except SystemExit:
-        pass
-    else:
-        raise Exception("DistributedEvaluator in secondary mode did not try to exit!")
+        )
+    max_tries = 3
+    for i in range(max_tries):
+        # sometimes it may take a while before the port used is available again
+        try:
+            de.start(secondary_wait=3, exit_on_stop=True, reconnect=True)
+        except SystemExit:
+            # expected
+            break
+        except OSError:
+            if i == (max_tries -1):
+                raise
+        else:
+            raise Exception("DistributedEvaluator in secondary mode did not try to exit!")
 
 
-@unittest.skipIf(ON_PYPY,
-                 "This test fails on pypy during travis builds (frequently due to timeouts) but usually works locally.")
+# @unittest.skipIf(ON_PYPY, "This test fails on pypy during travis builds (frequently due to timeouts) but usually works locally.")
 def test_xor_example_distributed():
     """
     Test to make sure restoration after checkpoint works with distributed.
     """
 
     addr = ("localhost", random.randint(12000, 30000))
-    authkey = b"abcd1234"
+    authkey = "abcd1234"
     mp = multiprocessing.Process(
         name="Primary evaluation process",
         target=run_primary,
