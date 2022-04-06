@@ -1,0 +1,19 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: neat-python
+message: Please cite this software using these metadata.
+type: software
+authors:
+  - given-names: Alan
+    family-names: McIntyre
+    email: alan@codereclaimers.com
+    orcid: 'https://orcid.org/0000-0002-8071-4219'
+  - given-names: Matt
+    family-names: Kallada
+  - given-names: Cesar G.
+    family-names: Miguel
+  - given-names: Carolina
+    family-names: Feher de Silva
+    orcid: 'https://orcid.org/0000-0002-4137-0847'
