@@ -25,7 +25,7 @@ For further information regarding general concepts and theory, please see
 If you want to try neat-python, please check out the repository, start playing with the examples (`examples/xor` is
 a good place to start) and then try creating your own experiment.
 
-The documentation, is available on [Read The Docs](http://neat-python.readthedocs.io).
+The documentation is available on [Read The Docs](http://neat-python.readthedocs.io).
 
 ## Citing ##
 
