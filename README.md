@@ -29,13 +29,18 @@ The documentation is available on [Read The Docs](http://neat-python.readthedocs
 
 ## Citing ##
 
-Here is a Bibtex entry you can use to cite this project in a publication. The listed authors are the maintainers of
+Here are APA and Bibtex entries you can use to cite this project in a publication. The listed authors are the maintainers of
 all iterations of the project up to this point. 
 
+APA
 ```
-@misc{neat-python,
-    Title = {neat-python},
-    Author = {Alan McIntyre and Matt Kallada and Cesar G. Miguel and Carolina Feher da Silva},
-    howpublished = {\url{https://github.com/CodeReclaimers/neat-python}}   
-  }
+McIntyre, A., Kallada, M., Miguel, C. G., & Feher de Silva, C. neat-python [Computer software]
+```
+
+Bibtex
+```
+@software{McIntyre_neat-python,
+author = {McIntyre, Alan and Kallada, Matt and Miguel, Cesar G. and Feher de Silva, Carolina},
+title = {{neat-python}}
+}
 ```

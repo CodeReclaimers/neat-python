@@ -16,3 +16,10 @@ __pycache__/
 
 # pycharm cache folder
 .idea/
+
+examples/openai-lander/results/
+examples/openai-walker/results/
+examples/picture2d/*.bin
+examples/picture2d/*.png
+examples/picture2d/rendered/
+venv
