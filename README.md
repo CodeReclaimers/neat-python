@@ -30,7 +30,7 @@ The documentation is available on [Read The Docs](http://neat-python.readthedocs
 
 Here are APA and Bibtex entries you can use to cite this project in a publication. The listed authors are the 
 maintainers of all iterations of the project up to this point.  If you have contributed and would like your name added 
-to the citation, please submit an issue or email alan@codereclaimers.com and I'll add you. 
+to the citation, please submit an issue or email alan@codereclaimers.com. 
 
 APA
 ```
