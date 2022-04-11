@@ -4,7 +4,7 @@ Overview of the basic XOR example (xor2.py)
 
 .. default-role:: any
 
-The xor2.py example, shown in its entirety at the bottom of this page, evolves a network that implements the two-input
+The xor/evolve-feedforward.py example, shown in its entirety at the bottom of this page, evolves a network that implements the two-input
 XOR function:
 
 =======  =======  ======

@@ -1,4 +1,4 @@
-"""Keeps track of whether species are making progress and helps remove ones that are not."""
+"""Keeps track of whether species are making progress and helps remove those which are not."""
 import sys
 
 from neat.config import ConfigParameter, DefaultClassConfig
