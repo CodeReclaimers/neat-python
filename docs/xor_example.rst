@@ -1,6 +1,6 @@
 
-Overview of the basic XOR example (xor2.py)
-===========================================
+Overview of the basic XOR example (evolve-feedforward.py)
+=========================================================
 
 .. default-role:: any
 
