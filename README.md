@@ -1,12 +1,5 @@
-[![Build Status](https://travis-ci.org/CodeReclaimers/neat-python.svg)](https://travis-ci.org/CodeReclaimers/neat-python)
+[![Build Status](https://app.travis-ci.com/CodeReclaimers/neat-python.svg?branch=master)](https://app.travis-ci.com/github/CodeReclaimers/neat-python)
 [![Coverage Status](https://coveralls.io/repos/CodeReclaimers/neat-python/badge.svg?branch=master&service=github)](https://coveralls.io/github/CodeReclaimers/neat-python?branch=master)
-
-## STATUS NOTE ##
-
-This project is no longer under active development. The forks by
-[@drallensmith](https://github.com/drallensmith/neat-python) and [@bennr01](https://github.com/bennr01/neat-python) have
-been extended beyond this implementation a great deal, so those might be better starting points if you need more
-features than what you see here.
 
 ## About ##
 
@@ -44,3 +37,6 @@ author = {McIntyre, Alan and Kallada, Matt and Miguel, Cesar G. and Feher de Sil
 title = {{neat-python}}
 }
 ```
+
+## Thank you! ##
+Many thanks to the folks who have [cited this repository](https://scholar.google.com/scholar?start=0&hl=en&as_sdt=5,34&sciodt=0,34&cites=15315010889003730796&scipsc=) in their own work. 
