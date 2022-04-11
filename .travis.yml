@@ -1,4 +1,10 @@
+os:
+  - linux
+  - windows
+  - osx
+
 dist: focal
+
 language: python
 python:
   - 3.5
@@ -7,10 +13,6 @@ python:
   - 3.8
   - 3.9
   - 3.9-dev
-  - 3.10
-  - 3.10-dev
-  - 3.11
-  - 3.11-dev
   - pypy3
 install:
     - pip install --upgrade nose coveralls coverage
