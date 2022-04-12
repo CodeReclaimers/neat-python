@@ -11,7 +11,7 @@ python:
   - pypy3.6-7.3.3
   - pypy3.7-7.3.5
 install:
-    - pip install --upgrade nose coveralls coverage
+    - pip install --upgrade pytest coveralls coverage
     - if [[ $TRAVIS_PYTHON_VERSION == 'pypy'* ]]; then export TRAVIS_WAIT=45; else export TRAVIS_WAIT=20; fi
 script:
     travis_wait "${TRAVIS_WAIT}" pytest --with-coverage --cover-package=neat -vd
