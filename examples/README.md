@@ -6,6 +6,8 @@ directly related to the NEAT library usage.
 
 Documentation for the library and some of the examples may be found [here](http://neat-python.readthedocs.io/en/latest/).
 
+For convenience, a conda environment that supports running all of the examples is available in this directory.
+
 ## The examples ##
 
 * `xor` A "hello world" sample showing basic usage.

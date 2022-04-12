@@ -1,5 +1,4 @@
 """Implements the core evolution algorithm."""
-from __future__ import print_function
 
 from neat.math_util import mean
 from neat.reporting import ReporterSet

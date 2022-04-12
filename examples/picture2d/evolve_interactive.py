@@ -10,11 +10,11 @@ This example also demonstrates how to customize species stagnation.
 import math
 import os
 import pickle
+from multiprocessing import Pool
+
 import pygame
 
-from multiprocessing import Pool
 import neat
-
 from common import eval_mono_image, eval_gray_image, eval_color_image
 
 
@@ -25,6 +25,7 @@ class InteractiveStagnation(object):
     A species is only marked as stagnant if the user has not selected one of its output images
     within the last `max_stagnation` generations.
     """
+
     def __init__(self, config, reporters):
         self.max_stagnation = int(config.get('max_stagnation'))
         self.reporters = reporters
@@ -86,15 +87,15 @@ class PictureBreeder(object):
         self.num_cols = int(math.floor((window_width - 16) / (thumb_width + 4)))
         self.num_rows = int(math.floor((window_height - 16) / (thumb_height + 4)))
 
-        self.pool = Pool(num_workers)
+        self.num_workers = num_workers
 
-    def make_image_from_data(self, image_data):
+    def make_image_from_data(self, image_data, width, height):
         # For mono and grayscale, we need a palette because the evaluation function
         # only returns a single integer instead of an (R, G, B) tuple.
         if self.scheme == 'color':
-            image = pygame.Surface((self.thumb_width, self.thumb_height))
+            image = pygame.Surface((width, height))
         else:
-            image = pygame.Surface((self.thumb_width, self.thumb_height), depth=8)
+            image = pygame.Surface((width, height), depth=8)
             palette = tuple([(i, i, i) for i in range(256)])
             image.set_palette(palette)
 
@@ -111,20 +112,21 @@ class PictureBreeder(object):
         elif self.scheme == 'color':
             img_func = eval_color_image
 
-        jobs = []
-        for genome_id, genome in genomes:
-            jobs.append(self.pool.apply_async(img_func, (genome, config, self.thumb_width, self.thumb_height)))
+        with Pool(self.num_workers) as pool:
+            jobs = []
+            for genome_id, genome in genomes:
+                jobs.append(pool.apply_async(img_func, (genome, config, self.thumb_width, self.thumb_height)))
 
-        thumbnails = []
-        for j in jobs:
-            # TODO: This code currently generates the image data using the multiprocessing
-            # pool, and then does the actual image construction here because pygame complained
-            # about not being initialized if the pool workers tried to construct an image.
-            # Presumably there is some way to fix this, but for now this seems fast enough
-            # for the purposes of a demo.
-            image_data = j.get()
+            thumbnails = []
+            for j in jobs:
+                # TODO: This code currently generates the image data using the multiprocessing
+                # pool, and then does the actual image construction here because pygame complained
+                # about not being initialized if the pool workers tried to construct an image.
+                # Presumably there is some way to fix this, but for now this seems fast enough
+                # for the purposes of a demo.
+                image_data = j.get()
 
-            thumbnails.append(self.make_image_from_data(image_data))
+                thumbnails.append(self.make_image_from_data(image_data, self.thumb_width, self.thumb_height))
 
         return thumbnails
 
@@ -142,7 +144,7 @@ class PictureBreeder(object):
         else:
             image_data = eval_mono_image(genome, config, self.full_width, self.full_height)
 
-        image = self.make_image_from_data(image_data)
+        image = self.make_image_from_data(image_data, self.full_width, self.full_height)
         pygame.image.save(image, "rendered/rendered-{}-{}.png".format(os.getpid(), genome_id))
 
         with open("rendered/genome-{}-{}.bin".format(os.getpid(), genome_id), "wb") as f:
@@ -204,21 +206,19 @@ class PictureBreeder(object):
 
 def run():
     # 128x128 thumbnails, 1500x1500 rendered images, 1100x810 viewer, grayscale images, 4 worker processes.
-    pb = PictureBreeder(128, 128, 1500, 1500, 1100, 810, 'gray', 4)
+    pb = PictureBreeder(128, 128, 1500, 1500, 1100, 810, 'color', 4)
 
     # Determine path to configuration file.
     local_dir = os.path.dirname(__file__)
-    config_path = os.path.join(local_dir, 'interactive_config')
+    if pb.scheme == 'color':
+        config_path = os.path.join(local_dir, 'interactive_config_color')
+    else:
+        config_path = os.path.join(local_dir, 'interactive_config_gray')
+
     # Note that we provide the custom stagnation class to the Config constructor.
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, InteractiveStagnation,
                          config_path)
-
-    # Make sure the network has the expected number of outputs.
-    if pb.scheme == 'color':
-        config.output_nodes = 3
-    else:
-        config.output_nodes = 1
 
     config.pop_size = pb.num_cols * pb.num_rows
     pop = neat.Population(config)
@@ -231,6 +231,7 @@ def run():
     while 1:
         pb.generation = pop.generation + 1
         pop.run(pb.eval_fitness, 1)
+
 
 if __name__ == '__main__':
     run()

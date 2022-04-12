@@ -16,19 +16,16 @@ or inherit from DistributedEvaluator if you need to do something more
 complicated.
 """
 
-from __future__ import print_function
-
-import os
 import argparse
+import os
 import sys
 
 import neat
-
 import visualize
 
 # 2-input XOR inputs and expected outputs.
 xor_inputs = [(0.0, 0.0), (0.0, 1.0), (1.0, 0.0), (1.0, 1.0)]
-xor_outputs = [(0.0,),     (1.0,),     (1.0,),     (0.0,)]
+xor_outputs = [(0.0,), (1.0,), (1.0,), (0.0,)]
 
 
 def eval_genome(genome, config):
@@ -74,24 +71,24 @@ def run(config_file, addr, authkey, mode, workers):
         secondary_chunksize=4,  # send 4 genomes at once
         num_workers=workers,  # when in secondary mode, use this many workers
         worker_timeout=10,  # when in secondary mode and workers > 1,
-                            # wait at most 10 seconds for the result
+        # wait at most 10 seconds for the result
         mode=mode,  # whether this is the primary or a secondary node
-                    # in most case you can simply pass
-                    # 'neat.distributed.MODE_AUTO' as the mode.
-                    # This causes the DistributedEvaluator to
-                    # determine the mode by checking if address
-                    # points to the localhost.
-        )
+        # in most case you can simply pass
+        # 'neat.distributed.MODE_AUTO' as the mode.
+        # This causes the DistributedEvaluator to
+        # determine the mode by checking if address
+        # points to the localhost.
+    )
 
     # start the DistributedEvaluator
     de.start(
         exit_on_stop=True,  # if this is a secondary node, call sys.exit(0) when
-                            # when finished. All code after this line will only
-                            # be executed by the primary node.
+        # when finished. All code after this line will only
+        # be executed by the primary node.
         secondary_wait=3,  # when a secondary, sleep this many seconds before continuing
-                       # this is useful when the primary node may need more time
-                       # to start than the secondary nodes.
-        )
+        # this is useful when the primary node may need more time
+        # to start than the secondary nodes.
+    )
 
     # Run for up to 500 generations.
     winner = p.run(de.evaluate, 500)
@@ -124,7 +121,7 @@ def addr_tuple(s):
         end = s.index("]")
         if ":" not in s[end:]:
             raise ValueError("IPv6 address does specify a port to use!")
-        host, port = s[1:end], s[end+1:]
+        host, port = s[1:end], s[end + 1:]
         port = int(port)
         return (host, port)
     else:
@@ -140,7 +137,7 @@ if __name__ == '__main__':
         help="host:port address of the main node",
         type=addr_tuple,
         action="store",
-        )
+    )
     parser.add_argument(
         "--workers",
         type=int,
@@ -148,22 +145,22 @@ if __name__ == '__main__':
         action="store",
         default=1,
         dest="workers",
-        )
+    )
     parser.add_argument(
         "--authkey",
         action="store",
         help="authkey to use (default: 'neat-python')",
         default="neat-python",
         dest="authkey",
-        )
+    )
     parser.add_argument(
-        "--force-secondary","--force-slave",
+        "--force-secondary", "--force-slave",
         action="store_const",
         const=neat.distributed.MODE_SECONDARY,
         default=neat.distributed.MODE_AUTO,
         help="Force secondary mode (useful for debugging)",
         dest="mode",
-        )
+    )
     ns = parser.parse_args()
 
     address = ns.address

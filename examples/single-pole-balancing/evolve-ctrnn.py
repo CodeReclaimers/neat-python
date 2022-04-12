@@ -2,14 +2,11 @@
 Single-pole balancing experiment using a continuous-time recurrent neural network (CTRNN).
 """
 
-from __future__ import print_function
-
 import multiprocessing
 import os
 import pickle
 
 import cart_pole
-
 import neat
 import visualize
 
@@ -47,16 +44,10 @@ def eval_genome(genome, config):
 
         fitnesses.append(fitness)
 
-        #print("{0} fitness {1}".format(net, fitness))
-
+        # print("{0} fitness {1}".format(net, fitness))
 
     # The genome's fitness is its worst performance across all runs.
     return min(fitnesses)
-
-
-def eval_genomes(genomes, config):
-    for genome_id, genome in genomes:
-        genome.fitness = eval_genome(genome, config)
 
 
 def run():
@@ -91,9 +82,7 @@ def run():
     visualize.draw_net(config, winner, view=True, node_names=node_names,
                        filename="winner-ctrnn.gv")
     visualize.draw_net(config, winner, view=True, node_names=node_names,
-                       filename="winner-ctrnn-enabled.gv", show_disabled=False)
-    visualize.draw_net(config, winner, view=True, node_names=node_names,
-                       filename="winner-ctrnn-enabled-pruned.gv", show_disabled=False, prune_unused=True)
+                       filename="winner-ctrnn-pruned.gv", prune_unused=True)
 
 
 if __name__ == '__main__':

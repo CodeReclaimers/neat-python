@@ -1,5 +1,4 @@
 """Tests creating genomes with various configuration options."""
-from __future__ import print_function
 
 import os
 import sys
@@ -307,6 +306,79 @@ class TestCreateNew(unittest.TestCase):
         print(g)
         self.assertEqual(set(g.nodes), {0, 1, 2})
         self.assertLess(len(g.connections), 8)
+
+
+class TestPruning(unittest.TestCase):
+    """Tests using unittest."""
+
+    def setUp(self):
+        """
+        Determine path to configuration file. This path manipulation is
+        here so that the script will run successfully regardless of the
+        current working directory.
+        """
+        local_dir = os.path.dirname(__file__)
+        config_path = os.path.join(local_dir, 'test_configuration')
+        self.config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                                  neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                                  config_path)
+
+    def test_empty_network(self):
+        gid = 42
+        config = self.config.genome_config
+        config.initial_connection = 'unconnected'
+        config.num_hidden = 0
+
+        g = neat.DefaultGenome(gid)
+        g.configure_new(config)
+
+        g_pruned = g.get_pruned_copy(config)
+
+        self.assertEqual(set(g.nodes.keys()), {0})
+        assert (not g.connections)
+        self.assertEqual(set(g.nodes.keys()), set(g_pruned.nodes.keys()))
+        self.assertEqual(set(g.connections.keys()), set(g_pruned.connections.keys()))
+
+    def test_nothing_to_prune(self):
+        gid = 42
+        config = self.config.genome_config
+        config.initial_connection = 'unconnected'
+        config.num_hidden = 0
+
+        g = neat.DefaultGenome(gid)
+        g.configure_new(config)
+        g.add_connection(config, -1, 0, 1.0, True)
+        g.add_connection(config, -2, 0, 1.0, True)
+
+        g_pruned = g.get_pruned_copy(config)
+
+        self.assertEqual(set(g.nodes.keys()), set(g_pruned.nodes.keys()))
+        self.assertEqual(set(g.connections.keys()), set(g_pruned.connections.keys()))
+
+    def test_unused_node(self):
+        gid = 42
+        config = self.config.genome_config
+        config.initial_connection = 'unconnected'
+        config.num_hidden = 0
+
+        g = neat.DefaultGenome(gid)
+        g.configure_new(config)
+
+        new_node_id = config.get_new_node_key(g.nodes)
+        ng = g.create_node(config, new_node_id)
+        g.nodes[new_node_id] = ng
+
+        g.add_connection(config, -1, 0, 1.0, True)
+        g.add_connection(config, -2, 0, 1.0, True)
+        g.add_connection(config, -1, new_node_id, 1.0, True)
+
+        g_pruned = g.get_pruned_copy(config)
+
+        self.assertEqual(set(g.nodes.keys()), {0, new_node_id})
+        self.assertEqual(set(g.connections.keys()), {(-1, 0), (-2, 0), (-1, new_node_id)})
+
+        self.assertEqual(set(g_pruned.nodes.keys()), {0})
+        self.assertEqual(set(g_pruned.connections.keys()), {(-1, 0), (-2, 0)})
 
 
 if __name__ == '__main__':

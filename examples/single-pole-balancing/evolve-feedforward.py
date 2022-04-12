@@ -2,17 +2,13 @@
 Single-pole balancing experiment using a feed-forward neural network.
 """
 
-from __future__ import print_function
-
 import multiprocessing
 import os
 import pickle
 
-import neat
-
 import cart_pole
+import neat
 import visualize
-
 
 runs_per_net = 5
 simulation_seconds = 60.0
@@ -88,9 +84,7 @@ def run():
     visualize.draw_net(config, winner, view=True, node_names=node_names,
                        filename="winner-feedforward.gv")
     visualize.draw_net(config, winner, view=True, node_names=node_names,
-                       filename="winner-feedforward-enabled.gv", show_disabled=False)
-    visualize.draw_net(config, winner, view=True, node_names=node_names,
-                       filename="winner-feedforward-enabled-pruned.gv", show_disabled=False, prune_unused=True)
+                       filename="winner-feedforward-enabled-pruned.gv", prune_unused=True)
 
 
 if __name__ == '__main__':

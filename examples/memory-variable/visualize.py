@@ -1,8 +1,5 @@
-from __future__ import print_function
-
 import copy
 import warnings
-
 
 import graphviz
 import matplotlib.pyplot as plt
@@ -119,6 +116,10 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
         warnings.warn("This display is not available due to a missing optional dependency (graphviz)")
         return
 
+    # If requested, use a copy of the genome which omits all components that won't affect the output.
+    if prune_unused:
+        genome = genome.get_pruned_copy(config.genome_config)
+
     if node_names is None:
         node_names = {}
 
@@ -152,25 +153,7 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
 
         dot.node(name, _attributes=node_attrs)
 
-    if prune_unused:
-        connections = set()
-        for cg in genome.connections.values():
-            if cg.enabled or show_disabled:
-                connections.add((cg.in_node_id, cg.out_node_id))
-
-        used_nodes = copy.copy(outputs)
-        pending = copy.copy(outputs)
-        while pending:
-            #print(pending, used_nodes)
-            new_pending = set()
-            for a, b in connections:
-                if b in pending and a not in used_nodes:
-                    new_pending.add(a)
-                    used_nodes.add(a)
-            pending = new_pending
-    else:
-        used_nodes = set(genome.nodes.keys())
-
+    used_nodes = set(genome.nodes.keys())
     for n in used_nodes:
         if n in inputs or n in outputs:
             continue
@@ -180,8 +163,6 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
 
     for cg in genome.connections.values():
         if cg.enabled or show_disabled:
-            #if cg.input not in used_nodes or cg.output not in used_nodes:
-            #    continue
             input, output = cg.key
             a = node_names.get(input, str(input))
             b = node_names.get(output, str(output))

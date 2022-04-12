@@ -2,7 +2,6 @@
 Handles creation of genomes, either from scratch or by sexual or
 asexual reproduction from parents.
 """
-from __future__ import division
 
 import math
 import random
@@ -10,6 +9,7 @@ from itertools import count
 
 from neat.config import ConfigParameter, DefaultClassConfig
 from neat.math_util import mean
+
 
 # TODO: Provide some sort of optional cross-species performance criteria, which
 # are then used to control stagnation and possibly the mutation rate
@@ -108,7 +108,7 @@ class DefaultReproduction(DefaultClassConfig):
         # No species left.
         if not remaining_species:
             species.species = {}
-            return {} # was []
+            return {}  # was []
 
         # Find minimum/maximum fitness across the entire population, for use in
         # species adjusted fitness computation.
@@ -124,7 +124,7 @@ class DefaultReproduction(DefaultClassConfig):
             afs.adjusted_fitness = af
 
         adjusted_fitnesses = [s.adjusted_fitness for s in remaining_species]
-        avg_adjusted_fitness = mean(adjusted_fitnesses) # type: float
+        avg_adjusted_fitness = mean(adjusted_fitnesses)  # type: float
         self.reporters.info("Average adjusted fitness: {:.3f}".format(avg_adjusted_fitness))
 
         # Compute the number of new members for each species in the new generation.
@@ -182,6 +182,7 @@ class DefaultReproduction(DefaultClassConfig):
                 child = config.genome_type(gid)
                 child.configure_crossover(parent1, parent2, config.genome_config)
                 child.mutate(config.genome_config)
+                # TODO: if config.genome_config.feed_forward, no cycles should exist
                 new_population[gid] = child
                 self.ancestors[gid] = (parent1_id, parent2_id)
 

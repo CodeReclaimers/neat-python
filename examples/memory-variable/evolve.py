@@ -4,19 +4,17 @@ intentionally very (overly?) simplistic just to show the usage of the NEAT libra
 if you come up with a more interesting or impressive example, please submit a pull request!
 """
 
-from __future__ import print_function
-
-import os
 import multiprocessing
+import os
 import random
 
 import neat
 import visualize
 
 # Maximum length of the test sequence.
-max_inputs = 4
+max_inputs = 3
 # Maximum number of ignored inputs
-max_ignore = 2
+max_ignore = 1
 # Number of random examples each network is tested against.
 num_tests = 2 ** (max_inputs + max_ignore + 1)
 
@@ -112,6 +110,7 @@ def run():
 
     node_names = {-1: 'input', -2: 'record', -3: 'play', 0: 'output'}
     visualize.draw_net(config, winner, True, node_names=node_names)
+    visualize.draw_net(config, winner, True, node_names=node_names, prune_unused=True)
     visualize.plot_stats(stats, ylog=False, view=True)
     visualize.plot_species(stats, view=True)
 

@@ -1,5 +1,4 @@
 """tests for neat.distributed"""
-from __future__ import print_function
 
 import multiprocessing
 import os

@@ -4,11 +4,13 @@ import sys
 from neat.config import ConfigParameter, DefaultClassConfig
 from neat.math_util import stat_functions
 
+
 # TODO: Add a method for the user to change the "is stagnant" computation.
 
 
 class DefaultStagnation(DefaultClassConfig):
     """Keeps track of whether species are making progress and helps remove ones that are not."""
+
     @classmethod
     def parse_config(cls, param_dict):
         return DefaultClassConfig(param_dict,

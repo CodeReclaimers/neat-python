@@ -17,6 +17,7 @@ class StatisticsReporter(BaseReporter):
     Gathers (via the reporting interface) and provides (to callers and/or a file)
     the most-fit genomes and information on genome/species fitness and species sizes.
     """
+
     def __init__(self):
         BaseReporter.__init__(self)
         self.most_fit_genomes = []
@@ -67,6 +68,7 @@ class StatisticsReporter(BaseReporter):
 
     def best_genomes(self, n):
         """Returns the n most fit genomes ever seen."""
+
         def key(g):
             return g.fitness
 

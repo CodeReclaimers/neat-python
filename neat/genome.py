@@ -1,11 +1,8 @@
 """Handles genomes (individuals in the population)."""
-from __future__ import division, print_function
-
-
+import copy
+import sys
 from itertools import count
 from random import choice, random, shuffle
-
-import sys
 
 from neat.activations import ActivationFunctionSet
 from neat.aggregations import AggregationFunctionSet
@@ -108,7 +105,10 @@ class DefaultGenomeConfig(object):
 
     def get_new_node_key(self, node_dict):
         if self.node_indexer is None:
-            self.node_indexer = count(max(list(node_dict)) + 1)
+            if node_dict:
+                self.node_indexer = count(max(list(node_dict)) + 1)
+            else:
+                self.node_indexer = count(max(list(node_dict)) + 1)
 
         new_id = next(self.node_indexer)
 
@@ -269,15 +269,15 @@ class DefaultGenome(object):
             div = max(1, (config.node_add_prob + config.node_delete_prob +
                           config.conn_add_prob + config.conn_delete_prob))
             r = random()
-            if r < (config.node_add_prob/div):
+            if r < (config.node_add_prob / div):
                 self.mutate_add_node(config)
-            elif r < ((config.node_add_prob + config.node_delete_prob)/div):
+            elif r < ((config.node_add_prob + config.node_delete_prob) / div):
                 self.mutate_delete_node(config)
             elif r < ((config.node_add_prob + config.node_delete_prob +
-                       config.conn_add_prob)/div):
+                       config.conn_add_prob) / div):
                 self.mutate_add_connection(config)
             elif r < ((config.node_add_prob + config.node_delete_prob +
-                       config.conn_add_prob + config.conn_delete_prob)/div):
+                       config.conn_add_prob + config.conn_delete_prob) / div):
                 self.mutate_delete_connection()
         else:
             if random() < config.node_add_prob:
@@ -565,3 +565,33 @@ class DefaultGenome(object):
         for input_id, output_id in all_connections[:num_to_add]:
             connection = self.create_connection(config, input_id, output_id)
             self.connections[connection.key] = connection
+
+    def get_pruned_copy(self, genome_config):
+        # Determine which nodes are connected via enabled connections to any output node.
+        used_nodes = set(genome_config.output_keys)
+        pending = set(genome_config.output_keys)
+        while pending:
+            new_pending = set()
+            for key, cg in self.connections.items():
+                if not cg.enabled:
+                    continue
+
+                in_node_id, out_node_id = key
+                if out_node_id in pending and in_node_id not in used_nodes:
+                    new_pending.add(in_node_id)
+                    used_nodes.add(in_node_id)
+            pending = new_pending
+
+        # Copy used nodes into a new genome.
+        new_genome = DefaultGenome(None)
+        for n in used_nodes:
+            if n in self.nodes:
+                new_genome.nodes[n] = copy.deepcopy(self.nodes[n])
+
+        # Copy enabled and used connections into the new genome.
+        for key, cg in self.connections.items():
+            in_node_id, out_node_id = key
+            if cg.enabled and in_node_id in used_nodes and out_node_id in used_nodes:
+                new_genome.connections[key] = copy.deepcopy(cg)
+
+        return new_genome

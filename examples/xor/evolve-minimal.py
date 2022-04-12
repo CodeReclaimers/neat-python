@@ -2,12 +2,11 @@
 2-input XOR example -- this is most likely the simplest possible example.
 """
 
-from __future__ import print_function
 import neat
 
 # 2-input XOR inputs and expected outputs.
 xor_inputs = [(0.0, 0.0), (0.0, 1.0), (1.0, 0.0), (1.0, 1.0)]
-xor_outputs = [   (0.0,),     (1.0,),     (1.0,),     (0.0,)]
+xor_outputs = [(0.0,), (1.0,), (1.0,), (0.0,)]
 
 
 def eval_genomes(genomes, config):

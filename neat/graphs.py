@@ -89,5 +89,3 @@ def feed_forward_layers(inputs, outputs, connections):
         s = s.union(t)
 
     return layers
-
-

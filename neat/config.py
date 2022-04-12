@@ -1,5 +1,4 @@
 """Does general configuration parsing; used by other classes for their configuration."""
-from __future__ import print_function
 
 import os
 import warnings

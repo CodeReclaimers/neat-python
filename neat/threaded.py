@@ -1,12 +1,12 @@
 """Threaded evaluation of genomes"""
-from __future__ import print_function
 
 import warnings
 
 try:
     import threading
-except ImportError: # pragma: no cover
+except ImportError:  # pragma: no cover
     import dummy_threading as threading
+
     HAVE_THREADS = False
 else:
     HAVE_THREADS = True
@@ -24,6 +24,7 @@ class ThreadedEvaluator(object):
     A threaded genome evaluator.
     Useful on python implementations without GIL (Global Interpreter Lock).
     """
+
     def __init__(self, num_workers, eval_function):
         """
         eval_function should take two arguments (a genome object and the
@@ -36,7 +37,7 @@ class ThreadedEvaluator(object):
         self.inqueue = queue.Queue()
         self.outqueue = queue.Queue()
 
-        if not HAVE_THREADS: # pragma: no cover
+        if not HAVE_THREADS:  # pragma: no cover
             warnings.warn("No threads available; use ParallelEvaluator, not ThreadedEvaluator")
 
     def __del__(self):
@@ -58,7 +59,7 @@ class ThreadedEvaluator(object):
             w = threading.Thread(
                 name="Worker Thread #{i}".format(i=i),
                 target=self._worker,
-                )
+            )
             w.daemon = True
             w.start()
             self.workers.append(w)
@@ -77,7 +78,7 @@ class ThreadedEvaluator(object):
                 genome_id, genome, config = self.inqueue.get(
                     block=True,
                     timeout=0.2,
-                    )
+                )
             except queue.Empty:
                 continue
             f = self.eval_function(genome, config)

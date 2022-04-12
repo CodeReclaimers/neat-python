@@ -2,7 +2,6 @@
 Implementation of reporter classes, which are triggered on particular events. Reporters
 are generally intended to  provide information to the user, store checkpoints, etc.
 """
-from __future__ import division, print_function
 
 import time
 
@@ -14,6 +13,7 @@ class ReporterSet(object):
     Keeps track of the set of reporters
     and gives methods to dispatch them at appropriate points.
     """
+
     def __init__(self):
         self.reporters = []
 
@@ -58,6 +58,7 @@ class ReporterSet(object):
 
 class BaseReporter(object):
     """Definition of the reporter interface expected by ReporterSet."""
+
     def start_generation(self, generation):
         pass
 
@@ -85,6 +86,7 @@ class BaseReporter(object):
 
 class StdOutReporter(BaseReporter):
     """Uses `print` to output information about the run; an example reporter class."""
+
     def __init__(self, show_species_detail):
         self.show_species_detail = show_species_detail
         self.generation = None
@@ -102,17 +104,16 @@ class StdOutReporter(BaseReporter):
         ns = len(species_set.species)
         if self.show_species_detail:
             print('Population of {0:d} members in {1:d} species:'.format(ng, ns))
-            print("   ID   age  size  fitness  adj fit  stag")
-            print("  ====  ===  ====  =======  =======  ====")
+            print("   ID   age  size   fitness   adj fit  stag")
+            print("  ====  ===  ====  =========  =======  ====")
             for sid in sorted(species_set.species):
                 s = species_set.species[sid]
                 a = self.generation - s.created
                 n = len(s.members)
-                f = "--" if s.fitness is None else "{:.1f}".format(s.fitness)
-                af = "--" if s.adjusted_fitness is None else "{:.3f}".format(s.adjusted_fitness)
+                f = "--" if s.fitness is None else f"{s.fitness:.3f}"
+                af = "--" if s.adjusted_fitness is None else f"{s.adjusted_fitness:.3f}"
                 st = self.generation - s.last_improved
-                print(
-                    "  {: >4}  {: >3}  {: >4}  {: >7}  {: >7}  {: >4}".format(sid, a, n, f, af, st))
+                print(f"  {sid:>4}  {a:>3}  {n:>4}  {f:>9}  {af:>7}  {st:>4}")
         else:
             print('Population of {0:d} members in {1:d} species'.format(ng, ns))
 

@@ -2,15 +2,12 @@
 Test the performance of the best genome produced by evolve-ctrnn.py.
 """
 
-from __future__ import print_function
-
 import os
 import pickle
 
+import neat
 from cart_pole import CartPole, discrete_actuator_force
 from movie import make_movie
-
-import neat
 
 # load the winner
 with open('winner-ctrnn', 'rb') as f:
@@ -56,7 +53,6 @@ while sim.t < 120.0:
         break
 
     balance_time = sim.t
-
 
 print('Pole balanced for {0:.1f} of 120.0 seconds'.format(balance_time))
 

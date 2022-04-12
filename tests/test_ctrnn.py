@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import neat
 from neat.activations import sigmoid_activation
 

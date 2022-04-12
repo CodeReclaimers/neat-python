@@ -1,6 +1,5 @@
-from __future__ import print_function
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 import neat
 from neat.activations import sigmoid_activation

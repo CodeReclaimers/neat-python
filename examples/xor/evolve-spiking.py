@@ -1,5 +1,4 @@
 """ 2-input XOR example using Izhikevich's spiking neuron model. """
-from __future__ import print_function
 
 import multiprocessing
 import os
@@ -7,9 +6,8 @@ import os
 from matplotlib import patches
 from matplotlib import pylab as plt
 
-import visualize
-
 import neat
+import visualize
 
 # Network inputs and expected outputs.
 xor_inputs = ((0, 0), (0, 1), (1, 0), (1, 1))
@@ -71,9 +69,9 @@ def simulate(genome, config):
         response = compute_output(t0, t1)
         sum_square_error += (response - odata) ** 2
 
-        #print(genome)
-        #visualize.plot_spikes(neuron_data[net.outputs[0]], False)
-        #visualize.plot_spikes(neuron_data[net.outputs[1]], True)
+        # print(genome)
+        # visualize.plot_spikes(neuron_data[net.outputs[0]], False)
+        # visualize.plot_spikes(neuron_data[net.outputs[1]], True)
 
         simulated.append((idata, odata, t0, t1, v0, v1, neuron_data))
 
@@ -116,8 +114,9 @@ def run(config_path):
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
 
-    node_names = {-1:'A', -2: 'B'}
+    node_names = {-1: 'A', -2: 'B'}
     visualize.draw_net(config, winner, True, node_names=node_names)
+    visualize.draw_net(config, winner, True, node_names=node_names, prune_unused=True)
     visualize.plot_stats(stats, ylog=False, view=True)
     visualize.plot_species(stats, view=True)
 

@@ -2,21 +2,18 @@
 # LunarLander-v2 environment (https://gym.openai.com/envs/LunarLander-v2).
 # Sample run here: https://gym.openai.com/evaluations/eval_FbKq5MxAS9GlvB7W6ioJkg
 
-from __future__ import print_function
-
-import gym
-import gym.wrappers
-
-import matplotlib.pyplot as plt
 
 import multiprocessing
-import neat
-import numpy as np
 import os
 import pickle
 import random
 import time
 
+import gym.wrappers
+import matplotlib.pyplot as plt
+import numpy as np
+
+import neat
 import visualize
 
 NUM_CORES = 8
@@ -25,8 +22,6 @@ env = gym.make('LunarLander-v2')
 
 print("action space: {0!r}".format(env.action_space))
 print("observation space: {0!r}".format(env.observation_space))
-
-env = gym.wrappers.Monitor(env, 'results', force=True)
 
 
 class LanderGenome(neat.DefaultGenome):
@@ -53,8 +48,7 @@ class LanderGenome(neat.DefaultGenome):
         return dist + disc_diff
 
     def __str__(self):
-        return "Reward discount: {0}\n{1}".format(self.discount,
-                                                  super().__str__())
+        return f"Reward discount: {self.discount}\n{super().__str__()}"
 
 
 def compute_fitness(genome, net, episodes, min_reward, max_reward):
@@ -64,7 +58,7 @@ def compute_fitness(genome, net, episodes, min_reward, max_reward):
     reward_error = []
     for score, data in episodes:
         # Compute normalized discounted reward.
-        dr = np.convolve(data[:,-1], discount_function)[m:]
+        dr = np.convolve(data[:, -1], discount_function)[m:]
         dr = 2 * (dr - min_reward) / (max_reward - min_reward) - 1.0
         dr = np.clip(dr, -1.0, 1.0)
 
@@ -78,8 +72,8 @@ def compute_fitness(genome, net, episodes, min_reward, max_reward):
 
 
 class PooledErrorCompute(object):
-    def __init__(self):
-        self.pool = None if NUM_CORES < 2 else multiprocessing.Pool(NUM_CORES)
+    def __init__(self, num_workers):
+        self.num_workers = num_workers
         self.test_episodes = []
         self.generation = 0
 
@@ -110,7 +104,7 @@ class PooledErrorCompute(object):
                     break
 
             data = np.array(data)
-            score = np.sum(data[:,-1])
+            score = np.sum(data[:, -1])
             self.episode_score.append(score)
             scores.append(score)
             self.episode_length.append(step)
@@ -140,19 +134,21 @@ class PooledErrorCompute(object):
         # Assign a composite fitness to each genome; genomes can make progress either
         # by improving their total reward or by making more accurate reward estimates.
         print("Evaluating {0} test episodes".format(len(self.test_episodes)))
-        if self.pool is None:
+        if self.num_workers < 2:
             for genome, net in nets:
                 reward_error = compute_fitness(genome, net, self.test_episodes, self.min_reward, self.max_reward)
                 genome.fitness = -np.sum(reward_error) / len(self.test_episodes)
         else:
-            jobs = []
-            for genome, net in nets:
-                jobs.append(self.pool.apply_async(compute_fitness,
-                    (genome, net, self.test_episodes, self.min_reward, self.max_reward)))
+            with multiprocessing.Pool(self.num_workers) as pool:
+                jobs = []
+                for genome, net in nets:
+                    jobs.append(pool.apply_async(compute_fitness,
+                                                 (genome, net, self.test_episodes,
+                                                  self.min_reward, self.max_reward)))
 
-            for job, (genome_id, genome) in zip(jobs, genomes):
-                reward_error = job.get(timeout=None)
-                genome.fitness = -np.sum(reward_error) / len(self.test_episodes)
+                for job, (genome_id, genome) in zip(jobs, genomes):
+                    reward_error = job.get(timeout=None)
+                    genome.fitness = -np.sum(reward_error) / len(self.test_episodes)
 
         print("final fitness compute time {0}\n".format(time.time() - t0))
 
@@ -175,12 +171,12 @@ def run():
 
     # Run until the winner from a generation is able to solve the environment
     # or the user interrupts the process.
-    ec = PooledErrorCompute()
+    ec = PooledErrorCompute(NUM_CORES)
     while 1:
         try:
             gen_best = pop.run(ec.evaluate_genomes, 5)
 
-            #print(gen_best)
+            # print(gen_best)
 
             visualize.plot_stats(stats, ylog=False, view=False, filename="fitness.svg")
 
@@ -241,14 +237,11 @@ def run():
                 # Save the winners.
                 for n, g in enumerate(best_genomes):
                     name = 'winner-{0}'.format(n)
-                    with open(name+'.pickle', 'wb') as f:
+                    with open(name + '.pickle', 'wb') as f:
                         pickle.dump(g, f)
 
-                    visualize.draw_net(config, g, view=False, filename=name+"-net.gv")
-                    visualize.draw_net(config, g, view=False, filename=name+"-net-enabled.gv",
-                                       show_disabled=False)
-                    visualize.draw_net(config, g, view=False, filename=name+"-net-enabled-pruned.gv",
-                                       show_disabled=False, prune_unused=True)
+                    visualize.draw_net(config, g, view=False, filename=name + "-net.gv")
+                    visualize.draw_net(config, g, view=False, filename=name + "-net-pruned.gv", prune_unused=True)
 
                 break
         except KeyboardInterrupt:

@@ -53,7 +53,6 @@ a primary node or as a secondary node with MODE_AUTO.
 ``chunked(data, chunksize)``: splits data into a list of chunks with at most
 ``chunksize`` elements.
 """
-from __future__ import print_function
 
 import socket
 import sys
@@ -102,7 +101,7 @@ class ModeError(RuntimeError):
     pass
 
 
-def host_is_local(hostname, port=22): # no port specified, just use the ssh port
+def host_is_local(hostname, port=22):  # no port specified, just use the ssh port
     """
     Returns True if the hostname points to the localhost, otherwise False.
     """
@@ -172,7 +171,8 @@ def chunked(data, chunksize):
 class _ExtendedManager(object):
     """A class for managing the multiprocessing.managers.SyncManager"""
     __safe_for_unpickling__ = True  # this may not be safe for unpickling,
-                                    # but this is required by pickle.
+
+    # but this is required by pickle.
 
     def __init__(self, addr, authkey, mode, start=False):
         self.addr = addr
@@ -190,7 +190,7 @@ class _ExtendedManager(object):
         return (
             self.__class__,
             (self.addr, self.authkey, self.mode, True),
-            )
+        )
 
     def start(self):
         """Starts or connects to the manager."""
@@ -210,7 +210,7 @@ class _ExtendedManager(object):
             raise ValueError(
                 "State {!r} is invalid - needs to be one of _STATE_RUNNING, _STATE_SHUTDOWN, or _STATE_FORCED_SHUTDOWN".format(
                     value)
-                )
+            )
         if self.manager is None:
             raise RuntimeError("Manager not started")
         self.manager.set_state(value)
@@ -244,39 +244,39 @@ class _ExtendedManager(object):
             _EvaluatorSyncManager.register(
                 "get_inqueue",
                 callable=lambda: inqueue,
-                )
+            )
             _EvaluatorSyncManager.register(
                 "get_outqueue",
                 callable=lambda: outqueue,
-                )
+            )
             _EvaluatorSyncManager.register(
                 "get_state",
                 callable=self._get_secondary_state,
-                )
+            )
             _EvaluatorSyncManager.register(
                 "set_state",
                 callable=lambda v: self._secondary_state.set(v),
-                )
+            )
             _EvaluatorSyncManager.register(
                 "get_namespace",
                 callable=lambda: namespace,
-                )
+            )
         else:
             _EvaluatorSyncManager.register(
                 "get_inqueue",
-                )
+            )
             _EvaluatorSyncManager.register(
                 "get_outqueue",
-                )
+            )
             _EvaluatorSyncManager.register(
                 "get_state",
-                )
+            )
             _EvaluatorSyncManager.register(
                 "set_state",
-                )
+            )
             _EvaluatorSyncManager.register(
                 "get_namespace",
-                )
+            )
         return _EvaluatorSyncManager
 
     def _connect(self):
@@ -320,6 +320,7 @@ class _ExtendedManager(object):
 
 class DistributedEvaluator(object):
     """An evaluator working across multiple machines"""
+
     def __init__(
             self,
             addr,
@@ -329,7 +330,7 @@ class DistributedEvaluator(object):
             num_workers=None,
             worker_timeout=60,
             mode=MODE_AUTO,
-            ):
+    ):
         """
         ``addr`` should be a tuple of (hostname, port) pointing to the machine
         running the DistributedEvaluator in primary mode. If mode is MODE_AUTO,
@@ -356,13 +357,13 @@ class DistributedEvaluator(object):
         self.authkey = authkey
         self.eval_function = eval_function
         self.secondary_chunksize = secondary_chunksize
-        self.slave_chunksize = secondary_chunksize # backward compatibility
+        self.slave_chunksize = secondary_chunksize  # backward compatibility
         if num_workers:
             self.num_workers = num_workers
         else:
             try:
                 self.num_workers = max(1, multiprocessing.cpu_count())
-            except (RuntimeError, AttributeError): # pragma: no cover
+            except (RuntimeError, AttributeError):  # pragma: no cover
                 print("multiprocessing.cpu_count() gave an error; assuming 1",
                       file=sys.stderr)
                 self.num_workers = 1
@@ -388,7 +389,7 @@ class DistributedEvaluator(object):
         """Returns True if the caller is the primary node"""
         return self.mode == MODE_PRIMARY
 
-    def is_master(self): # pragma: no cover
+    def is_master(self):  # pragma: no cover
         """Returns True if the caller is the primary (master) node"""
         warnings.warn("Use is_primary, not is_master", DeprecationWarning)
         return self.is_primary()
@@ -512,7 +513,7 @@ class DistributedEvaluator(object):
                     if ('Empty' in repr(e)) or ('TimeoutError' in repr(e)):
                         continue
                     if (('EOFError' in repr(e)) or ('PipeError' in repr(e)) or
-                          ('AuthenticationError' in repr(e))): # Second for Python 3.X, Third for 3.6+
+                            ('AuthenticationError' in repr(e))):  # Second for Python 3.X, Third for 3.6+
                         break
                     raise
                 if pool is None:
@@ -528,11 +529,11 @@ class DistributedEvaluator(object):
                         jobs.append(
                             pool.apply_async(
                                 self.eval_function, (genome, config)
-                                )
                             )
+                        )
                     results = [
                         job.get(timeout=self.worker_timeout) for job in jobs
-                        ]
+                    ]
                     res = zip(genome_ids, results)
                 try:
                     self.outqueue.put(res)
@@ -542,7 +543,7 @@ class DistributedEvaluator(object):
                     if ('Empty' in repr(e)) or ('TimeoutError' in repr(e)):
                         continue
                     if (('EOFError' in repr(e)) or ('PipeError' in repr(e)) or
-                          ('AuthenticationError' in repr(e))): # Second for Python 3.X, Third for 3.6+
+                            ('AuthenticationError' in repr(e))):  # Second for Python 3.X, Third for 3.6+
                         break
                     raise
 

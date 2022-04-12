@@ -1,5 +1,5 @@
 """Handles the continuous-time recurrent neural network implementation."""
-from __future__ import division
+
 
 from neat.graphs import required_for_output
 

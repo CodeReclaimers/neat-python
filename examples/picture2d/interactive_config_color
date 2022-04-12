@@ -1,0 +1,60 @@
+# The `NEAT` section specifies parameters particular to the NEAT algorithm
+# or the experiment itself.  This is the only required section.
+[NEAT]
+fitness_criterion     = max
+fitness_threshold     = 1.01
+pop_size              = 0
+reset_on_extinction   = False
+
+[DefaultGenome]
+num_inputs              = 2
+num_hidden              = 3
+num_outputs             = 3
+initial_connection      = partial_direct 0.25
+feed_forward            = True
+compatibility_disjoint_coefficient = 1.0
+compatibility_weight_coefficient   = 0.8
+conn_add_prob           = 0.1
+conn_delete_prob        = 0.1
+node_add_prob           = 0.1
+node_delete_prob        = 0.1
+activation_default      = random
+activation_options      = abs clamped cube exp gauss hat identity inv log relu sigmoid sin softplus square tanh
+activation_mutate_rate  = 0.1
+aggregation_default     = sum
+aggregation_options     = sum product
+aggregation_mutate_rate = 0.1
+bias_init_mean          = 0.0
+bias_init_stdev         = 2.0
+bias_replace_rate       = 0.1
+bias_mutate_rate        = 0.1
+bias_mutate_power       = 0.1
+bias_max_value          = 30.0
+bias_min_value          = -30.0
+response_init_mean      = 1.0
+response_init_stdev     = 0.2
+response_replace_rate   = 0.1
+response_mutate_rate    = 0.1
+response_mutate_power   = 0.1
+response_max_value      = 30.0
+response_min_value      = -30.0
+
+weight_max_value        = 30
+weight_min_value        = -30
+weight_init_mean        = 0.0
+weight_init_stdev       = 2.0
+weight_mutate_rate      = 0.1
+weight_replace_rate     = 0.1
+weight_mutate_power     = 0.1
+enabled_default         = True
+enabled_mutate_rate     = 0.02
+
+[DefaultSpeciesSet]
+compatibility_threshold = 5.0
+
+[InteractiveStagnation]
+max_stagnation       = 5
+
+[DefaultReproduction]
+elitism            = 0
+survival_threshold = 0.5

@@ -6,16 +6,13 @@ if you come up with a more interesting or impressive example, please submit a pu
 This example also demonstrates the use of a custom activation function.
 """
 
-from __future__ import division, print_function
-
 import math
 import multiprocessing
 import os
 import random
 
-import visualize
-
 import neat
+import visualize
 
 
 # Demonstration of how to add your own custom activation function.
@@ -114,6 +111,7 @@ def run():
 
     node_names = {-1: 'input', -2: 'gate', 0: 'output'}
     visualize.draw_net(config, winner, True, node_names=node_names)
+    visualize.draw_net(config, winner, True, node_names=node_names, prune_unused=True)
     visualize.plot_stats(stats, ylog=False, view=True)
     visualize.plot_species(stats, view=True)
 

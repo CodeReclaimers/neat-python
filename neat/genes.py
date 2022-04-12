@@ -1,7 +1,9 @@
 """Handles node and connection genes."""
 import warnings
 from random import random
+
 from neat.attributes import FloatAttribute, BoolAttribute, StringAttribute
+
 
 # TODO: There is probably a lot of room for simplification of these classes using metaprogramming.
 # TODO: Evaluate using __slots__ for performance/memory usage improvement.
@@ -12,6 +14,7 @@ class BaseGene(object):
     Handles functions shared by multiple types of genes (both node and connection),
     including crossover and calling mutation methods.
     """
+
     def __init__(self, key):
         self.key = key
 
@@ -114,4 +117,3 @@ class DefaultConnectionGene(BaseGene):
         if self.enabled != other.enabled:
             d += 1.0
         return d * config.compatibility_weight_coefficient
-

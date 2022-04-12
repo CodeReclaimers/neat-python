@@ -3,15 +3,15 @@
 [NEAT]
 fitness_criterion     = max
 fitness_threshold     = 9.9
-pop_size              = 100
+pop_size              = 500
 reset_on_extinction   = False
 
 [IZGenome]
 # node bias options
 bias_init_mean          = 0.0
-bias_init_stdev         = 20.0
-bias_max_value          = 100.0
-bias_min_value          = -100.0
+bias_init_stdev         = 2.0
+bias_max_value          = 10.0
+bias_min_value          = -10.0
 bias_mutate_power       = 5.0
 bias_mutate_rate        = 0.7
 bias_replace_rate       = 0.1
@@ -83,11 +83,11 @@ weight_mutate_rate      = 0.8
 weight_replace_rate     = 0.1
 
 [DefaultSpeciesSet]
-compatibility_threshold = 6.0
+compatibility_threshold = 4.0
 
 [DefaultStagnation]
 species_fitness_func = mean
-max_stagnation       = 20
+max_stagnation       = 50
 
 [DefaultReproduction]
 elitism            = 2

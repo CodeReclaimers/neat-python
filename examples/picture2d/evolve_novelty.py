@@ -1,15 +1,16 @@
-from PIL import Image
 import os
 import random
 from multiprocessing import Pool
 
 import numpy as np
-import neat
+from PIL import Image
 
+import neat
 from common import eval_mono_image, eval_gray_image, eval_color_image
 
 width, height = 16, 16
 full_scale = 16
+
 
 def evaluate_lowres(genome, config, scheme):
     if scheme == 'gray':
@@ -53,8 +54,8 @@ class NoveltyEvaluator(object):
 
             if random.random() < 0.02:
                 new_archive_entries.append(float_image)
-                #im = self.image_from_array(image)
-                #im.save("novelty-{0:06d}.png".format(self.out_index))
+                # im = self.image_from_array(image)
+                # im.save("novelty-{0:06d}.png".format(self.out_index))
 
                 if self.scheme == 'gray':
                     image = eval_gray_image(genome, config, full_scale * width, full_scale * height)

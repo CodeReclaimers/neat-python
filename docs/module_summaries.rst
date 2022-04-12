@@ -2186,45 +2186,6 @@ Handles creation of genomes, either from scratch or by sexual or asexual reprodu
         :ref:`min_species_size <min-species-size-label>` and :ref:`elitism <elitism-label>` configuration parameters; previously, this was not taken into account for 
         :py:meth:`compute_spawn`; this made it more likely to have a population size above the :ref:`configured population size <pop-size-label>`.
 
-.. py:module:: six_util
-   :synopsis: Provides Python 2/3 portability with three dictionary iterators; copied from the `six` module.
-
-six_util
-----------
-This Python 2/3 portability code was copied from the `six module <https://pythonhosted.org/six/>`_ to avoid adding it as a dependency.
-
-  .. todo::
-    Better documentation for the ``kw`` parameter in the below. Internally, these are using ``**kw`` as a **parameter** for
-    keys/items/values/iterkeys/iteritems/itervalues! Is this in case someone puts in a set of key/value pairs instead of a dictionary?
-    The `six documentation <https://pythonhosted.org/six/>`_ just states that this parameter is "passed to the underlying method", which is not helpful.
-
-
-  .. py:function:: iterkeys(d, **kw)
-
-    This function returns an iterator over the keys of dict d.
-
-    :param dict d: Dictionary to iterate over
-    :param kw: The function of this parameter is unclear.
-
-  .. py:function:: iteritems(d, **kw)
-
-    This function returns an iterator over the (key, value) pairs of dict d.
-
-    :param dict d: Dictionary to iterate over
-    :param kw: The function of this parameter is unclear.
-
-  .. py:function:: itervalues(d, **kw)
-
-    This function returns an iterator over the values of dict d.
-
-    :param dict d: Dictionary to iterate over
-    :param kw: The function of this parameter is unclear.
-
-.. index:: key
-
-.. py:module:: species
-   :synopsis: Divides the population into species based on genomic distances.
-
 species
 -----------
 Divides the population into species based on :term:`genomic distances <genomic distance>`.
