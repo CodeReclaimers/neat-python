@@ -7,10 +7,12 @@ NEAT (NeuroEvolution of Augmenting Topologies) is a method developed by Kenneth 
 networks. This project is a pure-Python implementation of NEAT with no dependencies beyond the standard library. It was
 forked from the excellent project by @MattKallada.
 
-For further information regarding general concepts and theory, please see
-[Selected Publications](http://www.cs.ucf.edu/~kstanley/#publications) on Stanley's website.
+For further information regarding general concepts and theory, please see the 
+[Selected Publications](http://www.cs.ucf.edu/~kstanley/#publications) on Stanley's page at the University of Central 
+Florida (now somewhat dated), or the [publications page](https://www.kenstanley.net/papers) of his current website.
 
-`neat-python` is licensed under the [3-clause BSD license](https://opensource.org/licenses/BSD-3-Clause).
+`neat-python` is licensed under the [3-clause BSD license](https://opensource.org/licenses/BSD-3-Clause).  It is
+currently only supported on Python 3.6 through 3.9. 
 
 ## Getting Started ##
 
