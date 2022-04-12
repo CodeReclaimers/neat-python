@@ -13,7 +13,6 @@ python:
 install:
     - pip install --upgrade pytest pytest-cov coveralls coverage
     - if [[ $TRAVIS_PYTHON_VERSION == 'pypy'* ]]; then export TRAVIS_WAIT=45; else export TRAVIS_WAIT=20; fi
-script:
-    travis_wait "${TRAVIS_WAIT}" pytest –cov=neat –cov-fail-under=90
+script: py.test neat/tests --doctest-modules --pep8 coveralls -v --cov neat --cov-report term-missing
 after_success:
     coveralls
