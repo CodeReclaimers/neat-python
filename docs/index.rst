@@ -4,14 +4,14 @@ Welcome to NEAT-Python's documentation!
 :abbr:`NEAT (NeuroEvolution of Augmenting Topologies)` is a method developed by Kenneth O. Stanley for evolving arbitrary neural
 networks. NEAT-Python is a pure Python implementation of NEAT, with no dependencies other than the Python standard library.
 
-.. note::
-  Some of the example code has other dependencies; please see each example's README.md file for additional details and installation/setup instructions for
-  the main code for each. In addition to dependencies varying with different examples, visualization of the results (via ``visualize.py`` modules) frequently
-  requires `graphviz <https://pypi.python.org/pypi/graphviz>`_ and/or `matplotlib <https://matplotlib.org/users/installing.html>`_. TODO: Improve
-  README.md file information for the examples.
+Currently this library supports Python versions 3.6 through 3.11, as well as PyPy 3.
 
-Support for HyperNEAT and other extensions to NEAT is planned once the fundamental NEAT implementation is
-more complete and stable.
+Many thanks to the original authors of this implementation, Cesar Gomes Miguel, Carolina Feher da Silva, and Marcio Lobo Netto!
+
+.. note::
+  Some of the example code has other dependencies. For your convenience there is a conda environment YAML file in the
+  examples directory you can use to set up an environment that will support all of the current examples.
+  TODO: Improve README.md file information for the examples.
 
 For further information regarding general concepts and theory, please see `Selected Publications
 <http://www.cs.ucf.edu/~kstanley/#publications>`_ on Stanley's website, or his recent `AMA on Reddit

@@ -29,13 +29,13 @@ to the citation, please submit an issue or email alan@codereclaimers.com.
 
 APA
 ```
-McIntyre, A., Kallada, M., Miguel, C. G., & Feher de Silva, C. neat-python [Computer software]
+McIntyre, A., Kallada, M., Miguel, C. G., Feher de Silva, C., & Netto, M. L. neat-python [Computer software]
 ```
 
 Bibtex
 ```
 @software{McIntyre_neat-python,
-author = {McIntyre, Alan and Kallada, Matt and Miguel, Cesar G. and Feher de Silva, Carolina},
+author = {McIntyre, Alan and Kallada, Matt and Miguel, Cesar G. and Feher de Silva, Carolina and Netto, Marcio Lobo},
 title = {{neat-python}}
 }
 ```
