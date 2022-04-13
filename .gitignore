@@ -26,3 +26,6 @@ venv
 
 *.gv
 *.svg
+build
+dist
+neat_python.egg-info
