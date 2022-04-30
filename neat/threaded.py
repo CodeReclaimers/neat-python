@@ -11,12 +11,7 @@ except ImportError:  # pragma: no cover
 else:
     HAVE_THREADS = True
 
-try:
-    # pylint: disable=import-error
-    import Queue as queue
-except ImportError:
-    # pylint: disable=import-error
-    import queue
+import queue
 
 
 class ThreadedEvaluator(object):

@@ -54,22 +54,14 @@ a primary node or as a secondary node with MODE_AUTO.
 ``chunksize`` elements.
 """
 
+import multiprocessing
+import queue
 import socket
 import sys
 import time
 import warnings
-
-# below still needed for queue.Empty
-try:
-    # pylint: disable=import-error
-    import Queue as queue
-except ImportError:
-    # pylint: disable=import-error
-    import queue
-
-import multiprocessing
-from multiprocessing import managers
 from argparse import Namespace
+from multiprocessing import managers
 
 # Some of this code is based on
 # http://eli.thegreenplace.net/2012/01/24/distributed-computing-in-python-with-multiprocessing
@@ -145,7 +137,7 @@ def _determine_mode(addr, mode):
     elif mode in (MODE_SECONDARY, MODE_PRIMARY):
         return mode
     else:
-        raise ValueError("Invalid mode {!r}!".format(mode))
+        raise ValueError(f"Invalid mode {mode!r}!")
 
 
 def chunked(data, chunksize):
@@ -208,9 +200,8 @@ class _ExtendedManager(object):
         """Sets the value for 'secondary_state'."""
         if value not in (_STATE_RUNNING, _STATE_SHUTDOWN, _STATE_FORCED_SHUTDOWN):
             raise ValueError(
-                "State {!r} is invalid - needs to be one of _STATE_RUNNING, _STATE_SHUTDOWN, or _STATE_FORCED_SHUTDOWN".format(
-                    value)
-            )
+                f"State {value!r} is invalid - needs to be one of _STATE_RUNNING, _STATE_SHUTDOWN, or _STATE_FORCED_SHUTDOWN")
+
         if self.manager is None:
             raise RuntimeError("Manager not started")
         self.manager.set_state(value)
@@ -422,7 +413,7 @@ class DistributedEvaluator(object):
             if exit_on_stop:
                 sys.exit(0)
         else:
-            raise ValueError("Invalid mode {!r}!".format(self.mode))
+            raise ValueError(f"Invalid mode {self.mode!r}!")
 
     def stop(self, wait=1, shutdown=True, force_secondary_shutdown=False):
         """
