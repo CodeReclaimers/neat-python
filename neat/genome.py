@@ -49,6 +49,9 @@ class DefaultGenomeConfig(object):
         for p in self._params:
             setattr(self, p.name, p.interpret(params))
 
+        self.node_gene_type.validate_attributes(self)
+        self.connection_gene_type.validate_attributes(self)
+
         # By convention, input pins have negative keys, and the output
         # pins have keys 0,1,...
         self.input_keys = [-i - 1 for i in range(self.num_inputs)]
@@ -540,7 +543,8 @@ class DefaultGenome(object):
     def connect_partial_nodirect(self, config):
         """
         Create a partially-connected genome,
-        with (unless no hidden nodes) no direct input-output connections."""
+        with (unless no hidden nodes) no direct input-output connections.
+        """
         assert 0 <= config.connection_fraction <= 1
         all_connections = self.compute_full_connections(config, False)
         shuffle(all_connections)
@@ -563,19 +567,28 @@ class DefaultGenome(object):
             self.connections[connection.key] = connection
 
     def get_pruned_copy(self, genome_config):
-        used_nodes = required_for_output(genome_config.input_keys, genome_config.output_keys, self.connections)
-        used_pins = used_nodes.union(genome_config.input_keys)
-
-        # Copy used nodes into a new genome.
+        used_node_genes, used_connection_genes = get_pruned_genes(self.nodes, self.connections,
+                                                                  genome_config.input_keys, genome_config.output_keys)
         new_genome = DefaultGenome(None)
-        for n in used_nodes:
-            if n in self.nodes:
-                new_genome.nodes[n] = copy.deepcopy(self.nodes[n])
-
-        # Copy enabled and used connections into the new genome.
-        for key, cg in self.connections.items():
-            in_node_id, out_node_id = key
-            if cg.enabled and in_node_id in used_pins and out_node_id in used_pins:
-                new_genome.connections[key] = copy.deepcopy(cg)
-
+        new_genome.nodes = used_node_genes
+        new_genome.connections = used_connection_genes
         return new_genome
+
+
+def get_pruned_genes(node_genes, connection_genes, input_keys, output_keys):
+    used_nodes = required_for_output(input_keys, output_keys, connection_genes)
+    used_pins = used_nodes.union(input_keys)
+
+    # Copy used nodes into a new genome.
+    used_node_genes = {}
+    for n in used_nodes:
+        used_node_genes[n] = copy.deepcopy(node_genes[n])
+
+    # Copy enabled and used connections into the new genome.
+    used_connection_genes = {}
+    for key, cg in connection_genes.items():
+        in_node_id, out_node_id = key
+        if cg.enabled and in_node_id in used_pins and out_node_id in used_pins:
+            used_connection_genes[key] = copy.deepcopy(cg)
+
+    return used_node_genes, used_connection_genes

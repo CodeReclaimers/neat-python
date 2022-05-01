@@ -15,11 +15,8 @@ class ConfigParameter(object):
 
     def __repr__(self):
         if self.default is None:
-            return "ConfigParameter({!r}, {!r})".format(self.name,
-                                                        self.value_type)
-        return "ConfigParameter({!r}, {!r}, {!r})".format(self.name,
-                                                          self.value_type,
-                                                          self.default)
+            return f"ConfigParameter({self.name!r}, {self.value_type!r})"
+        return f"ConfigParameter({self.name!r}, {self.value_type!r}, {self.default!r})"
 
     def parse(self, section, config_parser):
         if int == self.value_type:
@@ -34,8 +31,7 @@ class ConfigParameter(object):
         if str == self.value_type:
             return config_parser.get(section, self.name)
 
-        raise RuntimeError("Unexpected configuration type: "
-                           + repr(self.value_type))
+        raise RuntimeError(f"Unexpected configuration type: {self.value_type!r}")
 
     def interpret(self, config_dict):
         """
@@ -47,8 +43,7 @@ class ConfigParameter(object):
             if self.default is None:
                 raise RuntimeError('Missing configuration item: ' + self.name)
             else:
-                warnings.warn("Using default {!r} for '{!s}'".format(self.default, self.name),
-                              DeprecationWarning)
+                warnings.warn(f"Using default {self.default!r} for '{self.name!s}'", DeprecationWarning)
                 if (str != self.value_type) and isinstance(self.default, self.value_type):
                     return self.default
                 else:
@@ -71,8 +66,8 @@ class ConfigParameter(object):
             if list == self.value_type:
                 return value.split(" ")
         except Exception:
-            raise RuntimeError("Error interpreting config item '{}' with value {!r} and type {}".format(
-                self.name, value, self.value_type))
+            raise RuntimeError(
+                f"Error interpreting config item '{self.name}' with value {value!r} and type {self.value_type}")
 
         raise RuntimeError("Unexpected configuration type: " + repr(self.value_type))
 
@@ -90,7 +85,7 @@ def write_pretty_params(f, config, params):
 
     for name in param_names:
         p = params[name]
-        f.write('{} = {}\n'.format(p.name.ljust(longest_name), p.format(getattr(config, p.name))))
+        f.write(f'{p.name.ljust(longest_name)} = {p.format(getattr(config, p.name))}\n')
 
 
 class UnknownConfigItemError(NameError):
@@ -115,7 +110,7 @@ class DefaultClassConfig(object):
             if len(unknown_list) > 1:
                 raise UnknownConfigItemError("Unknown configuration items:\n" +
                                              "\n\t".join(unknown_list))
-            raise UnknownConfigItemError("Unknown configuration item {!s}".format(unknown_list[0]))
+            raise UnknownConfigItemError(f"Unknown configuration item {unknown_list[0]!s}")
 
     @classmethod
     def write_config(cls, f, config):
@@ -124,7 +119,7 @@ class DefaultClassConfig(object):
 
 
 class Config(object):
-    """A simple container for user-configurable parameters of NEAT."""
+    """A container for user-configurable parameters of NEAT."""
 
     __params = [ConfigParameter('pop_size', int),
                 ConfigParameter('fitness_criterion', str),
@@ -149,10 +144,7 @@ class Config(object):
 
         parameters = ConfigParser()
         with open(filename) as f:
-            if hasattr(parameters, 'read_file'):
-                parameters.read_file(f)
-            else:
-                parameters.readfp(f)
+            parameters.read_file(f)
 
         # NEAT configuration
         if not parameters.has_section('NEAT'):
@@ -167,17 +159,15 @@ class Config(object):
                     setattr(self, p.name, p.parse('NEAT', parameters))
                 except Exception:
                     setattr(self, p.name, p.default)
-                    warnings.warn("Using default {!r} for '{!s}'".format(p.default, p.name),
+                    warnings.warn(f"Using default {p.default!r} for '{p.name!s}'",
                                   DeprecationWarning)
             param_list_names.append(p.name)
         param_dict = dict(parameters.items('NEAT'))
         unknown_list = [x for x in param_dict if x not in param_list_names]
         if unknown_list:
             if len(unknown_list) > 1:
-                raise UnknownConfigItemError("Unknown (section 'NEAT') configuration items:\n" +
-                                             "\n\t".join(unknown_list))
-            raise UnknownConfigItemError(
-                "Unknown (section 'NEAT') configuration item {!s}".format(unknown_list[0]))
+                raise UnknownConfigItemError("Unknown (section 'NEAT') configuration items:\n" + "\n\t".join(unknown_list))
+            raise UnknownConfigItemError(f"Unknown (section 'NEAT') configuration item {unknown_list[0]!s}")
 
         # Parse type sections.
         genome_dict = dict(parameters.items(genome_type.__name__))
@@ -199,14 +189,14 @@ class Config(object):
             f.write('[NEAT]\n')
             write_pretty_params(f, self, self.__params)
 
-            f.write('\n[{0}]\n'.format(self.genome_type.__name__))
+            f.write(f'\n[{self.genome_type.__name__}]\n')
             self.genome_type.write_config(f, self.genome_config)
 
-            f.write('\n[{0}]\n'.format(self.species_set_type.__name__))
+            f.write(f'\n[{self.species_set_type.__name__}]\n')
             self.species_set_type.write_config(f, self.species_set_config)
 
-            f.write('\n[{0}]\n'.format(self.stagnation_type.__name__))
+            f.write(f'\n[{self.stagnation_type.__name__}]\n')
             self.stagnation_type.write_config(f, self.stagnation_config)
 
-            f.write('\n[{0}]\n'.format(self.reproduction_type.__name__))
+            f.write(f'\n[{self.reproduction_type.__name__}]\n')
             self.reproduction_type.write_config(f, self.reproduction_config)

@@ -1,5 +1,5 @@
 """Deals with the attributes (variable parameters) of genes"""
-from random import choice, gauss, random, uniform
+from random import choice, gauss, random, uniform, randint
 
 from neat.config import ConfigParameter
 
@@ -18,13 +18,11 @@ class BaseAttribute(object):
             setattr(self, n + "_name", self.config_item_name(n))
 
     def config_item_name(self, config_item_base_name):
-        return "{0}_{1}".format(self.name, config_item_base_name)
+        return f"{self.name}_{config_item_base_name}"
 
     def get_config_params(self):
-        return [ConfigParameter(self.config_item_name(n),
-                                self._config_items[n][0],
-                                self._config_items[n][1])
-                for n in self._config_items]
+        return [ConfigParameter(self.config_item_name(n), ci[0], ci[1])
+                for n, ci in self._config_items.items()]
 
 
 class FloatAttribute(BaseAttribute):
@@ -61,9 +59,7 @@ class FloatAttribute(BaseAttribute):
                             (mean + (2 * stdev)))
             return uniform(min_value, max_value)
 
-        raise RuntimeError("Unknown init_type {!r} for {!s}".format(getattr(config,
-                                                                            self.init_type_name),
-                                                                    self.init_type_name))
+        raise RuntimeError(f"Unknown init_type {getattr(config, self.init_type_name)!r} for {self.init_type_name!s}")
 
     def mutate_value(self, value, config):
         # mutate_rate is usually no lower than replace_rate, and frequently higher -
@@ -82,7 +78,49 @@ class FloatAttribute(BaseAttribute):
 
         return value
 
-    def validate(self, config):  # pragma: no cover
+    def validate(self, config): 
+        pass
+
+
+class IntegerAttribute(BaseAttribute):
+    """
+    Class for numeric attributes,
+    such as the response of a node or the weight of a connection.
+    """
+    _config_items = {"replace_rate": [float, None],
+                     "mutate_rate": [float, None],
+                     "mutate_power": [float, None],
+                     "max_value": [float, None],
+                     "min_value": [float, None]}
+
+    def clamp(self, value, config):
+        min_value = getattr(config, self.min_value_name)
+        max_value = getattr(config, self.max_value_name)
+        return max(min(value, max_value), min_value)
+
+    def init_value(self, config):
+        min_value = getattr(config, self.min_value_name)
+        max_value = getattr(config, self.max_value_name)
+        return randint(min_value, max_value)
+
+    def mutate_value(self, value, config):
+        # mutate_rate is usually no lower than replace_rate, and frequently higher -
+        # so put first for efficiency
+        mutate_rate = getattr(config, self.mutate_rate_name)
+
+        r = random()
+        if r < mutate_rate:
+            mutate_power = getattr(config, self.mutate_power_name)
+            return self.clamp(value + int(round(gauss(0.0, mutate_power))), config)
+
+        replace_rate = getattr(config, self.replace_rate_name)
+
+        if r < replace_rate + mutate_rate:
+            return self.init_value(config)
+
+        return value
+
+    def validate(self, config):
         pass
 
 
@@ -103,8 +141,7 @@ class BoolAttribute(BaseAttribute):
         elif default in ('random', 'none'):
             return bool(random() < 0.5)
 
-        raise RuntimeError("Unknown default value {!r} for {!s}".format(default,
-                                                                        self.name))
+        raise RuntimeError(f"Unknown default value {default!r} for {self.name!s}")
 
     def mutate_value(self, value, config):
         mutate_rate = getattr(config, self.mutate_rate_name)
@@ -125,7 +162,7 @@ class BoolAttribute(BaseAttribute):
 
         return value
 
-    def validate(self, config):  # pragma: no cover
+    def validate(self, config):
         pass
 
 
@@ -158,5 +195,11 @@ class StringAttribute(BaseAttribute):
 
         return value
 
-    def validate(self, config):  # pragma: no cover
-        pass
+    def validate(self, config):
+        default = getattr(config, self.default_name)
+        if default not in ('none', 'random'):
+            options = getattr(config, self.options_name)
+            if default not in options:
+                raise RuntimeError(f'Invalid activation function name: {default}')
+            assert default in options
+

@@ -20,11 +20,11 @@ class BaseGene(object):
 
     def __str__(self):
         attrib = ['key'] + [a.name for a in self._gene_attributes]
-        attrib = ['{0}={1}'.format(a, getattr(self, a)) for a in attrib]
-        return '{0}({1})'.format(self.__class__.__name__, ", ".join(attrib))
+        attrib = [f'{a}={getattr(self, a)}' for a in attrib]
+        return f'{self.__class__.__name__}({", ".join(attrib)})'
 
     def __lt__(self, other):
-        assert isinstance(self.key, type(other.key)), "Cannot compare keys {0!r} and {1!r}".format(self.key, other.key)
+        assert isinstance(self.key, type(other.key)), f"Cannot compare keys {self.key!r} and {other.key!r}"
         return self.key < other.key
 
     @classmethod
@@ -37,12 +37,16 @@ class BaseGene(object):
         if not hasattr(cls, '_gene_attributes'):
             setattr(cls, '_gene_attributes', getattr(cls, '__gene_attributes__'))
             warnings.warn(
-                "Class '{!s}' {!r} needs '_gene_attributes' not '__gene_attributes__'".format(
-                    cls.__name__, cls),
+                f"Class '{cls.__name__!s}' {cls!r} needs '_gene_attributes' not '__gene_attributes__'",
                 DeprecationWarning)
         for a in cls._gene_attributes:
             params += a.get_config_params()
         return params
+
+    @classmethod
+    def validate_attributes(cls, config):
+        for a in cls._gene_attributes:
+            a.validate(config)
 
     def init_attributes(self, config):
         for a in self._gene_attributes:
@@ -82,11 +86,11 @@ class BaseGene(object):
 class DefaultNodeGene(BaseGene):
     _gene_attributes = [FloatAttribute('bias'),
                         FloatAttribute('response'),
-                        StringAttribute('activation', options='sigmoid'),
-                        StringAttribute('aggregation', options='sum')]
+                        StringAttribute('activation', options=''),
+                        StringAttribute('aggregation', options='')]
 
     def __init__(self, key):
-        assert isinstance(key, int), "DefaultNodeGene key must be an int, not {!r}".format(key)
+        assert isinstance(key, int), f"DefaultNodeGene key must be an int, not {key!r}"
         BaseGene.__init__(self, key)
 
     def distance(self, other, config):
@@ -109,7 +113,7 @@ class DefaultConnectionGene(BaseGene):
                         BoolAttribute('enabled')]
 
     def __init__(self, key):
-        assert isinstance(key, tuple), "DefaultConnectionGene key must be a tuple, not {!r}".format(key)
+        assert isinstance(key, tuple), f"DefaultConnectionGene key must be a tuple, not {key!r}"
         BaseGene.__init__(self, key)
 
     def distance(self, other, config):
