@@ -1,13 +1,9 @@
 """Uses `pickle` to save and restore populations (and other aspects of the simulation state)."""
 
 import gzip
+import pickle
 import random
 import time
-
-try:
-    import cPickle as pickle  # pylint: disable=import-error
-except ImportError:
-    import pickle  # pylint: disable=import-error
 
 from neat.population import Population
 from neat.reporting import BaseReporter
