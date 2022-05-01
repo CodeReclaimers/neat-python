@@ -9,6 +9,7 @@ from neat.aggregations import AggregationFunctionSet
 from neat.config import ConfigParameter, write_pretty_params
 from neat.genes import DefaultConnectionGene, DefaultNodeGene
 from neat.graphs import creates_cycle
+from neat.graphs import required_for_output
 
 
 class DefaultGenomeConfig(object):
@@ -76,8 +77,7 @@ class DefaultGenomeConfig(object):
         elif self.structural_mutation_surer.lower() == 'default':
             self.structural_mutation_surer = 'default'
         else:
-            error_string = "Invalid structural_mutation_surer {!r}".format(
-                self.structural_mutation_surer)
+            error_string = f"Invalid structural_mutation_surer {self.structural_mutation_surer!r}"
             raise RuntimeError(error_string)
 
         self.node_indexer = None
@@ -93,10 +93,9 @@ class DefaultGenomeConfig(object):
             if not (0 <= self.connection_fraction <= 1):
                 raise RuntimeError(
                     "'partial' connection value must be between 0.0 and 1.0, inclusive.")
-            f.write('initial_connection      = {0} {1}\n'.format(self.initial_connection,
-                                                                 self.connection_fraction))
+            f.write(f'initial_connection      = {self.initial_connection} {self.connection_fraction}\n')
         else:
-            f.write('initial_connection      = {0}\n'.format(self.initial_connection))
+            f.write(f'initial_connection      = {self.initial_connection}\n')
 
         assert self.initial_connection in self.allowed_connectivity
 
@@ -124,8 +123,7 @@ class DefaultGenomeConfig(object):
         elif self.structural_mutation_surer == 'default':
             return self.single_structural_mutation
         else:
-            error_string = "Invalid structural_mutation_surer {!r}".format(
-                self.structural_mutation_surer)
+            error_string = f"Invalid structural_mutation_surer {self.structural_mutation_surer!r}"
             raise RuntimeError(error_string)
 
 
@@ -224,10 +222,8 @@ class DefaultGenome(object):
                 if config.num_hidden > 0:
                     print(
                         "Warning: initial_connection = partial with hidden nodes will not do direct input-output connections;",
-                        "\tif this is desired, set initial_connection = partial_nodirect {0};".format(
-                            config.connection_fraction),
-                        "\tif not, set initial_connection = partial_direct {0}".format(
-                            config.connection_fraction),
+                        f"\tif this is desired, set initial_connection = partial_nodirect {config.connection_fraction};",
+                        f"\tif not, set initial_connection = partial_direct {config.connection_fraction}",
                         sep='\n', file=sys.stderr)
                 self.connect_partial_nodirect(config)
 
@@ -452,9 +448,9 @@ class DefaultGenome(object):
         return len(self.nodes), num_enabled_connections
 
     def __str__(self):
-        s = "Key: {0}\nFitness: {1}\nNodes:".format(self.key, self.fitness)
+        s = f"Key: {self.key}\nFitness: {self.fitness}\nNodes:"
         for k, ng in self.nodes.items():
-            s += "\n\t{0} {1!s}".format(k, ng)
+            s += f"\n\t{k} {ng!s}"
         s += "\nConnections:"
         connections = list(self.connections.values())
         connections.sort()
@@ -567,20 +563,8 @@ class DefaultGenome(object):
             self.connections[connection.key] = connection
 
     def get_pruned_copy(self, genome_config):
-        # Determine which nodes are connected via enabled connections to any output node.
-        used_nodes = set(genome_config.output_keys)
-        pending = set(genome_config.output_keys)
-        while pending:
-            new_pending = set()
-            for key, cg in self.connections.items():
-                if not cg.enabled:
-                    continue
-
-                in_node_id, out_node_id = key
-                if out_node_id in pending and in_node_id not in used_nodes:
-                    new_pending.add(in_node_id)
-                    used_nodes.add(in_node_id)
-            pending = new_pending
+        used_nodes = required_for_output(genome_config.input_keys, genome_config.output_keys, self.connections)
+        used_pins = used_nodes.union(genome_config.input_keys)
 
         # Copy used nodes into a new genome.
         new_genome = DefaultGenome(None)
@@ -591,7 +575,7 @@ class DefaultGenome(object):
         # Copy enabled and used connections into the new genome.
         for key, cg in self.connections.items():
             in_node_id, out_node_id = key
-            if cg.enabled and in_node_id in used_nodes and out_node_id in used_nodes:
+            if cg.enabled and in_node_id in used_pins and out_node_id in used_pins:
                 new_genome.connections[key] = copy.deepcopy(cg)
 
         return new_genome

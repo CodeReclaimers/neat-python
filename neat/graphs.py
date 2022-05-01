@@ -36,11 +36,12 @@ def required_for_output(inputs, outputs, connections):
 
     Returns a set of identifiers of required nodes.
     """
+    assert not set(inputs).intersection(outputs)
 
     required = set(outputs)
     s = set(outputs)
     while 1:
-        # Find nodes not in S whose output is consumed by a node in s.
+        # Find nodes not in s whose output is consumed by a node in s.
         t = set(a for (a, b) in connections if b in s and a not in s)
 
         if not t:
