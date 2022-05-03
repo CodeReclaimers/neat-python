@@ -1,5 +1,6 @@
 [![Build Status](https://app.travis-ci.com/CodeReclaimers/neat-python.svg?branch=master)](https://app.travis-ci.com/github/CodeReclaimers/neat-python)
 [![Coverage Status](https://coveralls.io/repos/CodeReclaimers/neat-python/badge.svg?branch=master&service=github)](https://coveralls.io/github/CodeReclaimers/neat-python?branch=master)
+[![Downloads](https://static.pepy.tech/personalized-badge/neat-python?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads)](https://pepy.tech/project/neat-python)
 
 ## About ##
 
@@ -23,9 +24,9 @@ The documentation is available on [Read The Docs](http://neat-python.readthedocs
 
 ## Citing ##
 
-Here are APA and Bibtex entries you can use to cite this project in a publication. The listed authors are the 
-maintainers of all iterations of the project up to this point.  If you have contributed and would like your name added 
-to the citation, please submit an issue or email alan@codereclaimers.com. 
+Here are APA and Bibtex entries you can use to cite this project in a publication. The listed authors are the originators
+and/or maintainers of all iterations of the project up to this point.  If you have contributed and would like your name added 
+to the citation, please submit an issue or email alan@codereclaimers.com.
 
 APA
 ```

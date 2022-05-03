@@ -271,22 +271,18 @@ def test_serial_bad_config():
 
 
 def test_serial_bad_configA():
-    """Test if bad_configurationA causes a RuntimeError on trying to create the population."""
-    # Load configuration.
+    """Test if bad_configurationA causes a RuntimeError on loading configuration."""
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'bad_configurationA')
-    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
-                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
-                         config_path)
 
     try:
-        # Create the population, which is the top-level object for a NEAT run.
-        p = neat.Population(config)
+        config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                             neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                             config_path)
     except RuntimeError:
         pass
     else:
-        raise Exception(
-            "Should have had a RuntimeError with bad_configurationA")
+        raise Exception("Should have had a RuntimeError with bad_configurationA")
 
 
 def test_serial_extinction_exception():
