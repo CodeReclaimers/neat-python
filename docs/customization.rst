@@ -32,6 +32,30 @@ This is demonstrated in the `memory-fixed
   the :py:class:`DefaultGenomeConfig <genome.DefaultGenomeConfig>` implementation; different genome implementations
   may require a different method of registration.
 
+.. index:: aggregation function
+
+New aggregation functions
+-------------------------
+New :term:`aggregation functions <aggregation function>` are registered with your :py:class:`Config <config.Config>` instance, prior to creation of the
+:py:class:`Population <population.Population>` instance, as follows::
+
+    def l2norm(x):
+        return sqrt(sum(i**2 for i in x))
+
+    config.genome_config.add_activation('my_l2norm_function', l2norm)
+
+The first argument to :py:meth:`add_activation <genome.DefaultGenomeConfig.add_aggregation>` is the name by which this aggregation function will be referred to in the configuration settings file.
+
+This is demonstrated in the `memory-fixed
+<https://github.com/CodeReclaimers/neat-python/tree/master/examples/memory-fixed>`_ example.
+
+.. note::
+
+  This method is only valid when using the :py:class:`DefaultGenome <genome.DefaultGenome>` implementation, with the method being found in
+  the :py:class:`DefaultGenomeConfig <genome.DefaultGenomeConfig>` implementation; different genome implementations
+  may require a different method of registration.
+
+
 .. index:: reporting
 
 Reporting/logging

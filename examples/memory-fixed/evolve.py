@@ -7,7 +7,6 @@ This example also demonstrates the use of a custom activation function.
 """
 
 import math
-import multiprocessing
 import os
 import random
 
@@ -22,6 +21,15 @@ import visualize
 # arbitrarily just to demonstrate adding a custom activation function.
 def sinc(x):
     return 1.0 if x == 0 else math.sin(x) / x
+
+
+# Demonstration of how to add your own custom aggregation function.
+# This l2norm function will be available if my_l2norm_function is included in the
+# config file aggregation_options option under the DefaultGenome section.
+# Note that l2norm is not necessarily useful for this example, it was chosen
+# arbitrarily just to demonstrate adding a custom aggregation function.
+def l2norm(x):
+    return (sum(i**2 for i in x))**0.5
 
 
 # N is the length of the test sequence.
@@ -74,13 +82,17 @@ def run():
     # config file activation_options option under the DefaultGenome section.
     config.genome_config.add_activation('my_sinc_function', sinc)
 
+    # Demonstration of how to add your own custom aggregation function.
+    # This l2norm function will be available if my_l2norm_function is included in the
+    # config file aggregation_options option under the DefaultGenome section.
+    config.genome_config.add_aggregation('my_l2norm_function', l2norm)
+
     pop = neat.Population(config)
     stats = neat.StatisticsReporter()
     pop.add_reporter(stats)
     pop.add_reporter(neat.StdOutReporter(True))
 
-    pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), eval_genome)
-    winner = pop.run(pe.evaluate, 1000)
+    winner = pop.run(eval_genomes, 200)
 
     # Log statistics.
     stats.save()
