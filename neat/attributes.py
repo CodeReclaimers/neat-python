@@ -12,6 +12,7 @@ class BaseAttribute(object):
 
     def __init__(self, name, **default_dict):
         self.name = name
+        # TODO: implement a mechanism that allows us to detect and report unused configuration items.
         for n, default in default_dict.items():
             self._config_items[n] = [self._config_items[n][0], default]
         for n in self._config_items:
@@ -27,7 +28,7 @@ class BaseAttribute(object):
 
 class FloatAttribute(BaseAttribute):
     """
-    Class for numeric attributes,
+    Class for floating-point numeric attributes,
     such as the response of a node or the weight of a connection.
     """
     _config_items = {"init_mean": [float, None],
@@ -87,14 +88,13 @@ class FloatAttribute(BaseAttribute):
 
 class IntegerAttribute(BaseAttribute):
     """
-    Class for numeric attributes,
-    such as the response of a node or the weight of a connection.
+    Class for integer numeric attributes.
     """
     _config_items = {"replace_rate": [float, None],
                      "mutate_rate": [float, None],
                      "mutate_power": [float, None],
-                     "max_value": [float, None],
-                     "min_value": [float, None]}
+                     "max_value": [int, None],
+                     "min_value": [int, None]}
 
     def clamp(self, value, config):
         min_value = getattr(config, self.min_value_name)
