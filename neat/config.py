@@ -127,7 +127,7 @@ class Config(object):
                 ConfigParameter('reset_on_extinction', bool),
                 ConfigParameter('no_fitness_termination', bool, False)]
 
-    def __init__(self, genome_type, reproduction_type, species_set_type, stagnation_type, filename):
+    def __init__(self, genome_type, reproduction_type, species_set_type, stagnation_type, filename, config_information=None):
         # Check that the provided types have the required methods.
         assert hasattr(genome_type, 'parse_config')
         assert hasattr(reproduction_type, 'parse_config')
@@ -138,6 +138,7 @@ class Config(object):
         self.reproduction_type = reproduction_type
         self.species_set_type = species_set_type
         self.stagnation_type = stagnation_type
+        self.config_information = config_information
 
         if not os.path.isfile(filename):
             raise Exception('No such config file: ' + os.path.abspath(filename))
