@@ -32,7 +32,7 @@ class Checkpointer(BaseReporter):
         self.filename_prefix = filename_prefix
 
         self.current_generation = None
-        self.last_generation_checkpoint = -1
+        self.last_generation_checkpoint = 0
         self.last_time_checkpoint = time.time()
 
     def start_generation(self, generation):
@@ -47,13 +47,13 @@ class Checkpointer(BaseReporter):
                 checkpoint_due = True
 
         if (checkpoint_due is False) and (self.generation_interval is not None):
-            dg = self.current_generation - self.last_generation_checkpoint
+            dg = self.current_generation + 1 - self.last_generation_checkpoint
             if dg >= self.generation_interval:
                 checkpoint_due = True
 
         if checkpoint_due:
-            self.save_checkpoint(config, population, species_set, self.current_generation)
-            self.last_generation_checkpoint = self.current_generation
+            self.save_checkpoint(config, population, species_set, self.current_generation + 1)
+            self.last_generation_checkpoint = self.current_generation + 1
             self.last_time_checkpoint = time.time()
 
     def save_checkpoint(self, config, population, species_set, generation):
@@ -71,7 +71,6 @@ class Checkpointer(BaseReporter):
         with gzip.open(filename) as f:
             generation, config, population, species_set, rndstate = pickle.load(f)
             random.setstate(rndstate)
-            generation += 1 
             population = Population(config, (population, species_set, generation))
             # since the saved population is already trained
             return Population(config, (population, species_set, generation))
