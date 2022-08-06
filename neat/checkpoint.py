@@ -71,7 +71,7 @@ class Checkpointer(BaseReporter):
         with gzip.open(filename) as f:
             generation, config, population, species_set, rndstate = pickle.load(f)
             random.setstate(rndstate)
-            generation += 1 # we are training the end of previos the generation actually meaning the next one
+            generation += 1 
             population = Population(config, (population, species_set, generation))
             # since the saved population is already trained
             return Population(config, (population, species_set, generation))
