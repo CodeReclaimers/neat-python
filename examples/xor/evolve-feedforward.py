@@ -18,7 +18,7 @@ def eval_genomes(genomes, config):
         net = neat.nn.FeedForwardNetwork.create(genome, config)
         for xi, xo in zip(xor_inputs, xor_outputs):
             output = net.activate(xi)
-            genome.fitness -= (output[0] - xo[0]) ** 2
+            genome.fitness -= abs(output[0] - xo[0]) ** 2
 
 
 def run(config_file):
