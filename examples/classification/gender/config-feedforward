@@ -9,12 +9,12 @@ reset_on_extinction   = False
 [DefaultGenome]
 # node activation options
 activation_default      = sigmoid
-activation_mutate_rate  = 0.0
+activation_mutate_rate  = 0.8
 activation_options      = sigmoid tanh relu softplus
 
 # node aggregation options
 aggregation_default     = sum
-aggregation_mutate_rate = 0.0
+aggregation_mutate_rate = 0.8
 aggregation_options     = sum product max min
 
 # node bias options

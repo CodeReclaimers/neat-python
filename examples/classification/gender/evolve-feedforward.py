@@ -56,7 +56,7 @@ def run(config_file):
         output = winner_net.activate(xi)
         print("input {!r}, expected output {!r}, got {!r}".format(xi, xo, output))
 
-    node_names = {-1: 'A', -2: 'B', 0: 'A XOR B'}
+    node_names = {-1: 'Color', -2: 'Music', -3: 'Alcohol', -4: 'Soda', 0: 'Gender'}
     visualize.draw_net(config, winner, True, node_names=node_names)
     visualize.draw_net(config, winner, True, node_names=node_names, prune_unused=True)
     visualize.plot_stats(stats, ylog=False, view=True)
