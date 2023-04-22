@@ -165,7 +165,6 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
         dot.node(str(n), _attributes=attrs)
 
     for cg in genome.connections.values():
-        print(cg)
         if cg.enabled or show_disabled:
             input, output = cg.key
             if input not in range(-9, 1):
