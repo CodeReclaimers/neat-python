@@ -145,7 +145,7 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
         inputs.add(k)
         name = node_names.get(k, str(k))
         input_attrs = {'style': 'filled', 'shape': 'box', 'fillcolor': node_colors.get(k, 'lightgray')}
-        dot.node(name, _attributes=input_attrs)
+        dot.node(str(k), name, _attributes=input_attrs)
 
     outputs = set()
     for k in config.genome_config.output_keys:
@@ -153,7 +153,7 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
         name = node_names.get(k, str(k))
         node_attrs = {'style': 'filled', 'fillcolor': node_colors.get(k, 'lightblue')}
 
-        dot.node(name, _attributes=node_attrs)
+        dot.node(str(k), name, _attributes=node_attrs)
 
     used_nodes = set(genome.nodes.keys())
     for n in used_nodes:
@@ -164,19 +164,18 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
                  'fillcolor': node_colors.get(n, 'white')}
         dot.node(str(n), _attributes=attrs)
 
-    print('genome', genome)
-    print('connections', genome.connections)
-
     for cg in genome.connections.values():
+        print(cg)
         if cg.enabled or show_disabled:
             input, output = cg.key
-            a = node_names.get(input, str(input))
-            print(output, genome.nodes[output].activation)
-            b = node_names.get(output, genome.nodes[output].activation)
+            if input not in range(-5, 3):
+                dot.node(str(input), genome.nodes[input].activation)
+            if output not in range(-5, 3):
+                dot.node(str(output), genome.nodes[output].activation)
             style = 'solid' if cg.enabled else 'dotted'
             color = 'green' if cg.weight > 0 else 'red'
             width = str(0.1 + abs(cg.weight / 5.0))
-            dot.edge(a, b, _attributes={'style': style, 'color': color, 'penwidth': width})
+            dot.edge(str(input), str(output), _attributes={'style': style, 'color': color, 'penwidth': width})
 
     dot.render(filename, view=view)
 
