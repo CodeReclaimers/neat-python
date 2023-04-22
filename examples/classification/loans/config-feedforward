@@ -2,19 +2,19 @@
 
 [NEAT]
 fitness_criterion     = max
-fitness_threshold     = -500
-pop_size              = 100
+fitness_threshold     = 3.18
+pop_size              = 150
 reset_on_extinction   = False
 
 [DefaultGenome]
 # node activation options
-activation_default      = random
-activation_mutate_rate  = 0.3
+activation_default      = sigmoid
+activation_mutate_rate  = 0.5
 activation_options      = sigmoid relu tanh gauss hat log elu identity selu abs exp inv clamped lelu softplus
 
 # node aggregation options
-aggregation_default     = random
-aggregation_mutate_rate = 0.3
+aggregation_default     = sum
+aggregation_mutate_rate = 0.5
 aggregation_options     = sum product max min
 
 # node bias options
@@ -31,23 +31,23 @@ compatibility_disjoint_coefficient = 1.0
 compatibility_weight_coefficient   = 0.5
 
 # connection add/remove rates
-conn_add_prob           = 0.3
-conn_delete_prob        = 0.3
+conn_add_prob           = 0.5
+conn_delete_prob        = 0.5
 
 # connection enable options
 enabled_default         = True
 enabled_mutate_rate     = 0.01
 
 feed_forward            = True
-initial_connection      = unconnected
+initial_connection      = full
 
 # node add/remove rates
-node_add_prob           = 0.3
-node_delete_prob        = 0.3
+node_add_prob           = 0.2
+node_delete_prob        = 0.2
 
 # network parameters
-num_hidden              = 8
-num_inputs              = 5
+num_hidden              = 4
+num_inputs              = 9
 num_outputs             = 1
 
 # node response options
@@ -61,9 +61,9 @@ response_replace_rate   = 0.5
 
 # connection weight options
 weight_init_mean        = 0.0
-weight_init_stdev       = 1.0
-weight_max_value        = 1.0
-weight_min_value        = 1.0
+weight_init_stdev       = 0.0
+weight_max_value        = 1
+weight_min_value        = 1
 weight_mutate_power     = 0.0
 weight_mutate_rate      = 0.0
 weight_replace_rate     = 0.0

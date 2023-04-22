@@ -1,20 +1,21 @@
 """
-student_evals example
+2-input XOR example -- this is most likely the simplest possible example.
 """
 
 import os
+
 import neat
 import visualize
 import csv
-import numpy as np
 
-# 4-inputs fav color, music genre, soda and alcohol inputs and expected output of gender.
-with open('data/exams.csv') as csvfile:
+# 2-input XOR inputs and expected outputs.
+with open('data/loans.csv') as csvfile:
     csv_reader = csv.reader(csvfile)
     data = list(csv_reader)
+    # convert the data into a list of floats
     data = [[float(x) for x in row] for row in data]
-    inputs = [row[:5] for row in data]
-    outputs = [np.mean(row[-3:]) for row in data]  # average of the last 3 columns
+    inputs = [row[:-1] for row in data]
+    outputs = [row[-1] for row in data]
 
 
 def eval_genomes(genomes, config):
@@ -23,7 +24,8 @@ def eval_genomes(genomes, config):
         net = neat.nn.FeedForwardNetwork.create(genome, config)
         for xi, xo in zip(inputs, outputs):
             output = net.activate(xi)
-            genome.fitness -= np.abs(output[0] - xo)
+            # genome.fitness -= (output[0] - xo[0]) ** 2
+            genome.fitness -= abs(output[0] - xo)  # works better than above
 
 
 def run(config_file):
@@ -41,8 +43,8 @@ def run(config_file):
     p.add_reporter(stats)
     p.add_reporter(neat.Checkpointer(5))
 
-    # Run for up to 100 generations.
-    winner = p.run(eval_genomes, 300)
+    # Run for up to 300 generations.
+    winner = p.run(eval_genomes, 30)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
@@ -54,14 +56,15 @@ def run(config_file):
         output = winner_net.activate(xi)
         print("input {!r}, expected output {!r}, got {!r}".format(xi, xo, output))
 
-    node_names = {-1: 'Gender', -2: 'Ethnicity', -3: 'Parent\'s Ed', -4: 'Free Lunch', -5: 'Test Prep', 0: 'Avg Score'}
-    visualize.draw_net(config, winner, True, node_names=node_names)
+    node_names = {-1: 'Gender', -2: 'Married', -3: 'College Grad', -4: 'Self Employed', -5: 'Income', -6: 'Loan Amt',
+                  -7: 'Loan Term', -8: 'Credit History', -9: 'Property Area',  0: 'Approved'}
+    # visualize.draw_net(config, winner, True, node_names=node_names)
     visualize.draw_net(config, winner, True, node_names=node_names, prune_unused=True)
     # visualize.plot_stats(stats, ylog=False, view=True)
     # visualize.plot_species(stats, view=True)
 
     p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-4')
-    p.run(eval_genomes, 3)
+    p.run(eval_genomes, 10)
 
 
 if __name__ == '__main__':
