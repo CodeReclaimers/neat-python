@@ -42,7 +42,7 @@ def run(config_file):
     p.add_reporter(neat.Checkpointer(5))
 
     # Run for up to 100 generations.
-    winner = p.run(eval_genomes, 50)
+    winner = p.run(eval_genomes, 300)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
@@ -55,6 +55,7 @@ def run(config_file):
         print("input {!r}, expected output {!r}, got {!r}".format(xi, xo, output))
 
     node_names = {-1: 'Gender', -2: 'Ethnicity', -3: 'Parent\'s Ed', -4: 'Free Lunch', -5: 'Test Prep', 0: 'Avg Score'}
+    visualize.draw_net(config, winner, True, node_names=node_names)
     visualize.draw_net(config, winner, True, node_names=node_names, prune_unused=True)
     # visualize.plot_stats(stats, ylog=False, view=True)
     # visualize.plot_species(stats, view=True)
