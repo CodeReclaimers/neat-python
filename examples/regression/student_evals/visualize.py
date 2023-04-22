@@ -168,9 +168,9 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
         print(cg)
         if cg.enabled or show_disabled:
             input, output = cg.key
-            if input not in range(-5, 3):
+            if input not in range(-5, 1):
                 dot.node(str(input), genome.nodes[input].activation)
-            if output not in range(-5, 3):
+            if output not in range(-5, 1):
                 dot.node(str(output), genome.nodes[output].activation)
             style = 'solid' if cg.enabled else 'dotted'
             color = 'green' if cg.weight > 0 else 'red'
