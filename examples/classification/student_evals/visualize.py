@@ -164,13 +164,15 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
                  'fillcolor': node_colors.get(n, 'white')}
         dot.node(str(n), _attributes=attrs)
 
+    print('genome', genome)
+    print('connections', genome.connections)
+
     for cg in genome.connections.values():
         if cg.enabled or show_disabled:
-            # if cg.input not in used_nodes or cg.output not in used_nodes:
-            #    continue
             input, output = cg.key
             a = node_names.get(input, str(input))
-            b = node_names.get(output, str(output))
+            print(output, genome.nodes[output].activation)
+            b = node_names.get(output, genome.nodes[output].activation)
             style = 'solid' if cg.enabled else 'dotted'
             color = 'green' if cg.weight > 0 else 'red'
             width = str(0.1 + abs(cg.weight / 5.0))

@@ -14,9 +14,7 @@ with open('data/exams.csv') as csvfile:
     data = list(csv_reader)
     # convert the data into a list of floats
     data = [[float(x) for x in row] for row in data]
-    # put first 5 columns into input variable
     inputs = [row[:5] for row in data]
-    # put last 3 columns into output variable
     outputs = [row[-3:] for row in data]
 
 
@@ -45,7 +43,7 @@ def run(config_file):
     p.add_reporter(neat.Checkpointer(5))
 
     # Run for up to 100 generations.
-    winner = p.run(eval_genomes, 20)
+    winner = p.run(eval_genomes, 2)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
@@ -65,7 +63,7 @@ def run(config_file):
     visualize.plot_species(stats, view=True)
 
     p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-4')
-    p.run(eval_genomes, 10)
+    p.run(eval_genomes, 3)
 
 
 if __name__ == '__main__':
