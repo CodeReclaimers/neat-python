@@ -1,5 +1,5 @@
 """
-2-input XOR example -- this is most likely the simplest possible example.
+home price regression example
 """
 
 import os
@@ -9,9 +9,14 @@ import visualize
 import csv
 
 # 2-input XOR inputs and expected outputs.
-with open('data/loans.csv') as csvfile:
+with open('data/housing.csv') as csvfile:
     csv_reader = csv.reader(csvfile)
     data = list(csv_reader)
+    # use the first row as the header and convert the names to a dictionary called node_names
+    # create a dictionary of node names from the first row of the data and set the other keys appropriately
+    node_names = {i * -1: name for i, name in enumerate(data[0][-1::-1])}
+    # remove the header from the data
+    data = data[1:]
     # convert the data into a list of floats
     data = [[float(x) for x in row] for row in data]
     inputs = [row[:-1] for row in data]
@@ -24,8 +29,8 @@ def eval_genomes(genomes, config):
         net = neat.nn.FeedForwardNetwork.create(genome, config)
         for xi, xo in zip(inputs, outputs):
             output = net.activate(xi)
-            genome.fitness -= (output[0] - xo) ** 2
-            # genome.fitness -= abs(output[0] - xo)  # works better than above
+            genome.fitness -= abs(output[0] - xo)
+            # genome.fitness -= abs(output[0] - xo)  # works better than above sometimes
 
 
 def run(config_file):
@@ -38,13 +43,13 @@ def run(config_file):
     p = neat.Population(config)
 
     # Add a stdout reporter to show progress in the terminal.
-    # p.add_reporter(neat.StdOutReporter(True))
-    # stats = neat.StatisticsReporter()
-    # p.add_reporter(stats)
-    # p.add_reporter(neat.Checkpointer(5))
+    p.add_reporter(neat.StdOutReporter(True))
+    stats = neat.StatisticsReporter()
+    p.add_reporter(stats)
+    p.add_reporter(neat.Checkpointer(5))
 
     # Run for up to 300 generations.
-    winner = p.run(eval_genomes, 500)
+    winner = p.run(eval_genomes, 100)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
@@ -56,8 +61,6 @@ def run(config_file):
         output = winner_net.activate(xi)
         print("input {!r}, expected output {!r}, got {!r}".format(xi, xo, output))
 
-    node_names = {-1: 'Gender', -2: 'Married', -3: 'College Grad', -4: 'Self Employed', -5: 'Income', -6: 'Loan Amt',
-                  -7: 'Loan Term', -8: 'Credit History', -9: 'Property Area',  0: 'Approved'}
     # visualize.draw_net(config, winner, True, node_names=node_names)
     visualize.draw_net(config, winner, True, node_names=node_names, prune_unused=True)
     # visualize.plot_stats(stats, ylog=False, view=True)
