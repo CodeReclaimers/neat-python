@@ -8,10 +8,16 @@ import neat
 import visualize
 import csv
 
-# 2-input XOR inputs and expected outputs.
+# gender example #
 with open('data/gender.csv') as csvfile:
     csv_reader = csv.reader(csvfile)
     data = list(csv_reader)
+    # use the first row as the header and convert the names to a dictionary called node_names
+    # create a dictionary of node names from the first row of the data and set the other keys appropriately
+    node_names = {i * -1: name for i, name in enumerate(data[0][-1::-1])}
+    # remove the header from the data
+    data = data[1:]
+    num_rows = len(data)
     # convert the data into a list of floats
     data = [[float(x) for x in row] for row in data]
     inputs = [row[:-1] for row in data]
@@ -24,8 +30,7 @@ def eval_genomes(genomes, config):
         net = neat.nn.FeedForwardNetwork.create(genome, config)
         for xi, xo in zip(inputs, outputs):
             output = net.activate(xi)
-            # genome.fitness -= (output[0] - xo[0]) ** 2
-            genome.fitness -= abs(output[0] - xo)  # works better than above
+            genome.fitness -= abs(output[0] - xo)
 
 
 def run(config_file):
@@ -44,7 +49,7 @@ def run(config_file):
     p.add_reporter(neat.Checkpointer(5))
 
     # Run for up to 300 generations.
-    winner = p.run(eval_genomes, 30)
+    winner = p.run(eval_genomes, 300)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
@@ -56,7 +61,6 @@ def run(config_file):
         output = winner_net.activate(xi)
         print("input {!r}, expected output {!r}, got {!r}".format(xi, xo, output))
 
-    node_names = {-1: 'Color', -2: 'Music', -3: 'Alcohol', -4: 'Soda', 0: 'Gender'}
     # visualize.draw_net(config, winner, True, node_names=node_names)
     visualize.draw_net(config, winner, True, node_names=node_names, prune_unused=True)
     # visualize.plot_stats(stats, ylog=False, view=True)
