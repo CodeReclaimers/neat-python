@@ -164,8 +164,6 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
                  'fillcolor': node_colors.get(n, 'white')}
         dot.node(str(n), _attributes=attrs)
 
-    print('config file', config.genome_config.num_inputs)
-
     for cg in genome.connections.values():
         if cg.enabled or show_disabled:
             input, output = cg.key

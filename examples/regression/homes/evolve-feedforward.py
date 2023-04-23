@@ -17,10 +17,14 @@ with open('data/housing.csv') as csvfile:
     node_names = {i * -1: name for i, name in enumerate(data[0][-1::-1])}
     # remove the header from the data
     data = data[1:]
+    num_rows = len(data)
     # convert the data into a list of floats
     data = [[float(x) for x in row] for row in data]
     inputs = [row[:-1] for row in data]
     outputs = [row[-1] for row in data]
+    # get the average of the final column
+    average = sum(outputs) / len(outputs)
+    print(average)
 
 
 def eval_genomes(genomes, config):
@@ -30,7 +34,7 @@ def eval_genomes(genomes, config):
         for xi, xo in zip(inputs, outputs):
             output = net.activate(xi)
             genome.fitness -= abs(output[0] - xo)
-            # genome.fitness -= abs(output[0] - xo)  # works better than above sometimes
+        genome.fitness = genome.fitness / num_rows
 
 
 def run(config_file):
@@ -49,7 +53,7 @@ def run(config_file):
     p.add_reporter(neat.Checkpointer(5))
 
     # Run for up to 300 generations.
-    winner = p.run(eval_genomes, 100)
+    winner = p.run(eval_genomes, 300)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
