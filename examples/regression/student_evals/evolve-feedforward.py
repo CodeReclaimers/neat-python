@@ -12,9 +12,16 @@ import numpy as np
 with open('data/exams.csv') as csvfile:
     csv_reader = csv.reader(csvfile)
     data = list(csv_reader)
+    # use the first row as the header and convert the names to a dictionary called node_names
+    # create a dictionary of node names from the first row of the data and set the other keys appropriately
+    node_names = {i * -1: name for i, name in enumerate(data[0][-1::-1])}
+    # remove the header from the data
+    data = data[1:]
+    num_rows = len(data)
+    # convert the data into a list of floats
     data = [[float(x) for x in row] for row in data]
-    inputs = [row[:5] for row in data]
-    outputs = [np.mean(row[-3:]) for row in data]  # average of the last 3 columns
+    inputs = [row[:-1] for row in data]
+    outputs = [row[-1] for row in data]
 
 
 def eval_genomes(genomes, config):
@@ -42,7 +49,7 @@ def run(config_file):
     p.add_reporter(neat.Checkpointer(5))
 
     # Run for up to 100 generations.
-    winner = p.run(eval_genomes, 300)
+    winner = p.run(eval_genomes, 30)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
@@ -54,8 +61,7 @@ def run(config_file):
         output = winner_net.activate(xi)
         print("input {!r}, expected output {!r}, got {!r}".format(xi, xo, output))
 
-    node_names = {-1: 'Gender', -2: 'Ethnicity', -3: 'Parent\'s Ed', -4: 'Free Lunch', -5: 'Test Prep', 0: 'Avg Score'}
-    visualize.draw_net(config, winner, True, node_names=node_names)
+    # visualize.draw_net(config, winner, True, node_names=node_names)
     visualize.draw_net(config, winner, True, node_names=node_names, prune_unused=True)
     # visualize.plot_stats(stats, ylog=False, view=True)
     # visualize.plot_species(stats, view=True)
