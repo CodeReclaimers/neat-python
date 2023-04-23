@@ -24,7 +24,6 @@ with open('data/housing.csv') as csvfile:
     outputs = [row[-1] for row in data]
     # get the average of the final column
     average = sum(outputs) / len(outputs)
-    print(average)
 
 
 def eval_genomes(genomes, config):

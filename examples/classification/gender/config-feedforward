@@ -1,20 +1,20 @@
-#--- parameters for the gender experiment ---#
+#--- parameters for the home prices experiment ---#
 
 [NEAT]
 fitness_criterion     = max
-fitness_threshold     = 3.18
+fitness_threshold     = 1.0
 pop_size              = 150
 reset_on_extinction   = False
 
 [DefaultGenome]
 # node activation options
-activation_default      = sigmoid
-activation_mutate_rate  = 0.5
+activation_default      = random
+activation_mutate_rate  = 0.2
 activation_options      = sigmoid relu tanh gauss hat log elu identity selu abs exp inv clamped lelu softplus
 
 # node aggregation options
-aggregation_default     = sum
-aggregation_mutate_rate = 0.5
+aggregation_default     = random
+aggregation_mutate_rate = 0.2
 aggregation_options     = sum product max min
 
 # node bias options
@@ -31,22 +31,22 @@ compatibility_disjoint_coefficient = 1.0
 compatibility_weight_coefficient   = 0.5
 
 # connection add/remove rates
-conn_add_prob           = 0.5
-conn_delete_prob        = 0.5
+conn_add_prob           = 0.2
+conn_delete_prob        = 0.2
 
 # connection enable options
 enabled_default         = True
 enabled_mutate_rate     = 0.01
 
 feed_forward            = True
-initial_connection      = full
+initial_connection      = unconnected
 
 # node add/remove rates
 node_add_prob           = 0.2
 node_delete_prob        = 0.2
 
 # network parameters
-num_hidden              = 8
+num_hidden              = 16
 num_inputs              = 4
 num_outputs             = 1
 
@@ -62,11 +62,20 @@ response_replace_rate   = 0.5
 # connection weight options
 weight_init_mean        = 0.0
 weight_init_stdev       = 0.0
-weight_max_value        = 3
-weight_min_value        = 3
+weight_max_value        = 1.0
+weight_min_value        = 1.0
 weight_mutate_power     = 0.0
 weight_mutate_rate      = 0.0
 weight_replace_rate     = 0.0
+
+# uncomment/comment out the below to add/remove weight mutation power
+# weight_init_mean        = 0.0
+# weight_init_stdev       = 1.0
+# weight_max_value        = 30
+# weight_min_value        = -30
+# weight_mutate_power     = 0.5
+# weight_mutate_rate      = 0.8
+# weight_replace_rate     = 0.1
 
 [DefaultSpeciesSet]
 compatibility_threshold = 3.0
