@@ -31,6 +31,7 @@ def eval_genomes(genomes, config):
         for xi, xo in zip(inputs, outputs):
             output = net.activate(xi)
             genome.fitness -= np.abs(output[0] - xo)
+        genome.fitness /= num_rows
 
 
 def run(config_file):
