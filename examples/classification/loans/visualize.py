@@ -167,9 +167,10 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
     for cg in genome.connections.values():
         if cg.enabled or show_disabled:
             input, output = cg.key
-            if input not in range(-9, 1):
+            number_of_features = -1 * config.genome_config.num_inputs
+            if input not in range(number_of_features, 1):
                 dot.node(str(input), genome.nodes[input].activation)
-            if output not in range(-9, 1):
+            if output not in range(number_of_features, 1):
                 dot.node(str(output), genome.nodes[output].activation)
             style = 'solid' if cg.enabled else 'dotted'
             color = 'green' if cg.weight > 0 else 'red'
