@@ -39,7 +39,7 @@ enabled_default         = True
 enabled_mutate_rate     = 0.01
 
 feed_forward            = True
-initial_connection      = full_direct
+initial_connection      = unconnected
 
 # node add/remove rates
 node_add_prob           = 0.2
@@ -60,10 +60,10 @@ response_mutate_rate    = 0.5
 response_replace_rate   = 0.5
 
 # connection weight options
-weight_init_mean        = 0.0
+weight_init_mean        = 1.0
 weight_init_stdev       = 0.0
-weight_max_value        = 3
-weight_min_value        = 3
+weight_max_value        = 1.0
+weight_min_value        = 1.0
 weight_mutate_power     = 0.0
 weight_mutate_rate      = 0.0
 weight_replace_rate     = 0.0

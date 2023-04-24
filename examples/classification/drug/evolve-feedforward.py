@@ -1,34 +1,47 @@
 """
-2-input XOR example -- this is most likely the simplest possible example.
+# drug classification example using a feed-forward network #
 """
 
 import os
-import pandas as pd
 import neat
 import visualize
-from imblearn.over_sampling import SMOTE
-
+import numpy as np
 import csv
 
 # 2-input XOR inputs and expected outputs.
-with open('data/drug200_mod.csv') as csvfile:
+with open('data/drug_one_hot.csv') as csvfile:
     csv_reader = csv.reader(csvfile)
     data = list(csv_reader)
-    node_names = {i * -1: name for i, name in enumerate(data[0][-1::-1])}
+    node_names = {(i + 1) * -1: name for i, name in enumerate(data[0][:5])}
+    node_names.update({i: name for i, name in enumerate(data[0][5:])})
     # remove the header from the data
     data = data[1:]
     num_rows = len(data)
     data = [[float(x) for x in row] for row in data]
-    inputs = [row[:-1] for row in data]
-    outputs = [row[-1] for row in data]
+    inputs = [row[:5] for row in data]
+    outputs = [row[5:11] for row in data]
+
 
 def eval_genomes(genomes, config):
     for genome_id, genome in genomes:
         genome.fitness = 4.0
         net = neat.nn.FeedForwardNetwork.create(genome, config)
         for xi, xo in zip(inputs, outputs):
-            output = net.activate(xi)
-            genome.fitness -= (round(output[0]) - xo) ** 2
+            output_temp = net.activate(xi)
+            # create an output array of 5 zeros
+            output = np.zeros(5)
+            if output_temp[0] < 1:
+                output[0] = 1
+            elif 1 <= output_temp[0] < 2:
+                output[1] = 1
+            elif 2 <= output_temp[0] < 3:
+                output[2] = 1
+            elif 3 <= output_temp[0] < 4:
+                output[3] = 1
+            elif 4 <= output_temp[0]:
+                output[4] = 1
+            genome.fitness -= np.abs(output[0] - xo[0]) + np.abs(output[1] - xo[1]) + np.abs(output[2] - xo[2]) + \
+                np.abs(output[3] - xo[3]) + np.abs(output[4] - xo[4])
 
 
 def run(config_file):
@@ -47,7 +60,7 @@ def run(config_file):
     p.add_reporter(neat.Checkpointer(5))
 
     # Run for up to 300 generations.
-    winner = p.run(eval_genomes, 300)
+    winner = p.run(eval_genomes, 200)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
