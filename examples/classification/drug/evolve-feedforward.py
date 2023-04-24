@@ -22,24 +22,21 @@ with open('data/drug_one_hot.csv') as csvfile:
     outputs = [row[5:11] for row in data]
 
 
+def select_one(array):
+    max_index = np.argmax(array)
+    array = np.zeros(len(array))
+    array[max_index] = 1
+
+    return array
+
+
 def eval_genomes(genomes, config):
     for genome_id, genome in genomes:
         genome.fitness = 4.0
         net = neat.nn.FeedForwardNetwork.create(genome, config)
         for xi, xo in zip(inputs, outputs):
-            output_temp = net.activate(xi)
-            # create an output array of 5 zeros
-            output = np.zeros(5)
-            if output_temp[0] < 1:
-                output[0] = 1
-            elif 1 <= output_temp[0] < 2:
-                output[1] = 1
-            elif 2 <= output_temp[0] < 3:
-                output[2] = 1
-            elif 3 <= output_temp[0] < 4:
-                output[3] = 1
-            elif 4 <= output_temp[0]:
-                output[4] = 1
+            output = net.activate(xi, multi_classification=True)
+
             genome.fitness -= np.abs(output[0] - xo[0]) + np.abs(output[1] - xo[1]) + np.abs(output[2] - xo[2]) + \
                 np.abs(output[3] - xo[3]) + np.abs(output[4] - xo[4])
 
@@ -60,7 +57,7 @@ def run(config_file):
     p.add_reporter(neat.Checkpointer(5))
 
     # Run for up to 300 generations.
-    winner = p.run(eval_genomes, 200)
+    winner = p.run(eval_genomes, 500)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
@@ -69,7 +66,7 @@ def run(config_file):
     print('\nOutput:')
     winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
     for xi, xo in zip(inputs, outputs):
-        output = winner_net.activate(xi)
+        output = select_one(winner_net.activate(xi))
         print("input {!r}, expected output {!r}, got {!r}".format(xi, xo, output))
 
     # visualize.draw_net(config, winner, True, node_names=node_names)

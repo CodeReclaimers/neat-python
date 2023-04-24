@@ -1,4 +1,12 @@
 from neat.graphs import feed_forward_layers
+import numpy as np
+
+
+def softmax(array):
+    """Compute softmax values for each sets of scores in x."""
+    e_x = np.exp(array - np.max(array))
+
+    return e_x / e_x.sum()
 
 
 class FeedForwardNetwork(object):
@@ -8,7 +16,7 @@ class FeedForwardNetwork(object):
         self.node_evals = node_evals
         self.values = dict((key, 0.0) for key in inputs + outputs)
 
-    def activate(self, inputs):
+    def activate(self, inputs, multi_classification=False):
         if len(self.input_nodes) != len(inputs):
             raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.input_nodes), len(inputs)))
 
@@ -21,6 +29,11 @@ class FeedForwardNetwork(object):
                 node_inputs.append(self.values[i] * w)
             s = agg_func(node_inputs)
             self.values[node] = act_func(bias + response * s)
+
+        scores = [self.values[i] for i in self.output_nodes]
+
+        if multi_classification:
+            return softmax(scores)
 
         return [self.values[i] for i in self.output_nodes]
 
