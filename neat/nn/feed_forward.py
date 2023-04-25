@@ -35,7 +35,7 @@ class FeedForwardNetwork(object):
         if multi_classification:
             return softmax(scores)
 
-        return [self.values[i] for i in self.output_nodes]
+        return scores
 
     @staticmethod
     def create(genome, config):
