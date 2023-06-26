@@ -86,7 +86,7 @@ class PooledErrorCompute(object):
     def simulate(self, nets):
         scores = []
         for genome, net in nets:
-            observation = env.reset()
+            observation, info = env.reset()
             step = 0
             data = []
             while 1:
@@ -97,7 +97,7 @@ class PooledErrorCompute(object):
                     output = net.activate(observation)
                     action = np.argmax(output)
 
-                observation, reward, done, info = env.step(action)
+                observation, reward, done, truncated, info = env.step(action)
                 data.append(np.hstack((observation, action, reward)))
 
                 if done:
@@ -202,7 +202,7 @@ def run():
             solved = True
             best_scores = []
             for k in range(100):
-                observation = env.reset()
+                observation, info = env.reset()
                 score = 0
                 step = 0
                 while 1:
@@ -215,7 +215,7 @@ def run():
                         votes[np.argmax(output)] += 1
 
                     best_action = np.argmax(votes)
-                    observation, reward, done, info = env.step(best_action)
+                    observation, reward, done, truncated, info = env.step(best_action)
                     score += reward
                     env.render()
                     if done:
