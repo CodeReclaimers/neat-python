@@ -16,7 +16,7 @@ import numpy as np
 import neat
 import visualize
 
-NUM_CORES = 8
+NUM_CORES = multiprocessing.cpu_count()
 
 env = gym.make('LunarLander-v2')
 
@@ -94,13 +94,13 @@ class PooledErrorCompute(object):
                 if step < 200 and random.random() < 0.2:
                     action = env.action_space.sample()
                 else:
-                    output = net.activate(observation)
+                    output = net.activate(observation_init_vals)
                     action = np.argmax(output)
 
                 observation, reward, done, truncated, info = env.step(action)
                 data.append(np.hstack((observation, action, reward)))
 
-                if done:
+                if terminated:
                     break
 
             data = np.array(data)
@@ -211,14 +211,14 @@ def run():
                     # determine the best action given the current state.
                     votes = np.zeros((4,))
                     for n in best_networks:
-                        output = n.activate(observation)
+                        output = n.activate(observation_init_vals)
                         votes[np.argmax(output)] += 1
 
                     best_action = np.argmax(votes)
                     observation, reward, done, truncated, info = env.step(best_action)
                     score += reward
                     env.render()
-                    if done:
+                    if terminated:
                         break
 
                 ec.episode_score.append(score)
