@@ -20,9 +20,8 @@ NUM_CORES = multiprocessing.cpu_count()
 
 env = gym.make('LunarLander-v2')
 
-print("action space: {0!r}".format(env.action_space))
-print("observation space: {0!r}".format(env.observation_space))
-
+# print("action space: {0!r}".format(env.action_space))
+# print("observation space: {0!r}".format(env.observation_space))
 
 class LanderGenome(neat.DefaultGenome):
     def __init__(self, key):
@@ -86,7 +85,7 @@ class PooledErrorCompute(object):
     def simulate(self, nets):
         scores = []
         for genome, net in nets:
-            observation_init_vals, observation_init_info = env.reset()
+            observation, observation_init_info = env.reset()
             step = 0
             data = []
             while 1:
@@ -94,14 +93,14 @@ class PooledErrorCompute(object):
                 if step < 200 and random.random() < 0.2:
                     action = env.action_space.sample()
                 else:
-                    output = net.activate(observation_init_vals)
+                    output = net.activate(observation)
                     action = np.argmax(output)
 
                 # Note: done has been deprecated.
                 observation, reward, terminated, done, info = env.step(action)
                 data.append(np.hstack((observation, action, reward)))
 
-                if terminated:
+                if terminated or done:
                     break
 
             data = np.array(data)
@@ -203,7 +202,7 @@ def run():
             solved = True
             best_scores = []
             for k in range(100):
-                observation_init_vals, observation_init_info = env.reset()
+                observation, observation_init_info = env.reset()
                 score = 0
                 step = 0
                 while 1:
@@ -212,10 +211,11 @@ def run():
                     # determine the best action given the current state.
                     votes = np.zeros((4,))
                     for n in best_networks:
-                        output = n.activate(observation_init_vals)
+                        output = n.activate(observation)
                         votes[np.argmax(output)] += 1
 
                     best_action = np.argmax(votes)
+                    # best_action = np.bincount(votes.astype(int)).argmax()
                     # Note: done has been deprecated.
                     observation, reward, terminated, done, info = env.step(best_action)
                     score += reward
@@ -235,20 +235,21 @@ def run():
 
             if solved:
                 print("Solved.")
-
-                # Save the winners.
-                for n, g in enumerate(best_genomes):
-                    name = 'winner-{0}'.format(n)
-                    with open(name + '.pickle', 'wb') as f:
-                        pickle.dump(g, f)
-
-                    visualize.draw_net(config, g, view=False, filename=name + "-net.gv")
-                    visualize.draw_net(config, g, view=False, filename=name + "-net-pruned.gv", prune_unused=True)
-
                 break
         except KeyboardInterrupt:
             print("User break.")
             break
+
+        finally:
+            # Save the winners.
+            for n, g in enumerate(best_genomes):
+                name = 'winner-{0}'.format(n)
+                with open(name + '.pickle', 'wb') as f:
+                    pickle.dump(g, f)
+
+                visualize.draw_net(config, g, view=False, filename=name + "-net.gv")
+                visualize.draw_net(config, g, view=False, filename=name + "-net-pruned.gv", prune_unused=True)
+
 
     env.close()
 
