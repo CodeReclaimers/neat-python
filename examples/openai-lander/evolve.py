@@ -96,11 +96,10 @@ class PooledErrorCompute(object):
                     output = net.activate(observation)
                     action = np.argmax(output)
 
-                # Note: done has been deprecated.
-                observation, reward, terminated, done, info = env.step(action)
+                observation, reward, terminated, truncated, info = env.step(action)
                 data.append(np.hstack((observation, action, reward)))
 
-                if terminated or done:
+                if terminated or truncated:
                     break
 
             data = np.array(data)
@@ -216,11 +215,11 @@ def run():
 
                     best_action = np.argmax(votes)
                     # best_action = np.bincount(votes.astype(int)).argmax()
-                    # Note: done has been deprecated.
-                    observation, reward, terminated, done, info = env.step(best_action)
+
+                    observation, reward, terminated, truncated, info = env.step(best_action)
                     score += reward
                     env.render()
-                    if terminated:
+                    if terminated or truncated:
                         break
 
                 ec.episode_score.append(score)
