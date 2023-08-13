@@ -167,7 +167,7 @@ def run():
     pop.add_reporter(neat.StdOutReporter(True))
     # Checkpoint every 25 generations or 900 seconds.
     pop.add_reporter(neat.Checkpointer(25, 900))
-
+    best_genomes = None
     # Run until the winner from a generation is able to solve the environment
     # or the user interrupts the process.
     ec = PooledErrorCompute(NUM_CORES)
@@ -214,7 +214,6 @@ def run():
                         votes[np.argmax(output)] += 1
 
                     best_action = np.argmax(votes)
-                    # best_action = np.bincount(votes.astype(int)).argmax()
 
                     observation, reward, terminated, truncated, info = env.step(best_action)
                     score += reward
@@ -227,7 +226,10 @@ def run():
 
                 best_scores.append(score)
                 avg_score = sum(best_scores) / len(best_scores)
-                print(k, score, avg_score)
+                print(f'Solved {k} times. '
+                      f'Last score {score}, '
+                      f'Average score {avg_score}, '
+                      f'Max score {np.max(best_scores)}')
                 if avg_score < 200:
                     solved = False
                     break
@@ -241,13 +243,14 @@ def run():
 
         finally:
             # Save the winners.
-            for n, g in enumerate(best_genomes):
-                name = 'winner-{0}'.format(n)
-                with open(name + '.pickle', 'wb') as f:
-                    pickle.dump(g, f)
+            if best_genomes:
+                for n, g in enumerate(best_genomes):
+                    name = 'winner-{0}'.format(n)
+                    with open(name + '.pickle', 'wb') as f:
+                        pickle.dump(g, f)
 
-                visualize.draw_net(config, g, view=False, filename=name + "-net.gv")
-                visualize.draw_net(config, g, view=False, filename=name + "-net-pruned.gv", prune_unused=True)
+                    visualize.draw_net(config, g, view=False, filename=name + "-net.gv")
+                    visualize.draw_net(config, g, view=False, filename=name + "-net-pruned.gv", prune_unused=True)
 
 
     env.close()
