@@ -341,8 +341,16 @@ class DefaultGenome(object):
         possible_outputs = list(self.nodes)
         out_node = choice(possible_outputs)
 
-        possible_inputs = possible_outputs + config.input_keys
+        possible_inputs = list((set(self.nodes)- set(config.output_keys)) | set(config.input_keys) )
         in_node = choice(possible_inputs)
+
+        # Check if Input node is an output node
+        if in_node in config.output_keys:
+            # Print usefull information
+            print("Output node: ", out_node)
+            print("Input node: ", in_node)
+            print("Possible inputs: ", possible_inputs)
+            raise Exception("Output node cannot be an input to a connection.")
 
         # Don't duplicate connections.
         key = (in_node, out_node)
