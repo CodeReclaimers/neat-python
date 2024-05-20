@@ -31,14 +31,14 @@ class FeedForwardNetwork(object):
         # Gather expressed connections.
         connections = [cg.key for cg in genome.connections.values() if cg.enabled]
 
-        layers = feed_forward_layers(config.genome_config.input_keys, config.genome_config.output_keys, connections)
+        layers, required = feed_forward_layers(config.genome_config.input_keys, config.genome_config.output_keys, connections)
         node_evals = []
         for layer in layers:
             for node in layer:
                 inputs = []
                 for conn_key in connections:
                     inode, onode = conn_key
-                    if onode == node:
+                    if onode == node and inode in required:
                         cg = genome.connections[conn_key]
                         inputs.append((inode, cg.weight))
 
