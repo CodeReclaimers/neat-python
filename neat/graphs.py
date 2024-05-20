@@ -73,6 +73,16 @@ def required_for_output(inputs, outputs, connections):
 
 
 def feed_forward_layers(inputs, outputs, connections):
+    """
+    Collect the layers whose members can be evaluated in parallel in a feed-forward network.
+    :param inputs: list of the network input nodes
+    :param outputs: list of the output node identifiers
+    :param connections: list of (input, output) connections in the network.
+    Returns a list of layers, with each layer consisting of a set of node identifiers.
+    Note that the returned layers do not contain nodes whose output is ultimately
+    never used to compute the final network output.
+    """
+
     required = required_for_output(inputs, outputs, connections)
 
     layers = []
