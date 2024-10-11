@@ -3,7 +3,7 @@ Runs evaluation functions in parallel subprocesses
 in order to evaluate multiple genomes at once.
 """
 from multiprocessing import Pool
-
+from tqdm import tqdm
 
 class ParallelEvaluator(object):
     def __init__(self, num_workers, eval_function, timeout=None, initializer=None, initargs=(), maxtasksperchild=None):
@@ -26,5 +26,5 @@ class ParallelEvaluator(object):
             jobs.append(self.pool.apply_async(self.eval_function, (genome, config)))
 
         # assign the fitness back to each genome
-        for job, (ignored_genome_id, genome) in zip(jobs, genomes):
+        for job, (ignored_genome_id, genome) in tqdm(zip(jobs, genomes), total=len(jobs)):
             genome.fitness = job.get(timeout=self.timeout)
