@@ -1,5 +1,5 @@
 from neat.graphs import feed_forward_layers
-
+import random
 
 class FeedForwardNetwork(object):
     def __init__(self, inputs, outputs, node_evals):
@@ -8,7 +8,7 @@ class FeedForwardNetwork(object):
         self.node_evals = node_evals
         self.values = dict((key, 0.0) for key in inputs + outputs)
 
-    def activate(self, inputs):
+    def activate(self, inputs, unique_value=False, random_values=False):
         if len(self.input_nodes) != len(inputs):
             raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.input_nodes), len(inputs)))
 
@@ -18,7 +18,12 @@ class FeedForwardNetwork(object):
         for node, act_func, agg_func, bias, response, links in self.node_evals:
             node_inputs = []
             for i, w in links:
-                node_inputs.append(self.values[i] * w)
+                if random_values:
+                    node_inputs.append(self.values[i] * random.uniform(-1, 1))
+                elif unique_value:
+                    node_inputs.append(self.values[i] * unique_value)
+                else:
+                    node_inputs.append(self.values[i] * w)
             s = agg_func(node_inputs)
             self.values[node] = act_func(bias + response * s)
 
