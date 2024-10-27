@@ -8,7 +8,7 @@ class FeedForwardNetwork(object):
         self.node_evals = node_evals
         self.values = dict((key, 0.0) for key in inputs + outputs)
 
-    def activate(self, inputs, unique_value=False, random_values=False):
+    def activate(self, inputs):
         if len(self.input_nodes) != len(inputs):
             raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.input_nodes), len(inputs)))
 
@@ -18,19 +18,14 @@ class FeedForwardNetwork(object):
         for node, act_func, agg_func, bias, response, links in self.node_evals:
             node_inputs = []
             for i, w in links:
-                if random_values:
-                    node_inputs.append(self.values[i] * random.uniform(-1, 1))
-                elif unique_value:
-                    node_inputs.append(self.values[i] * unique_value)
-                else:
-                    node_inputs.append(self.values[i] * w)
+                node_inputs.append(self.values[i] * w)
             s = agg_func(node_inputs)
             self.values[node] = act_func(bias + response * s)
 
         return [self.values[i] for i in self.output_nodes]
 
     @staticmethod
-    def create(genome, config):
+    def create(genome, config, unique_value=False, random_values=False):
         """ Receives a genome and returns its phenotype (a FeedForwardNetwork). """
 
         # Gather expressed connections.
@@ -45,6 +40,10 @@ class FeedForwardNetwork(object):
                     inode, onode = conn_key
                     if onode == node and inode in required:
                         cg = genome.connections[conn_key]
+                        if random_values:
+                            cg.weight = random.uniform(-1.0, 1.0)
+                        if unique_value:
+                            cg.weight = unique_value
                         inputs.append((inode, cg.weight))
 
                 ng = genome.nodes[node]
