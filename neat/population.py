@@ -1,5 +1,7 @@
 """Implements the core evolution algorithm."""
 
+from itertools import count
+
 from neat.math_util import mean
 from neat.reporting import ReporterSet
 
@@ -45,6 +47,10 @@ class Population(object):
             self.species.speciate(config, self.population, self.generation)
         else:
             self.population, self.species, self.generation = initial_state
+            # If the reproduction object has a genome indexer, 
+            # set it to continue from the last genome ID.
+            if hasattr(self.reproduction, "genome_indexer"):
+                self.reproduction.genome_indexer = count(max(self.population.keys()) + 1)
 
         self.best_genome = None
 
