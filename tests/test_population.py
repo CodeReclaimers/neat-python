@@ -69,6 +69,52 @@ class PopulationTests(unittest.TestCase):
             last_genome_key + 1
         )
 
+    def test_reporter_consistency_after_checkpoint_restore(self):
+        """
+        Test that ReportSets in the different objects in population are the same
+        after restoring from a checkpoint.
+        """
+        # Load configuration.
+        local_dir = os.path.dirname(__file__)
+        config_path = os.path.join(local_dir, 'test_configuration')
+        config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                             neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                             config_path)
+
+        p = neat.Population(config)
+        filename_prefix = 'neat-checkpoint-test_population'
+        checkpointer = neat.Checkpointer(1, 5, filename_prefix=filename_prefix)
+        p.add_reporter(checkpointer)
+
+        reporter_set = p.reporters
+        self.assertEqual(reporter_set, p.reproduction.reporters)
+        self.assertEqual(reporter_set, p.species.reporters)
+
+        def eval_genomes(genomes, config):
+            for genome_id, genome in genomes:
+                genome.fitness = 0.5
+
+        p.run(eval_genomes, 5)
+
+        filename = '{0}{1}'.format(
+            filename_prefix, checkpointer.last_generation_checkpoint
+        )
+        restored_population = neat.Checkpointer.restore_checkpoint(filename)
+
+        # Check that the reporters are consistent
+        restored_reporter_set = restored_population.reporters
+        self.assertEqual(
+            restored_reporter_set,
+            restored_population.reproduction.reporters,
+            msg="Reproduction reporters do not match after restore"
+        )
+        self.assertEqual(
+            restored_reporter_set,
+            restored_population.species.reporters,
+            msg="Species reporters do not match after restore"
+        )
+
+
 # def test_minimal():
 #     # sample fitness function
 #     def eval_fitness(population):

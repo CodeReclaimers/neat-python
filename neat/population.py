@@ -48,6 +48,7 @@ class Population(object):
             self.species.speciate(config, self.population, self.generation)
         else:
             self.population, self.species, self.generation = initial_state
+            self.species.reporters = self.reporters
             # If the reproduction object has a genome indexer, 
             # set it to continue from the last genome ID.
             if hasattr(self.reproduction, "genome_indexer"):
