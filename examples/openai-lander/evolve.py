@@ -20,9 +20,8 @@ NUM_CORES = multiprocessing.cpu_count()
 
 env = gym.make('LunarLander-v2')
 
-print("action space: {0!r}".format(env.action_space))
-print("observation space: {0!r}".format(env.observation_space))
-
+# print("action space: {0!r}".format(env.action_space))
+# print("observation space: {0!r}".format(env.observation_space))
 
 class LanderGenome(neat.DefaultGenome):
     def __init__(self, key):
@@ -86,7 +85,7 @@ class PooledErrorCompute(object):
     def simulate(self, nets):
         scores = []
         for genome, net in nets:
-            observation_init_vals, observation_init_info = env.reset()
+            observation, observation_init_info = env.reset()
             step = 0
             data = []
             while 1:
@@ -94,14 +93,13 @@ class PooledErrorCompute(object):
                 if step < 200 and random.random() < 0.2:
                     action = env.action_space.sample()
                 else:
-                    output = net.activate(observation_init_vals)
+                    output = net.activate(observation)
                     action = np.argmax(output)
 
-                # Note: done has been deprecated.
-                observation, reward, terminated, done, info = env.step(action)
+                observation, reward, terminated, truncated, info = env.step(action)
                 data.append(np.hstack((observation, action, reward)))
 
-                if terminated:
+                if terminated or truncated:
                     break
 
             data = np.array(data)
@@ -169,7 +167,7 @@ def run():
     pop.add_reporter(neat.StdOutReporter(True))
     # Checkpoint every 25 generations or 900 seconds.
     pop.add_reporter(neat.Checkpointer(25, 900))
-
+    best_genomes = None
     # Run until the winner from a generation is able to solve the environment
     # or the user interrupts the process.
     ec = PooledErrorCompute(NUM_CORES)
@@ -203,7 +201,7 @@ def run():
             solved = True
             best_scores = []
             for k in range(100):
-                observation_init_vals, observation_init_info = env.reset()
+                observation, observation_init_info = env.reset()
                 score = 0
                 step = 0
                 while 1:
@@ -212,15 +210,15 @@ def run():
                     # determine the best action given the current state.
                     votes = np.zeros((4,))
                     for n in best_networks:
-                        output = n.activate(observation_init_vals)
+                        output = n.activate(observation)
                         votes[np.argmax(output)] += 1
 
                     best_action = np.argmax(votes)
-                    # Note: done has been deprecated.
-                    observation, reward, terminated, done, info = env.step(best_action)
+
+                    observation, reward, terminated, truncated, info = env.step(best_action)
                     score += reward
                     env.render()
-                    if terminated:
+                    if terminated or truncated:
                         break
 
                 ec.episode_score.append(score)
@@ -228,15 +226,24 @@ def run():
 
                 best_scores.append(score)
                 avg_score = sum(best_scores) / len(best_scores)
-                print(k, score, avg_score)
+                print(f'Solved {k} times. '
+                      f'Last score {score}, '
+                      f'Average score {avg_score}, '
+                      f'Max score {np.max(best_scores)}')
                 if avg_score < 200:
                     solved = False
                     break
 
             if solved:
                 print("Solved.")
+                break
+        except KeyboardInterrupt:
+            print("User break.")
+            break
 
-                # Save the winners.
+        finally:
+            # Save the winners.
+            if best_genomes:
                 for n, g in enumerate(best_genomes):
                     name = 'winner-{0}'.format(n)
                     with open(name + '.pickle', 'wb') as f:
@@ -245,10 +252,6 @@ def run():
                     visualize.draw_net(config, g, view=False, filename=name + "-net.gv")
                     visualize.draw_net(config, g, view=False, filename=name + "-net-pruned.gv", prune_unused=True)
 
-                break
-        except KeyboardInterrupt:
-            print("User break.")
-            break
 
     env.close()
 
