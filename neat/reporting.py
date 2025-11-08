@@ -103,7 +103,7 @@ class StdOutReporter(BaseReporter):
         ng = len(population)
         ns = len(species_set.species)
         if self.show_species_detail:
-            print('Population of {0:d} members in {1:d} species:'.format(ng, ns))
+            print('Population of {0:d} members in {1:d} species (after reproduction):'.format(ng, ns))
             print("   ID   age  size   fitness   adj fit  stag")
             print("  ====  ===  ====  =========  =======  ====")
             for sid in sorted(species_set.species):
@@ -115,7 +115,7 @@ class StdOutReporter(BaseReporter):
                 st = self.generation - s.last_improved
                 print(f"  {sid:>4}  {a:>3}  {n:>4}  {f:>9}  {af:>7}  {st:>4}")
         else:
-            print('Population of {0:d} members in {1:d} species'.format(ng, ns))
+            print('Population of {0:d} members in {1:d} species (after reproduction)'.format(ng, ns))
 
         elapsed = time.time() - self.generation_start_time
         self.generation_times.append(elapsed)
