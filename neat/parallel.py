@@ -3,7 +3,15 @@ Runs evaluation functions in parallel subprocesses
 in order to evaluate multiple genomes at once.
 """
 from multiprocessing import Pool
-from tqdm import tqdm
+
+try:
+    from tqdm import tqdm
+    HAVE_TQDM = True
+except ImportError:
+    HAVE_TQDM = False
+    # Fallback: tqdm is just an identity function when not available
+    def tqdm(iterable, total=None):
+        return iterable
 
 class ParallelEvaluator(object):
     def __init__(self, num_workers, eval_function, timeout=None, initializer=None, initargs=(), maxtasksperchild=None):

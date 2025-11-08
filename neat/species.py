@@ -147,3 +147,24 @@ class DefaultSpeciesSet(DefaultClassConfig):
     def get_species(self, individual_id):
         sid = self.genome_to_species[individual_id]
         return self.species[sid]
+
+    def __getstate__(self):
+        """Prepare species set for pickling by converting indexer to a picklable form."""
+        state = self.__dict__.copy()
+        # Convert the itertools.count object to an integer representing the next value
+        if self.indexer is not None:
+            state['_indexer_next_value'] = next(self.indexer)
+            state['indexer'] = None
+        else:
+            state['_indexer_next_value'] = None
+        return state
+
+    def __setstate__(self, state):
+        """Restore species set from pickled state, recreating indexer."""
+        _indexer_next_value = state.pop('_indexer_next_value', None)
+        self.__dict__.update(state)
+        # Recreate the count object starting from the saved next value
+        if _indexer_next_value is not None:
+            self.indexer = count(_indexer_next_value)
+        else:
+            self.indexer = None

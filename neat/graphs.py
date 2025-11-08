@@ -66,7 +66,12 @@ def required_for_output(inputs, outputs, connections):
         if not t:
             break
 
-        required = required.union(t)
+        # Only add non-input nodes to the required set
+        layer_nodes = set(x for x in t if x not in inputs)
+        if not layer_nodes:
+            break
+
+        required = required.union(layer_nodes)
         s = s.union(t)
 
     return required

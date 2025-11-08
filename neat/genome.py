@@ -129,6 +129,32 @@ class DefaultGenomeConfig(object):
             error_string = f"Invalid structural_mutation_surer {self.structural_mutation_surer!r}"
             raise RuntimeError(error_string)
 
+    def __getstate__(self):
+        """Prepare config for pickling by converting node_indexer to a picklable form."""
+        state = self.__dict__.copy()
+        # Convert the itertools.count object to an integer representing the next value
+        # We peek at the value by calling next() and storing it, then the counter advances
+        if self.node_indexer is not None:
+            # We need to save the next value that would be returned
+            # Since calling next() consumes the value, we save it and will recreate
+            # the counter starting from that value when unpickling
+            state['_node_indexer_next_value'] = next(self.node_indexer)
+            state['node_indexer'] = None
+        else:
+            state['_node_indexer_next_value'] = None
+        return state
+
+    def __setstate__(self, state):
+        """Restore config from pickled state, recreating node_indexer."""
+        _node_indexer_next_value = state.pop('_node_indexer_next_value', None)
+        self.__dict__.update(state)
+        # Recreate the count object starting from the saved next value
+        if _node_indexer_next_value is not None:
+            # Recreate counter starting from the value we saved
+            self.node_indexer = count(_node_indexer_next_value)
+        else:
+            self.node_indexer = None
+
 
 class DefaultGenome(object):
     """

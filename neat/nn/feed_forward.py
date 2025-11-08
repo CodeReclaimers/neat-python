@@ -33,12 +33,14 @@ class FeedForwardNetwork(object):
 
         layers, required = feed_forward_layers(config.genome_config.input_keys, config.genome_config.output_keys, connections)
         node_evals = []
+        # Input nodes are not in 'required', but we need to check connections from them too
+        required_with_inputs = required.union(set(config.genome_config.input_keys))
         for layer in layers:
             for node in layer:
                 inputs = []
                 for conn_key in connections:
                     inode, onode = conn_key
-                    if onode == node and inode in required:
+                    if onode == node and inode in required_with_inputs:
                         cg = genome.connections[conn_key]
                         if random_values:
                             cg.weight = random.uniform(-1.0, 1.0)
