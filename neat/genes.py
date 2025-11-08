@@ -76,6 +76,14 @@ class BaseGene(object):
                 setattr(new_gene, a.name, getattr(self, a.name))
             else:
                 setattr(new_gene, a.name, getattr(gene2, a.name))
+        
+        # Implement the 75% disable rule from the NEAT paper:
+        # If either parent has a disabled gene, there is a 75% chance
+        # the offspring gene will be disabled.
+        if hasattr(new_gene, 'enabled'):
+            if not self.enabled or not gene2.enabled:
+                if random() < 0.75:
+                    new_gene.enabled = False
 
         return new_gene
 
