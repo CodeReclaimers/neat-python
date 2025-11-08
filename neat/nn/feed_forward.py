@@ -1,5 +1,5 @@
 from neat.graphs import feed_forward_layers
-
+import random
 
 class FeedForwardNetwork(object):
     def __init__(self, inputs, outputs, node_evals):
@@ -25,21 +25,25 @@ class FeedForwardNetwork(object):
         return [self.values[i] for i in self.output_nodes]
 
     @staticmethod
-    def create(genome, config):
+    def create(genome, config, unique_value=False, random_values=False):
         """ Receives a genome and returns its phenotype (a FeedForwardNetwork). """
 
         # Gather expressed connections.
         connections = [cg.key for cg in genome.connections.values() if cg.enabled]
 
-        layers = feed_forward_layers(config.genome_config.input_keys, config.genome_config.output_keys, connections)
+        layers, required = feed_forward_layers(config.genome_config.input_keys, config.genome_config.output_keys, connections)
         node_evals = []
         for layer in layers:
             for node in layer:
                 inputs = []
                 for conn_key in connections:
                     inode, onode = conn_key
-                    if onode == node:
+                    if onode == node and inode in required:
                         cg = genome.connections[conn_key]
+                        if random_values:
+                            cg.weight = random.uniform(-1.0, 1.0)
+                        if unique_value:
+                            cg.weight = unique_value
                         inputs.append((inode, cg.weight))
 
                 ng = genome.nodes[node]

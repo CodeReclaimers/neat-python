@@ -341,7 +341,7 @@ class DefaultGenome(object):
         possible_outputs = list(self.nodes)
         out_node = choice(possible_outputs)
 
-        possible_inputs = possible_outputs + config.input_keys
+        possible_inputs = list((set(self.nodes)- set(config.output_keys)) | set(config.input_keys) )
         in_node = choice(possible_inputs)
 
         # Don't duplicate connections.

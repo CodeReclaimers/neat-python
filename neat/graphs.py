@@ -1,5 +1,5 @@
 """Directed graph algorithm implementations."""
-
+from collections import defaultdict, deque
 
 def creates_cycle(connections, test):
     """
@@ -38,20 +38,35 @@ def required_for_output(inputs, outputs, connections):
     """
     assert not set(inputs).intersection(outputs)
 
+    # Create a graph representation of the connections
+    graph = defaultdict(list)
+    reverse_graph = defaultdict(list)
+    for a, b in connections:
+        graph[a].append(b)
+        reverse_graph[b].append(a)
+
+    # Perform a breadth-first search (BFS) from each input to find all reachable nodes
+    reachable = set(inputs)
+    queue = deque(inputs)
+
+    while queue:
+        node = queue.popleft()
+        for neighbor in graph[node]:
+            if neighbor not in reachable:
+                reachable.add(neighbor)
+                queue.append(neighbor)
+
+    # Now, traverse from the outputs and find all nodes that are required to reach the outputs
     required = set(outputs)
     s = set(outputs)
-    while 1:
-        # Find nodes not in s whose output is consumed by a node in s.
-        t = set(a for (a, b) in connections if b in s and a not in s)
+    while True:
+        # Find nodes not in s whose output is consumed by a node in s and is reachable from inputs
+        t = set(a for (a, b) in connections if b in s and a not in s and a in reachable)
 
         if not t:
             break
 
-        layer_nodes = set(x for x in t if x not in inputs)
-        if not layer_nodes:
-            break
-
-        required = required.union(layer_nodes)
+        required = required.union(t)
         s = s.union(t)
 
     return required
@@ -63,7 +78,6 @@ def feed_forward_layers(inputs, outputs, connections):
     :param inputs: list of the network input nodes
     :param outputs: list of the output node identifiers
     :param connections: list of (input, output) connections in the network.
-
     Returns a list of layers, with each layer consisting of a set of node identifiers.
     Note that the returned layers do not contain nodes whose output is ultimately
     never used to compute the final network output.
@@ -72,21 +86,24 @@ def feed_forward_layers(inputs, outputs, connections):
     required = required_for_output(inputs, outputs, connections)
 
     layers = []
-    s = set(inputs)
-    while 1:
+    potential_input = set(inputs)
+    while True:
         # Find candidate nodes c for the next layer.  These nodes should connect
         # a node in s to a node not in s.
-        c = set(b for (a, b) in connections if a in s and b not in s)
+        c = set(b for (a, b) in connections if a in potential_input and b not in potential_input)
         # Keep only the used nodes whose entire input set is contained in s.
-        t = set()
+        next_layer = set()
         for n in c:
-            if n in required and all(a in s for (a, b) in connections if b == n):
-                t.add(n)
+            # select connections (a, b) where b == n
+            connections_to_n = [(a, b) for (a, b) in connections if b == n and a in required]
+            if n in required and all(a in potential_input for (a, b) in connections_to_n):
+                next_layer.add(n)
 
-        if not t:
+        if not next_layer:
             break
 
-        layers.append(t)
-        s = s.union(t)
+        layers.append(next_layer)
+        potential_input = potential_input.union(next_layer)
 
-    return layers
+    return layers, required
+
