@@ -182,7 +182,13 @@ class IZNN(object):
                 continue
 
             i, o = cg.key
-            if o not in required and i not in required:
+            # Only keep connections where the output node is in required
+            # The input can be a required node or an input pin
+            if o not in required:
+                continue
+            
+            # Make sure input is either required or is an input pin
+            if i not in required and i not in genome_config.input_keys:
                 continue
 
             if o not in node_inputs:
