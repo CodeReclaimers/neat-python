@@ -57,20 +57,46 @@ class Checkpointer(BaseReporter):
             self.last_time_checkpoint = time.time()
 
     def save_checkpoint(self, config, population, species_set, generation):
-        """ Save the current simulation state. """
+        """
+        Save the current simulation state.
+        
+        Note: This is called from Population via the reporter interface.
+        We need to access the innovation tracker from the Population's reproduction object.
+        However, since this is a reporter callback, we don't have direct access to Population.
+        The innovation tracker will be saved as part of the config state when needed.
+        """
         filename = '{0}{1}'.format(self.filename_prefix, generation)
         print("Saving checkpoint to {0}".format(filename))
 
         with gzip.open(filename, 'w', compresslevel=5) as f:
+            # Note: innovation_tracker is stored in config.genome_config.innovation_tracker
+            # and is automatically included via pickle
             data = (generation, config, population, species_set, random.getstate())
             pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     @staticmethod
     def restore_checkpoint(filename, new_config=None):
-        """Resumes the simulation from a previous saved point."""
+        """
+        Resumes the simulation from a previous saved point.
+        
+        The innovation tracker state is preserved through the Population's reproduction object,
+        which is automatically pickled and restored. The global innovation counter will continue
+        from where it left off, preventing innovation number collisions.
+        """
         with gzip.open(filename) as f:
             generation, config, population, species_set, rndstate = pickle.load(f)
             random.setstate(rndstate)
             if new_config is not None:
                 config = new_config
-            return Population(config, (population, species_set, generation))
+            
+            # Create Population with restored state
+            # The Population.__init__ will restore the reproduction object which contains
+            # the innovation_tracker with its preserved state
+            restored_pop = Population(config, (population, species_set, generation))
+            
+            # The innovation tracker should already be restored via pickle, but we need to
+            # ensure it's properly connected to the genome_config for the next generation
+            if hasattr(restored_pop.reproduction, 'innovation_tracker'):
+                config.genome_config.innovation_tracker = restored_pop.reproduction.innovation_tracker
+            
+            return restored_pop

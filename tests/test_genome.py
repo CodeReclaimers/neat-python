@@ -25,6 +25,11 @@ class TestCreateNew(unittest.TestCase):
         self.config2 = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                                    neat.DefaultSpeciesSet, neat.DefaultStagnation,
                                    config2_path)
+        
+        # Initialize innovation tracker for tests (required in v1.0+)
+        self.innovation_tracker = neat.InnovationTracker()
+        self.config.genome_config.innovation_tracker = self.innovation_tracker
+        self.config2.genome_config.innovation_tracker = self.innovation_tracker
 
     def test_unconnected_no_hidden(self):
         """Unconnected network with only input and output nodes."""
@@ -322,6 +327,10 @@ class TestPruning(unittest.TestCase):
         self.config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                                   neat.DefaultSpeciesSet, neat.DefaultStagnation,
                                   config_path)
+        
+        # Initialize innovation tracker for tests (required in v1.0+)
+        self.innovation_tracker = neat.InnovationTracker()
+        self.config.genome_config.innovation_tracker = self.innovation_tracker
 
     def test_empty_network(self):
         gid = 42

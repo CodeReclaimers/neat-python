@@ -84,6 +84,10 @@ class DefaultGenomeConfig(object):
             raise RuntimeError(error_string)
 
         self.node_indexer = None
+        
+        # Innovation tracker will be set by Population/Reproduction
+        # This enables same-generation deduplication per NEAT paper (Stanley & Miikkulainen, 2002)
+        self.innovation_tracker = None
 
     def add_activation(self, name, func):
         self.activation_defs.add(name, func)
@@ -257,21 +261,55 @@ class DefaultGenome(object):
                 self.connect_partial_nodirect(config)
 
     def configure_crossover(self, genome1, genome2, config):
-        """ Configure a new genome by crossover from two parent genomes. """
+        """
+        Configure a new genome by crossover from two parent genomes.
+        
+        Implements NEAT paper (Stanley & Miikkulainen, 2002, p. 108) crossover:
+        "When crossing over, the genes in both genomes with the same innovation
+        numbers are lined up. Genes are randomly chosen from either parent at
+        matching genes, whereas all excess or disjoint genes are always included
+        from the more fit parent."
+        """
         if genome1.fitness > genome2.fitness:
             parent1, parent2 = genome1, genome2
         else:
             parent1, parent2 = genome2, genome1
 
-        # Inherit connection genes
-        for key, cg1 in parent1.connections.items():
-            cg2 = parent2.connections.get(key)
-            if cg2 is None:
-                # Excess or disjoint gene: copy from the fittest parent.
-                self.connections[key] = cg1.copy()
-            else:
-                # Homologous gene: combine genes from both parents.
-                self.connections[key] = cg1.crossover(cg2)
+        # Inherit connection genes by innovation number
+        # Build innovation number mappings for both parents
+        parent1_innovations = {cg.innovation: cg for cg in parent1.connections.values()}
+        parent2_innovations = {cg.innovation: cg for cg in parent2.connections.values()}
+        
+        # Get all innovation numbers from both parents
+        all_innovations = set(parent1_innovations.keys()) | set(parent2_innovations.keys())
+        
+        for innovation_num in all_innovations:
+            cg1 = parent1_innovations.get(innovation_num)
+            cg2 = parent2_innovations.get(innovation_num)
+            
+            if cg1 is not None and cg2 is not None:
+                # Matching genes: homologous genes are lined up by innovation number
+                # Randomly inherit from either parent
+                if cg1.key != cg2.key:
+                    # This can happen if innovation numbers get reused (e.g., after checkpoint restore
+                    # in a very long evolution run). Treat as disjoint genes instead of matching.
+                    import warnings
+                    warnings.warn(
+                        f"Innovation number collision: innovation {innovation_num} assigned to both "
+                        f"{cg1.key} and {cg2.key}. Treating as disjoint genes.",
+                        RuntimeWarning
+                    )
+                    # Take the gene from the fitter parent
+                    new_gene = cg1.copy()
+                    self.connections[new_gene.key] = new_gene
+                else:
+                    new_gene = cg1.crossover(cg2)
+                    self.connections[new_gene.key] = new_gene
+            elif cg1 is not None:
+                # Disjoint or excess gene from fittest parent (parent1)
+                new_gene = cg1.copy()
+                self.connections[new_gene.key] = new_gene
+            # Note: genes only in parent2 (less fit) are not inherited
 
         # Inherit node genes
         parent1_set = parent1.nodes
@@ -326,10 +364,22 @@ class DefaultGenome(object):
             ng.mutate(config)
 
     def mutate_add_node(self, config):
+        """
+        Add a new node by splitting an existing connection.
+        
+        Uses innovation tracking per NEAT paper (Stanley & Miikkulainen, 2002):
+        If multiple genomes split the same connection in one generation, the resulting
+        connections receive matching innovation numbers.
+        """
         if not self.connections:
             if config.check_structural_mutation_surer():
                 self.mutate_add_connection(config)
             return
+        
+        assert config.innovation_tracker is not None, (
+            "Innovation tracker must be set before genome mutations. "
+            "This should be set by the reproduction module."
+        )
 
         # Choose a random connection to split
         conn_to_split = choice(list(self.connections.values()))
@@ -343,17 +393,39 @@ class DefaultGenome(object):
         conn_to_split.enabled = False
 
         i, o = conn_to_split.key
-        self.add_connection(config, i, new_node_id, 1.0, True)
-        self.add_connection(config, new_node_id, o, conn_to_split.weight, True)
+        
+        # Get innovation numbers for the two new connections
+        # These are keyed by the connection being split, so multiple genomes splitting
+        # the same connection get matching innovation numbers
+        in_innovation = config.innovation_tracker.get_innovation_number(
+            i, new_node_id, 'add_node_in'
+        )
+        out_innovation = config.innovation_tracker.get_innovation_number(
+            new_node_id, o, 'add_node_out'
+        )
+        
+        # Add the two new connections with their innovation numbers
+        self.add_connection(config, i, new_node_id, 1.0, True, innovation=in_innovation)
+        self.add_connection(config, new_node_id, o, conn_to_split.weight, True, innovation=out_innovation)
 
-    def add_connection(self, config, input_key, output_key, weight, enabled):
+    def add_connection(self, config, input_key, output_key, weight, enabled, innovation=None):
+        """Add a connection to this genome. If innovation is None, gets a new one from tracker."""
         # TODO: Add further validation of this connection addition?
         assert isinstance(input_key, int)
         assert isinstance(output_key, int)
         assert output_key >= 0
         assert isinstance(enabled, bool)
+        
         key = (input_key, output_key)
-        connection = config.connection_gene_type(key)
+        
+        # Get innovation number if not provided
+        if innovation is None:
+            assert config.innovation_tracker is not None, "Innovation tracker must be set"
+            innovation = config.innovation_tracker.get_innovation_number(
+                input_key, output_key, 'add_connection'
+            )
+        
+        connection = config.connection_gene_type(key, innovation=innovation)
         connection.init_attributes(config)
         connection.weight = weight
         connection.enabled = enabled
@@ -363,7 +435,16 @@ class DefaultGenome(object):
         """
         Attempt to add a new connection, the only restriction being that the output
         node cannot be one of the network input pins.
+        
+        Uses innovation tracking per NEAT paper (Stanley & Miikkulainen, 2002):
+        If multiple genomes in the same generation add the same connection,
+        they receive the same innovation number.
         """
+        assert config.innovation_tracker is not None, (
+            "Innovation tracker must be set before genome mutations. "
+            "This should be set by the reproduction module."
+        )
+        
         possible_outputs = list(self.nodes)
         out_node = choice(possible_outputs)
 
@@ -389,7 +470,12 @@ class DefaultGenome(object):
         if config.feed_forward and creates_cycle(list(self.connections), key):
             return
 
-        cg = self.create_connection(config, in_node, out_node)
+        # Get innovation number for this connection
+        # Same connection added by multiple genomes in same generation gets same number
+        innovation = config.innovation_tracker.get_innovation_number(
+            in_node, out_node, 'add_connection'
+        )
+        cg = self.create_connection(config, in_node, out_node, innovation)
         self.connections[cg.key] = cg
 
     def mutate_delete_node(self, config):
@@ -494,8 +580,9 @@ class DefaultGenome(object):
         return node
 
     @staticmethod
-    def create_connection(config, input_id, output_id):
-        connection = config.connection_gene_type((input_id, output_id))
+    def create_connection(config, input_id, output_id, innovation):
+        """Create a new connection gene with the given innovation number."""
+        connection = config.connection_gene_type((input_id, output_id), innovation=innovation)
         connection.init_attributes(config)
         return connection
 
@@ -505,9 +592,13 @@ class DefaultGenome(object):
         (FS-NEAT without connections to hidden, if any).
         Originally connect_fs_neat.
         """
+        assert config.innovation_tracker is not None, "Innovation tracker must be set"
         input_id = choice(config.input_keys)
         for output_id in config.output_keys:
-            connection = self.create_connection(config, input_id, output_id)
+            innovation = config.innovation_tracker.get_innovation_number(
+                input_id, output_id, 'initial_connection'
+            )
+            connection = self.create_connection(config, input_id, output_id, innovation)
             self.connections[connection.key] = connection
 
     def connect_fs_neat_hidden(self, config):
@@ -515,10 +606,14 @@ class DefaultGenome(object):
         Randomly connect one input to all hidden and output nodes
         (FS-NEAT with connections to hidden, if any).
         """
+        assert config.innovation_tracker is not None, "Innovation tracker must be set"
         input_id = choice(config.input_keys)
         others = [i for i in self.nodes if i not in config.input_keys]
         for output_id in others:
-            connection = self.create_connection(config, input_id, output_id)
+            innovation = config.innovation_tracker.get_innovation_number(
+                input_id, output_id, 'initial_connection'
+            )
+            connection = self.create_connection(config, input_id, output_id, innovation)
             self.connections[connection.key] = connection
 
     def compute_full_connections(self, config, direct):
@@ -556,14 +651,22 @@ class DefaultGenome(object):
         Create a fully-connected genome
         (except without direct input-output unless no hidden nodes).
         """
+        assert config.innovation_tracker is not None, "Innovation tracker must be set"
         for input_id, output_id in self.compute_full_connections(config, False):
-            connection = self.create_connection(config, input_id, output_id)
+            innovation = config.innovation_tracker.get_innovation_number(
+                input_id, output_id, 'initial_connection'
+            )
+            connection = self.create_connection(config, input_id, output_id, innovation)
             self.connections[connection.key] = connection
 
     def connect_full_direct(self, config):
         """ Create a fully-connected genome, including direct input-output connections. """
+        assert config.innovation_tracker is not None, "Innovation tracker must be set"
         for input_id, output_id in self.compute_full_connections(config, True):
-            connection = self.create_connection(config, input_id, output_id)
+            innovation = config.innovation_tracker.get_innovation_number(
+                input_id, output_id, 'initial_connection'
+            )
+            connection = self.create_connection(config, input_id, output_id, innovation)
             self.connections[connection.key] = connection
 
     def connect_partial_nodirect(self, config):
@@ -572,11 +675,15 @@ class DefaultGenome(object):
         with (unless no hidden nodes) no direct input-output connections.
         """
         assert 0 <= config.connection_fraction <= 1
+        assert config.innovation_tracker is not None, "Innovation tracker must be set"
         all_connections = self.compute_full_connections(config, False)
         shuffle(all_connections)
         num_to_add = int(round(len(all_connections) * config.connection_fraction))
         for input_id, output_id in all_connections[:num_to_add]:
-            connection = self.create_connection(config, input_id, output_id)
+            innovation = config.innovation_tracker.get_innovation_number(
+                input_id, output_id, 'initial_connection'
+            )
+            connection = self.create_connection(config, input_id, output_id, innovation)
             self.connections[connection.key] = connection
 
     def connect_partial_direct(self, config):
@@ -585,11 +692,15 @@ class DefaultGenome(object):
         including (possibly) direct input-output connections.
         """
         assert 0 <= config.connection_fraction <= 1
+        assert config.innovation_tracker is not None, "Innovation tracker must be set"
         all_connections = self.compute_full_connections(config, True)
         shuffle(all_connections)
         num_to_add = int(round(len(all_connections) * config.connection_fraction))
         for input_id, output_id in all_connections[:num_to_add]:
-            connection = self.create_connection(config, input_id, output_id)
+            innovation = config.innovation_tracker.get_innovation_number(
+                input_id, output_id, 'initial_connection'
+            )
+            connection = self.create_connection(config, input_id, output_id, innovation)
             self.connections[connection.key] = connection
 
     def get_pruned_copy(self, genome_config):

@@ -39,6 +39,7 @@ class Population(object):
 
         if initial_state is None:
             # Create a population from scratch, then partition into species.
+            # The reproduction.create_new method will set up the innovation tracker
             self.population = self.reproduction.create_new(config.genome_type,
                                                            config.genome_config,
                                                            config.pop_size)

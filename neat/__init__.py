@@ -1,4 +1,7 @@
 """A NEAT (NeuroEvolution of Augmenting Topologies) implementation"""
+
+__version__ = '1.0.0'
+
 import neat.nn as nn
 import neat.ctrnn as ctrnn
 import neat.iznn as iznn
@@ -13,3 +16,5 @@ from neat.species import DefaultSpeciesSet
 from neat.statistics import StatisticsReporter
 from neat.parallel import ParallelEvaluator
 from neat.checkpoint import Checkpointer
+from neat.innovation import InnovationTracker
+from neat.genes import DefaultNodeGene, DefaultConnectionGene

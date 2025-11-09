@@ -19,7 +19,10 @@ class BaseGene(object):
         self.key = key
 
     def __str__(self):
-        attrib = ['key'] + [a.name for a in self._gene_attributes]
+        attrib = ['key']
+        if hasattr(self, 'innovation'):
+            attrib.append('innovation')
+        attrib += [a.name for a in self._gene_attributes]
         attrib = [f'{a}={getattr(self, a)}' for a in attrib]
         return f'{self.__class__.__name__}({", ".join(attrib)})'
 
@@ -58,7 +61,12 @@ class BaseGene(object):
             setattr(self, a.name, a.mutate_value(v, config))
 
     def copy(self):
-        new_gene = self.__class__(self.key)
+        # Handle innovation number for connection genes
+        if hasattr(self, 'innovation'):
+            new_gene = self.__class__(self.key, innovation=self.innovation)
+        else:
+            new_gene = self.__class__(self.key)
+        
         for a in self._gene_attributes:
             setattr(new_gene, a.name, getattr(self, a.name))
 
@@ -67,10 +75,23 @@ class BaseGene(object):
     def crossover(self, gene2):
         """ Creates a new gene randomly inheriting attributes from its parents."""
         assert self.key == gene2.key
+        
+        # For connection genes, verify innovation numbers match
+        # (they should represent the same historical mutation)
+        if hasattr(self, 'innovation'):
+            assert hasattr(gene2, 'innovation'), "Both genes must have innovation numbers"
+            assert self.innovation == gene2.innovation, (
+                f"Genes with same key must have same innovation number: "
+                f"{self.innovation} vs {gene2.innovation}"
+            )
 
         # Note: we use "a if random() > 0.5 else b" instead of choice((a, b))
         # here because `choice` is substantially slower.
-        new_gene = self.__class__(self.key)
+        if hasattr(self, 'innovation'):
+            new_gene = self.__class__(self.key, innovation=self.innovation)
+        else:
+            new_gene = self.__class__(self.key)
+        
         for a in self._gene_attributes:
             if random() > 0.5:
                 setattr(new_gene, a.name, getattr(self, a.name))
@@ -120,12 +141,25 @@ class DefaultConnectionGene(BaseGene):
     _gene_attributes = [FloatAttribute('weight'),
                         BoolAttribute('enabled')]
 
-    def __init__(self, key):
+    def __init__(self, key, innovation=None):
         assert isinstance(key, tuple), f"DefaultConnectionGene key must be a tuple, not {key!r}"
+        assert innovation is not None, "Innovation number is required for DefaultConnectionGene"
+        assert isinstance(innovation, int), f"Innovation must be an int, not {type(innovation)}"
         BaseGene.__init__(self, key)
+        self.innovation = innovation
 
     def distance(self, other, config):
         d = abs(self.weight - other.weight)
         if self.enabled != other.enabled:
             d += 1.0
         return d * config.compatibility_weight_coefficient
+    
+    def __eq__(self, other):
+        """Compare genes by innovation number."""
+        if not isinstance(other, DefaultConnectionGene):
+            return False
+        return self.innovation == other.innovation
+    
+    def __hash__(self):
+        """Hash by innovation number for use in sets/dicts."""
+        return hash(self.innovation)

@@ -8,6 +8,7 @@ import random
 from itertools import count
 
 from neat.config import ConfigParameter, DefaultClassConfig
+from neat.innovation import InnovationTracker
 from neat.math_util import mean
 
 
@@ -37,8 +38,16 @@ class DefaultReproduction(DefaultClassConfig):
         self.genome_indexer = count(1)
         self.stagnation = stagnation
         self.ancestors = {}
+        
+        # Create innovation tracker for tracking structural mutations
+        # Per NEAT paper (Stanley & Miikkulainen, 2002), this persists across generations
+        self.innovation_tracker = InnovationTracker()
 
     def create_new(self, genome_type, genome_config, num_genomes):
+        """Create a new population of genomes from scratch."""
+        # Set innovation tracker for initial genome creation
+        genome_config.innovation_tracker = self.innovation_tracker
+        
         new_genomes = {}
         for i in range(num_genomes):
             key = next(self.genome_indexer)
@@ -85,7 +94,17 @@ class DefaultReproduction(DefaultClassConfig):
         """
         Handles creation of genomes, either from scratch or by sexual or
         asexual reproduction from parents.
+        
+        Implements innovation tracking per NEAT paper (Stanley & Miikkulainen, 2002):
+        The innovation tracker is reset at the start of each generation to enable
+        same-generation deduplication while preserving the global innovation counter.
         """
+        # Set innovation tracker for this generation and reset generation-specific tracking
+        # This enables same-generation deduplication: if multiple genomes make the same
+        # structural mutation this generation, they get the same innovation number
+        config.genome_config.innovation_tracker = self.innovation_tracker
+        self.innovation_tracker.reset_generation()
+        
         # TODO: I don't like this modification of the species and stagnation objects,
         # because it requires internal knowledge of the objects.
 

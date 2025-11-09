@@ -7,7 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2025-01-09
+
+### Added
+- **Innovation Number Tracking**: Full implementation of innovation numbers as described in the original NEAT paper (Stanley & Miikkulainen, 2002, Section 3.2)
+  - Global innovation counter that increments across all generations
+  - Same-generation deduplication of identical mutations
+  - Innovation-based gene matching during crossover
+  - Proper historical marking of genes for speciation
+- New `InnovationTracker` class in `neat/innovation.py`
+- Comprehensive unit tests in `tests/test_innovation.py` (19 tests)
+- Integration tests in `tests/test_innovation_integration.py` (6 tests)
+- Innovation tracking documentation in `INNOVATION_TRACKING_IMPLEMENTATION.md`
+
 ### Changed
+- **BREAKING**: `DefaultConnectionGene.__init__()` now requires mandatory `innovation` parameter
+- **BREAKING**: All connection gene creation must include innovation numbers
+- **BREAKING**: Crossover now matches genes primarily by innovation number, not tuple keys
+- **BREAKING**: Old checkpoints from pre-1.0 versions are incompatible with 1.0.0+
+- `DefaultGenome.configure_crossover()` updated to match genes by innovation number per NEAT paper Figure 4
+- All genome initialization methods assign innovation numbers to connections
+- `DefaultReproduction` now creates and manages an `InnovationTracker` instance
+- Checkpoint format updated to preserve innovation tracker state
 - `ParallelEvaluator` now implements context manager protocol (`__enter__`/`__exit__`) for proper resource cleanup
 - Improved resource management in `ParallelEvaluator` to prevent multiprocessing pool leaks
 - Fixed `ParallelEvaluator.__del__()` to properly clean up resources without calling `terminate()` unnecessarily

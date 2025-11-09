@@ -1,5 +1,9 @@
 #--- parameters for the XOR-2 experiment ---#
 
+# NOTE: neat-python 1.0+ uses innovation number tracking as described in the
+# original NEAT paper (Stanley & Miikkulainen, 2002). This is now mandatory
+# and enables proper historical marking of genes during evolution.
+
 [NEAT]
 fitness_criterion     = max
 fitness_threshold     = 3.9
