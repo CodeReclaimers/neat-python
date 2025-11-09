@@ -146,18 +146,21 @@ copybutton_prompt_is_regexp = True
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    'page_width': 'auto',  # getting cutoff of included source code
-    'show_related': True,
     # Navigation improvements
     'prev_next_buttons_location': 'both',  # Show prev/next at top and bottom
     'style_external_links': True,  # Mark external links differently
     # GitHub integration
+    'vcs_pageview_mode': 'blob',  # Link to blob view for source files
+}
+
+# GitHub integration - standard way to enable "Edit on GitHub" links
+html_context = {
     'display_github': True,
     'github_user': 'CodeReclaimers',
     'github_repo': 'neat-python',
