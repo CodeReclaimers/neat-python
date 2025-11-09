@@ -1,0 +1,134 @@
+{
+  "format_version": "1.0",
+  "network_type": "feedforward",
+  "metadata": {
+    "created_timestamp": "2025-11-09T15:34:26.047451Z",
+    "neat_python_version": "1.0.0",
+    "fitness": 3.9061692974679936,
+    "generation": 14,
+    "genome_id": 2157,
+    "problem": "XOR",
+    "note": "Example export from neat-python"
+  },
+  "topology": {
+    "num_inputs": 2,
+    "num_outputs": 1,
+    "input_keys": [
+      -1,
+      -2
+    ],
+    "output_keys": [
+      0
+    ]
+  },
+  "nodes": [
+    {
+      "id": 249,
+      "type": "hidden",
+      "activation": {
+        "name": "sigmoid",
+        "custom": false
+      },
+      "aggregation": {
+        "name": "sum",
+        "custom": false
+      },
+      "bias": -0.3696683903761406,
+      "response": 1.0
+    },
+    {
+      "id": 142,
+      "type": "hidden",
+      "activation": {
+        "name": "sigmoid",
+        "custom": false
+      },
+      "aggregation": {
+        "name": "sum",
+        "custom": false
+      },
+      "bias": -0.44984204479845014,
+      "response": 1.0
+    },
+    {
+      "id": 0,
+      "type": "output",
+      "activation": {
+        "name": "sigmoid",
+        "custom": false
+      },
+      "aggregation": {
+        "name": "sum",
+        "custom": false
+      },
+      "bias": -0.9741713191653999,
+      "response": 1.0
+    },
+    {
+      "id": -1,
+      "type": "input",
+      "activation": {
+        "name": "identity",
+        "custom": false
+      },
+      "aggregation": {
+        "name": "none",
+        "custom": false
+      },
+      "bias": 0.0,
+      "response": 1.0
+    },
+    {
+      "id": -2,
+      "type": "input",
+      "activation": {
+        "name": "identity",
+        "custom": false
+      },
+      "aggregation": {
+        "name": "none",
+        "custom": false
+      },
+      "bias": 0.0,
+      "response": 1.0
+    }
+  ],
+  "connections": [
+    {
+      "from": -1,
+      "to": 249,
+      "weight": -0.6787078177328006,
+      "enabled": true
+    },
+    {
+      "from": -2,
+      "to": 249,
+      "weight": 0.8020432243783505,
+      "enabled": true
+    },
+    {
+      "from": -2,
+      "to": 142,
+      "weight": -4.850592190835692,
+      "enabled": true
+    },
+    {
+      "from": -1,
+      "to": 142,
+      "weight": 2.290609856770502,
+      "enabled": true
+    },
+    {
+      "from": 249,
+      "to": 0,
+      "weight": 1.9874852989370797,
+      "enabled": true
+    },
+    {
+      "from": 142,
+      "to": 0,
+      "weight": 5.582312045399618,
+      "enabled": true
+    }
+  ]
+}
