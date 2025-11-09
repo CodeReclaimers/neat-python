@@ -61,24 +61,25 @@ def run(config_file):
     p.add_reporter(stats)
 
     # Run for up to 300 generations.
-    pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), eval_genome)
-    winner = p.run(pe.evaluate, 300)
+    # Use the context manager pattern to ensure proper cleanup of the multiprocessing pool.
+    with neat.ParallelEvaluator(multiprocessing.cpu_count(), eval_genome) as pe:
+        winner = p.run(pe.evaluate, 300)
 
-    # Display the winning genome.
-    print('\nBest genome:\n{!s}'.format(winner))
+        # Display the winning genome.
+        print('\nBest genome:\n{!s}'.format(winner))
 
-    # Show output of the most fit genome against training data.
-    print('\nOutput:')
-    winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
-    for xi, xo in zip(xor_inputs, xor_outputs):
-        output = winner_net.activate(xi)
-        print("input {!r}, expected output {!r}, got {!r}".format(xi, xo, output))
+        # Show output of the most fit genome against training data.
+        print('\nOutput:')
+        winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
+        for xi, xo in zip(xor_inputs, xor_outputs):
+            output = winner_net.activate(xi)
+            print("input {!r}, expected output {!r}, got {!r}".format(xi, xo, output))
 
-    node_names = {-1: 'A', -2: 'B', 0: 'A XOR B'}
-    visualize.draw_net(config, winner, True, node_names=node_names)
-    visualize.draw_net(config, winner, True, node_names=node_names, prune_unused=True)
-    visualize.plot_stats(stats, ylog=False, view=True)
-    visualize.plot_species(stats, view=True)
+        node_names = {-1: 'A', -2: 'B', 0: 'A XOR B'}
+        visualize.draw_net(config, winner, True, node_names=node_names)
+        visualize.draw_net(config, winner, True, node_names=node_names, prune_unused=True)
+        visualize.plot_stats(stats, ylog=False, view=True)
+        visualize.plot_species(stats, view=True)
 
 
 if __name__ == '__main__':
