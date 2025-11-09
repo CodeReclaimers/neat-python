@@ -4,6 +4,8 @@ fitness_threshold     = 0.9
 pop_size              = 150
 reset_on_extinction   = False
 
+no_fitness_termination         = False
+
 [DefaultGenome]
 # node activation options
 activation_default      = sigmoid
@@ -65,6 +67,14 @@ weight_min_value        = -30
 weight_mutate_power     = 0.5
 weight_mutate_rate      = 0.8
 weight_replace_rate     = 0.1
+
+single_structural_mutation     = false
+structural_mutation_surer      = default
+bias_init_type                 = gaussian
+response_init_type             = gaussian
+weight_init_type               = gaussian
+enabled_rate_to_true_add       = 0.0
+enabled_rate_to_false_add      = 0.0
 
 [DefaultSpeciesSet]
 compatibility_threshold = 3.0

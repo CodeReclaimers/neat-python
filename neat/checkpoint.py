@@ -79,24 +79,33 @@ class Checkpointer(BaseReporter):
         """
         Resumes the simulation from a previous saved point.
         
-        The innovation tracker state is preserved through the Population's reproduction object,
-        which is automatically pickled and restored. The global innovation counter will continue
-        from where it left off, preventing innovation number collisions.
+        The innovation tracker state is preserved in the pickled config and must be
+        transferred to the new reproduction object to ensure innovation numbers continue
+        correctly and prevent collisions during crossover.
         """
         with gzip.open(filename) as f:
-            generation, config, population, species_set, rndstate = pickle.load(f)
+            generation, saved_config, population, species_set, rndstate = pickle.load(f)
             random.setstate(rndstate)
+            
+            # Extract the saved innovation tracker from the config before replacing it
+            saved_innovation_tracker = None
+            if hasattr(saved_config.genome_config, 'innovation_tracker'):
+                saved_innovation_tracker = saved_config.genome_config.innovation_tracker
+            
+            # Use new config if provided, otherwise use saved config
             if new_config is not None:
                 config = new_config
+            else:
+                config = saved_config
             
             # Create Population with restored state
-            # The Population.__init__ will restore the reproduction object which contains
-            # the innovation_tracker with its preserved state
+            # This creates a new reproduction object with a fresh innovation tracker
             restored_pop = Population(config, (population, species_set, generation))
             
-            # The innovation tracker should already be restored via pickle, but we need to
-            # ensure it's properly connected to the genome_config for the next generation
-            if hasattr(restored_pop.reproduction, 'innovation_tracker'):
-                config.genome_config.innovation_tracker = restored_pop.reproduction.innovation_tracker
+            # Replace the fresh innovation tracker with the saved one to maintain
+            # the correct innovation numbering sequence
+            if saved_innovation_tracker is not None:
+                restored_pop.reproduction.innovation_tracker = saved_innovation_tracker
+                config.genome_config.innovation_tracker = saved_innovation_tracker
             
             return restored_pop

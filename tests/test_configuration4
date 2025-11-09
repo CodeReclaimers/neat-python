@@ -73,6 +73,10 @@ weight_mutate_power     = 0.5
 weight_mutate_rate      = 0.8
 weight_replace_rate     = 0.1
 
+bias_init_type                 = gaussian
+response_init_type             = gaussian
+enabled_rate_to_false_add      = 0.0
+
 [DefaultSpeciesSet]
 compatibility_threshold = 3.0
 

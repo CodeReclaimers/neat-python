@@ -67,7 +67,8 @@ def test_add_minabs():
                          config_path)
     config.genome_config.add_aggregation('minabs', minabs_aggregation)
     assert config.genome_config.aggregation_function_defs.get('minabs') is not None
-    assert config.genome_config.aggregation_function_defs['minabs'] is not None
+    # Test that .get() method works (recommended approach)
+    assert config.genome_config.aggregation_function_defs.get('minabs') is not None
     assert config.genome_config.aggregation_function_defs.is_valid('minabs')
 
 
@@ -95,12 +96,13 @@ def test_function_set():
 
     assert not s.is_valid('foo')
 
+    # Test that invalid aggregation raises exception
     try:
-        ignored = s['foo']
-    except TypeError:
+        ignored = s.get('foo')
+    except aggregations.InvalidAggregationFunction:
         pass
     else:
-        raise Exception("Should have gotten a TypeError for dict lookup of 'foo'")
+        raise Exception("Should have gotten InvalidAggregationFunction for lookup of 'foo'")
 
 
 def test_bad_add1():
