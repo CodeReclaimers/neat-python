@@ -1,19 +1,16 @@
-#--- parameters for the XOR-2 experiment ---#
-
-# NOTE: neat-python 1.0+ uses innovation number tracking as described in the
-# original NEAT paper (Stanley & Miikkulainen, 2002). This is now mandatory
-# and enables proper historical marking of genes during evolution.
-
 [NEAT]
 fitness_criterion     = max
 fitness_threshold     = 9.9
 pop_size              = 500
 reset_on_extinction   = False
 
+no_fitness_termination         = False
+
 [IZGenome]
 # node bias options
 bias_init_mean          = 0.0
 bias_init_stdev         = 2.0
+bias_init_type          = gaussian
 bias_max_value          = 10.0
 bias_min_value          = -10.0
 bias_mutate_power       = 5.0
@@ -47,6 +44,7 @@ num_outputs             = 2
 # node parameters for regular spiking
 a_init_mean      = 0.02
 a_init_stdev     = 0.0
+a_init_type      = gaussian
 a_max_value      = 30.0
 a_min_value      = -30.0
 a_mutate_power   = 0.0
@@ -55,6 +53,7 @@ a_replace_rate   = 0.0
 
 b_init_mean      = 0.2
 b_init_stdev     = 0.0
+b_init_type      = gaussian
 b_max_value      = 30.0
 b_min_value      = -30.0
 b_mutate_power   = 0.0
@@ -63,6 +62,7 @@ b_replace_rate   = 0.0
 
 c_init_mean      = -65.0
 c_init_stdev     = 0.0
+c_init_type      = gaussian
 c_max_value      = 30.0
 c_min_value      = -30.0
 c_mutate_power   = 0.0
@@ -72,6 +72,7 @@ c_replace_rate   = 0.0
 d_init_mean      = 8.0
 d_init_stdev     = 0.0
 d_max_value      = 30.0
+d_init_type      = gaussian
 d_min_value      = -30.0
 d_mutate_power   = 0.0
 d_mutate_rate    = 0.0
@@ -80,11 +81,17 @@ d_replace_rate   = 0.0
 # connection weight options
 weight_init_mean        = 0.0
 weight_init_stdev       = 10.0
+weight_init_type        = gaussian
 weight_max_value        = 100
 weight_min_value        = -100
 weight_mutate_power     = 5.0
 weight_mutate_rate      = 0.8
 weight_replace_rate     = 0.1
+
+single_structural_mutation = false
+structural_mutation_surer  = default
+enabled_rate_to_true_add   = 0.0
+enabled_rate_to_false_add  = 0.0
 
 [DefaultSpeciesSet]
 compatibility_threshold = 4.0
@@ -93,7 +100,11 @@ compatibility_threshold = 4.0
 species_fitness_func = mean
 max_stagnation       = 50
 
+species_elitism                = 2
+
 [DefaultReproduction]
 elitism            = 2
 survival_threshold = 0.2
+
+min_species_size               = 2
 

@@ -1,14 +1,10 @@
-#--- parameters for the XOR-2 experiment ---#
-
-# NOTE: neat-python 1.0+ uses innovation number tracking as described in the
-# original NEAT paper (Stanley & Miikkulainen, 2002). This is now mandatory
-# and enables proper historical marking of genes during evolution.
-
 [NEAT]
 fitness_criterion     = max
 fitness_threshold     = 3.9
 pop_size              = 150
 reset_on_extinction   = False
+
+no_fitness_termination         = False
 
 [DefaultGenome]
 # node activation options
@@ -72,6 +68,14 @@ weight_mutate_power     = 0.5
 weight_mutate_rate      = 0.8
 weight_replace_rate     = 0.1
 
+single_structural_mutation     = false
+structural_mutation_surer      = default
+bias_init_type                 = gaussian
+response_init_type             = gaussian
+weight_init_type               = gaussian
+enabled_rate_to_true_add       = 0.0
+enabled_rate_to_false_add      = 0.0
+
 [DefaultSpeciesSet]
 compatibility_threshold = 3.0
 
@@ -83,4 +87,6 @@ species_elitism      = 2
 [DefaultReproduction]
 elitism            = 2
 survival_threshold = 0.2
+
+min_species_size               = 2
 
