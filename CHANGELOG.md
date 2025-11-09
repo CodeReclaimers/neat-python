@@ -5,7 +5,8 @@ All notable changes to neat-python will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+
+## [1.0.0] - 2025-01-09
 
 ### Added
 - **Network Export**: JSON export capability for all network types (FeedForwardNetwork, RecurrentNetwork, CTRNN, IZNN)
@@ -18,9 +19,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Full test suite in `tests/test_export.py`
   - No additional dependencies required (uses only Python standard library)
 
-## [1.0.0] - 2025-01-09
-
-### Added
 - **Innovation Number Tracking**: Full implementation of innovation numbers as described in the original NEAT paper (Stanley & Miikkulainen, 2002, Section 3.2)
   - Global innovation counter that increments across all generations
   - Same-generation deduplication of identical mutations
