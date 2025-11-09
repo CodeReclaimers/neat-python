@@ -665,262 +665,78 @@ ctrnn
       :type time_constant: :pytypes:`float <typesnumeric>`
 
 
-.. index:: ! compute node
-.. index:: ! primary node
-.. index:: ! secondary node
-.. index::
-    see: primary compute node; primary node
-    see: secondary compute node; secondary node
+.. py:module:: parallel
+   :synopsis: Runs evaluation functions in parallel subprocesses in order to evaluate multiple genomes at once.
 
-.. py:module:: distributed
-   :synopsis: Distributed evaluation of genomes.
-
-distributed
---------------
-  Distributed evaluation of genomes.
-
-  .. note::
-
-    This module is in a **beta** state, and still *unstable* even in single-machine testing. Reliability is likely to vary, including depending on the Python version
-    and implementation (e.g., cpython vs pypy) in use and the likelihoods of timeouts (due to machine and/or network slowness). In particular, while the code can try
-    to reconnect between between :term:`primary <primary node>` and :term:`secondary <secondary node>` nodes, as noted in the `multiprocessing` documentation
-    this may not work due to data loss/corruption. Note also that this module is not responsible for starting the script copies on the different
-    :term:`compute nodes <compute node>`, since this is very site/configuration-dependent.
-
-  .. rubric:: About :term:`compute nodes <compute node>`:
-
-  The :term:`primary compute node` (the node which creates and mutates genomes) and the :term:`secondary compute nodes <secondary node>` (the nodes which
-  evaluate genomes) can execute the same script. The role of a compute node is determined using the ``mode`` argument of the DistributedEvaluator. If the
-  mode is :py:data:`MODE_AUTO`, the `host_is_local()` function is used to check if the ``addr`` argument points to the localhost. If it does, the compute
-  node starts as a :term:`primary node`, and otherwise as a :term:`secondary node`. If ``mode`` is :py:data:`MODE_PRIMARY`, the compute node always starts
-  as a primary node. If ``mode`` is :py:data:`MODE_SECONDARY`, the compute node will always start as a secondary node.
-
-  There can only be one primary node per NEAT, but any number of secondary nodes. The primary node will not evaluate any genomes, which means you will
-  always need at least two compute nodes (one primary and at least one secondary).
-
-  You can run any number of compute nodes on the same physical machine (or VM). However, if a machine has both a primary node and one or more secondary
-  nodes, :py:data:`MODE_AUTO` cannot be used for those secondary nodes - :py:data:`MODE_SECONDARY` will need to be specified.
-
-  .. rubric:: Usage:
-
-  1. Import modules and define the evaluation logic (the ``eval_genome`` function). (After this, check for ``if __name__ == '__main__'``, and put the rest of the code inside the body of the statement, or in subroutines called from it.)
-  2. Load config and create a :py:class:`population <population.Population>` - here, the variable ``p``.
-  3. If required, create and add :py:mod:`reporters <reporting>`.
-  4. Create a :py:class:`DistributedEvaluator(addr_of_primary_node, b'some_password', eval_function, mode=MODE_AUTO) <distributed.DistributedEvaluator>` - here, the variable ``de``.
-  5. Call :py:meth:`de.start(exit_on_stop=True) <distributed.DistributedEvaluator.start>`. The ``start()`` call will block on the secondary nodes and call :pylib:`sys.exit(0) <sys.html#sys.exit>` when the NEAT evolution finishes. This means that the following code will only be executed on the primary node.
-  6. Start the evaluation using :py:meth:`p.run(de.evaluate, number_of_generations) <population.Population.run>`.
-  7. Stop the secondary nodes using :py:meth:`de.stop() <distributed.DistributedEvaluator.stop>`.
-  8. You are done. You may want to save the winning genome(s) or show some :py:mod:`statistics`.
-
-  See :file:`examples/xor/evolve-feedforward-distributed.py` for a complete example.
-
-  .. note::
-
-    The below contains some (but not complete) information about private functions, classes, and similar (starting with ``_``); this documentation is meant to help with
-    maintaining and improving the code, not for enabling external use, and the interface may change **rapidly** with no warning.
-
-  .. py:data:: MODE_AUTO
-  .. py:data:: MODE_PRIMARY
-  .. py:data:: MODE_SECONDARY
-
-    Values - which should be treated as constants - that are used for the ``mode`` argument of :py:class:`DistributedEvaluator`. If MODE_AUTO,
-    :py:func:`_determine_mode()` uses :py:func:`host_is_local()` and the specified ``addr`` of the :term:`primary node` to decide the mode; the other two specify it.
-
-  .. py:data:: _STATE_RUNNING
-  .. py:data:: _STATE_SHUTDOWN
-  .. py:data:: _STATE_FORCED_SHUTDOWN
-
-    Values - which should be treated as constants - that are used to determine the current state (whether the secondaries should be continuing the run or not).
-
-  .. py:exception:: ModeError(RuntimeError)
-
-    An exception raised when a mode-specific method is being called without being in the mode - either a primary-specific method
-    called by a :term:`secondary node` or a secondary-specific method called by a :term:`primary node`.
-
-  .. py:function:: host_is_local(hostname, port=22)
-
-    Returns True if the hostname points to the localhost (including shares addresses), otherwise False.
-
-    :param str hostname: The hostname to be checked; will be put through `socket.getfqdn`.
-    :param port: The optional port for `socket` functions requiring one. Defaults to 22, the ssh port.
-    :type port: :pytypes:`int <typesnumeric>`
-    :return: Whether the hostname appears to be equivalent to that of the localhost.
-    :rtype: :pytypes:`bool <typesnumeric>`
-
-  .. py:function:: _determine_mode(addr, mode)
-
-    Returns the mode that should be used.  If ``mode`` is :py:data:`MODE_AUTO`, this is determined by checking (via :py:func:`host_is_local()`) if ``addr`` points
-    to the localhost; if it does, it returns :py:data:`MODE_PRIMARY`, else it returns :py:data:`MODE_SECONDARY`. If mode is either MODE_PRIMARY or
-    MODE_SECONDARY, it returns the ``mode`` argument. Otherwise, a ValueError is raised.
-
-    :param addr: Either a tuple of (hostname, port) pointing to the machine that has the :term:`primary node`, or the hostname (as ``bytes`` if on 3.X).
-    :type addr: tuple(str, int) or bytes
-    :param int mode: Specifies the mode to run in - must be one of :py:data:`MODE_AUTO`, :py:data:`MODE_PRIMARY`, or :py:data:`MODE_SECONDARY`.
-    :raises ValueError: If the mode is not one of the above.
-
-  .. py:function:: chunked(data, chunksize)
-
-     Splits up ``data`` and returns it as a list of chunks containing at most ``chunksize`` elements of data.
-
-    :param data: The data to split up; takes any :pygloss:`iterable`.
-    :type data: list(object) or tuple(object) or set(object)
-    :param chunksize: The maximum number of elements per chunk.
-    :type chunksize: :pytypes:`int <typesnumeric>`
-    :return: A list of chunks containing (as a list) at most ``chunksize`` elements of data.
-    :rtype: list(list(object))
-    :raises ValueError: If ``chunksize`` is not 1+ or is not an integer
-
-  .. py:class:: _ExtendedManager(addr, authkey, mode, start=False)
-
-    Manages the :pylib:`multiprocessing.managers.SyncManager <multiprocessing.html#multiprocessing.managers.SyncManager>` instance. Initializes
-    ``self._secondary_state`` to :py:data:`_STATE_RUNNING`.
-
-    :param addr: Should be a tuple of (hostname, port) pointing to the machine running the DistributedEvaluator in primary mode. If mode is :py:data:`MODE_AUTO`, the mode is determined by checking whether the hostname points to this host or not (via :py:func:`_determine_mode()` and :py:func:`host_is_local()`).
-    :type addr: tuple(str, int)
-    :param authkey:  The password used to restrict access to the manager. All DistributedEvaluators need to use the same authkey. Note that this needs to be a :pytypes:`bytes` object for Python 3.X, and should be in 2.7 for compatibility (identical in 2.7 to a `str` object). For more information, see under :py:class:`DistributedEvaluator`.
-    :type authkey: :pytypes:`bytes`
-    :param int mode: Specifies the mode to run in - must be one of :py:data:`MODE_AUTO`, :py:data:`MODE_PRIMARY`, or :py:data:`MODE_SECONDARY`. Processed by :py:func:`_determine_mode()`.
-    :param bool start: Whether to call the :py:meth:`start()` method after initialization.
-
-    .. py:method:: __reduce__()
-
-      Used by `pickle` to serialize instances of this class. TODO: Appears to assume that ``start`` (for initialization) should be true; perhaps ``self.manager``
-      should be checked? (This may require :py:meth::`stop()` to set ``self.manager`` to ``None``, incidentally.)
-
-      :return: Information about the class instance; a tuple of (class name, tuple(addr, authkey, mode, True)).
-      :rtype: tuple(str, tuple(tuple(str, int), bytes, int, bool))
-
-    .. py:method:: start()
-
-      Starts (if in :py:data:`MODE_PRIMARY`) or connects to (if in :py:data:`MODE_SECONDARY`) the manager.
-
-    .. py:method:: stop()
-
-      Stops the manager using :pylib:`shutdown <multiprocessing.html#multiprocessing.managers.BaseManager.shutdown>` .
-      TODO: Should this set ``self.manager`` to None?
-
-    .. py:method:: set_secondary_state(value)
-
-      Sets the value for the ``secondary_state``, shared between the nodes via :pylib:`multiprocessing.managers.Value <multiprocessing.html#multiprocessing.managers.SyncManager.Value>`.
-
-      :param int value: The desired secondary state; must be one of :py:data:`_STATE_RUNNING`, :py:data:`_STATE_SHUTDOWN`, or :py:data:`_STATE_FORCED_SHUTDOWN`.
-      :raises ValueError: If the ``value`` is not one of the above.
-      :raises RuntimeError: If the manager has not been :py:meth:`started <start()>`.
-
-    .. py:attribute:: secondary_state
-
-      The :pylib:`property <functions.html#property>` ``secondary_state`` - whether the secondary nodes should still be processing elements.
-
-    .. py:method:: get_inqueue()
-
-      Returns the inqueue.
-
-      :return: The incoming :pylib:`queue <multiprocessing.html#multiprocessing.Queue>`.
-      :rtype: :datamodel:`instance <index-48>`
-      :raises RuntimeError: If the manager has not been :py:meth:`started <start()>`.
-
-    .. py:method:: get_outqueue()
-
-      Returns the outqueue.
-
-      :return: The outgoing :pylib:`queue <multiprocessing.html#multiprocessing.Queue>`.
-      :rtype: :datamodel:`instance <index-48>`
-      :raises RuntimeError: If the manager has not been :py:meth:`started <start()>`.
-
-    .. py:method:: get_namespace()
-
-      Returns the manager's namespace instance.
-
-      :return: The :pylib:`namespace <argparse.html#argparse.Namespace>`.
-      :rtype: :datamodel:`instance <index-48>`
-      :raises RuntimeError: If the manager has not been :py:meth:`started <start()>`.
-
+parallel
+----------
+Runs evaluation functions in parallel subprocesses in order to evaluate multiple genomes at once.
 
   .. index:: fitness function
   .. index:: fitness
 
-  .. py:class:: DistributedEvaluator(addr, authkey, eval_function, secondary_chunksize=1, num_workers=None, worker_timeout=60, mode=MODE_AUTO)
+  .. py:class:: ParallelEvaluator(num_workers, eval_function, timeout=None, initializer=None, initargs=(), maxtasksperchild=None)
 
-    An evaluator working across multiple machines (:term:`compute nodes <compute node>`).
+    Runs evaluation functions in parallel subprocesses using :pylib:`multiprocessing.Pool <multiprocessing.html#multiprocessing.pool.Pool>` to evaluate multiple genomes at once.
 
-    .. warning::
+    .. versionchanged:: 1.0
+      Added context manager support for proper resource cleanup.
 
-      See :pylib:`Authentication Keys <multiprocessing.html#authentication-keys>` for more on the ``authkey`` parameter, used to restrict access to the manager.
-
-    :param addr: Should be a tuple of (hostname, port) pointing to the machine running the DistributedEvaluator in primary mode. If mode is :py:data:`MODE_AUTO`, the mode is determined by checking whether the hostname points to this host or not (via :py:func:`host_is_local()`).
-    :type addr: tuple(str, int)
-    :param authkey:  The password used to restrict access to the manager. All DistributedEvaluators need to use the same authkey. Note that this needs to be a :pytypes:`bytes` object for Python 3.X, and should be in 2.7 for compatibility (identical in 2.7 to a `str` object).
-    :type authkey: :pytypes:`bytes`
-    :param eval_function: The eval_function should take two arguments - a genome object and a config object - and return a single :pytypes:`float <typesnumeric>` (the genome's fitness) Note that this is not the same as how a fitness function is called by :py:meth:`Population.run <population.Population.run>`, nor by :py:class:`ParallelEvaluator <parallel.ParallelEvaluator>` (although it is more similar to the latter).
+    :param int num_workers: How many workers to have in the multiprocessing pool.
+    :param eval_function: The eval_function should take one argument - a `tuple` of (genome object, config object) - and return a single :pytypes:`float <typesnumeric>` (the genome's fitness). Note that this is not the same as how a fitness function is called by :py:meth:`Population.run <population.Population.run>`.
     :type eval_function: `function`
-    :param secondary_chunksize: The number of :term:`genomes <genome>` that will be sent to a :term:`secondary node` at any one time.
-    :type secondary_chunksize: :pytypes:`int <typesnumeric>`
-    :param num_workers: The number of worker processes per :term:`secondary node`, used for evaluating genomes. If None, will use :pylib:`multiprocessing.cpu_count() <multiprocessing.html#multiprocessing.cpu_count>`  to determine the number of processes (see further below regarding this default). If 1 (for a secondary node), including if there is no usable result from ``multiprocessing.cpu_count()``, then the process creating the DistributedEvaluator instance will also do the evaluations.
-    :type num_workers: :pytypes:`int <typesnumeric>` or None
-    :param worker_timeout:  specifies the timeout (in seconds) for a secondary node getting the results from a worker subprocess; if None, there is no timeout.
-    :type worker_timeout: :pytypes:`float <typesnumeric>` or None
-    :param int mode: Specifies the mode to run in - must be one of :py:data:`MODE_AUTO` (the default), :py:data:`MODE_PRIMARY`, or :py:data:`MODE_SECONDARY`.
-    :raises ValueError: If the mode is not one of the above.
+    :param timeout: How long (in seconds) each subprocess will be given before an exception is raised (unlimited if `None`).
+    :type timeout: :pytypes:`int <typesnumeric>` or None
+    :param initializer: Optional function to call on each worker process at startup.
+    :type initializer: `function` or None
+    :param initargs: Optional tuple of arguments for the initializer function.
+    :type initargs: tuple
+    :param maxtasksperchild: The number of tasks a worker process can complete before it will exit and be replaced with a fresh worker process, to enable unused resources to be freed. The default maxtasksperchild is None, which means worker processes will live as long as the pool.
+    :type maxtasksperchild: :pytypes:`int <typesnumeric>` or None
 
-    .. note::
+    .. py:method:: __enter__()
 
-      Whether the default for ``num_workers`` is appropriate can vary depending on the evaluation function (e.g., whether cpu-bound, memory-bound, i/o-bound...), python implementation, and other factors; if unsure and maximal per-machine performance is critical, experimentation will be required.
+      Context manager entry point. Returns self.
 
-    .. py:method:: is_primary()
+      :return: The ParallelEvaluator instance.
+      :rtype: :datamodel:`instance <index-48>`
 
-      Returns True if the caller is the :term:`primary node`; otherwise False.
+      .. versionadded:: 1.0
 
-      :return: `True` if primary, `False` if :term:`secondary <secondary node>`
+    .. py:method:: __exit__(exc_type, exc_val, exc_tb)
+
+      Context manager exit point. Ensures proper cleanup of the multiprocessing pool.
+
+      :param exc_type: Exception type if an exception occurred, None otherwise.
+      :param exc_val: Exception value if an exception occurred, None otherwise.
+      :param exc_tb: Exception traceback if an exception occurred, None otherwise.
+      :return: False (does not suppress exceptions).
       :rtype: :pytypes:`bool <typesnumeric>`
 
-    .. py:method:: is_master()
+      .. versionadded:: 1.0
 
-      A backward-compatibility wrapper for :py:meth:`is_primary`.
+    .. py:method:: close()
 
-      :return: `True` if primary, `False` if :term:`secondary <secondary node>`
-      :rtype: :pytypes:`bool <typesnumeric>`
-      :raises DeprecationWarning: Always.
+      Explicitly closes and cleans up the multiprocessing pool. Safe to call multiple times.
 
-      .. deprecated:: 0.92
+      .. versionadded:: 1.0
 
-    .. py:method:: start(exit_on_stop=True, secondary_wait=0, reconnect=False)
+    .. py:method:: __del__()
 
-      If the DistributedEvaluator is in primary mode, starts the manager process and returns. If the DistributedEvaluator is in secondary mode, it connects to the
-      manager and waits for tasks.
-
-      :param exit_on_stop: If a secondary node, whether to exit if (unless ``reconnect`` is ``True``) the connection is lost, the primary calls for a shutdown (via :py:meth:`stop()`), or - even if ``reconnect`` is True - the primary calls for a forced shutdown (via calling :py:meth:`stop()` with ``force_secondary_shutdown`` set to ``True``).
-      :type exit_on_stop: :pytypes:`bool <typesnumeric>`
-      :param secondary_wait: Specifies the time (in seconds) to sleep before actually starting, if a :term:`secondary node`.
-      :type secondary_wait: :pytypes:`float <typesnumeric>`
-      :param bool reconnect: If a secondary node, whether it should try to reconnect if the connection is lost.
-      :raises RuntimeError: If already started.
-      :raises ValueError: If the mode is invalid.
-
-    .. py:method:: stop(wait=1, shutdown=True, force_secondary_shutdown=False)
-
-      Stops all secondaries.
-
-      :param wait: Time (in seconds) to wait after telling the secondaries to stop.
-      :type wait: :pytypes:`float <typesnumeric>`
-      :param shutdown: Whether to :pylib:`shutdown <multiprocessing.html#multiprocessing.managers.BaseManager.shutdown>` the :pylib:`multiprocessing.managers.SyncManager <multiprocessing.html#multiprocessing.managers.SyncManager>` also (after the wait, if any).
-      :type shutdown: :pytypes:`bool <typesnumeric>`
-      :param bool force_secondary_shutdown: Causes secondaries to shutdown even if started with ``reconnect`` true (via setting the ``secondary_state`` to :py:data:`_STATE_FORCED_SHUTDOWN` instead of :py:data:`_STATE_SHUTDOWN`).
-      :raises ModeError: If not the :term:`primary node` (not in :py:data:`MODE_PRIMARY`).
-      :raises RuntimeError: If not yet :py:meth:`started <start()>`.
+       Cleanup on deletion. Ensures the multiprocessing pool is properly terminated.
 
     .. py:method:: evaluate(genomes, config)
 
-      Evaluates the genomes. Distributes the genomes to the secondary nodes, then gathers the fitnesses from the secondary nodes and assigns them to the
-      genomes. Must not be called by :term:`secondary nodes <secondary node>`. TODO: Improved handling of errors from broken connections with
-      the secondary nodes may be needed.
+      Distributes the evaluation jobs among the subprocesses, then assigns each fitness back to the appropriate genome.
 
-      :param genomes: Dictionary of (:term:`genome_id <key>`, genome) 
-      :type genomes: dict(int, :datamodel:`instance <index-48>`)
-      :param config: Configuration object.
+      :param genomes: A list of tuples of :term:`genome_id <key>` (not used), genome.
+      :type genomes: list(tuple(int, :datamodel:`instance <index-48>`))
+      :param config: A `config.Config` instance.
       :type config: :datamodel:`instance <index-48>`
-      :raises ModeError: If not the :term:`primary node` (not in :py:data:`MODE_PRIMARY`).
 
-  .. versionadded:: 0.92
+  .. note::
+
+    For multi-machine distributed evaluation, consider using established frameworks like Ray (https://docs.ray.io/) or Dask (https://docs.dask.org/). See the project's MIGRATION.md for examples.
 
 .. py:module:: genes
    :synopsis: Handles node and connection genes.
@@ -1790,42 +1606,6 @@ nn.recurrent
       :return: A :py:class:`RecurrentNetwork` instance.
       :rtype: :datamodel:`instance <index-48>`
 
-.. py:module:: parallel
-   :synopsis: Runs evaluation functions in parallel subprocesses in order to evaluate multiple genomes at once.
-
-parallel
-----------
-Runs evaluation functions in parallel subprocesses in order to evaluate multiple genomes at once.
-
-  .. index:: fitness function
-  .. index:: fitness
-
-  .. py:class:: ParallelEvaluator(num_workers, eval_function, timeout=None, maxtasksperchild=None)
-
-    Runs evaluation functions in parallel subprocesses in order to evaluate multiple genomes at once. The analogous :py:mod:`threaded` is probably preferable
-    for python implementations without a :pygloss:`GIL` (Global Interpreter Lock); note that neat-python is not currently tested vs any such implementations.
-
-    :param int num_workers: How many workers to have in the `Pool <python:multiprocessing.pool.Pool>`.
-    :param eval_function: The eval_function should take one argument - a `tuple` of (genome object, config object) - and return a single :pytypes:`float <typesnumeric>` (the genome's fitness) Note that this is not the same as how a fitness function is called by :py:meth:`Population.run <population.Population.run>`, nor by :py:class:`ThreadedEvaluator <threaded.ThreadedEvaluator>` (although it is more similar to the latter).
-    :type eval_function: `function`
-    :param timeout: How long (in seconds) each subprocess will be given before an exception is raised (unlimited if `None`).
-    :type timeout: :pytypes:`int <typesnumeric>` or None
-    :param maxtasksperchild: is the number of tasks a worker process can complete before it will exit and be replaced with a fresh worker process, to enable unused resources to be freed. The default maxtasksperchild is None, which means worker processes will live as long as the pool.
-    :type maxtasksperchild: :pytypes:`int <typesnumeric>` or None
-
-    .. py:method:: __del__()
-
-       Takes care of removing the subprocesses.
-
-    .. py:method:: evaluate(genomes, config)
-
-      Distributes the evaluation jobs among the subprocesses, then assigns each fitness back to the appropriate genome.
-
-      :param genomes: A list of tuples of :term:`genome_id <key>` (not used), genome.
-      :type genomes: list(tuple(int, :datamodel:`instance <index-48>`))
-      :param config: A `config.Config` instance.
-      :type config: :datamodel:`instance <index-48>`
-      
 .. py:module:: population
    :synopsis: Implements the core evolution algorithm.
 
@@ -2501,52 +2281,5 @@ statistics
 
       A wrapper for :py:meth:`save_genome_fitness`, :py:meth:`save_species_count`, and :py:meth:`save_species_fitness`;
       uses the default values for all three.
-
-.. py:module:: threaded
-   :synopsis: Runs evaluation functions in parallel threads in order to evaluate multiple genomes at once.
-
-threaded
-----------
-Runs evaluation functions in parallel threads (using the python library module `threading <https://docs.python.org/3.5/library/threading.html>`_) in order to evaluate multiple genomes at once. Probably preferable to :py:mod:`parallel` for python implementations without a :pygloss:`GIL` (Global Interpreter Lock); note, however, that neat-python is not currently tested on any such implementation.
-
-  .. index:: fitness function
-  .. index:: fitness
-
-  .. py:class:: ThreadedEvaluator(num_workers, eval_function)
-
-    Runs evaluation functions in parallel threads in order to evaluate multiple genomes at once.
-
-    :param int num_workers: How many worker threads to use.
-    :param eval_function: The eval_function should take two arguments - a genome object and a config object - and return a single :pytypes:`float <typesnumeric>` (the genome's fitness) Note that this is not the same as how a fitness function is called by :py:meth:`Population.run <population.Population.run>`, nor by :py:class:`ParallelEvaluator <parallel.ParallelEvaluator>` (although it is more similar to the latter).
-    :type eval_function: `function`
-
-    .. py:method:: __del__()
-
-      Attempts to take care of removing each worker thread, but deliberately calling ``self.stop()`` in the threads may be needed.
-      TODO: Avoid reference cycles to ensure this method is called. (Perhaps use `weakref`, depending on what the cycles are?
-      Note that weakref is not compatible with saving via `pickle`, so all of them will need to be removed prior to any save.)
-
-    .. py:method:: start()
-
-      Starts the worker threads, if in the primary thread.
-
-    .. py:method:: stop()
-
-      Stops the worker threads and waits for them to finish.
-
-    .. py:method:: _worker():
-
-      The worker function.
-
-    .. py:method:: evaluate(genomes, config)
-
-      Starts the worker threads if need be, queues the evaluation jobs for the worker threads, then assigns each fitness back to the appropriate genome.
-
-      :param genomes: A list of tuples of :term:`genome_id <key>`, genome instances.
-      :type genomes: list(tuple(int, :datamodel:`instance <index-48>`))
-      :param config: A `config.Config` instance.
-      :type config: :datamodel:`instance <index-48>`
-
-  .. versionadded:: 0.92
 
 :ref:`Table of Contents <toc-label>`
