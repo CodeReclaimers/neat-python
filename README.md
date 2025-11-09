@@ -1,4 +1,5 @@
 [![Tests](https://github.com/CodeReclaimers/neat-python/actions/workflows/tests.yml/badge.svg)](https://github.com/CodeReclaimers/neat-python/actions/workflows/tests.yml)
+[![Docs](https://app.readthedocs.org/projects/neat-python/badge/?version=latest)](http://neat-python.readthedocs.io)
 [![Coverage Status](https://coveralls.io/repos/CodeReclaimers/neat-python/badge.svg?branch=master&service=github)](https://coveralls.io/github/CodeReclaimers/neat-python?branch=master)
 [![Downloads](https://static.pepy.tech/personalized-badge/neat-python?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads)](https://pepy.tech/project/neat-python)
 
