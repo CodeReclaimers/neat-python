@@ -37,6 +37,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install pytest pytest-cov coveralls
+        pip install -e .
 
     - name: Run tests with coverage
       run: |
