@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Network Export**: JSON export capability for all network types (FeedForwardNetwork, RecurrentNetwork, CTRNN, IZNN)
+  - New `neat.export` module with `export_network_json()` function
+  - Framework-agnostic JSON format designed for conversion to ONNX, TensorFlow, PyTorch, etc.
+  - Comprehensive format documentation in `docs/network-json-format.md`
+  - Built-in function detection (activation/aggregation) vs. custom functions
+  - Metadata support (fitness, generation, genome_id, custom fields)
+  - Example demonstrating export workflow in `examples/export/export_example.py`
+  - Full test suite in `tests/test_export.py`
+  - No additional dependencies required (uses only Python standard library)
+
 ## [1.0.0] - 2025-01-09
 
 ### Added

@@ -20,6 +20,33 @@ a good place to start) and then try creating your own experiment.
 
 The documentation is available on [Read The Docs](http://neat-python.readthedocs.io).
 
+## Network Export ##
+
+neat-python supports exporting trained networks to a JSON format that is framework-agnostic and human-readable. This allows you to:
+
+- Convert networks to other formats (ONNX, TensorFlow, PyTorch, etc.) using third-party tools
+- Inspect and debug network structure
+- Share networks across platforms and languages
+- Archive trained networks independently of neat-python
+
+Example:
+```python
+import neat
+from neat.export import export_network_json
+
+# After training...
+winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
+
+# Export to JSON
+export_network_json(
+    winner_net,
+    filepath='my_network.json',
+    metadata={'fitness': winner.fitness, 'generation': 42}
+)
+```
+
+See [`docs/network-json-format.md`](docs/network-json-format.md) for complete format documentation and guidance for creating converters to other frameworks.
+
 ## Citing ##
 
 Here are APA and Bibtex entries you can use to cite this project in a publication. The listed authors are the originators
