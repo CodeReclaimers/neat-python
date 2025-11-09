@@ -1,4 +1,5 @@
 """Deals with the attributes (variable parameters) of genes"""
+from copy import deepcopy
 from random import choice, gauss, random, uniform, randint
 
 from neat.config import ConfigParameter
@@ -12,6 +13,8 @@ class BaseAttribute(object):
 
     def __init__(self, name, **default_dict):
         self.name = name
+        # Create instance-level copy to avoid sharing between instances (fixes GitHub issue #188)
+        self._config_items = deepcopy(self.__class__._config_items)
         # TODO: implement a mechanism that allows us to detect and report unused configuration items.
         for n, default in default_dict.items():
             self._config_items[n] = [self._config_items[n][0], default]
