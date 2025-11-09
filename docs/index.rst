@@ -1,6 +1,17 @@
 Welcome to NEAT-Python's documentation!
 =======================================
 
+.. warning::
+   **Breaking Changes in v1.0.0**
+   
+   Version 1.0.0 introduces breaking changes that affect existing code:
+   
+   * **Innovation number tracking**: Now fully implemented per NEAT paper - checkpoints from v0.x are incompatible
+   * **Parallel evaluation**: ThreadedEvaluator and DistributedEvaluator removed; use ParallelEvaluator
+   * **Configuration**: New required parameters must be explicitly specified
+   
+   See the :doc:`migration` guide for detailed upgrade instructions.
+
 :abbr:`NEAT (NeuroEvolution of Augmenting Topologies)` is a method developed by Kenneth O. Stanley for evolving arbitrary neural
 networks. NEAT-Python is a pure Python implementation of NEAT, with no dependencies other than the Python standard library.
 
@@ -26,20 +37,44 @@ Contents:
 
 .. toctree::
    :maxdepth: 2
+   :caption: Getting Started
+
+   quickstart
+   installation
+   xor_example
+   config_essentials
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Understanding NEAT
 
    neat_overview
-   installation
-   migration
+   innovation_numbers
+   glossary
+
+.. toctree::
+   :maxdepth: 2
+   :caption: User Guides
+
    config_file
-   xor_example
    customization
    activation
    ctrnn
    network_export
+
+.. toctree::
+   :maxdepth: 2
+   :caption: API Reference
+
    module_summaries
    genome-interface
    reproduction-interface
-   glossary
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Additional Resources
+
+   migration
 
 Indices and tables
 ==================

@@ -37,6 +37,7 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.intersphinx',
     'sphinx.ext.extlinks',
+    'sphinx.ext.napoleon',  # Google/NumPy docstring support
   # note: the below does not actually require (at least the Python) graphviz
   # package to be installed
     'sphinx.ext.inheritance_diagram', 
@@ -142,8 +143,17 @@ intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    'page_width': 'auto', # getting cutoff of included source code
-    'show_related': 'True',
+    'page_width': 'auto',  # getting cutoff of included source code
+    'show_related': True,
+    # Navigation improvements
+    'prev_next_buttons_location': 'both',  # Show prev/next at top and bottom
+    'style_external_links': True,  # Mark external links differently
+    # GitHub integration
+    'display_github': True,
+    'github_user': 'CodeReclaimers',
+    'github_repo': 'neat-python',
+    'github_version': 'master',
+    'conf_py_path': '/docs/',
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
