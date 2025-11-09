@@ -29,6 +29,7 @@ Contents:
 
    neat_overview
    installation
+   migration
    config_file
    xor_example
    customization
