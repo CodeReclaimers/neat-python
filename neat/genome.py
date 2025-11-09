@@ -186,7 +186,7 @@ class DefaultGenome(object):
     def parse_config(cls, param_dict):
         param_dict['node_gene_type'] = DefaultNodeGene
         param_dict['connection_gene_type'] = DefaultConnectionGene
-        return DefaultGenomeConfig(param_dict, 'DefaultGenome')
+        return DefaultGenomeConfig(param_dict, cls.__name__)
 
     @classmethod
     def write_config(cls, f, config):
