@@ -33,21 +33,31 @@ class ConfigParameter(object):
 
         raise RuntimeError(f"Unexpected configuration type: {self.value_type!r}")
 
-    def interpret(self, config_dict):
+    def interpret(self, config_dict, section_name=None):
         """
         Converts the config_parser output into the proper type,
-        supplies defaults if available and needed, and checks for some errors.
+        and checks for errors. All configuration parameters must be explicitly
+        specified - no defaults are used.
+        
+        Args:
+            config_dict: Dictionary of configuration values
+            section_name: Optional name of the config section (for better error messages)
         """
         value = config_dict.get(self.name)
         if value is None:
             if self.default is None:
-                raise RuntimeError('Missing configuration item: ' + self.name)
-            else:
-                warnings.warn(f"Using default {self.default!r} for '{self.name!s}'", DeprecationWarning)
-                if (str != self.value_type) and isinstance(self.default, self.value_type):
-                    return self.default
+                if section_name:
+                    raise RuntimeError(f"Missing required configuration item in [{section_name}] section: '{self.name}'")
                 else:
-                    value = self.default
+                    raise RuntimeError(f"Missing required configuration item: '{self.name}'")
+            else:
+                # For v1.0: Require all parameters to be explicitly specified
+                section_info = f" in [{section_name}] section" if section_name else ""
+                raise RuntimeError(
+                    f"Missing required configuration item{section_info}: '{self.name}'\n"
+                    f"This parameter must be explicitly specified in your configuration file.\n"
+                    f"Suggested value: {self.name} = {self.default}"
+                )
 
         try:
             if str == self.value_type:
@@ -99,11 +109,12 @@ class DefaultClassConfig(object):
     for reproduction, species_set, and stagnation classes.
     """
 
-    def __init__(self, param_dict, param_list):
+    def __init__(self, param_dict, param_list, section_name=None):
         self._params = param_list
+        self._section_name = section_name
         param_list_names = []
         for p in param_list:
-            setattr(self, p.name, p.interpret(param_dict))
+            setattr(self, p.name, p.interpret(param_dict, section_name))
             param_list_names.append(p.name)
         unknown_list = [x for x in param_dict if x not in param_list_names]
         if unknown_list:
@@ -153,15 +164,19 @@ class Config(object):
 
         param_list_names = []
         for p in self.__params:
-            if p.default is None:
+            try:
                 setattr(self, p.name, p.parse('NEAT', parameters))
-            else:
-                try:
-                    setattr(self, p.name, p.parse('NEAT', parameters))
-                except Exception:
-                    setattr(self, p.name, p.default)
-                    warnings.warn(f"Using default {p.default!r} for '{p.name!s}'",
-                                  DeprecationWarning)
+            except Exception as e:
+                if p.default is None:
+                    # No default available, re-raise the error
+                    raise
+                else:
+                    # For v1.0: Require all parameters to be explicitly specified
+                    raise RuntimeError(
+                        f"Missing required configuration item in [NEAT] section: '{p.name}'\n"
+                        f"This parameter must be explicitly specified in your configuration file.\n"
+                        f"Suggested value: {p.name} = {p.default}"
+                    ) from e
             param_list_names.append(p.name)
         param_dict = dict(parameters.items('NEAT'))
         unknown_list = [x for x in param_dict if x not in param_list_names]

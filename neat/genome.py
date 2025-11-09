@@ -18,7 +18,7 @@ class DefaultGenomeConfig(object):
                             'full_nodirect', 'full', 'full_direct',
                             'partial_nodirect', 'partial', 'partial_direct']
 
-    def __init__(self, params):
+    def __init__(self, params, section_name='DefaultGenome'):
         # Create full set of available activation functions.
         self.activation_defs = ActivationFunctionSet()
         # ditto for aggregation functions - name difference for backward compatibility
@@ -47,7 +47,7 @@ class DefaultGenomeConfig(object):
 
         # Use the configuration data to interpret the supplied parameters.
         for p in self._params:
-            setattr(self, p.name, p.interpret(params))
+            setattr(self, p.name, p.interpret(params, section_name))
 
         self.node_gene_type.validate_attributes(self)
         self.connection_gene_type.validate_attributes(self)
@@ -186,7 +186,7 @@ class DefaultGenome(object):
     def parse_config(cls, param_dict):
         param_dict['node_gene_type'] = DefaultNodeGene
         param_dict['connection_gene_type'] = DefaultConnectionGene
-        return DefaultGenomeConfig(param_dict)
+        return DefaultGenomeConfig(param_dict, 'DefaultGenome')
 
     @classmethod
     def write_config(cls, f, config):

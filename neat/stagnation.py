@@ -16,7 +16,8 @@ class DefaultStagnation(DefaultClassConfig):
         return DefaultClassConfig(param_dict,
                                   [ConfigParameter('species_fitness_func', str, 'mean'),
                                    ConfigParameter('max_stagnation', int, 15),
-                                   ConfigParameter('species_elitism', int, 0)])
+                                   ConfigParameter('species_elitism', int, 0)],
+                                  'DefaultStagnation')
 
     def __init__(self, config, reporters):
         # pylint: disable=super-init-not-called

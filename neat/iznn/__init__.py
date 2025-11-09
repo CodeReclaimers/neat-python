@@ -53,7 +53,7 @@ class IZGenome(DefaultGenome):
     def parse_config(cls, param_dict):
         param_dict['node_gene_type'] = IZNodeGene
         param_dict['connection_gene_type'] = DefaultConnectionGene
-        return DefaultGenomeConfig(param_dict)
+        return DefaultGenomeConfig(param_dict, 'IZGenome')
 
 
 class IZNeuron(object):

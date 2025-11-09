@@ -61,7 +61,8 @@ class DefaultSpeciesSet(DefaultClassConfig):
     @classmethod
     def parse_config(cls, param_dict):
         return DefaultClassConfig(param_dict,
-                                  [ConfigParameter('compatibility_threshold', float)])
+                                  [ConfigParameter('compatibility_threshold', float)],
+                                  'DefaultSpeciesSet')
 
     def speciate(self, config, population, generation):
         """
