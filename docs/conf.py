@@ -42,13 +42,13 @@ extensions = [
     'sphinx.ext.inheritance_diagram', 
 ]
 
-extlinks = {'pytypes': ('https://docs.python.org/3.5/library/stdtypes.html#%s',
+extlinks = {'pytypes': ('https://docs.python.org/3/library/stdtypes.html#%s',
                         None),
-            'pygloss': ('https://docs.python.org/3.5/glossary.html#term-%s',
+            'pygloss': ('https://docs.python.org/3/glossary.html#term-%s',
                         None),
-            'datamodel': ('https://docs.python.org/3.5/reference/datamodel.html#%s',
+            'datamodel': ('https://docs.python.org/3/reference/datamodel.html#%s',
                           None),
-            'pylib': ('https://docs.python.org/3.5/library/%s',
+            'pylib': ('https://docs.python.org/3/library/%s',
                       None)}
 
 # Add any paths that contain templates here, relative to this directory.
@@ -67,7 +67,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'NEAT-Python'
-copyright = u'2015-2019, CodeReclaimers, LLC'
+copyright = u'2015-2025, CodeReclaimers, LLC'
 author = u'CodeReclaimers, LLC'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -75,9 +75,9 @@ author = u'CodeReclaimers, LLC'
 # built documents.
 #
 # The short X.Y version.
-version = '0.92'
+version = '1.0.0'
 # The full version, including alpha/beta/rc tags.
-release = '0.92'
+release = '1.0.0'
 
 if version != release:
     tags.add('draft')
@@ -129,8 +129,8 @@ if tags.has('draft'):
 else:
     todo_include_todos = False
 
-# Provide links to python3.5 documentation
-intersphinx_mapping = {'python': ('https://docs.python.org/3.5', None)}
+# Provide links to python3 documentation
+intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
 
 # -- Options for HTML output ----------------------------------------------
 

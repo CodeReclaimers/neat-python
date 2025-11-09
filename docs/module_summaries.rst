@@ -1447,6 +1447,60 @@ See http://www.izhikevich.org/publications/spikes.pdf.
     .. versionchanged:: 0.92
       ``__gene_attributes__`` changed to ``_gene_attributes``, since it is not a Python internal variable. 
 
+.. py:module:: innovation
+   :synopsis: Tracks innovation numbers for structural mutations in NEAT.
+
+innovation
+----------
+Tracks innovation numbers for structural mutations in NEAT, as described in Stanley & Miikkulainen (2002).
+
+  .. index:: ! innovation number
+  .. index:: structural mutation
+
+  .. py:class:: InnovationTracker(start_number=0)
+
+    Tracks innovation numbers for structural mutations in NEAT. This class maintains a global counter that increments
+    across all generations and a generation-specific dictionary for deduplication of identical mutations within the
+    same generation.
+
+    Innovation numbers are assigned when:
+
+    - A new connection is added between two nodes
+    - A connection is split by adding a node (creates two new connections)
+    - Initial connections are created in the starting population
+
+    The tracker ensures that if multiple genomes independently make the same structural mutation in one generation,
+    they receive the same innovation number. This enables proper gene alignment during :term:`crossover`.
+
+    :param int start_number: The initial value for the global counter (default: 0). The first innovation will be start_number + 1.
+
+    .. versionadded:: 1.0
+
+    .. py:method:: get_innovation_number(input_node, output_node, mutation_type='add_connection')
+
+      Get or assign an innovation number for a structural mutation. If this exact mutation (same nodes and type)
+      has already occurred in the current generation, returns the existing innovation number. Otherwise, increments
+      the global counter and assigns a new innovation number.
+
+      :param int input_node: The input node ID for the connection
+      :param int output_node: The output node ID for the connection
+      :param str mutation_type: Type of mutation: ``'add_connection'`` (new connection), ``'add_node_in'`` (connection from original input to new node), ``'add_node_out'`` (connection from new node to original output), or ``'initial_connection'`` (connection in initial population)
+      :return: The innovation number for this structural mutation
+      :rtype: :pytypes:`int <typesnumeric>`
+
+    .. py:method:: reset_generation()
+
+      Clear generation-specific tracking at the start of a new generation. This method should be called at the
+      beginning of each generation's reproduction phase. It clears the generation_innovations dictionary but preserves
+      the global_counter so innovation numbers never repeat.
+
+    .. py:method:: get_current_innovation_number()
+
+      Get the current (most recently assigned) innovation number.
+
+      :return: The current value of the global counter
+      :rtype: :pytypes:`int <typesnumeric>`
+
 .. py:module:: math_util
    :synopsis: Contains some mathematical functions not found in the Python2 standard library, plus a mechanism for looking up some commonly used functions (such as for the species_fitness_func) by name.
 

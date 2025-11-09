@@ -1,7 +1,7 @@
 Network Export
 ==============
 
-.. versionadded:: 1.0.1
+.. versionadded:: 1.0
 
 NEAT-Python provides the ability to export trained neural networks to a framework-agnostic JSON format. This allows you to:
 

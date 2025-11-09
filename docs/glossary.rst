@@ -23,8 +23,7 @@ Glossary
     Also known as a neuron (as in a *neural* network). They are of three types:
     :term:`input <input node>`, :term:`hidden <hidden node>`, and :term:`output <output node>`. Nodes have one or more :term:`attributes`, such
     as an :term:`activation function`; all are determined by their :term:`gene`. Classes of node genes include :py:class:`genes.DefaultNodeGene` and
-    :py:class:`iznn.IZNodeGene`. (They should not be confused with :term:`compute nodes <compute node>`, host machines on which :py:mod:`distributed`
-    evaluations of :term:`genomes <genome>` are performed.)
+    :py:class:`iznn.IZNodeGene`.
 
   input node
     These are the :term:`nodes <node>` through which the network receives inputs. They cannot be deleted (although :term:`connections <connection>`
@@ -139,21 +138,5 @@ Glossary
     partition the new generation into :term:`species` based on :term:`genetic similarity <genomic distance>`; evaluate fitness of all genomes;
     check if a/the termination criterion is satisfied; if not, repeat. (The ordering in the :py:mod:`population` module is somewhat different.)
     Generations are numbered, and a limit on the number of generations is one type of termination criterion.
-
-  compute node
-    Using the :py:mod:`distributed` module, genomes can be evaluated on multiple machines (including virtual machines) at once. Each such
-    machine/host is called a ``compute node``. These are of two types, :term:`primary nodes <primary node>` and
-    :term:`secondary nodes <secondary node>`.
-
-  primary node
-  primary compute node
-    If using the :py:mod:`distributed` module, you will need one primary :term:`compute node` and at least one :term:`secondary node`. The primary node
-    creates and mutates genomes, then distributes them to the secondary nodes for evaluation. (It does not do any evaluations itself; thus, at least
-    one secondary node is required.)
-
-  secondary node
-  secondary compute node
-    If using the :py:mod:`distributed` module, you will need at least one secondary :term:`compute node`, as well as a :term:`primary node`. The secondary
-    nodes evaluate genomes, distributed to them by the primary node.
 
 :ref:`Table of Contents <toc-label>`
