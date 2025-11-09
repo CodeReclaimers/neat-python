@@ -1,0 +1,5 @@
+# Sphinx extensions required for building neat-python documentation
+sphinx>=7.0
+sphinx_rtd_theme>=3.0
+sphinx-copybutton>=0.5
+sphinx-design>=0.6
