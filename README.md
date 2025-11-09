@@ -11,7 +11,7 @@ forked from the excellent project by @MattKallada.
 For further information regarding general concepts and theory, please see the [publications page](https://www.kenstanley.net/papers) of Stanley's current website.
 
 `neat-python` is licensed under the [3-clause BSD license](https://opensource.org/licenses/BSD-3-Clause).  It is
-currently only supported on Python 3.6 through 3.14, and pypy3.
+currently only supported on Python 3.8 through 3.14, and pypy3.
 
 ## Getting Started ##
 
