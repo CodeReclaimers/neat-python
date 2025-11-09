@@ -58,6 +58,7 @@ Contents:
 
    config_file
    customization
+   cookbook
    activation
    ctrnn
    network_export
@@ -74,6 +75,8 @@ Contents:
    :maxdepth: 2
    :caption: Additional Resources
 
+   faq
+   troubleshooting
    migration
 
 Indices and tables
