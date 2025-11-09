@@ -6,6 +6,10 @@ reset_on_extinction   = False
 
 no_fitness_termination         = False
 
+# Reproducibility: Uncomment to enable deterministic evolution
+# Useful for debugging, comparing algorithm variants, or scientific reproducibility
+# seed = 42
+
 [DefaultGenome]
 # node activation options
 activation_default      = sigmoid

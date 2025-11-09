@@ -14,6 +14,15 @@ For further information regarding general concepts and theory, please see the [p
 `neat-python` is licensed under the [3-clause BSD license](https://opensource.org/licenses/BSD-3-Clause).  It is
 currently only supported on Python 3.8 through 3.14, and pypy3.
 
+## Features ##
+
+* Pure Python implementation with no dependencies beyond the standard library
+* Supports Python 3.8-3.14 and PyPy 3
+* **Reproducible evolution** - Set random seeds for deterministic, repeatable experiments
+* Parallel fitness evaluation using multiprocessing
+* Network export to JSON format for interoperability
+* Comprehensive documentation and examples
+
 ## Getting Started ##
 
 If you want to try neat-python, please check out the repository, start playing with the examples (`examples/xor` is

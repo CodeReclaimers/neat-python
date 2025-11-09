@@ -40,7 +40,10 @@ extensions = [
     'sphinx.ext.napoleon',  # Google/NumPy docstring support
   # note: the below does not actually require (at least the Python) graphviz
   # package to be installed
-    'sphinx.ext.inheritance_diagram', 
+    'sphinx.ext.inheritance_diagram',
+    # Enhanced user experience
+    'sphinx_copybutton',  # Adds copy button to code blocks
+    'sphinx_design',      # Adds cards, tabs, badges for enhanced formatting
 ]
 
 extlinks = {'pytypes': ('https://docs.python.org/3/library/stdtypes.html#%s',
@@ -132,6 +135,12 @@ else:
 
 # Provide links to python3 documentation
 intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
+
+# -- Options for sphinx_copybutton ----------------------------------------
+
+# Remove prompts when copying code (e.g., >>>, $, In [1]:)
+copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d*\]: |Out\[\d*\]: "
+copybutton_prompt_is_regexp = True
 
 # -- Options for HTML output ----------------------------------------------
 

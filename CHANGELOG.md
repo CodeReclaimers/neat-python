@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+
+### Added
+- **Reproducibility Support**: Evolution can now be made deterministic by setting a random seed
+  - Optional `seed` parameter in `[NEAT]` config section
+  - Optional `seed` parameter in `Population.__init__()`
+  - Optional `seed` parameter in `ParallelEvaluator.__init__()` for reproducible parallel evaluation
+  - Per-genome deterministic seeding in parallel mode (seed + genome.key)
+  - Comprehensive documentation in `docs/reproducibility.rst`
+  - Complete test coverage in `tests/test_reproducibility.py` (9 tests)
+  - **Fully backward compatible**: Existing code works without changes
+  - Seed parameter controls Python's `random` module
+  - Checkpoint system already preserved random state (unchanged)
+  - All changes are fully backward compatible
+
 ## [1.0.0] - 2025-01-09
 
 ### Added

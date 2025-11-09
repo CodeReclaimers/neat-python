@@ -57,10 +57,11 @@ Contents:
    :caption: User Guides
 
    config_file
+   reproducibility
    customization
-   cookbook
    activation
    ctrnn
+   network_export
    network_export
 
 .. toctree::

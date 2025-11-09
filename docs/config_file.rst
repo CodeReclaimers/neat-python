@@ -75,6 +75,36 @@ itself.  This section is always required, and is handled by the `Config` class i
     If this evaluates to ``True``, when all species simultaneously become extinct due to stagnation, a new random
     population will be created. If ``False``, a `CompleteExtinctionException` will be thrown.
 
+.. _seed-label:
+
+.. index:: ! seed
+.. index:: reproducibility
+.. index:: random
+
+* *seed*
+    Optional random seed for reproducible evolution. If specified, sets the seed for Python's ``random`` module,
+    making evolution deterministic. If omitted or set to ``None``, behavior is non-deterministic (different results
+    each run). **This parameter is optional and defaults to None.**
+    
+    Example usage:
+    
+    .. code-block:: ini
+    
+       [NEAT]
+       pop_size = 150
+       seed = 42  # Enable reproducibility
+    
+    The seed can also be set or overridden programmatically:
+    
+    .. code-block:: python
+    
+       pop = neat.Population(config, seed=42)
+    
+    For detailed information about reproducibility, including parallel evaluation and best practices,
+    see :ref:`reproducibility-label`.
+    
+    .. versionadded:: 1.1
+
 .. index:: stagnation
 .. index:: DefaultStagnation
 

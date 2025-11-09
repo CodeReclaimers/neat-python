@@ -1,5 +1,6 @@
 """Implements the core evolution algorithm."""
 
+import random
 from itertools import count
 
 from neat.math_util import mean
@@ -20,7 +21,15 @@ class Population(object):
         5. Go to 1.
     """
 
-    def __init__(self, config, initial_state=None):
+    def __init__(self, config, initial_state=None, seed=None):
+        # Handle random seed for reproducibility
+        # Seed parameter takes precedence over config seed
+        if seed is None and hasattr(config, 'seed'):
+            seed = config.seed
+        
+        if seed is not None:
+            random.seed(seed)
+        
         self.reporters = ReporterSet()
         self.config = config
         stagnation = config.stagnation_type(config.stagnation_config, self.reporters)

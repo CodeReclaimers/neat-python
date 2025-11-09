@@ -8,10 +8,11 @@ from configparser import ConfigParser
 class ConfigParameter(object):
     """Contains information about one configuration item."""
 
-    def __init__(self, name, value_type, default=None):
+    def __init__(self, name, value_type, default=None, optional=False):
         self.name = name
         self.value_type = value_type
         self.default = default
+        self.optional = optional  # If True, parameter can be omitted from config
 
     def __repr__(self):
         if self.default is None:
@@ -19,6 +20,13 @@ class ConfigParameter(object):
         return f"ConfigParameter({self.name!r}, {self.value_type!r}, {self.default!r})"
 
     def parse(self, section, config_parser):
+        # Check if parameter exists in config
+        if not config_parser.has_option(section, self.name):
+            if self.optional:
+                return self.default
+            # Will raise exception in Config.__init__ exception handler
+            raise Exception(f"Missing parameter: {self.name}")
+        
         if int == self.value_type:
             return config_parser.getint(section, self.name)
         if bool == self.value_type:
@@ -136,7 +144,8 @@ class Config(object):
                 ConfigParameter('fitness_criterion', str),
                 ConfigParameter('fitness_threshold', float),
                 ConfigParameter('reset_on_extinction', bool),
-                ConfigParameter('no_fitness_termination', bool, False)]
+                ConfigParameter('no_fitness_termination', bool, False),
+                ConfigParameter('seed', int, None, optional=True)]
 
     def __init__(self, genome_type, reproduction_type, species_set_type, stagnation_type, filename, config_information=None):
         # Check that the provided types have the required methods.
@@ -167,7 +176,10 @@ class Config(object):
             try:
                 setattr(self, p.name, p.parse('NEAT', parameters))
             except Exception as e:
-                if p.default is None:
+                if p.optional:
+                    # Optional parameter - use default if not present
+                    setattr(self, p.name, p.default)
+                elif p.default is None:
                     # No default available, re-raise the error
                     raise
                 else:
