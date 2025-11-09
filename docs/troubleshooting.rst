@@ -1,5 +1,5 @@
 Troubleshooting Guide
-====================
+=====================
 
 This guide helps you diagnose and fix common problems when using NEAT-Python. Each section follows a **Symptoms → Causes → Solutions** structure.
 

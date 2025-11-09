@@ -58,10 +58,10 @@ Contents:
 
    config_file
    reproducibility
+   cookbook
    customization
    activation
    ctrnn
-   network_export
    network_export
 
 .. toctree::

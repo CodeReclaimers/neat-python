@@ -181,7 +181,7 @@ required for your particular implementation.
 .. index:: DefaultGenome
 
 [DefaultSpeciesSet] section
------------------------
+---------------------------
 The ``DefaultSpeciesSet`` section specifies parameters for the builtin `DefaultSpeciesSet` class.
 This section is only necessary if you specify this class as the genome implementation when
 creating the `Config` instance; otherwise you need to include whatever configuration (if any) is

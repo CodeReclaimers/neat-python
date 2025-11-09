@@ -491,7 +491,7 @@ Does general configuration parsing; used by other classes for their configuratio
       `ConfigParser.SafeConfigParser class <https://docs.python.org/2.7/library/configparser.html#ConfigParser.SafeConfigParser>`_) to gather the
       configuration parameter from the appropriate configuration file :ref:`section <configuration-file-sections-label>`. Parsing varies depending on the type.
 
-      :param str section: The section name, taken from the `__name__` attribute of the class to be configured (or ``NEAT`` for those parameters).
+      :param str section: The section name, taken from the ``__name__`` attribute of the class to be configured (or ``NEAT`` for those parameters).
       :param config_parser: The configuration parser to be used.
       :type config_parser: :datamodel:`instance <index-48>`
       :return: The configuration parameter value, in stringified form unless a list.
