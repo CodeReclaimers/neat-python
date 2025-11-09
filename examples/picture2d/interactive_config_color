@@ -1,10 +1,10 @@
-# The `NEAT` section specifies parameters particular to the NEAT algorithm
-# or the experiment itself.  This is the only required section.
 [NEAT]
 fitness_criterion     = max
 fitness_threshold     = 1.01
 pop_size              = 0
 reset_on_extinction   = False
+
+no_fitness_termination         = False
 
 [DefaultGenome]
 num_inputs              = 2
@@ -49,6 +49,14 @@ weight_mutate_power     = 0.1
 enabled_default         = True
 enabled_mutate_rate     = 0.02
 
+single_structural_mutation     = false
+structural_mutation_surer      = default
+bias_init_type                 = gaussian
+response_init_type             = gaussian
+weight_init_type               = gaussian
+enabled_rate_to_true_add       = 0.0
+enabled_rate_to_false_add      = 0.0
+
 [DefaultSpeciesSet]
 compatibility_threshold = 5.0
 
@@ -58,3 +66,5 @@ max_stagnation       = 5
 [DefaultReproduction]
 elitism            = 0
 survival_threshold = 0.5
+
+min_species_size               = 2
