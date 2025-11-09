@@ -693,9 +693,9 @@ class TestStatisticsReporter(unittest.TestCase):
         try:
             self.stats.save_genome_fitness(filename=temp_path)
             
-            # Read and verify
-            with open(temp_path, 'r') as f:
-                lines = f.readlines()
+            # Read and verify - use universal newlines to handle Windows/Unix differences
+            with open(temp_path, 'r', newline='') as f:
+                lines = [line for line in f if line.strip()]  # Filter out empty lines
             
             self.assertEqual(len(lines), 3)
             # Each line should have best and average fitness
@@ -725,9 +725,9 @@ class TestStatisticsReporter(unittest.TestCase):
         try:
             self.stats.save_species_count(filename=temp_path)
             
-            # Read and verify
-            with open(temp_path, 'r') as f:
-                lines = f.readlines()
+            # Read and verify - use universal newlines to handle Windows/Unix differences
+            with open(temp_path, 'r', newline='') as f:
+                lines = [line for line in f if line.strip()]  # Filter out empty lines
             
             self.assertEqual(len(lines), 1)  # 1 generation
             # Should have counts for both species
@@ -754,9 +754,9 @@ class TestStatisticsReporter(unittest.TestCase):
         try:
             self.stats.save_species_fitness(filename=temp_path)
             
-            # Read and verify
-            with open(temp_path, 'r') as f:
-                lines = f.readlines()
+            # Read and verify - use universal newlines to handle Windows/Unix differences
+            with open(temp_path, 'r', newline='') as f:
+                lines = [line for line in f if line.strip()]  # Filter out empty lines
             
             self.assertEqual(len(lines), 1)
             # Should contain average fitness (5.0 + 7.0) / 2 = 6.0
