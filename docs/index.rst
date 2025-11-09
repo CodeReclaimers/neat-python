@@ -14,7 +14,7 @@ Many thanks to the original authors of this implementation, Cesar Gomes Miguel, 
   TODO: Improve README.md file information for the examples.
 
 For further information regarding general concepts and theory, please see `Selected Publications
-<http://www.cs.ucf.edu/~kstanley/#publications>`_ on Stanley's website, or his recent `AMA on Reddit
+<http://www.cs.ucf.edu/~kstanley/#publications>`_ on Stanley's website, or his `AMA on Reddit
 <https://www.reddit.com/r/IAmA/comments/3xqcrk/im_ken_stanley_artificial_intelligence_professor>`_.
 
 If you encounter any confusing or incorrect information in this documentation, please open an issue in the `GitHub project
