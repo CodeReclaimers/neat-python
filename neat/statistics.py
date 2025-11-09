@@ -135,7 +135,7 @@ class StatisticsReporter(BaseReporter):
             fitness = []
             for mf in member_fitness:
                 if mf:
-                    fitness.append(mean(mf))
+                    fitness.append(mean(mf.values()))
                 else:
                     fitness.append(null_value)
             species_fitness.append(fitness)
