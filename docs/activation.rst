@@ -14,7 +14,7 @@ The implementation of these functions can be found in the :py:mod:`activations` 
 abs
 ---
 
-.. figure:: activation-abs.png
+.. figure:: _static/activation-abs.png
    :scale: 50 %
    :alt: absolute value function
 
@@ -22,21 +22,21 @@ abs
 clamped
 -------
 
-.. figure:: activation-clamped.png
+.. figure:: _static/activation-clamped.png
    :scale: 50 %
    :alt: clamped linear function
 
 cube
 ----
 
-.. figure:: activation-cube.png
+.. figure:: _static/activation-cube.png
    :scale: 50 %
    :alt: cubic function
 
 exp
 ---
 
-.. figure:: activation-exp.png
+.. figure:: _static/activation-exp.png
    :scale: 50 %
    :alt: exponential function
 
@@ -44,14 +44,14 @@ exp
 gauss
 -----
 
-.. figure:: activation-gauss.png
+.. figure:: _static/activation-gauss.png
    :scale: 50 %
    :alt: gaussian function
 
 hat
 ---
 
-.. figure:: activation-hat.png
+.. figure:: _static/activation-hat.png
    :scale: 50 %
    :alt: hat function
 
@@ -60,49 +60,49 @@ hat
 identity
 --------
 
-.. figure:: activation-identity.png
+.. figure:: _static/activation-identity.png
    :scale: 50 %
    :alt: identity function
 
 inv
 ---
 
-.. figure:: activation-inv.png
+.. figure:: _static/activation-inv.png
    :scale: 50 %
    :alt: inverse function
 
 log
 ---
 
-.. figure:: activation-log.png
+.. figure:: _static/activation-log.png
    :scale: 50 %
    :alt: log function
 
 relu
 ----
 
-.. figure:: activation-relu.png
+.. figure:: _static/activation-relu.png
    :scale: 50 %
    :alt: rectified linear function
 
 elu
 ----
 
-.. figure:: activation-elu.png
+.. figure:: _static/activation-elu.png
    :scale: 50 %
    :alt: exponential rectified linear function
 
 lelu
 ----
 
-.. figure:: activation-lelu.png
+.. figure:: _static/activation-lelu.png
    :scale: 50 %
    :alt: leaky rectified linear function
 
 selu
 ----
 
-.. figure:: activation-selu.png
+.. figure:: _static/activation-selu.png
    :scale: 50 %
    :alt: scaled exponential linear function
 
@@ -111,34 +111,34 @@ selu
 sigmoid
 -------
 
-.. figure:: activation-sigmoid.png
+.. figure:: _static/activation-sigmoid.png
    :scale: 50 %
    :alt: sigmoid function
 
 sin
 ---
 
-.. figure:: activation-sin.png
+.. figure:: _static/activation-sin.png
    :scale: 50 %
    :alt: sine function
 
 softplus
 --------
 
-.. figure:: activation-softplus.png
+.. figure:: _static/activation-softplus.png
    :scale: 50 %
    :alt: soft-plus function
 
 square
 ------
 
-.. figure:: activation-square.png
+.. figure:: _static/activation-square.png
    :scale: 50 %
    :alt: square function
 
 tanh
 ----
 
-.. figure:: activation-tanh.png
+.. figure:: _static/activation-tanh.png
    :scale: 50 %
    :alt: hyperbolic tangent function
