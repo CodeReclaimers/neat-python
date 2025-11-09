@@ -1,6 +1,6 @@
-# Evolve a control/reward estimation network for the OpenAI Gym
-# LunarLander-v2 environment (https://gym.openai.com/envs/LunarLander-v2).
-# Sample run here: https://gym.openai.com/evaluations/eval_FbKq5MxAS9GlvB7W6ioJkg
+# Evolve a control/reward estimation network for the Gymnasium
+# LunarLander-v3 environment.
+# Original OpenAI Gym sample: https://gym.openai.com/evaluations/eval_FbKq5MxAS9GlvB7W6ioJkg
 
 
 import multiprocessing
@@ -9,7 +9,7 @@ import pickle
 import random
 import time
 
-import gym.wrappers
+import gymnasium as gym
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -18,7 +18,7 @@ import visualize
 
 NUM_CORES = multiprocessing.cpu_count()
 
-env = gym.make('LunarLander-v2')
+env = gym.make('LunarLander-v3')
 
 # print("action space: {0!r}".format(env.action_space))
 # print("observation space: {0!r}".format(env.observation_space))

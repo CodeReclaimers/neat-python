@@ -1,5 +1,5 @@
 import gizeh as gz
-import moviepy.editor as mpy
+from moviepy.video.VideoClip import VideoClip
 from cart_pole import CartPole
 
 
@@ -36,5 +36,5 @@ def make_movie(net, force_function, duration_seconds, output_filename):
 
         return surface.get_npimage()
 
-    clip = mpy.VideoClip(make_frame, duration=duration_seconds)
+    clip = VideoClip(make_frame, duration=duration_seconds)
     clip.write_videofile(output_filename, codec="mpeg4", fps=50)
