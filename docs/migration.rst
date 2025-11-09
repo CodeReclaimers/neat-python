@@ -262,3 +262,272 @@ Version Information
 
 - This guide applies to migration from neat-python 0.93 → 1.0
 - Last updated: 2025-11-09
+
+Configuration File Migration (v1.0)
+====================================
+
+Starting with v1.0, neat-python requires **all configuration parameters to be explicitly specified** in your configuration file. This section guides you through updating your configuration files for compatibility with v1.0.
+
+What Changed
+------------
+
+Previously, if you omitted certain parameters, neat-python would use default values and issue deprecation warnings (which were easy to miss). Now, **missing required parameters cause immediate errors** with helpful suggestions on what to add.
+
+This change improves reliability and reproducibility:
+
+- **No silent defaults**: You always know exactly what configuration you're using
+- **Explicit is better than implicit**: Your config file is now self-documenting
+- **Prevents mistakes**: Can't accidentally run experiments with unintended default values
+- **Better for v1.0**: Breaking change is appropriate for a major version
+
+What You'll See
+---------------
+
+If you're missing a required parameter, you'll get a clear error message like this:
+
+.. code-block:: text
+
+    RuntimeError: Missing required configuration item: 'bias_init_type'
+    This parameter must be explicitly specified in your configuration file.
+    Suggested value: bias_init_type = gaussian
+
+The error tells you:
+
+1. Exactly which parameter is missing
+2. That it must be added to your config file
+3. A suggested value to use
+
+Required Parameters by Section
+-------------------------------
+
+[NEAT] Section
+~~~~~~~~~~~~~~
+
+Add this parameter if missing:
+
+.. code-block:: ini
+
+    no_fitness_termination = False
+
+Set to ``True`` if you want evolution to run for a fixed number of generations regardless of fitness. Set to ``False`` to use fitness-based termination.
+
+[DefaultGenome] Section
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Add these parameters if missing:
+
+.. code-block:: ini
+
+    # Structural mutation parameters
+    single_structural_mutation     = false
+    structural_mutation_surer      = default
+
+    # Initialization type parameters
+    bias_init_type                 = gaussian
+    response_init_type             = gaussian
+    weight_init_type               = gaussian
+
+    # Connection enable mutation parameters
+    enabled_rate_to_true_add       = 0.0
+    enabled_rate_to_false_add      = 0.0
+
+**Parameter meanings:**
+
+- ``single_structural_mutation``: Set to ``true`` to allow only one structural mutation (add/remove node/connection) per genome per generation
+- ``structural_mutation_surer``: Controls fallback behavior when structural mutations fail (``default`` uses same value as ``single_structural_mutation``)
+- ``*_init_type``: Distribution type for initializing values (``gaussian`` for normal distribution or ``uniform`` for uniform distribution)
+- ``enabled_rate_to_*_add``: Additional probability to enable/disable connections during mutation
+
+[DefaultStagnation] Section
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Add this parameter if missing:
+
+.. code-block:: ini
+
+    species_elitism = 2
+
+This sets the number of species protected from stagnation removal. For example, ``species_elitism = 2`` protects the 2 best-performing species from being removed due to stagnation.
+
+[DefaultReproduction] Section
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Add this parameter if missing:
+
+.. code-block:: ini
+
+    min_species_size = 2
+
+This sets the minimum size for a species to be maintained after reproduction.
+
+[IZGenome] Section (Spiking Networks Only)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you're using IZNN genomes (Izhikevich spiking neuron model), also add:
+
+.. code-block:: ini
+
+    a_init_type = gaussian
+    b_init_type = gaussian
+    c_init_type = gaussian
+    d_init_type = gaussian
+
+Complete Example Configuration
+-------------------------------
+
+Here's a minimal complete configuration file for v1.0 (feedforward network solving XOR):
+
+.. code-block:: ini
+
+    [NEAT]
+    fitness_criterion     = max
+    fitness_threshold     = 0.9
+    pop_size              = 150
+    reset_on_extinction   = False
+    no_fitness_termination = False
+
+    [DefaultGenome]
+    # Node activation options
+    activation_default      = sigmoid
+    activation_mutate_rate  = 0.0
+    activation_options      = sigmoid
+
+    # Node aggregation options
+    aggregation_default     = sum
+    aggregation_mutate_rate = 0.0
+    aggregation_options     = sum
+
+    # Node bias options
+    bias_init_mean          = 0.0
+    bias_init_stdev         = 1.0
+    bias_init_type          = gaussian
+    bias_max_value          = 30.0
+    bias_min_value          = -30.0
+    bias_mutate_power       = 0.5
+    bias_mutate_rate        = 0.7
+    bias_replace_rate       = 0.1
+
+    # Genome compatibility options
+    compatibility_disjoint_coefficient = 1.0
+    compatibility_weight_coefficient   = 0.5
+
+    # Connection add/remove rates
+    conn_add_prob           = 0.5
+    conn_delete_prob        = 0.5
+
+    # Connection enable options
+    enabled_default         = True
+    enabled_mutate_rate     = 0.01
+    enabled_rate_to_true_add  = 0.0
+    enabled_rate_to_false_add = 0.0
+
+    # Network topology
+    feed_forward            = True
+    initial_connection      = full
+
+    # Node add/remove rates
+    node_add_prob           = 0.2
+    node_delete_prob        = 0.2
+
+    # Network parameters
+    num_hidden              = 0
+    num_inputs              = 2
+    num_outputs             = 1
+
+    # Node response options
+    response_init_mean      = 1.0
+    response_init_stdev     = 0.0
+    response_init_type      = gaussian
+    response_max_value      = 30.0
+    response_min_value      = -30.0
+    response_mutate_power   = 0.0
+    response_mutate_rate    = 0.0
+    response_replace_rate   = 0.0
+
+    # Structural mutation
+    single_structural_mutation  = false
+    structural_mutation_surer   = default
+
+    # Connection weight options
+    weight_init_mean        = 0.0
+    weight_init_stdev       = 1.0
+    weight_init_type        = gaussian
+    weight_max_value        = 30
+    weight_min_value        = -30
+    weight_mutate_power     = 0.5
+    weight_mutate_rate      = 0.8
+    weight_replace_rate     = 0.1
+
+    [DefaultSpeciesSet]
+    compatibility_threshold = 3.0
+
+    [DefaultStagnation]
+    species_fitness_func = max
+    max_stagnation       = 20
+    species_elitism      = 2
+
+    [DefaultReproduction]
+    elitism            = 2
+    survival_threshold = 0.2
+    min_species_size   = 2
+
+Step-by-Step Migration Instructions
+------------------------------------
+
+1. **Run your existing code** - If you have missing parameters, you'll get a clear error message
+2. **Add the suggested parameter** - Copy the suggested line from the error message into your config file under the appropriate section
+3. **Repeat** - Continue running and adding parameters until no errors remain
+4. **Verify** - Run your experiments to ensure everything works as expected
+
+.. note::
+    The error messages are designed to be helpful and actionable. They tell you exactly what to add and where.
+
+Where to Find Example Configs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+All example configurations in the ``examples/`` directory have been updated for v1.0. You can use these as references:
+
+- ``examples/xor/config-feedforward`` - Simple feedforward network
+- ``examples/xor/config-feedforward-partial`` - Partial connectivity
+- ``examples/xor/config-spiking`` - Spiking neural network (IZNN)
+
+Quick Reference: New Required Parameters
+-----------------------------------------
+
+Here's a quick summary of all parameters that became required in v1.0:
+
+**[NEAT] section:**
+
+- ``no_fitness_termination`` - Controls whether fitness-based termination is used
+
+**[DefaultGenome] section:**
+
+- ``single_structural_mutation`` - Limit to one structural mutation per generation
+- ``structural_mutation_surer`` - Fallback behavior for failed mutations
+- ``bias_init_type`` - Distribution for bias initialization
+- ``response_init_type`` - Distribution for response initialization
+- ``weight_init_type`` - Distribution for weight initialization
+- ``enabled_rate_to_true_add`` - Extra probability to enable connections
+- ``enabled_rate_to_false_add`` - Extra probability to disable connections
+
+**[DefaultStagnation] section:**
+
+- ``species_elitism`` - Number of species protected from stagnation removal
+
+**[DefaultReproduction] section:**
+
+- ``min_species_size`` - Minimum size for species maintenance
+
+**[IZGenome] section (if using spiking networks):**
+
+- ``a_init_type``, ``b_init_type``, ``c_init_type``, ``d_init_type`` - Distributions for Izhikevich parameters
+
+For detailed documentation on what each parameter does, see :doc:`config_file`.
+
+Configuration Migration Resources
+----------------------------------
+
+- **Configuration File Reference**: :doc:`config_file`
+- **Example Configurations**: ``examples/`` directory in the repository
+- **GitHub Issues**: https://github.com/CodeReclaimers/neat-python/issues
+- **Documentation**: http://neat-python.readthedocs.io/
