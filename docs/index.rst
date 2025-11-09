@@ -35,6 +35,7 @@ Contents:
    customization
    activation
    ctrnn
+   network_export
    module_summaries
    genome-interface
    reproduction-interface
