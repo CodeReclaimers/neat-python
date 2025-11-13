@@ -3,6 +3,7 @@ import os
 import random
 
 import neat
+from neat.genes import DefaultNodeGene, DefaultConnectionGene
 
 
 # def test_concurrent_nn():
@@ -69,3 +70,75 @@ import neat
 #     for g in winner.conn_genes:
 #         repr(g)
 #         str(g)
+
+
+def test_orphaned_node_network():
+    """Test that networks with orphaned nodes (no incoming connections) work correctly."""
+    # Load configuration
+    local_dir = os.path.dirname(__file__)
+    config_path = os.path.join(local_dir, 'test_configuration')
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                        neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                        config_path)
+    
+    # Create a genome with an orphaned hidden node
+    genome = neat.DefaultGenome(1)
+    genome.fitness = None
+    
+    # Manually create nodes:
+    # - Output node 0
+    # - Hidden node 1 (orphaned - no incoming connections)
+    node_0 = DefaultNodeGene(0)
+    node_0.bias = 0.5
+    node_0.response = 1.0
+    node_0.activation = 'sigmoid'
+    node_0.aggregation = 'sum'
+    genome.nodes[0] = node_0
+    
+    node_1 = DefaultNodeGene(1)
+    node_1.bias = 2.0  # This bias value should affect the output
+    node_1.response = 1.0
+    node_1.activation = 'sigmoid'
+    node_1.aggregation = 'sum'
+    genome.nodes[1] = node_1
+    
+    # Manually create connections:
+    # - Node 1 (orphaned) connects to output node 0
+    # - Note: node 1 has no incoming connections (it's orphaned)
+    conn_key = (1, 0)
+    conn = DefaultConnectionGene(conn_key, innovation=0)  # Innovation number required
+    conn.weight = 1.0
+    conn.enabled = True
+    genome.connections[conn_key] = conn
+    
+    # Create the feed-forward network
+    # This should not crash despite node 1 being orphaned
+    net = neat.nn.FeedForwardNetwork.create(genome, config)
+    
+    # Activate the network
+    # The orphaned node 1 should contribute its activation(bias) to the output
+    output = net.activate([0.0, 0.0])  # Two inputs (as per test_configuration)
+    
+    # Verify the network produces output
+    assert len(output) == 1
+    assert output[0] is not None
+    
+    # Verify the output is affected by the orphaned node's bias
+    # NOTE: neat-python's sigmoid_activation multiplies input by 5.0 before applying sigmoid!
+    # Node 1 with bias=2.0, no inputs -> sigmoid(5.0 * (2.0 + 1.0 * 0)) = sigmoid(10.0) ≈ 0.9999
+    # Node 1 output (0.9999) * weight (1.0) goes to node 0
+    # Node 0: sigmoid(5.0 * (0.5 + 1.0 * 0.9999)) = sigmoid(5.0 * 1.4999) = sigmoid(7.5) ≈ 0.9994
+    
+    # Calculate using neat-python's sigmoid_activation (with 5.0 scaling)
+    def neat_sigmoid(z):
+        z = max(-60.0, min(60.0, 5.0 * z))
+        return 1.0 / (1.0 + math.exp(-z))
+    
+    expected_node_1_output = neat_sigmoid(2.0)  # bias only, no inputs
+    expected_output = neat_sigmoid(0.5 + expected_node_1_output)  # bias + weighted input from node 1
+    
+    assert abs(output[0] - expected_output) < 0.001, f"Expected {expected_output:.6f}, got {output[0]:.6f}"
+
+
+if __name__ == '__main__':
+    test_orphaned_node_network()

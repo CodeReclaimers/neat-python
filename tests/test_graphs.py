@@ -152,9 +152,85 @@ def test_fuzz_feed_forward_layers():
         feed_forward_layers(inputs, outputs, connections)
 
 
+def test_orphaned_single_node():
+    """Test a single orphaned hidden node that connects to output."""
+    inputs = [0, 1]
+    outputs = [3]
+    # Node 2 has no incoming connections (orphaned) but connects to output 3
+    connections = [(2, 3)]
+    layers, required = feed_forward_layers(inputs, outputs, connections)
+    # Node 2 should appear in the first layer as a bias neuron
+    # Node 3 should appear in the second layer
+    assert [{2}, {3}] == layers
+    assert {2, 3} == required
+
+
+def test_orphaned_multiple_nodes():
+    """Test multiple orphaned nodes in the same network."""
+    inputs = [0]
+    outputs = [4]
+    # Nodes 2 and 3 are both orphaned (no incoming connections)
+    # Both connect to output node 4
+    connections = [(2, 4), (3, 4)]
+    layers, required = feed_forward_layers(inputs, outputs, connections)
+    # Both orphaned nodes should appear in the first layer
+    # Output node 4 should appear in the second layer
+    assert [{2, 3}, {4}] == layers
+    assert {2, 3, 4} == required
+
+
+def test_orphaned_mixed():
+    """Test a mix of normal nodes and orphaned nodes."""
+    inputs = [0, 1]
+    outputs = [5]
+    # Node 2 gets input from 0 (normal)
+    # Node 3 is orphaned (no inputs)
+    # Node 4 gets inputs from both 2 and 3
+    # Node 5 (output) gets input from 4
+    connections = [(0, 2), (2, 4), (3, 4), (4, 5)]
+    layers, required = feed_forward_layers(inputs, outputs, connections)
+    # First layer: orphaned node 3
+    # Second layer: node 2 (has input from 0)
+    # Third layer: node 4 (has inputs from 2 and 3)
+    # Fourth layer: node 5 (has input from 4)
+    assert [{3}, {2}, {4}, {5}] == layers
+    assert {2, 3, 4, 5} == required
+
+
+def test_orphaned_output_node():
+    """Test an output node with no incoming connections."""
+    inputs = [0, 1]
+    outputs = [2, 3]
+    # Output node 2 has a connection from input 0
+    # Output node 3 has no connections at all (orphaned output)
+    connections = [(0, 2)]
+    layers, required = feed_forward_layers(inputs, outputs, connections)
+    # First layer: orphaned output node 3
+    # Second layer: normal output node 2
+    assert [{3}, {2}] == layers
+    assert {2, 3} == required
+
+
+def test_orphaned_with_self_loop_prevention():
+    """Test orphaned nodes don't interfere with cycle detection."""
+    inputs = [0]
+    outputs = [3]
+    # Node 2 is orphaned and connects to output 3
+    connections = [(2, 3)]
+    layers, required = feed_forward_layers(inputs, outputs, connections)
+    assert [{2}, {3}] == layers
+    # Verify that adding a self-loop would still be detected as a cycle
+    assert creates_cycle(connections, (2, 2))
+
+
 if __name__ == '__main__':
     test_creates_cycle()
     test_required_for_output()
     test_fuzz_required()
     test_feed_forward_layers()
     test_fuzz_feed_forward_layers()
+    test_orphaned_single_node()
+    test_orphaned_multiple_nodes()
+    test_orphaned_mixed()
+    test_orphaned_output_node()
+    test_orphaned_with_self_loop_prevention()

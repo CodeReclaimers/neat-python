@@ -202,12 +202,13 @@ class TestRequiredForOutput(unittest.TestCase):
         outputs = [5, 6]
         connections = [
             (0, 2), (2, 5),  # Path to output 5
-            (3, 6)           # Output 6 not connected to inputs
+            (3, 6)           # Output 6 connected via orphaned node 3
         ]
         
         required = required_for_output(inputs, outputs, connections)
-        # Only output 5 and its dependencies
-        self.assertEqual(required, {2, 5, 6})  # 6 is in outputs so included
+        # Node 3 is required even though it's orphaned (not reachable from inputs)
+        # because it feeds into output 6. It acts as a "bias neuron".
+        self.assertEqual(required, {2, 3, 5, 6})
     
     def test_recurrent_connections(self):
         """Test with recurrent (cyclic) connections."""
@@ -424,8 +425,8 @@ class TestFeedForwardLayers(unittest.TestCase):
         connections = []
         
         layers, required = feed_forward_layers(inputs, outputs, connections)
-        # No layers if no connections
-        self.assertEqual(layers, [])
+        # Output node 2 is orphaned (no incoming connections), so it appears as first layer
+        self.assertEqual(layers, [{2}])
         self.assertEqual(required, {2})
     
     def test_bottleneck_structure(self):

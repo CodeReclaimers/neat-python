@@ -20,23 +20,28 @@ def sum_aggregation(x):
 
 
 def max_aggregation(x):
-    return max(x)
+    # Handle empty input (for orphaned nodes with no incoming connections)
+    return max(x) if x else 0.0
 
 
 def min_aggregation(x):
-    return min(x)
+    # Handle empty input (for orphaned nodes with no incoming connections)
+    return min(x) if x else 0.0
 
 
 def maxabs_aggregation(x):
-    return max(x, key=abs)
+    # Handle empty input (for orphaned nodes with no incoming connections)
+    return max(x, key=abs) if x else 0.0
 
 
 def median_aggregation(x):
-    return median2(x)
+    # Handle empty input (for orphaned nodes with no incoming connections)
+    return median2(x) if x else 0.0
 
 
 def mean_aggregation(x):
-    return mean(x)
+    # Handle empty input (for orphaned nodes with no incoming connections)
+    return mean(x) if x else 0.0
 
 
 class InvalidAggregationFunction(TypeError):
