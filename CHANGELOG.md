@@ -21,6 +21,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Checkpoint system already preserved random state (unchanged)
   - All changes are fully backward compatible
 
+- **Reproducibility Examples**: Demonstration scripts for reproducible NEAT evolution
+  - Serial reproducibility example: `examples/xor/evolve-feedforward-reproducible.py`
+    - Tests reproducibility (same seed → identical results)
+    - Tests seed effect (different seeds → different evolution)
+    - Tests backward compatibility (no seed parameter works)
+  - Parallel reproducibility example: `examples/parallel-reproducible/`
+    - `evolve-parallel.py` - Demonstrates parallel evaluation with reproducibility
+    - `config-parallel` - Configuration file with seed parameter
+    - `README.md` - Comprehensive documentation with best practices and troubleshooting
+    - Tests parallel reproducibility (same seed + multiple workers → identical results)
+    - Tests worker count independence (results consistent across worker counts)
+
+- **New Example**: Inverted Double Pendulum example using Gymnasium
+  - Complete example in `examples/inverted-double-pendulum/`
+  - Uses `InvertedDoublePendulum-v5` environment (MuJoCo-based)
+  - Demonstrates continuous control with 9-dimensional observation space
+  - Includes evolution script with parallel evaluation
+  - Includes test/visualization script for trained controllers
+  - Full documentation in example README with usage tips
+
+### Fixed
+- **Orphaned Nodes Bug**: Fixed silent failure when nodes have no incoming connections after deletion mutations
+  - `feed_forward_layers()` now correctly handles orphaned nodes (nodes with no incoming connections)
+  - Orphaned nodes are treated as "bias neurons" that output `activation(bias)` independent of inputs
+  - Placed in first evaluation layer as they are always ready
+  - `required_for_output()` now includes orphaned nodes that feed into outputs
+  - Aggregation functions (`max`, `min`, `maxabs`, `mean`, `median`) now handle empty inputs (return 0.0)
+  - Comprehensive test coverage in `tests/test_graphs.py` (5 new tests) and `tests/test_nn.py` (integration test)
+
 ## [1.0.0] - 2025-01-09
 
 ### Added

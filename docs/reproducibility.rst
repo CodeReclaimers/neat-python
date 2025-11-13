@@ -527,6 +527,52 @@ Multi-Seed Statistical Analysis
        results = run_experiment(num_runs=10)
        analyze_results(results)
 
+Example Scripts
+---------------
+
+The NEAT-Python repository includes comprehensive example scripts demonstrating reproducibility:
+
+**Serial Reproducibility Example: XOR Problem**
+
+Location: ``examples/xor/evolve-feedforward-reproducible.py``
+
+This script demonstrates:
+- Reproducibility verification (same seed produces identical results)
+- Different seed comparison (different seeds produce different evolution paths)
+- Backward compatibility (evolution works without seed parameter)
+
+Run with:
+
+.. code-block:: bash
+
+   cd examples/xor
+   python evolve-feedforward-reproducible.py
+
+Expected output shows all three tests passing with clear verification of reproducibility.
+
+**Parallel Reproducibility Example**
+
+Location: ``examples/parallel-reproducible/``
+
+This example demonstrates parallel evaluation with reproducibility:
+- ``evolve-parallel.py`` - Main script with 3 reproducibility tests
+- ``config-parallel`` - Configuration file with seed parameter
+- ``README.md`` - Detailed documentation with best practices
+
+The script tests:
+1. Parallel reproducibility (same seed + multiple workers → identical results)
+2. Seed effects (different seeds → different evolution)
+3. Worker count independence (consistent results with different worker counts)
+
+Run with:
+
+.. code-block:: bash
+
+   cd examples/parallel-reproducible
+   python evolve-parallel.py
+
+Expected output shows all reproducibility tests passing across different worker configurations.
+
 See Also
 --------
 
