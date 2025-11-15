@@ -42,6 +42,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Full documentation in example README with usage tips
 
 ### Fixed
+- **Population Size Drift**: Fixed small mismatches between actual population size and configured `pop_size`
+  - `DefaultReproduction.reproduce()` now strictly enforces `len(population) == config.pop_size` for every non-extinction generation
+  - New `_adjust_spawn_exact` helper adjusts per-species spawn counts after `compute_spawn()` to correct rounding/clamping drift
+  - When adding individuals, extra genomes are allocated to smaller species first; when removing, genomes are taken from larger species first
+  - Per-species minima (`min_species_size` and elitism) are always respected; invalid configurations (e.g., `pop_size < num_species * min_species_size`) raise a clear error
+  - New tests in `tests/test_reproduction.py` ensure `DefaultReproduction.reproduce()` preserves exact population size over multiple generations
 - **Orphaned Nodes Bug**: Fixed silent failure when nodes have no incoming connections after deletion mutations
   - `feed_forward_layers()` now correctly handles orphaned nodes (nodes with no incoming connections)
   - Orphaned nodes are treated as "bias neurons" that output `activation(bias)` independent of inputs

@@ -91,6 +91,69 @@ class DefaultReproduction(DefaultClassConfig):
 
         return spawn_amounts
 
+    def _adjust_spawn_exact(self, spawn_amounts, pop_size, min_species_size):
+        """Adjust per-species spawn counts so that their sum matches pop_size exactly.
+
+        This adjustment preserves the per-species minimum (min_species_size) and biases
+        changes as follows:
+        - When adding individuals (total < pop_size), smaller species are incremented first.
+        - When removing individuals (total > pop_size), larger species are decremented first.
+        """
+        total_spawn = sum(spawn_amounts)
+        if total_spawn == pop_size:
+            return spawn_amounts
+
+        num_species = len(spawn_amounts)
+        min_total = num_species * min_species_size
+        if min_total > pop_size:
+            raise RuntimeError(
+                "Configuration conflict: population size {0} is less than "
+                "num_species * min_species_size {1} ({2} * {3}). Cannot satisfy per-species minima.".format(
+                    pop_size, min_total, num_species, min_species_size
+                )
+            )
+
+        diff = pop_size - total_spawn
+        indexed = list(enumerate(spawn_amounts))
+
+        if diff > 0:
+            # Too few genomes overall: give extras to smaller species first.
+            indexed.sort(key=lambda x: x[1])  # ascending by current spawn size
+            i = 0
+            while diff > 0 and indexed:
+                idx, val = indexed[i]
+                val += 1
+                spawn_amounts[idx] = val
+                indexed[i] = (idx, val)
+                diff -= 1
+                i = (i + 1) % len(indexed)
+        else:
+            # Too many genomes overall: remove from larger species first.
+            remaining = -diff
+            indexed.sort(key=lambda x: x[1], reverse=True)  # descending by current spawn size
+            i = 0
+            # We know a solution should exist whenever min_total <= pop_size, but
+            # guard against pathological rounding behaviour with a safety break.
+            while remaining > 0 and indexed:
+                idx, val = indexed[i]
+                if val > min_species_size:
+                    val -= 1
+                    spawn_amounts[idx] = val
+                    indexed[i] = (idx, val)
+                    remaining -= 1
+                i = (i + 1) % len(indexed)
+                if i == 0 and remaining > 0:
+                    # Could not adjust further without violating the per-species minimum.
+                    break
+
+        if sum(spawn_amounts) != pop_size:
+            raise RuntimeError(
+                "Internal error adjusting spawn counts: could not match pop_size={0} "
+                "with min_species_size={1}".format(pop_size, min_species_size)
+            )
+
+        return spawn_amounts
+
     def reproduce(self, config, species, pop_size, generation):
         """
         Handles creation of genomes, either from scratch or by sexual or
@@ -156,6 +219,9 @@ class DefaultReproduction(DefaultClassConfig):
         min_species_size = max(min_species_size, self.reproduction_config.elitism)
         spawn_amounts = self.compute_spawn(adjusted_fitnesses, previous_sizes,
                                            pop_size, min_species_size)
+        # Adjust spawn counts so that the total exactly matches the requested
+        # population size while respecting the per-species minimum.
+        spawn_amounts = self._adjust_spawn_exact(spawn_amounts, pop_size, min_species_size)
 
         new_population = {}
         species.species = {}
