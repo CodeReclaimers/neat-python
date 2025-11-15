@@ -78,7 +78,7 @@ def run(config_file):
 
     # Run evolution with parallel evaluation
     pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), eval_genome)
-    winner = pop.run(pe.evaluate, 300)
+    winner = pop.run(pe.evaluate, 500)
 
     # Save the winner
     with open('winner-feedforward.pickle', 'wb') as f:
@@ -87,8 +87,8 @@ def run(config_file):
     print('\n\nBest genome:\n{!s}'.format(winner))
 
     # Visualize the results
-    visualize.plot_stats(stats, ylog=False, view=False, filename="feedforward-fitness.svg")
-    visualize.plot_species(stats, view=False, filename="feedforward-speciation.svg")
+    visualize.plot_stats(stats, ylog=False, view=True, filename="feedforward-fitness.svg")
+    visualize.plot_species(stats, view=True, filename="feedforward-speciation.svg")
 
     # Create node names for visualization
     node_names = {
@@ -98,9 +98,9 @@ def run(config_file):
         0: 'force'
     }
     
-    visualize.draw_net(config, winner, view=False, node_names=node_names,
+    visualize.draw_net(config, winner, view=True, node_names=node_names,
                       filename="winner-feedforward.gv")
-    visualize.draw_net(config, winner, view=False, node_names=node_names,
+    visualize.draw_net(config, winner, view=True, node_names=node_names,
                       filename="winner-feedforward-pruned.gv", prune_unused=True)
 
     return winner, stats
