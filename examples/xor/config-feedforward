@@ -43,7 +43,8 @@ enabled_default         = True
 enabled_mutate_rate     = 0.01
 
 feed_forward            = True
-initial_connection      = full
+# Start with all inputs connected to all outputs.
+initial_connection      = full_direct
 
 # node add/remove rates
 node_add_prob           = 0.2

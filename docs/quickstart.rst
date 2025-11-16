@@ -63,7 +63,7 @@ First, create a configuration file named ``config-xor``:
    enabled_rate_to_false_add = 0.0
    
    feed_forward            = True
-   initial_connection      = full
+   initial_connection      = full_direct
    
    node_add_prob           = 0.2
    node_delete_prob        = 0.2

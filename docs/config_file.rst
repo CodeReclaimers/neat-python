@@ -402,7 +402,7 @@ required for your particular implementation.
 
 * *initial_connection*
     Specifies the initial connectivity of newly-created genomes.  (Note the effects on settings other than ``unconnected`` of the
-    :ref:`enabled_default <enabled-default-label>` parameter.) There are seven allowed values:
+    :ref:`enabled_default <enabled-default-label>` parameter.) There are seven primary values:
 
     * ``unconnected`` - No :term:`connections <connection>` are initially present. **This is the default.**
     * ``fs_neat_nohidden`` - One randomly-chosen :term:`input node` has one connection to each :term:`output node`. (This is one version of the
@@ -418,8 +418,19 @@ required for your particular implementation.
       have :term:`recurrent` (loopback, in this case) connections from each hidden or output node to itself.
     * ``partial_nodirect #`` - As for ``full_nodirect``, but each connection has a probability of being present determined by the number
       (valid values are in [0.0, 1.0]).
-    * ``partial_direct #`` - as for ``full_direct``, but each connection has a probability of being present determined by the number
+    * ``partial_direct #`` - As for ``full_direct``, but each connection has a probability of being present determined by the number
       (valid values are in [0.0, 1.0]).
+
+    Older versions of the documentation sometimes referred to this setting as ``none`` when no initial connections are present; the correct
+    configuration value is ``unconnected``. The string ``none`` is **not** a valid value for ``initial_connection``.
+
+    In addition, the following legacy aliases are accepted for backward compatibility but are **deprecated** and will be removed in a future
+    version:
+
+    * ``fs_neat`` - Behaves like ``fs_neat_nohidden``; when hidden nodes are present it emits a warning and connects only inputs to outputs.
+    * ``full`` - Behaves like ``full_nodirect``; when hidden nodes are present it emits a warning and creates no direct input-output connections.
+    * ``partial`` - Behaves like ``partial_nodirect`` (typically used as ``partial <fraction>``); when hidden nodes are present it emits a warning
+      and creates no direct input-output connections.
 
 .. versionchanged:: 0.92
   fs_neat split into fs_neat_nohidden and fs_neat_hidden; full, partial split into full_nodirect, full_direct, partial_nodirect, partial_direct

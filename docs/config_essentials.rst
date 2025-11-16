@@ -186,9 +186,14 @@ Let's walk through the XOR example config with explanations:
    # Set to False if you need memory/temporal processing
    feed_forward            = True
    
-   # Start with all inputs connected to all outputs
-   # Options: full, partial, none
-   initial_connection      = full
+   # Start with all inputs connected to all outputs.
+   # Common options:
+   #   unconnected        - no initial connections
+   #   full_direct        - all inputs connected to all outputs (and hidden nodes, if any)
+   #   partial_direct #   - random subset of full_direct connections (0.0–1.0)
+   # Legacy values ``full`` and ``partial`` are accepted for backward compatibility but
+   # are deprecated; prefer the explicit variants above.
+   initial_connection      = full_direct
    
    # Activation function for neurons
    # sigmoid: outputs in range (0, 1) - good for most problems

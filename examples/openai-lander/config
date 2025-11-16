@@ -12,7 +12,8 @@ no_fitness_termination         = False
 num_inputs              = 8
 num_hidden              = 0
 num_outputs             = 4
-initial_connection      = partial 0.5
+# Random subset of all possible connections (0.0–1.0 fraction).
+initial_connection      = partial_direct 0.5
 feed_forward            = True
 compatibility_disjoint_coefficient = 1.0
 compatibility_weight_coefficient   = 1.0
