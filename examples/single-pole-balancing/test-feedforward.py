@@ -29,10 +29,10 @@ sim = CartPole()
 
 print()
 print("Initial conditions:")
-print("        x = {0:.4f}".format(sim.x))
-print("    x_dot = {0:.4f}".format(sim.dx))
-print("    theta = {0:.4f}".format(sim.theta))
-print("theta_dot = {0:.4f}".format(sim.dtheta))
+print(f"        x = {sim.x:.4f}")
+print(f"    x_dot = {sim.dx:.4f}")
+print(f"    theta = {sim.theta:.4f}")
+print(f"theta_dot = {sim.dtheta:.4f}")
 print()
 
 # Run the given simulation for up to 120 seconds.
@@ -53,14 +53,14 @@ while sim.t < 120.0:
 
     balance_time = sim.t
 
-print('Pole balanced for {0:.1f} of 120.0 seconds'.format(balance_time))
+print(f'Pole balanced for {balance_time:.1f} of 120.0 seconds')
 
 print()
 print("Final conditions:")
-print("        x = {0:.4f}".format(sim.x))
-print("    x_dot = {0:.4f}".format(sim.dx))
-print("    theta = {0:.4f}".format(sim.theta))
-print("theta_dot = {0:.4f}".format(sim.dtheta))
+print(f"        x = {sim.x:.4f}")
+print(f"    x_dot = {sim.dx:.4f}")
+print(f"    theta = {sim.theta:.4f}")
+print(f"theta_dot = {sim.dtheta:.4f}")
 print()
 print("Making movie...")
 make_movie(net, discrete_actuator_force, 15.0, "feedforward-movie.mp4")

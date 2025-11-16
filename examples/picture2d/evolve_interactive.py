@@ -18,7 +18,7 @@ import neat
 from common import eval_mono_image, eval_gray_image, eval_color_image
 
 
-class InteractiveStagnation(object):
+class InteractiveStagnation:
     """
     This class is used as a drop-in replacement for the default species stagnation scheme.
 
@@ -58,7 +58,7 @@ class InteractiveStagnation(object):
         return result
 
 
-class PictureBreeder(object):
+class PictureBreeder:
     def __init__(self, thumb_width, thumb_height, full_width, full_height,
                  window_width, window_height, scheme, num_workers):
         """
@@ -145,9 +145,9 @@ class PictureBreeder(object):
             image_data = eval_mono_image(genome, config, self.full_width, self.full_height)
 
         image = self.make_image_from_data(image_data, self.full_width, self.full_height)
-        pygame.image.save(image, "rendered/rendered-{}-{}.png".format(os.getpid(), genome_id))
+        pygame.image.save(image, f"rendered/rendered-{os.getpid()}-{genome_id}.png")
 
-        with open("rendered/genome-{}-{}.bin".format(os.getpid(), genome_id), "wb") as f:
+        with open(f"rendered/genome-{os.getpid()}-{genome_id}.bin", "wb") as f:
             pickle.dump(genome, f, 2)
 
     def eval_fitness(self, genomes, config):
@@ -162,7 +162,7 @@ class PictureBreeder(object):
 
         pygame.init()
         screen = pygame.display.set_mode((self.window_width, self.window_height))
-        pygame.display.set_caption("Interactive NEAT-python generation {0}".format(self.generation))
+        pygame.display.set_caption(f"Interactive NEAT-python generation {self.generation}")
 
         buttons = self.make_thumbnails(genomes, config)
 
@@ -197,8 +197,8 @@ class PictureBreeder(object):
         for n, (genome_id, genome) in enumerate(genomes):
             if selected[n]:
                 genome.fitness = 1.0
-                pygame.image.save(buttons[n], "image-{}.{}.png".format(os.getpid(), genome_id))
-                with open("genome-{}-{}.bin".format(os.getpid(), genome_id), "wb") as f:
+                pygame.image.save(buttons[n], f"image-{os.getpid()}.{genome_id}.png")
+                with open(f"genome-{os.getpid()}-{genome_id}.bin", "wb") as f:
                     pickle.dump(genome, f, 2)
             else:
                 genome.fitness = 0.0

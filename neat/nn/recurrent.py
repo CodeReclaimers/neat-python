@@ -1,7 +1,7 @@
 from neat.graphs import required_for_output
 
 
-class RecurrentNetwork(object):
+class RecurrentNetwork:
     def __init__(self, inputs, outputs, node_evals):
         self.input_nodes = inputs
         self.output_nodes = outputs
@@ -19,12 +19,12 @@ class RecurrentNetwork(object):
         self.active = 0
 
     def reset(self):
-        self.values = [dict((k, 0.0) for k in v) for v in self.values]
+        self.values = [{k: 0.0 for k in v} for v in self.values]
         self.active = 0
 
     def activate(self, inputs):
         if len(self.input_nodes) != len(inputs):
-            raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.input_nodes), len(inputs)))
+            raise RuntimeError(f"Expected {len(self.input_nodes):n} inputs, got {len(inputs):n}")
 
         ivalues = self.values[self.active]
         ovalues = self.values[1 - self.active]

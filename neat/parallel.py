@@ -45,7 +45,7 @@ def _eval_wrapper(eval_function, seed, genome, config):
         random.seed(seed + genome.key)
     return eval_function(genome, config)
 
-class ParallelEvaluator(object):
+class ParallelEvaluator:
     def __init__(self, num_workers, eval_function, timeout=None, initializer=None, initargs=(), maxtasksperchild=None, seed=None):
         """
         Parallel fitness evaluator using multiprocessing.

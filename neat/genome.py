@@ -12,7 +12,7 @@ from neat.graphs import creates_cycle
 from neat.graphs import required_for_output
 
 
-class DefaultGenomeConfig(object):
+class DefaultGenomeConfig:
     """Sets up and holds configuration information for the DefaultGenome class."""
     allowed_connectivity = ['unconnected', 'fs_neat_nohidden', 'fs_neat', 'fs_neat_hidden',
                             'full_nodirect', 'full', 'full_direct',
@@ -160,7 +160,7 @@ class DefaultGenomeConfig(object):
             self.node_indexer = None
 
 
-class DefaultGenome(object):
+class DefaultGenome:
     """
     A genome for generalized neural networks.
 

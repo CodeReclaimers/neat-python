@@ -84,7 +84,7 @@ def run(config_file):
     with open('winner-feedforward.pickle', 'wb') as f:
         pickle.dump(winner, f)
 
-    print('\n\nBest genome:\n{!s}'.format(winner))
+    print(f'\n\nBest genome:\n{winner!s}')
 
     # Visualize the results
     visualize.plot_stats(stats, ylog=False, view=True, filename="feedforward-fitness.svg")

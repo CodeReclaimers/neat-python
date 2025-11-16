@@ -18,7 +18,7 @@ def plot_spikes(spikes, title):
     plt.grid()
     plt.plot(t_values, v_values, "g-")
 
-    plt.title("Izhikevich's spiking neuron model ({0!s})".format(title))
+    plt.title(f"Izhikevich's spiking neuron model ({title!s})")
 
     plt.subplot(4, 1, 2)
     plt.ylabel("Fired")
@@ -39,7 +39,7 @@ def plot_spikes(spikes, title):
     plt.plot(t_values, I_values, "r-o")
 
     fig = plt.figure()
-    plt.title("Izhikevich's spiking neuron model u/v ({0!s})".format(title))
+    plt.title(f"Izhikevich's spiking neuron model u/v ({title!s})")
     plt.xlabel("Recovery (u)")
     plt.ylabel("Potential (mv)")
     plt.grid()
@@ -55,7 +55,7 @@ def show(title, a, b, c, d):
     for i in range(1000):
         n.current = 0.0 if i < 100 or i > 800 else 10.0
         spike_train.append((1.0 * i, n.current, n.v, n.u, n.fired))
-        print('{0:d}\t{1:f}\t{2:f}\t{3:f}'.format(i, n.current, n.v, n.u))
+        print(f'{i:d}\t{n.current:f}\t{n.v:f}\t{n.u:f}')
         n.advance(0.25)
 
     plot_spikes(spike_train, title)

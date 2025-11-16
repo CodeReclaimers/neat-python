@@ -41,6 +41,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Includes test/visualization script for trained controllers
   - Full documentation in example README with usage tips
 
+### Changed
+- Dropped support for Python 3.6 and 3.7; neat-python now requires Python 3.8 or newer.
+- Modernized internal implementation in `neat/` and `examples/` to use Python 3 features
+  such as f-strings, comprehensions, dataclasses for internal helpers, and type hints,
+  without changing the public API.
+
 ### Fixed
 - **Population Size Drift**: Fixed small mismatches between actual population size and configured `pop_size`
   - `DefaultReproduction.reproduce()` now strictly enforces `len(population) == config.pop_size` for every non-extinction generation

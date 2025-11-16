@@ -9,7 +9,7 @@ from neat.attributes import FloatAttribute, BoolAttribute, StringAttribute
 # TODO: Evaluate using __slots__ for performance/memory usage improvement.
 
 
-class BaseGene(object):
+class BaseGene:
     """
     Handles functions shared by multiple types of genes (both node and connection),
     including crossover and calling mutation methods.

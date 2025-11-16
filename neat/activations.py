@@ -110,7 +110,7 @@ def validate_activation(function):
         raise InvalidActivationFunction("A single-argument function is required.")
 
 
-class ActivationFunctionSet(object):
+class ActivationFunctionSet:
     """
     Contains the list of current valid activation functions,
     including methods for adding and getting them.
@@ -144,7 +144,7 @@ class ActivationFunctionSet(object):
     def get(self, name):
         f = self.functions.get(name)
         if f is None:
-            raise InvalidActivationFunction("No such activation function: {0!r}".format(name))
+            raise InvalidActivationFunction(f"No such activation function: {name!r}")
 
         return f
 

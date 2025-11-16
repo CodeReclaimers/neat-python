@@ -1,16 +1,16 @@
 from neat.graphs import feed_forward_layers
 import random
 
-class FeedForwardNetwork(object):
+class FeedForwardNetwork:
     def __init__(self, inputs, outputs, node_evals):
         self.input_nodes = inputs
         self.output_nodes = outputs
         self.node_evals = node_evals
-        self.values = dict((key, 0.0) for key in inputs + outputs)
+        self.values = {key: 0.0 for key in inputs + outputs}
 
     def activate(self, inputs):
         if len(self.input_nodes) != len(inputs):
-            raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.input_nodes), len(inputs)))
+            raise RuntimeError(f"Expected {len(self.input_nodes):n} inputs, got {len(inputs):n}")
 
         for k, v in zip(self.input_nodes, inputs):
             self.values[k] = v

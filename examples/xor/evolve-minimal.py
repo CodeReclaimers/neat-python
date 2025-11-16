@@ -33,11 +33,11 @@ p.add_reporter(neat.StdOutReporter(False))
 winner = p.run(eval_genomes)
 
 # Display the winning genome.
-print('\nBest genome:\n{!s}'.format(winner))
+print(f'\nBest genome:\n{winner!s}')
 
 # Show output of the most fit genome against training data.
 print('\nOutput:')
 winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
 for xi, xo in zip(xor_inputs, xor_outputs):
     output = winner_net.activate(xi)
-    print("  input {!r}, expected output {!r}, got {!r}".format(xi, xo, output))
+    print(f"  input {xi!r}, expected output {xo!r}, got {output!r}")

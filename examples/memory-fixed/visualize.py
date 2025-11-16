@@ -57,7 +57,7 @@ def plot_spikes(spikes, view=False, filename=None, title=None):
     if title is None:
         plt.title("Izhikevich's spiking neuron model")
     else:
-        plt.title("Izhikevich's spiking neuron model ({0!s})".format(title))
+        plt.title(f"Izhikevich's spiking neuron model ({title!s})")
 
     plt.subplot(3, 1, 2)
     plt.ylabel("Recovery (u)")

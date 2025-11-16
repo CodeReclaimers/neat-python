@@ -1,47 +1,62 @@
 """Does general configuration parsing; used by other classes for their configuration."""
 
+from __future__ import annotations
+
 import os
 import warnings
 from configparser import ConfigParser
+from dataclasses import dataclass
+from typing import Any, Dict, Iterable, Mapping, Optional, Type
 
 
-class ConfigParameter(object):
-    """Contains information about one configuration item."""
+@dataclass(eq=False)
+class ConfigParameter:
+    """Contains information about one configuration item.
 
-    def __init__(self, name, value_type, default=None, optional=False):
-        self.name = name
-        self.value_type = value_type
-        self.default = default
-        self.optional = optional  # If True, parameter can be omitted from config
+    This is an internal helper used by NEAT's configuration system. It is kept
+    intentionally small and value-like, but equality is left as identity to
+    avoid changing any external expectations.
+    """
 
-    def __repr__(self):
+    name: str
+    value_type: Type[Any]
+    default: Any = None
+    optional: bool = False  # If True, parameter can be omitted from config
+
+    def __repr__(self) -> str:
         if self.default is None:
             return f"ConfigParameter({self.name!r}, {self.value_type!r})"
         return f"ConfigParameter({self.name!r}, {self.value_type!r}, {self.default!r})"
 
-    def parse(self, section, config_parser):
+    def parse(self, section: str, config_parser: ConfigParser) -> Any:
+        """Parse a value from *section* of the given ``ConfigParser``.
+
+        Any missing required parameter results in an exception that is handled
+        by :class:`Config` to provide a user-friendly error message.
+        """
+
         # Check if parameter exists in config
         if not config_parser.has_option(section, self.name):
             if self.optional:
                 return self.default
             # Will raise exception in Config.__init__ exception handler
             raise Exception(f"Missing parameter: {self.name}")
-        
-        if int == self.value_type:
+
+        if self.value_type is int:
             return config_parser.getint(section, self.name)
-        if bool == self.value_type:
+        if self.value_type is bool:
             return config_parser.getboolean(section, self.name)
-        if float == self.value_type:
+        if self.value_type is float:
             return config_parser.getfloat(section, self.name)
-        if list == self.value_type:
+        if self.value_type is list:
             v = config_parser.get(section, self.name)
             return v.split(" ")
-        if str == self.value_type:
+        if self.value_type is str:
             return config_parser.get(section, self.name)
 
         raise RuntimeError(f"Unexpected configuration type: {self.value_type!r}")
 
-    def interpret(self, config_dict, section_name=None):
+    def interpret(self, config_dict: Mapping[str, Any], section_name: Optional[str] = None) -> Any:
         """
         Converts the config_parser output into the proper type,
         and checks for errors. All configuration parameters must be explicitly
@@ -89,20 +104,20 @@ class ConfigParameter(object):
 
         raise RuntimeError("Unexpected configuration type: " + repr(self.value_type))
 
-    def format(self, value):
-        if list == self.value_type:
+    def format(self, value: Any) -> str:
+        if self.value_type is list:
             return " ".join(value)
         return str(value)
 
 
-def write_pretty_params(f, config, params):
+def write_pretty_params(f, config: Any, params: Iterable[ConfigParameter]) -> None:
     param_names = [p.name for p in params]
     longest_name = max(len(name) for name in param_names)
     param_names.sort()
-    params = dict((p.name, p) for p in params)
+    param_lookup: Dict[str, ConfigParameter] = {p.name: p for p in params}
 
     for name in param_names:
-        p = params[name]
+        p = param_lookup[name]
         f.write(f'{p.name.ljust(longest_name)} = {p.format(getattr(config, p.name))}\n')
 
 
@@ -111,7 +126,7 @@ class UnknownConfigItemError(NameError):
     pass
 
 
-class DefaultClassConfig(object):
+class DefaultClassConfig:
     """
     Replaces at least some boilerplate configuration code
     for reproduction, species_set, and stagnation classes.
@@ -137,7 +152,7 @@ class DefaultClassConfig(object):
         write_pretty_params(f, config, config._params)
 
 
-class Config(object):
+class Config:
     """A container for user-configurable parameters of NEAT."""
 
     __params = [ConfigParameter('pop_size', int),

@@ -29,7 +29,7 @@ class StatisticsReporter(BaseReporter):
         # Store the fitnesses of the members of each currently active species.
         species_stats = {}
         for sid, s in species.species.items():
-            species_stats[sid] = dict((k, v.fitness) for k, v in s.members.items())
+            species_stats[sid] = {k: v.fitness for k, v in s.members.items()}
         self.generation_statistics.append(species_stats)
 
     def get_fitness_stat(self, f):

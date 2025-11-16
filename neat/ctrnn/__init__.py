@@ -4,7 +4,7 @@
 from neat.graphs import required_for_output
 
 
-class CTRNNNodeEval(object):
+class CTRNNNodeEval:
     def __init__(self, time_constant, activation, aggregation, bias, response, links):
         self.time_constant = time_constant
         self.activation = activation
@@ -14,7 +14,7 @@ class CTRNNNodeEval(object):
         self.links = links
 
 
-class CTRNN(object):
+class CTRNN:
     """Sets up the ctrnn network itself."""
     def __init__(self, inputs, outputs, node_evals):
         self.input_nodes = inputs
@@ -35,7 +35,7 @@ class CTRNN(object):
         self.time_seconds = 0.0
 
     def reset(self):
-        self.values = [dict((k, 0.0) for k in v) for v in self.values]
+        self.values = [{k: 0.0 for k in v} for v in self.values]
         self.active = 0
         self.time_seconds = 0.0
 
@@ -61,7 +61,7 @@ class CTRNN(object):
             time_step = 0.5 * self.get_max_time_step()
 
         if len(self.input_nodes) != len(inputs):
-            raise RuntimeError("Expected {0} inputs, got {1}".format(len(self.input_nodes), len(inputs)))
+            raise RuntimeError(f"Expected {len(self.input_nodes)} inputs, got {len(inputs)}")
 
         while self.time_seconds < final_time_seconds:
             dt = min(time_step, final_time_seconds - self.time_seconds)

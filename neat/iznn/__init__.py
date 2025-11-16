@@ -56,7 +56,7 @@ class IZGenome(DefaultGenome):
         return DefaultGenomeConfig(param_dict, 'IZGenome')
 
 
-class IZNeuron(object):
+class IZNeuron:
     """Sets up and simulates the iznn nodes (neurons)."""
     def __init__(self, bias, a, b, c, d, inputs):
         """
@@ -124,7 +124,7 @@ class IZNeuron(object):
         self.current = self.bias
 
 
-class IZNN(object):
+class IZNN:
     """Basic iznn network object."""
     def __init__(self, neurons, inputs, outputs):
         self.neurons = neurons
@@ -136,7 +136,7 @@ class IZNN(object):
         """Assign input voltages."""
         if len(inputs) != len(self.inputs):
             raise RuntimeError(
-                "Number of inputs {0:d} does not match number of input nodes {1:d}".format(
+                "Number of inputs {:d} does not match number of input nodes {:d}".format(
                     len(inputs), len(self.inputs)))
         for i, v in zip(self.inputs, inputs):
             self.input_values[i] = v

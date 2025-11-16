@@ -45,13 +45,13 @@ def required_for_output(inputs, outputs, connections):
     s = set(outputs)
     while True:
         # Find nodes not in s whose output is consumed by a node in s
-        t = set(a for (a, b) in connections if b in s and a not in s)
+        t = {a for (a, b) in connections if b in s and a not in s}
 
         if not t:
             break
 
         # Only add non-input nodes to the required set
-        layer_nodes = set(x for x in t if x not in inputs)
+        layer_nodes = {x for x in t if x not in inputs}
         if not layer_nodes:
             break
 
@@ -94,7 +94,7 @@ def feed_forward_layers(inputs, outputs, connections):
     while True:
         # Find candidate nodes c for the next layer.  These nodes should connect
         # a node in s to a node not in s.
-        c = set(b for (a, b) in connections if a in potential_input and b not in potential_input)
+        c = {b for (a, b) in connections if a in potential_input and b not in potential_input}
         # Keep only the used nodes whose entire input set is contained in s.
         next_layer = set()
         for n in c:

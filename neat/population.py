@@ -11,7 +11,7 @@ class CompleteExtinctionException(Exception):
     pass
 
 
-class Population(object):
+class Population:
     """
     This class implements the core evolution algorithm:
         1. Evaluate fitness of all genomes.
@@ -44,7 +44,7 @@ class Population(object):
             self.fitness_criterion = mean
         elif not config.no_fitness_termination:
             raise RuntimeError(
-                "Unexpected fitness_criterion: {0!r}".format(config.fitness_criterion))
+                f"Unexpected fitness_criterion: {config.fitness_criterion!r}")
 
         if initial_state is None:
             # Create a population from scratch, then partition into species.
@@ -107,7 +107,7 @@ class Population(object):
             best = None
             for g in self.population.values():
                 if g.fitness is None:
-                    raise RuntimeError("Fitness not assigned to genome {}".format(g.key))
+                    raise RuntimeError(f"Fitness not assigned to genome {g.key}")
 
                 if best is None or g.fitness > best.fitness:
                     best = g

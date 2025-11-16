@@ -6,7 +6,7 @@ from math import cos, pi, sin
 from random import uniform, gauss
 
 
-class CartPole(object):
+class CartPole:
     gravity = 9.8  # acceleration due to gravity, positive is downward, m/sec^2
     mcart = 1.0  # cart mass in kg
     mpole = 0.1  # pole mass in kg

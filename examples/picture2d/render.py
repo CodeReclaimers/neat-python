@@ -33,7 +33,7 @@ with open("genome-4432-586.bin", "rb") as f:
         node_inputs = []
         for i, w in links:
             input_name = names[i] if i in names else 'node%d' % i
-            node_inputs.append('%s * %.3f' % (input_name, w))
-        s = '%s(%s)' % (agg_func.__name__, ', '.join(node_inputs))
+            node_inputs.append('{} * {:.3f}'.format(input_name, w))
+        s = '{}({})'.format(agg_func.__name__, ', '.join(node_inputs))
         node_name = names[node] if node in names else 'node%d' % node
-        print('%s = %s(%.3f + %.3f * %s)' % (node_name, act_func.__name__, bias, response, s))
+        print('{} = {}({:.3f} + {:.3f} * {})'.format(node_name, act_func.__name__, bias, response, s))

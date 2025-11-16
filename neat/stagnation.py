@@ -26,7 +26,7 @@ class DefaultStagnation(DefaultClassConfig):
         self.species_fitness_func = stat_functions.get(config.species_fitness_func)
         if self.species_fitness_func is None:
             raise RuntimeError(
-                "Unexpected species fitness func: {0!r}".format(config.species_fitness_func))
+                f"Unexpected species fitness func: {config.species_fitness_func!r}")
 
         self.reporters = reporters
 

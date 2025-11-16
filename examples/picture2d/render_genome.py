@@ -12,7 +12,7 @@ local_dir = os.path.dirname(__file__)
 config_path = os.path.join(local_dir, 'interactive_config_gray')
 
 
-class InteractiveStagnation(object):
+class InteractiveStagnation:
     """
     This class is used as a drop-in replacement for the default species stagnation scheme.
 

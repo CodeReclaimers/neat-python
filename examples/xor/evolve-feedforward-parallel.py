@@ -66,14 +66,14 @@ def run(config_file):
         winner = p.run(pe.evaluate, 300)
 
         # Display the winning genome.
-        print('\nBest genome:\n{!s}'.format(winner))
+        print(f'\nBest genome:\n{winner!s}')
 
         # Show output of the most fit genome against training data.
         print('\nOutput:')
         winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
         for xi, xo in zip(xor_inputs, xor_outputs):
             output = winner_net.activate(xi)
-            print("input {!r}, expected output {!r}, got {!r}".format(xi, xo, output))
+            print(f"input {xi!r}, expected output {xo!r}, got {output!r}")
 
         node_names = {-1: 'A', -2: 'B', 0: 'A XOR B'}
         visualize.draw_net(config, winner, True, node_names=node_names)

@@ -8,7 +8,7 @@ from neat.config import ConfigParameter
 # TODO: There is probably a lot of room for simplification of these classes using metaprogramming.
 
 
-class BaseAttribute(object):
+class BaseAttribute:
     """Superclass for the type-specialized attribute subclasses, used by genes."""
 
     def __init__(self, name, **default_dict):

@@ -107,8 +107,8 @@ class DefaultReproduction(DefaultClassConfig):
         min_total = num_species * min_species_size
         if min_total > pop_size:
             raise RuntimeError(
-                "Configuration conflict: population size {0} is less than "
-                "num_species * min_species_size {1} ({2} * {3}). Cannot satisfy per-species minima.".format(
+                "Configuration conflict: population size {} is less than "
+                "num_species * min_species_size {} ({} * {}). Cannot satisfy per-species minima.".format(
                     pop_size, min_total, num_species, min_species_size
                 )
             )
@@ -148,8 +148,8 @@ class DefaultReproduction(DefaultClassConfig):
 
         if sum(spawn_amounts) != pop_size:
             raise RuntimeError(
-                "Internal error adjusting spawn counts: could not match pop_size={0} "
-                "with min_species_size={1}".format(pop_size, min_species_size)
+                "Internal error adjusting spawn counts: could not match pop_size={} "
+                "with min_species_size={}".format(pop_size, min_species_size)
             )
 
         return spawn_amounts
@@ -208,7 +208,7 @@ class DefaultReproduction(DefaultClassConfig):
 
         adjusted_fitnesses = [s.adjusted_fitness for s in remaining_species]
         avg_adjusted_fitness = mean(adjusted_fitnesses)  # type: float
-        self.reporters.info("Average adjusted fitness: {:.3f}".format(avg_adjusted_fitness))
+        self.reporters.info(f"Average adjusted fitness: {avg_adjusted_fitness:.3f}")
 
         # Compute the number of new members for each species in the new generation.
         previous_sizes = [len(s.members) for s in remaining_species]

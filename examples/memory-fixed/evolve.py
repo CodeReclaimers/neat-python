@@ -98,28 +98,28 @@ def run():
     stats.save()
 
     # Show output of the most fit genome against a random input.
-    print('\nBest genome:\n{!s}'.format(winner))
+    print(f'\nBest genome:\n{winner!s}')
     print('\nOutput:')
     winner_net = neat.nn.RecurrentNetwork.create(winner, config)
     num_correct = 0
     for n in range(num_tests):
-        print('\nRun {0} output:'.format(n))
+        print(f'\nRun {n} output:')
         seq = [random.choice((0.0, 1.0)) for _ in range(N)]
         winner_net.reset()
         for s in seq:
             inputs = [s, 0.0]
             winner_net.activate(inputs)
-            print('\tseq {0}'.format(inputs))
+            print(f'\tseq {inputs}')
 
         correct = True
         for s in seq:
             output = winner_net.activate([0, 1])
-            print("\texpected {0:1.5f} got {1:1.5f}".format(s, output[0]))
+            print(f"\texpected {s:1.5f} got {output[0]:1.5f}")
             correct = correct and round(output[0]) == s
         print("OK" if correct else "FAIL")
         num_correct += 1 if correct else 0
 
-    print("{0} of {1} correct {2:.2f}%".format(num_correct, num_tests, 100.0 * num_correct / num_tests))
+    print(f"{num_correct} of {num_tests} correct {100.0 * num_correct / num_tests:.2f}%")
 
     node_names = {-1: 'input', -2: 'gate', 0: 'output'}
     visualize.draw_net(config, winner, True, node_names=node_names)

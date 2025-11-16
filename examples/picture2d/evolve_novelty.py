@@ -20,10 +20,10 @@ def evaluate_lowres(genome, config, scheme):
     elif scheme == 'mono':
         return eval_mono_image(genome, config, width, height)
 
-    raise Exception('Unexpected scheme: {0!r}'.format(scheme))
+    raise Exception(f'Unexpected scheme: {scheme!r}')
 
 
-class NoveltyEvaluator(object):
+class NoveltyEvaluator:
     def __init__(self, num_workers, scheme):
         self.num_workers = num_workers
         self.scheme = scheme
@@ -64,16 +64,16 @@ class NoveltyEvaluator(object):
                 elif self.scheme == 'mono':
                     image = eval_mono_image(genome, config, full_scale * width, full_scale * height)
                 else:
-                    raise Exception('Unexpected scheme: {0!r}'.format(self.scheme))
+                    raise Exception(f'Unexpected scheme: {self.scheme!r}')
 
                 im = np.clip(np.array(image), 0, 255).astype(np.uint8)
                 im = self.image_from_array(im)
-                im.save('novelty-{0:06d}.png'.format(self.out_index))
+                im.save(f'novelty-{self.out_index:06d}.png')
 
                 self.out_index += 1
 
         self.archive.extend(new_archive_entries)
-        print('{0} archive entries'.format(len(self.archive)))
+        print(f'{len(self.archive)} archive entries')
 
 
 def run():
@@ -109,11 +109,11 @@ def run():
         elif ne.scheme == 'mono':
             image = eval_mono_image(winner, config, full_scale * width, full_scale * height)
         else:
-            raise Exception('Unexpected scheme: {0!r}'.format(ne.scheme))
+            raise Exception(f'Unexpected scheme: {ne.scheme!r}')
 
         im = np.clip(np.array(image), 0, 255).astype(np.uint8)
         im = ne.image_from_array(im)
-        im.save('winning-novelty-{0:06d}.png'.format(pop.generation))
+        im.save(f'winning-novelty-{pop.generation:06d}.png')
 
         if ne.scheme == 'gray':
             image = eval_gray_image(winner, config, width, height)
@@ -122,7 +122,7 @@ def run():
         elif ne.scheme == 'mono':
             image = eval_mono_image(winner, config, width, height)
         else:
-            raise Exception('Unexpected scheme: {0!r}'.format(ne.scheme))
+            raise Exception(f'Unexpected scheme: {ne.scheme!r}')
 
         float_image = np.array(image, dtype=np.float32) / 255.0
         ne.archive.append(float_image)

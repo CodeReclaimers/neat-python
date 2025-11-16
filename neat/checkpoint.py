@@ -65,8 +65,8 @@ class Checkpointer(BaseReporter):
         However, since this is a reporter callback, we don't have direct access to Population.
         The innovation tracker will be saved as part of the config state when needed.
         """
-        filename = '{0}{1}'.format(self.filename_prefix, generation)
-        print("Saving checkpoint to {0}".format(filename))
+        filename = f'{self.filename_prefix}{generation}'
+        print(f"Saving checkpoint to {filename}")
 
         with gzip.open(filename, 'w', compresslevel=5) as f:
             # Note: innovation_tracker is stored in config.genome_config.innovation_tracker

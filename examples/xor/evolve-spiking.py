@@ -112,7 +112,7 @@ def run(config_path):
     winner = pop.run(pe.evaluate, 3000)
 
     # Display the winning genome.
-    print('\nBest genome:\n{!s}'.format(winner))
+    print(f'\nBest genome:\n{winner!s}')
 
     node_names = {-1: 'A', -2: 'B'}
     visualize.draw_net(config, winner, True, node_names=node_names)
@@ -127,14 +127,14 @@ def run(config_path):
     sum_square_error, simulated = simulate(winner, config)
     for r, (inputData, outputData, t0, t1, v0, v1, neuron_data) in enumerate(simulated):
         response = compute_output(t0, t1)
-        print("{0!r} expected {1:.3f} got {2:.3f}".format(inputData, outputData, response))
+        print(f"{inputData!r} expected {outputData:.3f} got {response:.3f}")
 
         axes = plt.subplot(4, 1, r + 1)
         plt.title("Traces for XOR input {{{0:.1f}, {1:.1f}}}".format(*inputData), fontsize=12)
         for i, s in neuron_data.items():
             if i in [0, 1]:
                 t, I, v, u, fired = zip(*s)
-                plt.plot(t, v, "-", label="neuron {0:d}".format(i))
+                plt.plot(t, v, "-", label=f"neuron {i:d}")
 
         # Circle the first peak of each output.
         circle0 = patches.Ellipse((t0, v0), 1.0, 10.0, color='r', fill=False)

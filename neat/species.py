@@ -5,7 +5,7 @@ from neat.config import ConfigParameter, DefaultClassConfig
 from neat.math_util import mean, stdev
 
 
-class Species(object):
+class Species:
     def __init__(self, key, generation):
         self.key = key
         self.created = generation
@@ -24,7 +24,7 @@ class Species(object):
         return [m.fitness for m in self.members.values()]
 
 
-class GenomeDistanceCache(object):
+class GenomeDistanceCache:
     def __init__(self, config):
         self.distances = {}
         self.config = config
@@ -132,7 +132,7 @@ class DefaultSpeciesSet(DefaultClassConfig):
             for gid in members:
                 self.genome_to_species[gid] = sid
 
-            member_dict = dict((gid, population[gid]) for gid in members)
+            member_dict = {gid: population[gid] for gid in members}
             s.update(population[rid], member_dict)
 
         # Mean and std genetic distance info report
@@ -140,7 +140,7 @@ class DefaultSpeciesSet(DefaultClassConfig):
             gdmean = mean(distances.distances.values())
             gdstdev = stdev(distances.distances.values())
             self.reporters.info(
-                'Mean genetic distance {0:.3f}, standard deviation {1:.3f}'.format(gdmean, gdstdev))
+                f'Mean genetic distance {gdmean:.3f}, standard deviation {gdstdev:.3f}')
 
     def get_species_id(self, individual_id):
         return self.genome_to_species[individual_id]

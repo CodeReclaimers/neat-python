@@ -25,7 +25,7 @@ for i in range(1250):
     output = net.advance([], 0.002, 0.002)
     times.append(net.time_seconds)
     outputs.append(output)
-    print("{0:.7f} {1:.7f}".format(output[0], output[1]))
+    print(f"{output[0]:.7f} {output[1]:.7f}")
 
 outputs = np.array(outputs).T
 

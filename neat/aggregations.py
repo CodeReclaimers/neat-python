@@ -59,7 +59,7 @@ def validate_aggregation(function):  # TODO: Recognize when need `reduce`
         raise InvalidAggregationFunction("A function taking at least one argument is required")
 
 
-class AggregationFunctionSet(object):
+class AggregationFunctionSet:
     """Contains aggregation functions and methods to add and retrieve them."""
 
     def __init__(self):
@@ -79,12 +79,12 @@ class AggregationFunctionSet(object):
     def get(self, name):
         f = self.functions.get(name)
         if f is None:
-            raise InvalidAggregationFunction("No such aggregation function: {0!r}".format(name))
+            raise InvalidAggregationFunction(f"No such aggregation function: {name!r}")
 
         return f
 
     def __getitem__(self, index):
-        warnings.warn("Use get, not indexing ([{!r}]), for aggregation functions".format(index),
+        warnings.warn(f"Use get, not indexing ([{index!r}]), for aggregation functions",
                       DeprecationWarning)
         return self.get(index)
 

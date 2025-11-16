@@ -70,7 +70,7 @@ def compute_fitness(genome, net, episodes, min_reward, max_reward):
     return reward_error
 
 
-class PooledErrorCompute(object):
+class PooledErrorCompute:
     def __init__(self, num_workers):
         self.num_workers = num_workers
         self.test_episodes = []
@@ -110,7 +110,7 @@ class PooledErrorCompute(object):
 
             self.test_episodes.append((score, data))
 
-        print("Score range [{:.3f}, {:.3f}]".format(min(scores), max(scores)))
+        print(f"Score range [{min(scores):.3f}, {max(scores):.3f}]")
 
     def evaluate_genomes(self, genomes, config):
         self.generation += 1
@@ -120,19 +120,19 @@ class PooledErrorCompute(object):
         for gid, g in genomes:
             nets.append((g, neat.nn.FeedForwardNetwork.create(g, config)))
 
-        print("network creation time {0}".format(time.time() - t0))
+        print(f"network creation time {time.time() - t0}")
         t0 = time.time()
 
         # Periodically generate a new set of episodes for comparison.
         if 1 == self.generation % 10:
             self.test_episodes = self.test_episodes[-300:]
             self.simulate(nets)
-            print("simulation run time {0}".format(time.time() - t0))
+            print(f"simulation run time {time.time() - t0}")
             t0 = time.time()
 
         # Assign a composite fitness to each genome; genomes can make progress either
         # by improving their total reward or by making more accurate reward estimates.
-        print("Evaluating {0} test episodes".format(len(self.test_episodes)))
+        print(f"Evaluating {len(self.test_episodes)} test episodes")
         if self.num_workers < 2:
             for genome, net in nets:
                 reward_error = compute_fitness(genome, net, self.test_episodes, self.min_reward, self.max_reward)
@@ -149,7 +149,7 @@ class PooledErrorCompute(object):
                     reward_error = job.get(timeout=None)
                     genome.fitness = -np.sum(reward_error) / len(self.test_episodes)
 
-        print("final fitness compute time {0}\n".format(time.time() - t0))
+        print(f"final fitness compute time {time.time() - t0}\n")
 
 
 def run():
@@ -187,10 +187,10 @@ def run():
             plt.close()
 
             mfs = sum(stats.get_fitness_mean()[-5:]) / 5.0
-            print("Average mean fitness over last 5 generations: {0}".format(mfs))
+            print(f"Average mean fitness over last 5 generations: {mfs}")
 
             mfs = sum(stats.get_fitness_stat(min)[-5:]) / 5.0
-            print("Average min fitness over last 5 generations: {0}".format(mfs))
+            print(f"Average min fitness over last 5 generations: {mfs}")
 
             # Use the best genomes seen so far as an ensemble-ish control system.
             best_genomes = stats.best_unique_genomes(3)
@@ -245,7 +245,7 @@ def run():
             # Save the winners.
             if best_genomes:
                 for n, g in enumerate(best_genomes):
-                    name = 'winner-{0}'.format(n)
+                    name = f'winner-{n}'
                     with open(name + '.pickle', 'wb') as f:
                         pickle.dump(g, f)
 
