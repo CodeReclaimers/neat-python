@@ -78,7 +78,7 @@ def run(config_file):
 
     # Run evolution with parallel evaluation
     pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), eval_genome)
-    winner = pop.run(pe.evaluate, 500)
+    winner = pop.run(pe.evaluate, 1000)
 
     # Save the winner
     with open('winner-feedforward.pickle', 'wb') as f:
