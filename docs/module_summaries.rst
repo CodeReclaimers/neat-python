@@ -166,8 +166,8 @@ Has the built-in :term:`aggregation functions <aggregation function>`, code for 
 
     .. py:method:: add(name, function)
 
-      After validating the function (via `validate_aggregation`), adds it to the available activation functions under the given name. Used
-      by :py:meth:`DefaultGenomeConfig.add_activation <genome.DefaultGenomeConfig.add_activation>`. TODO: Check for whether
+      After validating the function (via `validate_aggregation`), adds it to the available aggregation functions under the given name. Used
+      by :py:meth:`DefaultGenomeConfig.add_aggregation <genome.DefaultGenomeConfig.add_aggregation>`. TODO: Check for whether
       the function needs `reduce <functools.reduce>`, or at least offer a form of this function (or extra argument for it, defaulting to false)
       and/or its interface in :py:mod:`genome`, that will appropriately "wrap" the input function.
 

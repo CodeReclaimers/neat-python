@@ -164,6 +164,7 @@ required for your particular implementation.
 
 * *elitism*
     The number of most-fit individuals in each species that will be preserved as-is from one generation to the next. **This defaults to 0.**
+    Note: the effective minimum per-species population is max(min_species_size, elitism) to ensure elites are always preserved.
 
 .. index:: ! survival_threshold
 
@@ -175,7 +176,8 @@ required for your particular implementation.
 .. _min-species-size-label:
 
 * *min_species_size*
-    The minimum number of genomes per species after reproduction. **This defaults to 2.**
+    The minimum number of genomes per species after reproduction. **This defaults to 1.**
+    Note: the effective minimum per-species population is max(min_species_size, elitism) to ensure elites are always preserved.
 
 .. index:: genome
 .. index:: DefaultGenome
@@ -183,7 +185,7 @@ required for your particular implementation.
 [DefaultSpeciesSet] section
 ---------------------------
 The ``DefaultSpeciesSet`` section specifies parameters for the builtin `DefaultSpeciesSet` class.
-This section is only necessary if you specify this class as the genome implementation when
+This section is only necessary if you specify this class as the species set implementation when
 creating the `Config` instance; otherwise you need to include whatever configuration (if any) is
 required for your particular implementation.
 

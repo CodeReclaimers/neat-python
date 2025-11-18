@@ -42,9 +42,9 @@ New :term:`aggregation functions <aggregation function>` are registered with you
     def l2norm(x):
         return sqrt(sum(i**2 for i in x))
 
-    config.genome_config.add_activation('my_l2norm_function', l2norm)
+    config.genome_config.add_aggregation('my_l2norm_function', l2norm)
 
-The first argument to :py:meth:`add_activation <genome.DefaultGenomeConfig.add_aggregation>` is the name by which this aggregation function will be referred to in the configuration settings file.
+The first argument to :py:meth:`add_aggregation <genome.DefaultGenomeConfig.add_aggregation>` is the name by which this aggregation function will be referred to in the configuration settings file.
 
 This is demonstrated in the `memory-fixed
 <https://github.com/CodeReclaimers/neat-python/tree/master/examples/memory-fixed>`_ example.
