@@ -389,6 +389,20 @@ class TestPruning(unittest.TestCase):
         self.assertEqual(set(g_pruned.nodes.keys()), {0})
         self.assertEqual(set(g_pruned.connections.keys()), {(-1, 0), (-2, 0)})
 
+    def test_get_new_node_key_empty_nodes_starts_at_num_outputs(self):
+        """get_new_node_key with empty node dict should start at num_outputs."""
+        config = self.config.genome_config
+        # Ensure indexer is reset so we exercise the initialization path.
+        config.node_indexer = None
+
+        empty_nodes = {}
+        new_node_id = config.get_new_node_key(empty_nodes)
+        self.assertEqual(new_node_id, config.num_outputs)
+
+        # Subsequent calls should increment from num_outputs.
+        second_node_id = config.get_new_node_key({new_node_id: object()})
+        self.assertEqual(second_node_id, config.num_outputs + 1)
+
 
 if __name__ == '__main__':
     unittest.main()

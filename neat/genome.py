@@ -114,7 +114,8 @@ class DefaultGenomeConfig:
             if node_dict:
                 self.node_indexer = count(max(list(node_dict)) + 1)
             else:
-                self.node_indexer = count(max(list(node_dict)) + 1)
+                # No existing nodes; start from num_outputs.
+                self.node_indexer = count(self.num_outputs)
 
         new_id = next(self.node_indexer)
 
