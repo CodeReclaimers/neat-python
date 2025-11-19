@@ -15,9 +15,9 @@ def _get_neat_version():
         import neat
         if hasattr(neat, '__version__'):
             return neat.__version__
-        return "1.0.0"
+        return "1.1.0"
     except:
-        return "1.0.0"
+        return "1.1.0"
 
 
 def export_feedforward(network, metadata=None):

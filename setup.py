@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='neat-python',
-    version='1.0.0',
+    version='1.1.0',
     author='Alan Mcintyre, Cesar Gomes Miguel, Carolina Feher da Silva, Marcio Lobo Netto',
     author_email='alan@codereclaimers.com',
     maintainer='Alan McIntyre',
@@ -11,8 +11,7 @@ setup(
     license="BSD",
     description='A NEAT (NeuroEvolution of Augmenting Topologies) implementation',
     long_description='Python implementation of NEAT (NeuroEvolution of Augmenting Topologies), a method ' +
-                     'developed by Kenneth O. Stanley for evolving arbitrary neural networks. ' +
-                     'Version 1.0.0 includes full innovation number tracking as described in the original NEAT paper.',
+                     'developed by Kenneth O. Stanley for evolving arbitrary neural networks. ' 
     long_description_content_type= 'text/x-rst',
     packages=['neat', 'neat/iznn', 'neat/nn', 'neat/ctrnn'],
     python_requires='>=3.8',

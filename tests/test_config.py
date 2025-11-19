@@ -17,7 +17,7 @@ def test_nonexistent_config():
 
 def test_bad_config_default_activation():
     """Check that an activation function default not in the list of options
-    raises an Exception with the appropriate message."""
+    raises an Exception."""
     test_bad_config_RuntimeError(config_file='bad_configuration0')
 
 def test_bad_config_unknown_option():

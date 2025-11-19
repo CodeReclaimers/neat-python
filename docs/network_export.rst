@@ -93,7 +93,7 @@ Here's an example of exported JSON for a simple XOR network:
      "network_type": "feedforward",
      "metadata": {
        "created_timestamp": "2025-11-09T15:30:00Z",
-       "neat_python_version": "1.0.0",
+       "neat_python_version": "1.1.0",
        "fitness": 3.95,
        "generation": 150
      },
