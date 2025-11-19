@@ -246,6 +246,30 @@ class TestGenomeMutations(unittest.TestCase):
         self.assertEqual(incoming_conn.weight, 1.0,
                         "Incoming connection should have weight 1.0")
     
+    def test_add_node_initial_bias_zero(self):
+        """Test that newly added nodes start with zero bias."""
+        genome = self.create_minimal_genome()
+
+        if not genome.connections:
+            genome.mutate_add_connection(self.config.genome_config)
+
+        # Record nodes before mutation
+        nodes_before = set(genome.nodes.keys())
+
+        genome.mutate_add_node(self.config.genome_config)
+
+        # Identify the newly added node
+        nodes_after = set(genome.nodes.keys())
+        new_nodes = nodes_after - nodes_before
+
+        self.assertEqual(len(new_nodes), 1, "Should add exactly one new node")
+        new_node_id = next(iter(new_nodes))
+
+        new_node = genome.nodes[new_node_id]
+        self.assertTrue(hasattr(new_node, "bias"))
+        self.assertEqual(new_node.bias, 0.0,
+                         "Newly added node bias should be initialized to 0.0")
+    
     # ========== Add Connection Mutation Tests ==========
     
     def test_add_connection_creates_new_connection(self):

@@ -386,6 +386,13 @@ class DefaultGenome:
         conn_to_split = choice(list(self.connections.values()))
         new_node_id = config.get_new_node_key(self.nodes)
         ng = self.create_node(config, new_node_id)
+
+        # Make the new node as neutral as possible with respect to the
+        # existing connection: start with zero bias regardless of the
+        # global bias initialization distribution.
+        if hasattr(ng, "bias"):
+            ng.bias = 0.0
+
         self.nodes[new_node_id] = ng
 
         # Disable this connection and create two new connections joining its nodes via
