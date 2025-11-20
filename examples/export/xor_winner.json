@@ -3,7 +3,7 @@
   "network_type": "feedforward",
   "metadata": {
     "created_timestamp": "2025-11-09T15:34:26.047451Z",
-    "neat_python_version": "1.0.0",
+    "neat_python_version": "1.1.0",
     "fitness": 3.9061692974679936,
     "generation": 14,
     "genome_id": 2157,
