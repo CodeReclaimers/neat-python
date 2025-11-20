@@ -61,6 +61,10 @@ The ``seed`` parameter takes precedence over the config file setting:
    # Config file has seed=100, but this uses seed=42
    pop = neat.Population(config, seed=42)
 
+Note that passing ``seed=None`` explicitly to :class:`~neat.population.Population` disables seeding from the
+configuration file even if ``[NEAT]`` contains a ``seed = ...`` entry; omitting the ``seed`` argument entirely
+causes :class:`~neat.population.Population` to use ``config.seed`` if present.
+
 Random Behavior (Default)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -183,6 +187,36 @@ Checkpoints preserve:
 * Innovation tracker state
 
 This means checkpointing maintains reproducibility even without explicitly setting a seed when restoring.
+
+.. note::
+
+   **Checkpoint vs. uninterrupted-run trajectories**
+
+   Restoring the *same* checkpoint multiple times produces a deterministic
+   continuation of evolution: given a fixed checkpoint file and fitness
+   function, repeated restores followed by additional generations will take
+   the same evolutionary path.
+
+   However, there is one subtle limitation: the sequence of populations you
+   get when running **without** checkpointing is not currently guaranteed to be
+   *bit-for-bit identical* to the sequence you get when running **with**
+   checkpointing and later restoring from a checkpoint at generation ``N``.
+
+   The reason is that some helper objects involved in evolution (such as the
+   reproduction and stagnation helpers) are reconstructed when a checkpoint is
+   restored rather than being pickled and resumed exactly as-is.  Although
+   their behavior is designed to be equivalent, and key invariants (population,
+   species, random state, innovation tracking) are preserved, there are still
+   rare edge cases where the evolutionary trajectory after generation ``N`` may
+   differ slightly between an uninterrupted run and a resumed run.
+
+   In practice this means:
+
+   * Checkpoints are suitable for pausing/resuming long runs and for
+     experiment management.
+   * Checkpoints do **not** currently provide a strict guarantee that
+     "run-with-checkpoint" and "run-without-checkpoint" will produce
+     identical post-``N`` populations, even when using the same seed.
 
 Limitations
 -----------

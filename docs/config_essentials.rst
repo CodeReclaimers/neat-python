@@ -194,6 +194,14 @@ Let's walk through the XOR example config with explanations:
    # Legacy values ``full`` and ``partial`` are accepted for backward compatibility but
    # are deprecated; prefer the explicit variants above.
    initial_connection      = full_direct
+
+   # Note: The original NEAT paper emphasizes starting from minimal structure (no hidden nodes
+   # and sparse connectivity) and then complexifying over time. NEAT-Python follows this
+   # philosophy by treating ``unconnected`` as the canonical "no edges" option (see
+   # :ref:`initial-connection-config-label` and :doc:`neat_overview`). In simple examples like XOR
+   # we use ``full_direct`` for convenience so networks make progress quickly, while still
+   # starting with zero hidden nodes. If you want the sparsest possible starting networks,
+   # set ``initial_connection = unconnected`` instead.
    
    # Activation function for neurons
    # sigmoid: outputs in range (0, 1) - good for most problems

@@ -33,10 +33,11 @@ then the fitness value of A should be greater than the value of B.  The absolute
 are not important, only their relative values.
 
 In this example, we create a :term:`feed-forward` neural network based on the genome, and then for each case in the
-table above, we provide that network with the inputs, and compute the network's output.  The error for each genome
-is :math:`1 - \sum_i (e_i - a_i)^2` between the expected (:math:`e_i`) and actual (:math:`a_i`) outputs, so that if the
-network produces exactly the expected output, its fitness is 1, otherwise it is a value less than 1, with the fitness
-value decreasing the more incorrect the network responses are.
+ table above, we provide that network with the inputs, and compute the network's output.  The fitness for each genome
+is computed as :math:`4.0 - \\sum_i (e_i - a_i)^2`, where :math:`e_i` and :math:`a_i` are the expected and actual outputs
+for each of the four XOR test cases. If the network produces exactly the expected output on all cases, its fitness is
+4.0; otherwise it is a value less than 4.0, with the fitness value decreasing the more incorrect the network responses
+are.
 
 This fitness computation is implemented in the ``eval_genomes`` function.  This function takes two arguments: a list
 of genomes (the current population) and the active configuration.  neat-python expects the fitness function to calculate
