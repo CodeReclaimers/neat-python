@@ -1,0 +1,76 @@
+[NEAT]
+fitness_criterion      = max
+# BipedalWalker is considered solved around an average reward of ~300.
+fitness_threshold      = 300.0
+pop_size               = 150
+reset_on_extinction    = 0
+seed                   = 1
+no_fitness_termination = False
+
+[DefaultGenome]
+# BipedalWalker-v3 observations: 24-dimensional continuous state vector.
+num_inputs              = 24
+num_hidden              = 0
+# Four continuous motor torques (hip/knee for each leg).
+num_outputs             = 4
+# Random subset of all possible connections (0.0–1.0 fraction).
+initial_connection      = partial_direct 0.5
+feed_forward            = True
+compatibility_disjoint_coefficient = 1.0
+compatibility_weight_coefficient   = 0.7
+conn_add_prob           = 0.3
+conn_delete_prob        = 0.2
+node_add_prob           = 0.3
+node_delete_prob        = 0.2
+# Use tanh outputs so actions naturally fall in [-1, 1].
+activation_default      = tanh
+activation_options      = tanh relu sigmoid
+activation_mutate_rate  = 0.1
+aggregation_default     = sum
+aggregation_options     = sum
+aggregation_mutate_rate = 0.0
+bias_init_mean          = 0.0
+bias_init_stdev         = 1.0
+bias_init_type          = gaussian
+bias_replace_rate       = 0.05
+bias_mutate_rate        = 0.7
+bias_mutate_power       = 0.5
+bias_max_value          = 30.0
+bias_min_value          = -30.0
+response_init_mean      = 1.0
+response_init_stdev     = 0.1
+response_init_type      = gaussian
+response_replace_rate   = 0.05
+response_mutate_rate    = 0.2
+response_mutate_power   = 0.1
+response_max_value      = 30.0
+response_min_value      = -30.0
+
+weight_max_value        = 30
+weight_min_value        = -30
+weight_init_mean        = 0.0
+weight_init_stdev       = 1.0
+weight_init_type        = gaussian
+weight_mutate_rate      = 0.8
+weight_replace_rate     = 0.1
+weight_mutate_power     = 0.5
+enabled_default         = True
+enabled_mutate_rate     = 0.01
+
+single_structural_mutation = false
+structural_mutation_surer = default
+enabled_rate_to_true_add = 0.0
+enabled_rate_to_false_add = 0.0
+
+[DefaultSpeciesSet]
+compatibility_threshold = 3.0
+
+[DefaultStagnation]
+species_fitness_func = max
+max_stagnation       = 50
+species_elitism      = 3
+
+[DefaultReproduction]
+elitism            = 3
+survival_threshold = 0.2
+min_species_size   = 2

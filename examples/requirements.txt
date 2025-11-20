@@ -1,0 +1,18 @@
+# Extra dependencies required to run the examples in this repository.
+# Core neat-python itself is installed from the project root (e.g. `pip install -e .`).
+
+# Numerical + plotting
+numpy
+matplotlib
+
+# Graph visualization (network diagrams)
+graphviz
+
+# Control environment examples (LunarLander-v3, BipedalWalker-v3, InvertedDoublePendulum-v5)
+# Includes Box2D and MuJoCo-based environments.
+gymnasium[box2d,mujoco]
+
+# Interactive / video examples (picture2d, cart-pole movie)
+pygame
+gizeh
+moviepy

@@ -502,14 +502,17 @@ Solutions
 
 .. code-block:: bash
 
-   # For visualization (XOR, pole balancing)
+   # For visualization (XOR, pole balancing, network diagrams)
    pip install graphviz matplotlib
    
-   # For OpenAI Gym examples
-   pip install gym numpy
+   # For Gymnasium control examples (LunarLander, BipedalWalker, InvertedDoublePendulum)
+   pip install "gymnasium[box2d,mujoco]" numpy
+   
+   # For interactive / video examples (picture2d, cart-pole movie)
+   pip install pygame gizeh moviepy
    
    # For all examples
-   pip install graphviz matplotlib gym numpy
+   pip install graphviz matplotlib "gymnasium[box2d,mujoco]" numpy pygame gizeh moviepy
 
 **Solution 4: Copy visualize.py to your project**
 

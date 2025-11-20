@@ -2,22 +2,15 @@ name: neat-python-examples
 channels:
   - conda-forge
 dependencies:
-  - cairo
-  - cython
-  - graphviz
-  - gym
-  - matplotlib
-  - ngspice
-  - pip
-  - pybox2d
-  - pyglet
-  - python-graphviz
   - python=3.9
-  - swig
+  - pip
+  - numpy
+  - cairo
+  - graphviz
+  - python-graphviz
+  - matplotlib
   - pip:
-      - box2d
-      - box2d-kengz
+      - gymnasium[box2d,mujoco]
       - gizeh
       - moviepy
       - pygame
-      - pyspice

@@ -41,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Includes test/visualization script for trained controllers
   - Full documentation in example README with usage tips
 
-- **New Example**: Better Lunar Lander example (as in, it actually solves the environment)
+- **New Example**: Better Lunar Lander example
 
 ### Changed
 - Dropped support for Python 3.6 and 3.7; neat-python now requires Python 3.8 or newer.

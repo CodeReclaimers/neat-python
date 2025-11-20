@@ -18,7 +18,7 @@ currently only supported on Python 3.8 through 3.14, and pypy3.
 
 * Pure Python implementation with no dependencies beyond the standard library
 * Supports Python 3.8-3.14 and PyPy 3
-* **Reproducible evolution** - Set random seeds for deterministic, repeatable experiments
+* Reproducible evolution - Set random seeds for deterministic, repeatable experiments
 * Parallel fitness evaluation using multiprocessing
 * Network export to JSON format for interoperability
 * Comprehensive documentation and examples
