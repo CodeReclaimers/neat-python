@@ -79,11 +79,15 @@ class DefaultSpeciesSet(DefaultClassConfig):
         compatibility_threshold = self.species_set_config.compatibility_threshold
 
         # Find the best representatives for each existing species.
-        unspeciated = set(population)
+        # Use a deterministic ordering for unspeciated genomes so that
+        # speciation is reproducible across runs and checkpoint restores.
+        unspeciated = list(sorted(population.keys()))
         distances = GenomeDistanceCache(config.genome_config)
         new_representatives = {}
         new_members = {}
-        for sid, s in self.species.items():
+        # Iterate species in deterministic id order.
+        for sid in sorted(self.species.keys()):
+            s = self.species[sid]
             candidates = []
             for gid in unspeciated:
                 g = population[gid]
@@ -98,8 +102,9 @@ class DefaultSpeciesSet(DefaultClassConfig):
             unspeciated.remove(new_rid)
 
         # Partition population into species based on genetic similarity.
+        # Iterate remaining genomes in ascending id order for determinism.
         while unspeciated:
-            gid = unspeciated.pop()
+            gid = unspeciated.pop(0)
             g = population[gid]
 
             # Find the species with the most similar representative.
@@ -122,7 +127,8 @@ class DefaultSpeciesSet(DefaultClassConfig):
 
         # Update species collection based on new speciation.
         self.genome_to_species = {}
-        for sid, rid in new_representatives.items():
+        for sid in sorted(new_representatives.keys()):
+            rid = new_representatives[sid]
             s = self.species.get(sid)
             if s is None:
                 s = Species(sid, generation)

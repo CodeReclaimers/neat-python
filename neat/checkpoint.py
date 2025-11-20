@@ -21,7 +21,13 @@ class Checkpointer(BaseReporter):
         Saves the current state (at the end of a generation) every ``generation_interval`` generations or
         ``time_interval_seconds``, whichever happens first.
 
-        :param generation_interval: If not None, maximum number of generations between save intervals
+        The checkpoint filename suffix (for example, ``neat-checkpoint-10``) always refers to the
+        **next generation to be evaluated**.  In other words, a checkpoint created with suffix ``N``
+        contains the population and species state for generation ``N`` at the point just before
+        its fitness evaluation begins.
+
+        :param generation_interval: If not None, maximum number of generations between save intervals,
+                                    measured in generations-to-be-evaluated
         :type generation_interval: int or None
         :param time_interval_seconds: If not None, maximum number of seconds between checkpoint attempts
         :type time_interval_seconds: float or None
@@ -32,13 +38,31 @@ class Checkpointer(BaseReporter):
         self.filename_prefix = filename_prefix
 
         self.current_generation = None
-        self.last_generation_checkpoint = -1
+        # Tracks the most recent generation index for which a checkpoint was created.
+        # This value is interpreted as the next generation to be evaluated when the
+        # checkpoint is restored (see above).
+        self.last_generation_checkpoint = 0
         self.last_time_checkpoint = time.time()
 
     def start_generation(self, generation):
+        """Record the index of the generation that is about to be evaluated.
+
+        Note that at the time :meth:`end_generation` is called for generation ``g``,
+        the population and species that are passed in already correspond to the
+        *next* generation (``g + 1``).  This reporter therefore uses ``g + 1`` as
+        the generation index stored in checkpoints, so that restoring a
+        checkpoint labeled ``N`` always resumes at the beginning of generation
+        ``N``.
+        """
         self.current_generation = generation
 
     def end_generation(self, config, population, species_set):
+        """Potentially save a checkpoint at the end of a generation.
+
+        The ``population`` and ``species_set`` arguments contain the state for
+        the next generation to be evaluated, whose index is
+        ``self.current_generation + 1``.
+        """
         checkpoint_due = False
 
         if self.time_interval_seconds is not None:
@@ -46,14 +70,19 @@ class Checkpointer(BaseReporter):
             if dt >= self.time_interval_seconds:
                 checkpoint_due = True
 
-        if (checkpoint_due is False) and (self.generation_interval is not None):
-            dg = self.current_generation - self.last_generation_checkpoint
+        # The generation whose population is being saved.
+        next_generation = self.current_generation + 1
+
+        if (not checkpoint_due) and (self.generation_interval is not None):
+            # Compare the upcoming generation index against the last checkpointed
+            # generation index to decide whether a new checkpoint is due.
+            dg = next_generation - self.last_generation_checkpoint
             if dg >= self.generation_interval:
                 checkpoint_due = True
 
         if checkpoint_due:
-            self.save_checkpoint(config, population, species_set, self.current_generation)
-            self.last_generation_checkpoint = self.current_generation
+            self.save_checkpoint(config, population, species_set, next_generation)
+            self.last_generation_checkpoint = next_generation
             self.last_time_checkpoint = time.time()
 
     def save_checkpoint(self, config, population, species_set, generation):

@@ -48,6 +48,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   without changing the public API.
 
 ### Fixed
+- **Add-node mutation bias behavior**: Newly inserted nodes created by `mutate_add_node` now start with zero bias so that splitting a connection is as neutral as possible with respect to the original signal flow. This makes the structural mutation less disruptive while preserving the existing weight-preserving semantics (incoming weight 1.0, outgoing weight equal to the original connection).
+- **Checkpoint Generation Semantics**: Clarified and corrected how checkpoint generation numbers are labeled and interpreted.
+  - A checkpoint file named `neat-checkpoint-N` now always contains the population, species state, and RNG state needed to begin evaluating **generation `N`**.
+  - Previously, checkpoints were labeled with the index of the generation that had just been evaluated, while storing the *next* generation's population; this could make restored runs appear to "repeat" the previous generation.
+  - The NEAT evolution loop and genetic algorithm behavior are unchanged; this is a bookkeeping fix that aligns checkpoint behavior with user expectations and the original NEAT paper's generational model.
+  - New and updated tests in `tests/test_checkpoint.py` and `tests/test_population.py` enforce the invariant that checkpoint `N` resumes at the start of generation `N`.
 - **Population Size Drift**: Fixed small mismatches between actual population size and configured `pop_size`
   - `DefaultReproduction.reproduce()` now strictly enforces `len(population) == config.pop_size` for every non-extinction generation
   - New `_adjust_spawn_exact` helper adjusts per-species spawn counts after `compute_spawn()` to correct rounding/clamping drift

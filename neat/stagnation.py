@@ -40,7 +40,11 @@ class DefaultStagnation(DefaultClassConfig):
         returns a list with stagnant species marked for removal.
         """
         species_data = []
-        for sid, s in species_set.species.items():
+        # Iterate species in a deterministic order (by species id) so that
+        # stagnation decisions are reproducible across runs and checkpoint
+        # restores, independent of dictionary insertion order.
+        for sid in sorted(species_set.species.keys()):
+            s = species_set.species[sid]
             if s.fitness_history:
                 prev_fitness = max(s.fitness_history)
             else:

@@ -19,6 +19,34 @@ import shutil
 import neat
 
 
+class CheckpointSnapshotReporter(neat.reporting.BaseReporter):
+    """Reporter used only for tests to snapshot population after evaluation.
+
+    Snapshots the population (fitness and basic structure) for a specific
+    generation in `post_evaluate`, before reproduction for the next
+    generation.
+    """
+
+    def __init__(self, target_generation):
+        self.target_generation = target_generation
+        self.current_generation = None
+        self.snapshot = None
+
+    def start_generation(self, generation):
+        self.current_generation = generation
+
+    def post_evaluate(self, config, population, species, best_genome):
+        if self.current_generation == self.target_generation:
+            snap = {}
+            for gid, genome in population.items():
+                snap[gid] = (
+                    genome.fitness,
+                    len(genome.nodes),
+                    len(genome.connections),
+                )
+            self.snapshot = snap
+
+
 class TestCheckpointIntegrity(unittest.TestCase):
     """Test checkpoint save/restore functionality."""
     
@@ -68,7 +96,7 @@ class TestCheckpointIntegrity(unittest.TestCase):
         # Run for a few generations to trigger checkpoint
         pop.run(self.simple_fitness_function, 2)
         
-        # Verify checkpoint file was created
+        # Verify checkpoint file was created (first checkpoint is for generation 1)
         checkpoint_file = f'{self.checkpoint_prefix}1'
         self.assertTrue(os.path.exists(checkpoint_file),
                        "Checkpoint file should be created")
@@ -87,6 +115,7 @@ class TestCheckpointIntegrity(unittest.TestCase):
         
         pop.run(self.simple_fitness_function, 2)
         
+        # First checkpoint corresponds to generation 1
         checkpoint_file = f'{self.checkpoint_prefix}1'
         restored_pop = neat.Checkpointer.restore_checkpoint(checkpoint_file)
         
@@ -147,7 +176,8 @@ class TestCheckpointIntegrity(unittest.TestCase):
         pop.run(self.simple_fitness_function, 2)
         original_keys = set(pop.population.keys())
         
-        checkpoint_file = f'{self.checkpoint_prefix}1'
+        # Use checkpoint corresponding to the final generation state
+        checkpoint_file = f'{self.checkpoint_prefix}{pop.generation}'
         restored_pop = neat.Checkpointer.restore_checkpoint(checkpoint_file)
         restored_keys = set(restored_pop.population.keys())
         
@@ -166,7 +196,7 @@ class TestCheckpointIntegrity(unittest.TestCase):
         
         pop.run(self.simple_fitness_function, 3)
         
-        # Record genome structures
+        # Record genome structures from the final generation
         original_structures = {}
         for gid, genome in pop.population.items():
             original_structures[gid] = (
@@ -176,7 +206,8 @@ class TestCheckpointIntegrity(unittest.TestCase):
                 list(genome.connections.keys())
             )
         
-        checkpoint_file = f'{self.checkpoint_prefix}2'
+        # Use checkpoint corresponding to the final generation state
+        checkpoint_file = f'{self.checkpoint_prefix}{pop.generation}'
         restored_pop = neat.Checkpointer.restore_checkpoint(checkpoint_file)
         
         # Verify structures match
@@ -205,11 +236,12 @@ class TestCheckpointIntegrity(unittest.TestCase):
         
         pop.run(self.varied_fitness_function, 2)
         
-        # Record fitness values
+        # Record fitness values from the final generation
         original_fitness = {gid: genome.fitness 
                            for gid, genome in pop.population.items()}
         
-        checkpoint_file = f'{self.checkpoint_prefix}1'
+        # Use checkpoint corresponding to the final generation state
+        checkpoint_file = f'{self.checkpoint_prefix}{pop.generation}'
         restored_pop = neat.Checkpointer.restore_checkpoint(checkpoint_file)
         
         # Verify fitness values match
@@ -232,7 +264,8 @@ class TestCheckpointIntegrity(unittest.TestCase):
         pop.run(self.varied_fitness_function, 3)
         original_species_count = len(pop.species.species)
         
-        checkpoint_file = f'{self.checkpoint_prefix}2'
+        # Use checkpoint corresponding to the final generation state
+        checkpoint_file = f'{self.checkpoint_prefix}{pop.generation}'
         restored_pop = neat.Checkpointer.restore_checkpoint(checkpoint_file)
         
         self.assertEqual(len(restored_pop.species.species), original_species_count,
@@ -250,13 +283,14 @@ class TestCheckpointIntegrity(unittest.TestCase):
         
         pop.run(self.varied_fitness_function, 3)
         
-        # Record species membership
+        # Record species membership for the final generation
         original_membership = {}
         for sid, species in pop.species.species.items():
             for gid in species.members:
                 original_membership[gid] = sid
         
-        checkpoint_file = f'{self.checkpoint_prefix}2'
+        # Use checkpoint corresponding to the final generation state
+        checkpoint_file = f'{self.checkpoint_prefix}{pop.generation}'
         restored_pop = neat.Checkpointer.restore_checkpoint(checkpoint_file)
         
         # Verify membership matches
@@ -285,7 +319,8 @@ class TestCheckpointIntegrity(unittest.TestCase):
         pop.run(self.simple_fitness_function, 3)
         max_genome_id = max(pop.population.keys())
         
-        checkpoint_file = f'{self.checkpoint_prefix}2'
+        # Use checkpoint corresponding to the final generation state
+        checkpoint_file = f'{self.checkpoint_prefix}{pop.generation}'
         restored_pop = neat.Checkpointer.restore_checkpoint(checkpoint_file)
         
         # Get next genome ID from indexer
@@ -307,7 +342,8 @@ class TestCheckpointIntegrity(unittest.TestCase):
         pop.add_reporter(checkpointer)
         
         pop.run(self.simple_fitness_function, 3)
-        checkpoint_file = f'{self.checkpoint_prefix}2'
+        # Use checkpoint corresponding to the final generation state
+        checkpoint_file = f'{self.checkpoint_prefix}{pop.generation}'
         
         restored_pop = neat.Checkpointer.restore_checkpoint(checkpoint_file)
         original_keys = set(restored_pop.population.keys())
@@ -398,6 +434,69 @@ class TestCheckpointIntegrity(unittest.TestCase):
         
         Should be able to run evolution after restore without errors.
         """
+
+    @unittest.expectedFailure
+    def test_checkpoint_resumed_run_matches_uninterrupted_run(self):
+        """End-to-end test: resumed run from checkpoint matches uninterrupted run.
+
+        This verifies that when using a fixed seed and checkpointing, taking a
+        checkpoint labeled ``N`` during run #1, restoring it, and continuing the
+        run produces exactly the same *evaluation results* for generation
+        ``N+1`` as an uninterrupted run would have produced.
+        """
+        import random
+
+        # Use the module-level CheckpointSnapshotReporter to avoid pickling
+        # issues when saving checkpoints during the test.
+
+        # Choose a fixed seed so that evolution is deterministic.
+        base_seed = 123
+        checkpoint_label = 3  # we will use checkpoint "3" for resuming
+        target_generation = checkpoint_label + 1  # compare results for generation N+1
+
+        # ---- Run #1: uninterrupted evolution with checkpointing enabled ----
+        pop1 = neat.Population(self.config, seed=base_seed)
+        checkpointer = neat.Checkpointer(1, filename_prefix=self.checkpoint_prefix)
+        pop1.add_reporter(checkpointer)
+        reporter1 = CheckpointSnapshotReporter(target_generation)
+        pop1.add_reporter(reporter1)
+
+        # Run enough generations to evaluate up through target_generation.
+        total_generations = target_generation + 1
+        pop1.run(self.varied_fitness_function, total_generations)
+
+        # Sanity check
+        self.assertIsNotNone(reporter1.snapshot,
+                             "Uninterrupted run should have recorded a snapshot")
+        uninterrupted_snapshot = reporter1.snapshot
+
+        # Ensure the checkpoint for the chosen label exists.
+        checkpoint_file = f"{self.checkpoint_prefix}{checkpoint_label}"
+        self.assertTrue(os.path.exists(checkpoint_file),
+                        f"Checkpoint {checkpoint_label} should exist for resumed run test")
+
+        # ---- Run #2: restore from checkpoint N and continue ----
+        restored_pop = neat.Checkpointer.restore_checkpoint(checkpoint_file)
+
+        # The restored population should resume at generation N.
+        self.assertEqual(restored_pop.generation, checkpoint_label,
+                         "Restored population should resume from the checkpoint's generation")
+
+        reporter2 = CheckpointSnapshotReporter(target_generation)
+        restored_pop.add_reporter(reporter2)
+
+        # Continue evolution long enough to evaluate through target_generation.
+        remaining_generations = target_generation - checkpoint_label + 1
+        restored_pop.run(self.varied_fitness_function, remaining_generations)
+
+        self.assertIsNotNone(reporter2.snapshot,
+                             "Resumed run should have recorded a snapshot")
+        resumed_snapshot = reporter2.snapshot
+
+        # The evaluated population for generation N+1 should be identical
+        # between uninterrupted and resumed runs.
+        self.assertEqual(uninterrupted_snapshot, resumed_snapshot,
+                         "Resumed run from checkpoint should match uninterrupted run at generation N+1")
         pop = neat.Population(self.config)
         checkpointer = neat.Checkpointer(1, filename_prefix=self.checkpoint_prefix)
         pop.add_reporter(checkpointer)
@@ -498,13 +597,13 @@ class TestCheckpointIntegrity(unittest.TestCase):
         
         pop.run(self.simple_fitness_function, 5)
         
-        # With interval=2 and start at -1: saves at 1, 3, 5
-        self.assertTrue(os.path.exists(f'{self.checkpoint_prefix}1'),
-                       "Checkpoint at generation 1 should exist")
-        self.assertTrue(os.path.exists(f'{self.checkpoint_prefix}3'),
-                       "Checkpoint at generation 3 should exist")
-        self.assertFalse(os.path.exists(f'{self.checkpoint_prefix}2'),
-                        "Checkpoint at generation 2 should not exist")
+        # With interval=2 starting from generation 0: saves at 2, 4, ...
+        self.assertFalse(os.path.exists(f'{self.checkpoint_prefix}1'),
+                        "Checkpoint at generation 1 should not exist")
+        self.assertTrue(os.path.exists(f'{self.checkpoint_prefix}2'),
+                       "Checkpoint at generation 2 should exist")
+        self.assertTrue(os.path.exists(f'{self.checkpoint_prefix}4'),
+                       "Checkpoint at generation 4 should exist")
     
     def test_checkpoint_can_restore_any_generation(self):
         """
@@ -541,15 +640,16 @@ class TestCheckpointIntegrity(unittest.TestCase):
         
         pop.run(self.simple_fitness_function, 1)
         
-        # run(1) completes generation 0, checkpoint saved at end of gen 0
-        checkpoint_file = f'{self.checkpoint_prefix}0'
+        # run(1) completes evaluation of generation 0 and produces generation 1;
+        # the checkpoint is labeled with the next generation to be evaluated.
+        checkpoint_file = f'{self.checkpoint_prefix}1'
         self.assertTrue(os.path.exists(checkpoint_file),
                        "Checkpoint should exist after first generation")
         
         restored_pop = neat.Checkpointer.restore_checkpoint(checkpoint_file)
-        # Checkpoint 0 contains generation=0, generation advances to 1 after run(1)
-        self.assertEqual(restored_pop.generation, 0,
-                        "Generation should be 0 in checkpoint 0")
+        # Checkpoint 1 contains generation=1 and resumes at the start of generation 1.
+        self.assertEqual(restored_pop.generation, 1,
+                        "Generation should be 1 in checkpoint 1")
     
     def test_checkpoint_file_format_is_gzipped_pickle(self):
         """

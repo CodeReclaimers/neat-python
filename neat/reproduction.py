@@ -236,8 +236,10 @@ class DefaultReproduction(DefaultClassConfig):
             s.members = {}
             species.species[s.key] = s
 
-            # Sort members in order of descending fitness.
-            old_members.sort(reverse=True, key=lambda x: x[1].fitness)
+            # Sort members in order of descending fitness, with genome id as a
+            # deterministic tie-breaker so that ordering (and thus parent
+            # selection) is reproducible across runs and checkpoint restores.
+            old_members.sort(reverse=True, key=lambda x: (x[1].fitness, x[0]))
 
             # Transfer elites to new generation.
             if self.reproduction_config.elitism > 0:
