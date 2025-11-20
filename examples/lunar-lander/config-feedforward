@@ -1,14 +1,16 @@
 [NEAT]
-pop_size              = 150
-# Note: the fitness threshold will never be reached because
-# we are controlling the termination ourselves based on simulation performance.
 fitness_criterion     = max
-fitness_threshold     = 1000.0
+# Terminate when we reliably solve the task (LunarLander is considered solved
+# around an average reward of 200).
+fitness_threshold     = 200.0
+pop_size              = 150
 reset_on_extinction   = 0
 
 no_fitness_termination         = False
 
-[LanderGenome]
+[DefaultGenome]
+# LunarLander observations: x, y, x_dot, y_dot, angle, angular velocity,
+# left leg contact, right leg contact.
 num_inputs              = 8
 num_hidden              = 0
 num_outputs             = 4
@@ -73,4 +75,3 @@ elitism            = 2
 survival_threshold = 0.2
 
 min_species_size               = 2
-
