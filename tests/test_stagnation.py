@@ -9,8 +9,6 @@ Tests cover:
 - Edge cases (all stagnant, single species, negative fitness, etc.)
 - Boundary conditions (improvement at threshold)
 
-These tests address gaps identified in TESTING_RECOMMENDATIONS.md for the stagnation module,
-which had 98% coverage but no dedicated test file.
 """
 
 import os

@@ -11,8 +11,6 @@ Tests cover:
 - Edge cases and boundary conditions
 - Configuration variations
 
-These tests address gaps identified in TESTING_RECOMMENDATIONS.md for the species module,
-which had 96% coverage but no dedicated test file.
 """
 
 import os
