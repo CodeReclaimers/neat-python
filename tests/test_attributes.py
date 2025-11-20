@@ -9,8 +9,6 @@ Tests cover:
 - Attribute validation: Invalid configurations, boundary conditions
 - Edge cases: Zero mutation rates, rate=1.0, extreme values
 
-These tests address gaps identified in TESTING_RECOMMENDATIONS.md for the attributes module,
-which had 81% coverage (lowest non-distributed module) and no dedicated test file.
 """
 
 import unittest

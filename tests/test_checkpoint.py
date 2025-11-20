@@ -463,6 +463,7 @@ class TestCheckpointIntegrity(unittest.TestCase):
                     conn.innovation,
                     "All connections should have innovation numbers",
                 )
+
     def test_checkpoint_resumed_run_matches_uninterrupted_run(self):
         """Doc-style example: uninterrupted vs resumed evolution.
 
@@ -529,6 +530,7 @@ class TestCheckpointIntegrity(unittest.TestCase):
         # This example intentionally stops short of asserting that the
         # uninterrupted and resumed snapshots are identical, because that
         # stronger property is not guaranteed across Python implementations.
+        
     # ========== Configuration Handling ==========
     
     def test_checkpoint_restore_with_same_config(self):
