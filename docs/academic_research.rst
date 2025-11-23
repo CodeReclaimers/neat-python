@@ -19,7 +19,6 @@ neat-python offers several advantages for academic research:
 * **Parallel evaluation** capabilities for computational efficiency
 * **Flexible configuration system** allowing systematic parameter exploration
 * **Multiple network types** including feedforward, recurrent, CTRNN, and Izhikevich spiking networks
-* **Active maintenance** with responsive development and community support
 * **Core algorithms correctly implemented** including innovation tracking, crossover, and structural mutations
 
 Relationship to Canonical NEAT
@@ -27,12 +26,12 @@ Relationship to Canonical NEAT
 
 neat-python correctly implements the most complex and critical aspects of the NEAT algorithm, particularly:
 
-* ✓ **Innovation tracking system** with same-generation deduplication and persistence
-* ✓ **Crossover mechanism** with proper gene alignment by innovation numbers
-* ✓ **Structural mutations** (add-node and add-connection) following standard NEAT practice
-* ✓ **75% disable rule** during crossover (with implementation note below)
+* **Innovation tracking system** with same-generation deduplication and persistence
+* **Crossover mechanism** with proper gene alignment by innovation numbers
+* **Structural mutations** (add-node and add-connection) following standard NEAT practice
+* **75% disable rule** during crossover (with implementation note below)
 
-However, neat-python contains several implementation choices that differ from the original 2002 NEAT paper. These are not bugs but design decisions that create a NEAT variant with different evolutionary dynamics. Researchers must understand these differences when publishing results.
+However, neat-python contains several implementation choices that differ from the original 2002 NEAT paper. These design decisions that create a NEAT variant with different evolutionary dynamics. Researchers must understand these differences when publishing results.
 
 Key Implementation Differences
 -------------------------------
