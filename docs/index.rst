@@ -17,6 +17,8 @@ networks. NEAT-Python is a pure Python implementation of NEAT, with no dependenc
 
 Currently this library supports Python versions 3.8 through 3.14, as well as PyPy 3.
 
+**For academic researchers:** See :doc:`academic_research` for guidance on using neat-python in research publications.
+
 Many thanks to the original authors of this implementation, Cesar Gomes Miguel, Carolina Feher da Silva, and Marcio Lobo Netto!
 
 .. note::
@@ -56,6 +58,7 @@ Contents:
    :maxdepth: 2
    :caption: User Guides
 
+   academic_research
    config_file
    reproducibility
    cookbook
