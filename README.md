@@ -34,7 +34,7 @@ The documentation is available on [Read The Docs](http://neat-python.readthedocs
 
 neat-python supports exporting trained networks to a JSON format that is framework-agnostic and human-readable. This allows you to:
 
-- Convert networks to other formats (ONNX, TensorFlow, PyTorch, etc.) using third-party tools
+- Convert networks to other formats (ONNX, TensorFlow, PyTorch, etc.) using third-party tools (the beginnings of an conversion system can be found in the examples/export directory)
 - Inspect and debug network structure
 - Share networks across platforms and languages
 - Archive trained networks independently of neat-python
@@ -61,7 +61,7 @@ See [`docs/network-json-format.md`](docs/network-json-format.md) for complete fo
 
 Here are APA and Bibtex entries you can use to cite this project in a publication. The listed authors are the originators
 and/or maintainers of all iterations of the project up to this point.  If you have contributed and would like your name added 
-to the citation, please submit an issue or email alan@codereclaimers.com.
+to the citation, please submit an issue.
 
 APA
 ```

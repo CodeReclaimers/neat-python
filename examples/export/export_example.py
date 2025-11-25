@@ -123,7 +123,8 @@ def run_export_demo():
     print(f"\nYou can now:")
     print(f"  1. View the full export: cat {output_file}")
     print(f"  2. Validate JSON: python -m json.tool {output_file}")
-    print(f"  3. Use a third-party tool to convert to ONNX, TensorFlow, etc.")
+    print(f"  3. Convert to ONNX, TensorFlow, and Pytorch: python neat_to_frameworks.py {output_file}")
+    
     print(f"\nSee docs/network-json-format.md for format documentation.")
 
 
