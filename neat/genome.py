@@ -302,13 +302,22 @@ class DefaultGenome:
                     )
                     # Take the gene from the fitter parent
                     new_gene = cg1.copy()
+                    # For feed-forward networks, check if this connection would create a cycle
+                    if config.feed_forward and creates_cycle(list(self.connections), new_gene.key):
+                        continue
                     self.connections[new_gene.key] = new_gene
                 else:
                     new_gene = cg1.crossover(cg2)
+                    # For feed-forward networks, check if this connection would create a cycle
+                    if config.feed_forward and creates_cycle(list(self.connections), new_gene.key):
+                        continue
                     self.connections[new_gene.key] = new_gene
             elif cg1 is not None:
                 # Disjoint or excess gene from fittest parent (parent1)
                 new_gene = cg1.copy()
+                # For feed-forward networks, check if this connection would create a cycle
+                if config.feed_forward and creates_cycle(list(self.connections), new_gene.key):
+                    continue
                 self.connections[new_gene.key] = new_gene
             # Note: genes only in parent2 (less fit) are not inherited
 
