@@ -1,0 +1,118 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "neat-python"
+version = "1.1.0"
+description = "A NEAT (NeuroEvolution of Augmenting Topologies) implementation"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "BSD-3-Clause"
+authors = [
+    {name = "Alan McIntyre", email = "alan@codereclaimers.com"},
+    {name = "Cesar Gomes Miguel"},
+    {name = "Carolina Feher da Silva"},
+    {name = "Marcio Lobo Netto"},
+]
+maintainers = [
+    {name = "Alan McIntyre", email = "alan@codereclaimers.com"},
+]
+keywords = ["neat", "neuroevolution", "genetic-algorithm", "neural-network", "evolutionary-algorithm"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Scientific/Engineering",
+]
+
+[project.urls]
+Homepage = "https://github.com/CodeReclaimers/neat-python"
+Documentation = "https://neat-python.readthedocs.io"
+Repository = "https://github.com/CodeReclaimers/neat-python"
+Issues = "https://github.com/CodeReclaimers/neat-python/issues"
+Changelog = "https://github.com/CodeReclaimers/neat-python/blob/master/CHANGELOG.md"
+
+[project.optional-dependencies]
+# Development dependencies
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "coveralls>=3.0",
+]
+
+# Documentation dependencies
+docs = [
+    "sphinx>=7.0",
+    "sphinx_rtd_theme>=3.0",
+    "sphinx-copybutton>=0.5",
+    "sphinx-design>=0.6",
+]
+
+# Example dependencies (optional, for running examples)
+examples = [
+    "numpy",
+    "matplotlib",
+    "graphviz",
+    "gymnasium[box2d,mujoco]",
+    "pygame",
+    "gizeh",
+    "moviepy",
+]
+
+# All optional dependencies combined
+all = [
+    "neat-python[dev,docs,examples]",
+]
+
+[tool.setuptools]
+# Package discovery
+packages = ["neat", "neat.nn", "neat.iznn", "neat.ctrnn", "neat.export"]
+
+[tool.setuptools.package-data]
+neat = ["py.typed"]
+
+# Pytest configuration
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--strict-config",
+]
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["neat"]
+branch = true
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]

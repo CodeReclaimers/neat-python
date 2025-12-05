@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **New Example**: Better Lunar Lander example
 
 ### Changed
+- Switch to pyproject.toml instead of setup.py.
 - Dropped support for Python 3.6 and 3.7; neat-python now requires Python 3.8 or newer.
 - Modernized internal implementation in `neat/` and `examples/` to use Python 3 features
   such as f-strings, comprehensions, dataclasses for internal helpers, and type hints,

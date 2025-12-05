@@ -20,11 +20,11 @@ Note that the examples are not included with the package installed from PyPI, so
 for release 1.1.0
 <https://github.com/CodeReclaimers/neat-python/releases/tag/v1.0.0>`_ and use the example code contained in it.
 
-You may also just get the 1.1.0 release source, and install it directly using `setup.py` (as shown below)
+You may also just get the 1.1.0 release source, and install it directly (as shown below)
 instead of `pip`.
 
-Install neat-python from source using setup.py
-----------------------------------------------
+Install neat-python from source
+--------------------------------
 Obtain the source code by either cloning the source repository::
 
     git clone https://github.com/CodeReclaimers/neat-python.git
@@ -36,8 +36,14 @@ Note that the most current code in the repository may not always be in the most 
 tests pass and that most of the examples run.  If you encounter any problems, please open an `issue on GitHub
 <https://github.com/CodeReclaimers/neat-python/issues>`_.
 
-To install from source, simply run::
+To install from source, run::
 
-    python setup.py install
+    pip install .
 
-from the directory containing setup.py.
+from the project root directory.
+
+For development (editable install with dev dependencies)::
+
+    pip install -e ".[dev]"
+
+This installs the package in editable mode with testing tools (pytest, coverage, etc.).
