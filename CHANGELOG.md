@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
+## [1.1.0] - 2025-12-05
 
 ### Added
 - **Reproducibility Support**: Evolution can now be made deterministic by setting a random seed
@@ -71,7 +71,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Aggregation functions (`max`, `min`, `maxabs`, `mean`, `median`) now handle empty inputs (return 0.0)
   - Comprehensive test coverage in `tests/test_graphs.py` (5 new tests) and `tests/test_nn.py` (integration test)
 
-## [1.0.0] - 2025-01-09
+## [1.0.0] - 2025-11-09
 
 ### Added
 - **Network Export**: JSON export capability for all network types (FeedForwardNetwork, RecurrentNetwork, CTRNN, IZNN)
