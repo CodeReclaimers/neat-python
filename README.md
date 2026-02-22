@@ -30,6 +30,8 @@ a good place to start) and then try creating your own experiment.
 
 The documentation is available on [Read The Docs](http://neat-python.readthedocs.io).
 
+You can also ask questions via the [experimental support agent](https://neat-python.recursive.support)!
+
 ## Network Export ##
 
 neat-python supports exporting trained networks to a JSON format that is framework-agnostic and human-readable. This allows you to:
