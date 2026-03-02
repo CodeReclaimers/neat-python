@@ -12,12 +12,11 @@ import visualize
 
 runs_per_net = 5
 simulation_seconds = 60.0
-time_const = cart_pole.CartPole.time_step
 
 
 # Use the CTRNN network phenotype and the discrete actuator force function.
 def eval_genome(genome, config):
-    net = neat.ctrnn.CTRNN.create(genome, config, time_const)
+    net = neat.ctrnn.CTRNN.create(genome, config)
 
     fitnesses = []
     for runs in range(runs_per_net):
@@ -28,7 +27,7 @@ def eval_genome(genome, config):
         fitness = 0.0
         while sim.t < simulation_seconds:
             inputs = sim.get_scaled_state()
-            action = net.advance(inputs, time_const, time_const)
+            action = net.advance(inputs, sim.time_step, sim.time_step)
 
             # Apply action to the simulated cart-pole
             force = cart_pole.discrete_actuator_force(action)

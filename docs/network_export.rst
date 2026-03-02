@@ -332,8 +332,8 @@ Export Different Network Types
    rnn = neat.nn.RecurrentNetwork.create(genome, config)
    export_network_json(rnn, 'recurrent.json')
    
-   # CTRNN
-   ctrnn = neat.ctrnn.CTRNN.create(genome, config, time_constant=1.0)
+   # CTRNN (time constants are per-node, read from genome)
+   ctrnn = neat.ctrnn.CTRNN.create(genome, config)
    export_network_json(ctrnn, 'ctrnn.json')
    
    # IZNN (requires IZGenome)

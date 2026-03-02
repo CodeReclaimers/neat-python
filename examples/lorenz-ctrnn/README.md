@@ -51,11 +51,9 @@ Each CTRNN receives the normalized current state as input and predicts the norma
 
 ## Differences from the Julia version
 
-The Julia NeatEvolution CTRNN implementation evolves **per-node time constants** as part of the genome, with each node having its own time constant in the range [0.01, 5.0]. This allows different nodes to operate at different timescales -- some responding quickly (small tau) and others integrating slowly (large tau).
+neat-python now evolves **per-node time constants** as part of the genome, matching the Julia NeatEvolution implementation. Each node has its own time constant (tau) in the range [0.01, 5.0], allowing different nodes to operate at different timescales.
 
-neat-python's CTRNN implementation uses a **single fixed time constant** for all nodes, set at network creation time. This example uses tau=1.0 (matching the Julia version's initialization mean). This is a genuine capability difference: the Python CTRNN cannot learn different timescales for different nodes.
-
-Additionally, the Julia implementation separates disjoint and excess gene coefficients for the genetic distance calculation, while neat-python combines them into a single `compatibility_disjoint_coefficient`.
+The Julia implementation separates disjoint and excess gene coefficients for the genetic distance calculation, while neat-python combines them into a single `compatibility_disjoint_coefficient`.
 
 ## Visualization (optional)
 
@@ -73,7 +71,7 @@ pip install matplotlib
 - **3 or 6 inputs** (with `--mode products`), **3 or 1 outputs** (with `--z-only`)
 - **No initial hidden nodes** -- NEAT discovers the topology
 - **feed_forward = False** -- required for CTRNN recurrence
-- **time_constant = 1.0** -- fixed for all nodes (see differences above)
+- **per-node time constants** -- evolved, initialized from N(1.0, 0.5), range [0.01, 5.0]
 - **bias/weight range [-5, 5]** -- narrower bounds for tanh activation
 - **max_stagnation = 30** -- patient stagnation threshold for a harder task
 - **10x subsampling** -- ensures per-step state change is large enough that networks must learn dynamics, not just copy input

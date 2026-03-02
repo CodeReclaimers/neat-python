@@ -430,7 +430,7 @@ def test_run_nn_recurrent_bad():
 
 def eval_dummy_genomes_ctrnn(genomes, config):
     for genome_id, genome in genomes:
-        net = neat.ctrnn.CTRNN.create(genome, config, 0.01)
+        net = neat.ctrnn.CTRNN.create(genome, config)
         if genome_id <= 150:
             genome.fitness = 0.0
         else:
@@ -473,7 +473,7 @@ def test_run_ctrnn():
 
 def eval_dummy_genomes_ctrnn_bad(genomes, config):
     for genome_id, genome in genomes:
-        net = neat.ctrnn.CTRNN.create(genome, config, 0.01)
+        net = neat.ctrnn.CTRNN.create(genome, config)
         net.advance([0.5, 0.5, 0.5], 0.01, 0.05)
         if genome_id <= 150:
             genome.fitness = 0.0

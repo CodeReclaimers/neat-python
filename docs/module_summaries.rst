@@ -653,16 +653,19 @@ ctrnn
       .. versionchanged:: 0.92
         Exception changed to more-specific RuntimeError.
 
-    .. py:staticmethod:: create(genome, config, time_constant)
+    .. py:staticmethod:: create(genome, config)
 
       Receives a genome and returns its phenotype (a :py:class:`CTRNN` with :py:class:`CTRNNNodeEval` :term:`nodes <node>`).
+      Each node's time constant is read from the genome's node gene ``time_constant`` attribute.
 
       :param genome: A :py:class:`genome.DefaultGenome` instance.
       :type genome: :datamodel:`instance <index-48>`
       :param config: A :py:class:`config.Config` instance.
       :type config: :datamodel:`instance <index-48>`
-      :param time_constant: Used for the :py:class:`CTRNNNodeEval` initializations.
-      :type time_constant: :pytypes:`float <typesnumeric>`
+
+      .. versionchanged:: 2.0.0
+        The ``time_constant`` parameter was removed. Time constants are now per-node
+        attributes evolved as part of the genome.
 
 
 .. py:module:: parallel

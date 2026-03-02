@@ -26,7 +26,7 @@ config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
 
 sim = CartPole()
 
-net = neat.ctrnn.CTRNN.create(c, config, sim.time_step)
+net = neat.ctrnn.CTRNN.create(c, config)
 
 print()
 print("Initial conditions:")

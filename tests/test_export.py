@@ -88,7 +88,7 @@ def test_ctrnn_export():
     genome = create_simple_genome(config)
     
     # Create CTRNN
-    net = neat.ctrnn.CTRNN.create(genome, config, time_constant=1.0)
+    net = neat.ctrnn.CTRNN.create(genome, config)
     
     # Export to JSON
     json_str = export_network_json(net)

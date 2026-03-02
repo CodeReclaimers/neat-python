@@ -133,18 +133,21 @@ def test_ctrnn_create_from_genome_prunes_and_builds_expected_structure():
     node0.response = 1.0
     node0.activation = "sigmoid"
     node0.aggregation = "sum"
+    node0.time_constant = 0.01
 
     node1 = DefaultNodeGene(1)
     node1.bias = -0.2
     node1.response = 1.0
     node1.activation = "sigmoid"
     node1.aggregation = "sum"
+    node1.time_constant = 0.01
 
     node2 = DefaultNodeGene(2)
     node2.bias = 1.5
     node2.response = 1.0
     node2.activation = "sigmoid"
     node2.aggregation = "sum"
+    node2.time_constant = 0.01
 
     genome.nodes[0] = node0
     genome.nodes[1] = node1
@@ -164,8 +167,7 @@ def test_ctrnn_create_from_genome_prunes_and_builds_expected_structure():
     genome.connections[conn1_key] = conn1
     genome.connections[conn2_key] = conn2
 
-    time_constant = 0.01
-    net = neat.ctrnn.CTRNN.create(genome, config, time_constant)
+    net = neat.ctrnn.CTRNN.create(genome, config)
 
     genome_config = config.genome_config
 
@@ -177,7 +179,7 @@ def test_ctrnn_create_from_genome_prunes_and_builds_expected_structure():
     assert set(net.node_evals.keys()) == {0, 1}
 
     ne_hidden = net.node_evals[1]
-    assert ne_hidden.time_constant == time_constant
+    assert ne_hidden.time_constant == node1.time_constant
     assert ne_hidden.bias == node1.bias
     assert ne_hidden.response == node1.response
     assert ne_hidden.activation is genome_config.activation_defs.get(node1.activation)
@@ -185,7 +187,7 @@ def test_ctrnn_create_from_genome_prunes_and_builds_expected_structure():
     assert ne_hidden.links == [(-1, 0.5)]
 
     ne_output = net.node_evals[0]
-    assert ne_output.time_constant == time_constant
+    assert ne_output.time_constant == node0.time_constant
     assert ne_output.bias == node0.bias
     assert ne_output.response == node0.response
     assert ne_output.activation is genome_config.activation_defs.get(node0.activation)

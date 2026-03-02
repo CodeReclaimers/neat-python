@@ -34,6 +34,7 @@ class TestDefaultNodeGene(unittest.TestCase):
         g.response = 1.0
         g.activation = "relu"
         g.aggregation = "sum"
+        g.time_constant = 1.0
 
         s = str(g)
         self.assertIn("DefaultNodeGene", s)
@@ -44,31 +45,33 @@ class TestDefaultNodeGene(unittest.TestCase):
         self.assertIn("aggregation=sum", s)
 
     def test_distance_respects_activation_aggregation_and_scaling(self):
-        """Node distance should include bias/response plus activation/aggregation mismatches."""
+        """Node distance should include bias/response/time_constant plus activation/aggregation mismatches."""
         cfg = _DummyConfig()
 
         g1 = DefaultNodeGene(0)
         g2 = DefaultNodeGene(0)
 
-        # Same activation/aggregation, different bias/response.
+        # Same activation/aggregation, same time_constant, different bias/response.
         g1.bias = 0.5
         g1.response = 1.0
         g1.activation = "relu"
         g1.aggregation = "sum"
+        g1.time_constant = 1.0
 
         g2.bias = -0.5
         g2.response = 0.0
         g2.activation = "relu"
         g2.aggregation = "sum"
+        g2.time_constant = 1.0
 
-        # |0.5 - (-0.5)| + |1.0 - 0.0| = 1.0 + 1.0 = 2.0, scaled by 0.5.
+        # |0.5 - (-0.5)| + |1.0 - 0.0| + |1.0 - 1.0| = 2.0, scaled by 0.5.
         self.assertEqual(g1.distance(g2, cfg), 1.0)
 
         # Change activation and aggregation to introduce two extra unit penalties.
         g2.activation = "sigmoid"
         g2.aggregation = "product"
 
-        # Base distance 2.0 + 1 + 1 = 4.0, scaled by 0.5.
+        # Base distance 2.0 + 0.0 + 1 + 1 = 4.0, scaled by 0.5.
         self.assertEqual(g1.distance(g2, cfg), 2.0)
 
     def test_copy_preserves_key_and_attributes(self):
@@ -78,6 +81,7 @@ class TestDefaultNodeGene(unittest.TestCase):
         g.response = 2.0
         g.activation = "tanh"
         g.aggregation = "sum"
+        g.time_constant = 1.0
 
         clone = g.copy()
         self.assertIsNot(clone, g)
@@ -95,12 +99,14 @@ class TestDefaultNodeGene(unittest.TestCase):
         g1.response = 0.5
         g1.activation = "relu"
         g1.aggregation = "sum"
+        g1.time_constant = 1.0
 
         g2 = DefaultNodeGene(0)
         g2.bias = 1.0
         g2.response = 2.0
         g2.activation = "sigmoid"
         g2.aggregation = "product"
+        g2.time_constant = 2.0
 
         child = g1.crossover(g2)
 

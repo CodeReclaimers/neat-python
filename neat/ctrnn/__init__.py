@@ -86,7 +86,7 @@ class CTRNN:
         return [ovalues[i] for i in self.output_nodes]
 
     @staticmethod
-    def create(genome, config, time_constant):
+    def create(genome, config):
         """ Receives a genome and returns its phenotype (a CTRNN). """
         genome_config = config.genome_config
         required = required_for_output(genome_config.input_keys, genome_config.output_keys, genome.connections)
@@ -111,7 +111,7 @@ class CTRNN:
             node = genome.nodes[node_key]
             activation_function = genome_config.activation_defs.get(node.activation)
             aggregation_function = genome_config.aggregation_function_defs.get(node.aggregation)
-            node_evals[node_key] = CTRNNNodeEval(time_constant,
+            node_evals[node_key] = CTRNNNodeEval(node.time_constant,
                                                  activation_function,
                                                  aggregation_function,
                                                  node.bias,

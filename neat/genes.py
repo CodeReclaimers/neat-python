@@ -116,7 +116,12 @@ class DefaultNodeGene(BaseGene):
     _gene_attributes = [FloatAttribute('bias'),
                         FloatAttribute('response'),
                         StringAttribute('activation', options=''),
-                        StringAttribute('aggregation', options='')]
+                        StringAttribute('aggregation', options=''),
+                        FloatAttribute('time_constant',
+                                       init_mean=1.0, init_stdev=0.0,
+                                       replace_rate=0.0, mutate_rate=0.0,
+                                       mutate_power=0.0,
+                                       max_value=10.0, min_value=0.01)]
 
     def __init__(self, key):
         assert isinstance(key, int), f"DefaultNodeGene key must be an int, not {key!r}"
@@ -124,6 +129,7 @@ class DefaultNodeGene(BaseGene):
 
     def distance(self, other, config):
         d = abs(self.bias - other.bias) + abs(self.response - other.response)
+        d += abs(self.time_constant - other.time_constant)
         if self.activation != other.activation:
             d += 1.0
         if self.aggregation != other.aggregation:

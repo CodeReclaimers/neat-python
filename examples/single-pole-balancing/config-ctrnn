@@ -39,6 +39,16 @@ response_mutate_power   = 0.0
 response_max_value      = 30.0
 response_min_value      = -30.0
 
+# Per-node time constants (preserves original fixed value as init_mean)
+time_constant_init_mean      = 0.01
+time_constant_init_stdev     = 0.0
+time_constant_init_type      = gaussian
+time_constant_max_value      = 1.0
+time_constant_min_value      = 0.001
+time_constant_mutate_power   = 0.005
+time_constant_mutate_rate    = 0.3
+time_constant_replace_rate   = 0.05
+
 weight_max_value        = 30
 weight_min_value        = -30
 weight_init_mean        = 0.0

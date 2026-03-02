@@ -46,11 +46,6 @@ TEST_STEPS = 2000
 N_GENERATIONS = 300
 PENALTY_FITNESS = -10.0
 
-# neat-python's CTRNN uses a single fixed time constant for all nodes.
-# The Julia version evolves per-node time constants (mean=1.0, range [0.01, 5.0]).
-# We use the Julia mean as the fixed value.
-TIME_CONSTANT = 1.0
-
 # ---------------------------------------------------------------------------
 # Module-level globals for parallel evaluation
 # Set by main() before the ParallelEvaluator pool is created so that forked
@@ -208,7 +203,7 @@ def eval_genome(genome, config):
 
     Returns negative mean squared error (evolution maximizes toward zero).
     """
-    net = neat.ctrnn.CTRNN.create(genome, config, TIME_CONSTANT)
+    net = neat.ctrnn.CTRNN.create(genome, config)
     net.reset()
 
     n_steps = len(_train_inputs)
@@ -238,7 +233,7 @@ def evaluate_on_test(winner, config, test_input, target_rows):
     Returns (mse, predictions) where predictions is a list of output vectors
     in normalized space.
     """
-    net = neat.ctrnn.CTRNN.create(winner, config, TIME_CONSTANT)
+    net = neat.ctrnn.CTRNN.create(winner, config)
     net.reset()
 
     n_steps = len(test_input) - 1
@@ -452,7 +447,7 @@ def main():
     print(f'After subsampling: {TRAIN_STEPS // SUBSAMPLE} train points, '
           f'{TEST_STEPS // SUBSAMPLE} test points')
     print(f'Evolution:  {N_GENERATIONS} generations, pop_size=150')
-    print(f'CTRNN:      time_constant={TIME_CONSTANT} (fixed, all nodes)')
+    print(f'CTRNN:      per-node time constants (evolved)')
     print(f'Workers:    {num_workers}')
     print()
 

@@ -74,13 +74,7 @@ class ConfigParameter:
                 else:
                     raise RuntimeError(f"Missing required configuration item: '{self.name}'")
             else:
-                # For v1.0: Require all parameters to be explicitly specified
-                section_info = f" in [{section_name}] section" if section_name else ""
-                raise RuntimeError(
-                    f"Missing required configuration item{section_info}: '{self.name}'\n"
-                    f"This parameter must be explicitly specified in your configuration file.\n"
-                    f"Suggested value: {self.name} = {self.default}"
-                )
+                return self.default
 
         try:
             if str == self.value_type:
