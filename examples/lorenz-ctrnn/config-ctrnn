@@ -1,0 +1,95 @@
+# Lorenz Attractor CTRNN Prediction Configuration
+# Task: Evolve a CTRNN to predict next-step Lorenz dynamics from current state
+# Input: normalized (x, y, z) at time t
+# Output: predicted normalized (x, y, z) at time t+1
+#
+# Ported from the Julia NeatEvolution lorenz_ctrnn example.
+# Key difference: neat-python's CTRNN uses a single fixed time constant for
+# all nodes (set in the script), whereas the Julia version evolves per-node
+# time constants. The time_constant_* parameters from the Julia config are
+# therefore omitted here.
+
+[NEAT]
+fitness_criterion     = max
+fitness_threshold     = 0.0
+pop_size              = 150
+reset_on_extinction   = True
+no_fitness_termination = True
+
+[DefaultGenome]
+num_inputs              = 3
+num_outputs             = 3
+num_hidden              = 0
+feed_forward            = False
+initial_connection      = full
+
+# Genetic distance (neat-python combines disjoint and excess into one coefficient)
+compatibility_disjoint_coefficient = 1.0
+compatibility_weight_coefficient   = 0.4
+
+# Structural mutations
+conn_add_prob           = 0.3
+conn_delete_prob        = 0.1
+node_add_prob           = 0.2
+node_delete_prob        = 0.05
+single_structural_mutation = False
+structural_mutation_surer  = default
+
+# Activation functions
+activation_default      = tanh
+activation_mutate_rate  = 0.05
+activation_options      = tanh sigmoid relu
+
+# Aggregation functions (product-agg mode overrides these at runtime)
+aggregation_default     = sum
+aggregation_mutate_rate = 0.0
+aggregation_options     = sum
+
+# Bias parameters
+bias_init_mean          = 0.0
+bias_init_stdev         = 1.0
+bias_init_type          = gaussian
+bias_max_value          = 5.0
+bias_min_value          = -5.0
+bias_mutate_power       = 0.5
+bias_mutate_rate        = 0.7
+bias_replace_rate       = 0.1
+
+# Response parameters (fixed at 1.0, never mutated)
+response_init_mean      = 1.0
+response_init_stdev     = 0.0
+response_init_type      = gaussian
+response_max_value      = 10.0
+response_min_value      = -10.0
+response_mutate_power   = 0.0
+response_mutate_rate    = 0.0
+response_replace_rate   = 0.0
+
+# Weight parameters
+weight_init_mean        = 0.0
+weight_init_stdev       = 2.0
+weight_init_type        = gaussian
+weight_max_value        = 5.0
+weight_min_value        = -5.0
+weight_mutate_power     = 0.5
+weight_mutate_rate      = 0.8
+weight_replace_rate     = 0.1
+
+# Connection enable/disable
+enabled_default         = True
+enabled_mutate_rate     = 0.01
+enabled_rate_to_true_add  = 0.0
+enabled_rate_to_false_add = 0.0
+
+[DefaultSpeciesSet]
+compatibility_threshold = 3.0
+
+[DefaultStagnation]
+species_fitness_func = max
+max_stagnation       = 30
+species_elitism      = 2
+
+[DefaultReproduction]
+elitism            = 2
+survival_threshold = 0.2
+min_species_size   = 2
