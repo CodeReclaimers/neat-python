@@ -213,8 +213,11 @@ def eval_genome(genome, config):
     for t in range(n_steps):
         output = net.advance(_train_inputs[t], DATA_DT, DATA_DT)
 
-        # Penalize genomes that produce NaN or Inf
-        if any(math.isnan(v) or math.isinf(v) for v in output):
+        # Penalize genomes that produce NaN, Inf, or very large values.
+        # Large finite values occur when per-node time constants are small
+        # relative to the integration timestep (dt/tau >> 1), causing the
+        # explicit Euler integration to become numerically unstable.
+        if any(math.isnan(v) or math.isinf(v) or abs(v) > 1e10 for v in output):
             return PENALTY_FITNESS
 
         for i in range(n_outputs):
