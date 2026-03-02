@@ -14,6 +14,14 @@ For further information regarding general concepts and theory, please see the [p
 `neat-python` is licensed under the [3-clause BSD license](https://opensource.org/licenses/BSD-3-Clause).  It is
 currently only supported on Python 3.8 through 3.14, and pypy3.
 
+## What's New in 2.0 ##
+
+The CTRNN (Continuous-Time Recurrent Neural Network) implementation now supports **per-node evolvable time constants**. In v1.x, all nodes shared a single fixed time constant passed at network creation time. In v2.0, each node carries its own time constant as an evolved gene attribute, allowing the network to operate across multiple timescales simultaneously.
+
+This is a breaking API change: `CTRNN.create(genome, config, time_constant)` is now `CTRNN.create(genome, config)`. Existing feedforward and discrete-time recurrent configurations require no changes.
+
+For details on the change, its motivation, quantitative impact, and migration guide, see [CTRNN-CHANGES.pdf](examples/lorenz-ctrnn/docs/CTRNN-CHANGES.pdf).
+
 ## Features ##
 
 * Pure Python implementation with no dependencies beyond the standard library
