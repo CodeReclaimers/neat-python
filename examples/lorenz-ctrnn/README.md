@@ -2,7 +2,7 @@
 
 Evolves a Continuous-Time Recurrent Neural Network (CTRNN) using NEAT to predict the next-step state of the Lorenz attractor. The Lorenz system is a chaotic dynamical system where small errors grow exponentially, making it a challenging benchmark for evolved networks.
 
-Ported from the Julia [NeatEvolution](https://github.com/alanderos91/NeatEvolution.jl) lorenz_ctrnn example.
+Ported from the Julia [NeatEvolution](https://github.com/CodeReclaimers/NeatEvolution.jl) lorenz_ctrnn example.  (Release coming soon!)
 
 ## Running
 
