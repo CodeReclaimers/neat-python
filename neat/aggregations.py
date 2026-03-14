@@ -3,6 +3,7 @@ Has the built-in aggregation functions, code for using them,
 and code for adding new user-defined ones.
 """
 
+import inspect
 import types
 import warnings
 from functools import reduce
@@ -49,14 +50,27 @@ class InvalidAggregationFunction(TypeError):
 
 
 def validate_aggregation(function):  # TODO: Recognize when need `reduce`
-    if not isinstance(function,
-                      (types.BuiltinFunctionType,
-                       types.FunctionType,
-                       types.LambdaType)):
-        raise InvalidAggregationFunction("A function object is required.")
+    if not callable(function):
+        raise InvalidAggregationFunction("A callable object is required.")
 
-    if not (function.__code__.co_argcount >= 1):
-        raise InvalidAggregationFunction("A function taking at least one argument is required")
+    try:
+        signature = inspect.signature(function)
+    except (TypeError, ValueError) as exc:
+        if isinstance(function, types.BuiltinFunctionType):
+            return
+        raise InvalidAggregationFunction("Unable to inspect aggregation callable signature.") from exc
+
+    accepts_positional = any(
+        parameter.kind in (
+            inspect.Parameter.POSITIONAL_ONLY,
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            inspect.Parameter.VAR_POSITIONAL,
+        )
+        for parameter in signature.parameters.values()
+    )
+
+    if not accepts_positional:
+        raise InvalidAggregationFunction("A function taking at least one positional argument is required")
 
 
 class AggregationFunctionSet:

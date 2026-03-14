@@ -72,8 +72,23 @@ def test_add_minabs():
     assert config.genome_config.aggregation_function_defs.is_valid('minabs')
 
 
+def test_add_builtin_max():
+    local_dir = os.path.dirname(__file__)
+    config_path = os.path.join(local_dir, 'test_configuration')
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                         config_path)
+
+    config.genome_config.add_aggregation('builtin_max', max)
+    assert config.genome_config.aggregation_function_defs.get('builtin_max') is max
+
+
 def dud_function():
     return 0.0
+
+
+def keyword_only_function(*, items):
+    return sum(items)
 
 
 def test_function_set():
@@ -133,6 +148,21 @@ def test_bad_add2():
         pass
     else:
         raise Exception("Should have had a TypeError/derived for dud_function")
+
+
+def test_bad_add3():
+    local_dir = os.path.dirname(__file__)
+    config_path = os.path.join(local_dir, 'test_configuration')
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                         config_path)
+
+    try:
+        config.genome_config.add_aggregation('keyword_only_function', keyword_only_function)
+    except TypeError:
+        pass
+    else:
+        raise Exception("Should have had a TypeError/derived for keyword_only_function")
 
 
 if __name__ == '__main__':
