@@ -147,7 +147,6 @@ class IZNN:
             n.reset()
 
     def get_time_step_msec(self):
-        # pylint: disable=no-self-use
         # TODO: Investigate performance or numerical stability issues that may
         # result from using this hard-coded time step.
         return 0.05

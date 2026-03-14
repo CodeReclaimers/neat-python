@@ -5,7 +5,7 @@ This module contains the implementation details for exporting each type of
 NEAT network (FeedForward, Recurrent, CTRNN, IZNN) to the JSON format.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from .json_format import FORMAT_VERSION, get_function_info
 
 
@@ -15,9 +15,9 @@ def _get_neat_version():
         import neat
         if hasattr(neat, '__version__'):
             return neat.__version__
-        return "1.1.0"
-    except:
-        return "1.1.0"
+        return "2.0.0"
+    except Exception:
+        return "2.0.0"
 
 
 def export_feedforward(network, metadata=None):
@@ -72,7 +72,7 @@ def export_feedforward(network, metadata=None):
         "format_version": FORMAT_VERSION,
         "network_type": "feedforward",
         "metadata": {
-            "created_timestamp": datetime.utcnow().isoformat() + "Z",
+            "created_timestamp": datetime.now(timezone.utc).isoformat(),
             "neat_python_version": _get_neat_version(),
         },
         "topology": {
@@ -84,11 +84,11 @@ def export_feedforward(network, metadata=None):
         "nodes": nodes,
         "connections": connections
     }
-    
+
     # Add optional metadata if provided
     if metadata:
         data["metadata"].update(metadata)
-    
+
     return data
 
 
@@ -144,7 +144,7 @@ def export_recurrent(network, metadata=None):
         "format_version": FORMAT_VERSION,
         "network_type": "recurrent",
         "metadata": {
-            "created_timestamp": datetime.utcnow().isoformat() + "Z",
+            "created_timestamp": datetime.now(timezone.utc).isoformat(),
             "neat_python_version": _get_neat_version(),
         },
         "topology": {
@@ -156,11 +156,11 @@ def export_recurrent(network, metadata=None):
         "nodes": nodes,
         "connections": connections
     }
-    
+
     # Add optional metadata if provided
     if metadata:
         data["metadata"].update(metadata)
-    
+
     return data
 
 
@@ -218,7 +218,7 @@ def export_ctrnn(network, metadata=None):
         "format_version": FORMAT_VERSION,
         "network_type": "ctrnn",
         "metadata": {
-            "created_timestamp": datetime.utcnow().isoformat() + "Z",
+            "created_timestamp": datetime.now(timezone.utc).isoformat(),
             "neat_python_version": _get_neat_version(),
         },
         "topology": {
@@ -230,11 +230,11 @@ def export_ctrnn(network, metadata=None):
         "nodes": nodes,
         "connections": connections
     }
-    
+
     # Add optional metadata if provided
     if metadata:
         data["metadata"].update(metadata)
-    
+
     return data
 
 
@@ -298,7 +298,7 @@ def export_iznn(network, metadata=None):
         "format_version": FORMAT_VERSION,
         "network_type": "iznn",
         "metadata": {
-            "created_timestamp": datetime.utcnow().isoformat() + "Z",
+            "created_timestamp": datetime.now(timezone.utc).isoformat(),
             "neat_python_version": _get_neat_version(),
         },
         "topology": {

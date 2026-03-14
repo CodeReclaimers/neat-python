@@ -128,7 +128,6 @@ class StdOutReporter(BaseReporter):
             print(f"Generation time: {elapsed:.3f} sec")
 
     def post_evaluate(self, config, population, species, best_genome):
-        # pylint: disable=no-self-use
         fitnesses = [c.fitness for c in population.values()]
         fit_mean = mean(fitnesses)
         fit_std = stdev(fitnesses)

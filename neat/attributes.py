@@ -86,7 +86,7 @@ class FloatAttribute(BaseAttribute):
         min_value = getattr(config, self.min_value_name)
         max_value = getattr(config, self.max_value_name)
         if max_value < min_value:
-            raise RuntimeError("Invalid min/max configuration for {self.name}")
+            raise RuntimeError(f"Invalid min/max configuration for {self.name}")
 
 
 class IntegerAttribute(BaseAttribute):
@@ -130,7 +130,7 @@ class IntegerAttribute(BaseAttribute):
         min_value = getattr(config, self.min_value_name)
         max_value = getattr(config, self.max_value_name)
         if max_value < min_value:
-            raise RuntimeError("Invalid min/max configuration for {self.name}")
+            raise RuntimeError(f"Invalid min/max configuration for {self.name}")
 
 
 class BoolAttribute(BaseAttribute):
@@ -174,7 +174,7 @@ class BoolAttribute(BaseAttribute):
     def validate(self, config):
         default = str(getattr(config, self.default_name)).lower()
         if default not in ('1', 'on', 'yes', 'true', '0', 'off', 'no', 'false', 'random', 'none'):
-            raise RuntimeError("Invalid default value for {self.name}")
+            raise RuntimeError(f"Invalid default value for {self.name}")
 
 
 class StringAttribute(BaseAttribute):
