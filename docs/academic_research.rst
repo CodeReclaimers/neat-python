@@ -342,7 +342,7 @@ Include appropriate citations:
 
 * **Original NEAT paper**: Stanley, K. O., & Miikkulainen, R. (2002). Evolving neural networks through augmenting topologies. *Evolutionary Computation*, 10(2), 99-127.
 
-* **neat-python**: Reference the GitHub repository and/or documentation: https://github.com/CodeReclaimers/neat-python
+* **neat-python**: McIntyre, A., Kallada, M., Miguel, C. G., Feher de Silva, C., & Netto, M. L. *neat-python* (Version 2.0.1) [Computer software]. https://doi.org/10.5281/zenodo.19024753
 
 Additional Considerations
 -------------------------

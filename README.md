@@ -69,20 +69,25 @@ See [`docs/network-json-format.md`](docs/network-json-format.md) for complete fo
 
 ## Citing ##
 
-Here are APA and Bibtex entries you can use to cite this project in a publication. The listed authors are the originators
-and/or maintainers of all iterations of the project up to this point.  If you have contributed and would like your name added 
-to the citation, please submit an issue.
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19024753.svg)](https://doi.org/10.5281/zenodo.19024753)
+
+If you use this project in a publication, please cite both the software and the original NEAT paper. The listed authors are
+the originators and/or maintainers of all iterations of the project up to this point. If you have contributed and would like
+your name added to the citation, please submit an issue.
 
 APA
 ```
-McIntyre, A., Kallada, M., Miguel, C. G., Feher de Silva, C., & Netto, M. L. neat-python [Computer software]
+McIntyre, A., Kallada, M., Miguel, C. G., Feher de Silva, C., & Netto, M. L. neat-python (Version 2.0.1) [Computer software]. https://doi.org/10.5281/zenodo.19024753
 ```
 
 Bibtex
 ```
 @software{McIntyre_neat-python,
 author = {McIntyre, Alan and Kallada, Matt and Miguel, Cesar G. and Feher de Silva, Carolina and Netto, Marcio Lobo},
-title = {{neat-python}}
+title = {{neat-python}},
+version = {2.0.1},
+doi = {10.5281/zenodo.19024753},
+url = {https://github.com/CodeReclaimers/neat-python}
 }
 ```
 

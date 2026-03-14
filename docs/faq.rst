@@ -607,15 +607,16 @@ How do I cite NEAT-Python?
 
 **Cite both the library and the original NEAT paper:**
 
-**NEAT-Python library:**
+**NEAT-Python library** (DOI: `10.5281/zenodo.19024753 <https://doi.org/10.5281/zenodo.19024753>`_):
 
 .. code-block:: bibtex
 
-   @misc{neat-python,
-     author = {CodeReclaimers, LLC},
-     title = {{NEAT-Python}},
-     howpublished = {\\url{https://github.com/CodeReclaimers/neat-python}},
-     year = {2015--2025}
+   @software{McIntyre_neat-python,
+     author = {McIntyre, Alan and Kallada, Matt and Miguel, Cesar G. and Feher de Silva, Carolina and Netto, Marcio Lobo},
+     title = {{neat-python}},
+     version = {2.0.1},
+     doi = {10.5281/zenodo.19024753},
+     url = {https://github.com/CodeReclaimers/neat-python}
    }
 
 **Original NEAT paper:**
@@ -633,7 +634,7 @@ How do I cite NEAT-Python?
      publisher={MIT Press}
    }
 
-**In text:** "We used NEAT-Python (CodeReclaimers), an implementation of the NEAT algorithm (Stanley & Miikkulainen, 2002)."
+**In text:** "We used NEAT-Python (McIntyre et al., 2026), an implementation of the NEAT algorithm (Stanley & Miikkulainen, 2002)."
 
 What's the difference from the original NEAT?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
