@@ -3,6 +3,7 @@ Has the built-in aggregation functions, code for using them,
 and code for adding new user-defined ones.
 """
 
+import inspect
 import types
 import warnings
 from functools import reduce
@@ -48,15 +49,25 @@ class InvalidAggregationFunction(TypeError):
     pass
 
 
-def validate_aggregation(function):  # TODO: Recognize when need `reduce`
-    if not isinstance(function,
-                      (types.BuiltinFunctionType,
-                       types.FunctionType,
-                       types.LambdaType)):
-        raise InvalidAggregationFunction("A function object is required.")
+def validate_aggregation(function):
+    if not callable(function):
+        raise InvalidAggregationFunction("A callable object is required.")
 
-    if not (function.__code__.co_argcount >= 1):
-        raise InvalidAggregationFunction("A function taking at least one argument is required")
+    try:
+        signature = inspect.signature(function)
+    except (TypeError, ValueError) as exc:
+        # CPython builtins (e.g. max, sum) often lack introspectable signatures.
+        # Skip signature validation for these; they are assumed correct.
+        if isinstance(function, types.BuiltinFunctionType):
+            return
+        raise InvalidAggregationFunction("Unable to inspect aggregation callable signature.") from exc
+
+    try:
+        signature.bind(object())
+    except TypeError as exc:
+        raise InvalidAggregationFunction(
+            "A callable with exactly one required positional argument is required"
+        ) from exc
 
 
 class AggregationFunctionSet:
