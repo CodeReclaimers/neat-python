@@ -1,5 +1,6 @@
 """Handles the continuous-time recurrent neural network implementation."""
 
+import math
 
 from neat.graphs import required_for_output
 
@@ -78,7 +79,8 @@ class CTRNN:
                 node_inputs = [ivalues[i] * w for i, w in ne.links]
                 s = ne.aggregation(node_inputs)
                 z = ne.activation(ne.bias + ne.response * s)
-                ovalues[node_key] += dt / ne.time_constant * (-ovalues[node_key] + z)
+                decay = math.exp(-dt / ne.time_constant)
+                ovalues[node_key] = decay * ovalues[node_key] + (1.0 - decay) * z
 
             self.time_seconds += dt
 

@@ -48,12 +48,15 @@ def test_basic_two_neuron_dynamics():
 
     # Check specific reference values at selected timesteps to guard against
     # regressions in the CTRNN integration behavior.
+    # These values use exponential Euler (ETD1) integration, which integrates
+    # the linear decay term exactly: u(t+h) = decay*u(t) + (1-decay)*z
+    # where decay = exp(-h/tau).
     reference = {
         0: (0.0, 0.0),
-        100: (0.3746852284, 0.8115273872),
-        500: (0.5634208426, 0.1952743492),
-        1149: (0.4092483263, 0.8024978195),
-        1249: (0.7531862678, 0.3112381247),
+        100: (0.3087387628, 0.7906422519),
+        500: (0.7965631789, 0.4505240611),
+        1149: (0.4952237403, 0.1974657233),
+        1249: (0.2539079366, 0.7016150055),
     }
     tol = 1e-6
     for idx, (exp0, exp1) in reference.items():
