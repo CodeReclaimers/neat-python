@@ -61,6 +61,9 @@ docs = [
     "sphinx-design>=0.6",
 ]
 
+# GPU acceleration (optional, for GPU-accelerated CTRNN/spiking evaluation)
+gpu = ["cupy-cuda12x>=12.0"]
+
 # Example dependencies (optional, for running examples)
 examples = [
     "numpy",
@@ -74,12 +77,12 @@ examples = [
 
 # All optional dependencies combined
 all = [
-    "neat-python[dev,docs,examples]",
+    "neat-python[dev,docs,examples,gpu]",
 ]
 
 [tool.setuptools]
 # Package discovery
-packages = ["neat", "neat.nn", "neat.iznn", "neat.ctrnn", "neat.export"]
+packages = ["neat", "neat.nn", "neat.iznn", "neat.ctrnn", "neat.export", "neat.gpu"]
 
 [tool.setuptools.package-data]
 neat = ["py.typed"]
