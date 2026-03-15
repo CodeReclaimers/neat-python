@@ -352,9 +352,10 @@ CTRNN and Specialized Networks
 
 When using CTRNN or other specialized network types:
 
-* **Integration method**: neat-python uses explicit Euler integration with fixed time steps
-* **Numerical stability**: Document ``dt`` and ``time_constant`` values; consider sensitivity analysis
+* **Integration method**: neat-python uses exponential Euler (ETD1) integration, which exactly integrates the linear decay term and is unconditionally stable regardless of ``dt/tau``
+* **Numerical stability**: Document ``dt`` and ``time_constant`` values; the exponential Euler method eliminates the ``dt < 2*tau`` stability constraint of forward Euler
 * **Validation**: For dynamics-sensitive applications, validate numerical behavior on simple test cases
+* **GPU acceleration**: For large populations, optional GPU-accelerated evaluation is available via ``neat.gpu`` (requires CuPy). The GPU evaluator uses the same integration method as the CPU implementation.
 
 See :doc:`ctrnn` for implementation details.
 

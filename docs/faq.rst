@@ -656,13 +656,13 @@ NEAT-Python **closely follows** the original NEAT paper (Stanley & Miikkulainen,
 3. **Configurable reproduction** (original had fixed parameters)
 4. **Additional network types:**
    - Recurrent networks
-   - CTRNN (continuous-time)
-   - IZNN (Izhikevich spiking)
+   - CTRNN (continuous-time) with optional GPU acceleration
+   - IZNN (Izhikevich spiking) with optional GPU acceleration
 5. **Enhanced features:**
    - Checkpointing
    - Statistics reporting
    - Network export
-   - Parallel evaluation
+   - Parallel evaluation (CPU multiprocessing and GPU batch evaluation)
 
 **Key improvement in v1.0.0:**
 

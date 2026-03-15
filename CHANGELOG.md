@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+
+### Added
+- **GPU-accelerated evaluation** for CTRNN and Izhikevich spiking networks via optional CuPy dependency
+  - `GPUCTRNNEvaluator` and `GPUIZNNEvaluator` in `neat.gpu.evaluator`
+  - Batch-evaluates entire populations on GPU using padded tensor operations
+  - Install with `pip install 'neat-python[gpu]'`
+  - Custom CUDA kernel supporting 11 activation functions
+  - Requires sum aggregation; other aggregation functions raise `ValueError`
+  - `import neat` never loads CuPy; all GPU imports are lazy
+  - Benchmark script in `benchmarks/gpu_benchmark.py`
+  - See `GPU_DESIGN_NOTES.md` for design rationale
+
+### Changed
+- **CTRNN integration method** changed from forward Euler to exponential Euler (ETD1)
+  - Integrates the linear decay term `-y/tau` exactly
+  - Unconditionally stable regardless of `dt/tau` ratio (forward Euler required `dt < 2*tau`)
+  - Same per-step cost (one `math.exp` call per node)
+  - Numerical results differ from previous versions for the same `dt`; both methods converge
+    to the same continuous solution as `dt` decreases
+  - The `time_constant_min_value` constraint is relaxed: values well below the integration
+    timestep are now safe
+
+
 ## [1.1.0] - 2025-12-05
 
 ### Added

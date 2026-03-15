@@ -2,11 +2,18 @@
 
 ## 1. Background
 
-A Continuous-Time Recurrent Neural Network (CTRNN) models each node as a leaky integrator with state variable y_i and time constant tau_i. The state update under explicit Euler integration is:
+A Continuous-Time Recurrent Neural Network (CTRNN) models each node as a leaky integrator with state variable y_i and time constant tau_i. The underlying ODE is:
 
-    y_i(t + dt) = y_i(t) + (dt / tau_i) * (-y_i(t) + f(bias_i + response_i * aggregation_j(w_ij * y_j)))
+    tau_i * dy_i/dt = -y_i + f(bias_i + response_i * aggregation_j(w_ij * y_j))
 
-where f is the activation function, w_ij are connection weights, and dt is the integration timestep. The time constant tau_i controls how quickly node i responds to its inputs: small tau gives fast response (the node closely tracks its instantaneous input), while large tau gives slow response (the node integrates over a longer temporal window).
+where f is the activation function, w_ij are connection weights, and dt is the integration timestep. As of v2.0, this ODE is integrated using the exponential Euler (ETD1) method, which exactly integrates the linear decay term:
+
+    decay_i = exp(-dt / tau_i)
+    y_i(t + dt) = decay_i * y_i(t) + (1 - decay_i) * z_i
+
+where z_i = f(bias_i + response_i * aggregation_j(w_ij * y_j)). This replaces the forward Euler method used prior to v2.0. The exponential Euler method is unconditionally stable for the linear decay regardless of the dt/tau_i ratio, which is critical when evolving per-node time constants (see Section 4).
+
+The time constant tau_i controls how quickly node i responds to its inputs: small tau gives fast response (the node closely tracks its instantaneous input), while large tau gives slow response (the node integrates over a longer temporal window).
 
 In the NEAT (NeuroEvolution of Augmenting Topologies) framework, the structure and parameters of the neural network are evolved simultaneously. For CTRNNs, the natural approach is to evolve tau_i as a per-node gene attribute alongside bias, response, activation function, and connection weights.
 
@@ -85,30 +92,30 @@ When time constants are not configured (all nodes have tau = 1.0 by default), th
 
 ## 4. Numerical Stability Consideration
 
-Evolving per-node time constants introduces a stability constraint that does not arise with a fixed time constant. The explicit Euler update:
+### 4.1 Exponential Euler (v2.0)
+
+The exponential Euler method used in v2.0 is unconditionally stable for the linear decay term, regardless of the dt/tau_i ratio. For example, with dt = 0.1 and tau = 0.01, the decay factor is exp(-0.1/0.01) = exp(-10) ≈ 0.000045, meaning the node responds almost instantaneously to its input — the state effectively jumps to z_i each step. This is physically correct behavior (a very fast node tracks its input closely), not a numerical instability.
+
+The stability guarantee applies only to the linear decay. The nonlinear forcing term z_i = f(bias + response * aggregation(w_ij * y_j)) can still produce large values if weights are large, but this is bounded by the activation function (e.g., tanh saturates at ±1, sigmoid at [0,1]). Unbounded activation functions (identity, relu) with large weights can produce growing trajectories, but this is a modeling issue rather than a numerical stability issue.
+
+As a result, the `time_constant_min_value` constraint is relaxed compared to the forward Euler era. Users can safely set `time_constant_min_value` well below the integration timestep without risking numerical blowup.
+
+### 4.2 Forward Euler (prior to v2.0)
+
+Prior to v2.0, the forward Euler update
 
     y_i(t + dt) = y_i(t) + (dt / tau_i) * (-y_i(t) + z_i)
 
-is stable only when dt / tau_i is of order 1 or smaller. When tau_i is much smaller than dt, the factor dt / tau_i becomes large and the integration oscillates with exponentially growing amplitude. For example, with dt = 0.1 and tau = 0.01, the factor dt / tau = 10. The state at each step is multiplied by approximately (1 - dt/tau) = -9, producing rapid divergence.
+was stable only when dt / tau_i was of order 1 or smaller. When tau_i was much smaller than dt, the factor dt / tau_i became large and the integration oscillated with exponentially growing amplitude. For example, with dt = 0.1 and tau = 0.01, the factor dt / tau = 10. The state at each step was multiplied by approximately (1 - dt/tau) = -9, producing rapid divergence.
 
-With a fixed time constant, the user chooses tau >= dt (or adjusts dt) and this issue does not arise. With evolved time constants, the evolutionary search explores the full range [tau_min, tau_max], and some genomes will inevitably have nodes where tau is small relative to the integration timestep.
-
-The recommended approach is to handle this through the fitness function rather than by modifying the integration:
+The recommended workaround was to guard against this in the fitness function:
 
 ```python
 if any(math.isnan(v) or math.isinf(v) or abs(v) > 1e10 for v in output):
     return PENALTY_FITNESS
 ```
 
-This assigns a poor fitness to genomes that produce numerically unstable outputs, allowing natural selection to eliminate unstable time constant configurations. The alternative -- clamping tau or switching to an implicit integration scheme -- would either restrict the evolvable range or change the network dynamics in ways that may not be desirable.
-
-In practice, selection pressure eliminates unstable configurations within the first few generations. The penalty is rarely triggered thereafter.
-
-Users should be aware of this constraint when setting `time_constant_min_value`. A conservative rule of thumb is:
-
-    time_constant_min_value >= integration_timestep
-
-though smaller values can work if the fitness function includes a stability guard as shown above.
+This workaround is no longer necessary with the exponential Euler method, though it remains harmless if present in existing code.
 
 ## 5. Quantitative Improvement
 

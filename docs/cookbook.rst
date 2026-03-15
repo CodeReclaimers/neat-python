@@ -121,6 +121,88 @@ How to: Use Parallel Evaluation
 
 **See also:** :doc:`module_summaries` for ``ParallelEvaluator`` API details.
 
+How to: Use GPU-Accelerated Evaluation
+---------------------------------------
+
+**Problem:** CTRNN or Izhikevich spiking network evaluation is too slow, even with multiple CPU cores.
+
+**Solution:** Use the GPU evaluators in ``neat.gpu`` to batch-evaluate the entire population on GPU.
+This requires CuPy: ``pip install 'neat-python[gpu]'``
+
+**CTRNN example:**
+
+.. code-block:: python
+
+   import math
+   from neat.gpu.evaluator import GPUCTRNNEvaluator
+
+   def input_fn(t, dt):
+       """Return input signal at time t. Shape: [num_inputs]."""
+       return [math.sin(2 * math.pi * t), math.cos(2 * math.pi * t)]
+
+   def fitness_fn(output_trajectory):
+       """Compute fitness from output trajectory.
+
+       Args:
+           output_trajectory: numpy array of shape [num_steps, num_outputs]
+       Returns:
+           Scalar fitness value.
+       """
+       # Example: reward output that tracks a target
+       return -float(np.mean((output_trajectory[:, 0] - target) ** 2))
+
+   evaluator = GPUCTRNNEvaluator(
+       dt=0.01,       # integration timestep (seconds)
+       t_max=1.0,     # total simulation time (seconds)
+       input_fn=input_fn,
+       fitness_fn=fitness_fn,
+   )
+   winner = population.run(evaluator.evaluate, n=300)
+
+**Izhikevich spiking network example:**
+
+.. code-block:: python
+
+   from neat.gpu.evaluator import GPUIZNNEvaluator
+
+   def input_fn(t, dt):
+       """Return input values at time t. Shape: [num_inputs]."""
+       return [1.0, 0.5]
+
+   def fitness_fn(output_trajectory):
+       """Compute fitness from spike train.
+
+       Args:
+           output_trajectory: numpy array of shape [num_steps, num_outputs],
+                              values are 0.0 (no spike) or 1.0 (spike).
+       """
+       return float(np.sum(output_trajectory))
+
+   evaluator = GPUIZNNEvaluator(
+       dt=0.05,       # integration timestep (milliseconds)
+       t_max=50.0,    # total simulation time (milliseconds)
+       input_fn=input_fn,
+       fitness_fn=fitness_fn,
+   )
+   winner = population.run(evaluator.evaluate, n=300)
+
+**Key differences from** ``ParallelEvaluator``:
+
+* The GPU evaluator handles network creation, simulation, and fitness assignment internally.
+  You provide ``input_fn`` (what to feed the network) and ``fitness_fn`` (how to score the output).
+* ``ParallelEvaluator`` takes an ``eval_genome`` function that returns a scalar fitness.
+  GPU evaluators take separate ``input_fn`` and ``fitness_fn`` callables.
+* ``input_fn`` runs on CPU; the simulation runs on GPU; ``fitness_fn`` runs on CPU per genome.
+
+**Constraints:**
+
+* Only ``sum`` aggregation is supported (required for batched matrix-vector multiply).
+* Supported activation functions: sigmoid, tanh, relu, identity, clamped, elu, softplus, sin,
+  gauss, abs, square. Unsupported functions raise ``ValueError`` at evaluation time.
+* ``import neat`` does not load CuPy. CuPy is imported lazily when a GPU evaluator is created.
+
+**See also:** :doc:`ctrnn` for CTRNN details including the integration method.
+
 How to: Save and Restore Checkpoints
 -------------------------------------
 
