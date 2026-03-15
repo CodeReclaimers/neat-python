@@ -476,13 +476,17 @@ class TestCTRNNGPUEquivalence:
         from neat.gpu._cupy_backend import evaluate_ctrnn_batch
 
         config = _make_ctrnn_config()
-        g1 = _make_simple_ctrnn_genome(config, genome_id=1, response=1.0)
-        g2 = _make_simple_ctrnn_genome(config, genome_id=2, response=3.0)
+        # Use small weights and inputs to avoid tanh saturation, which would
+        # mask the effect of different response values.
+        g1 = _make_simple_ctrnn_genome(config, genome_id=1, response=0.5,
+                                        w_in1=0.3, w_in2=0.1, bias=0.0)
+        g2 = _make_simple_ctrnn_genome(config, genome_id=2, response=3.0,
+                                        w_in1=0.3, w_in2=0.1, bias=0.0)
         genomes = [(1, g1), (2, g2)]
 
         dt = 0.005
         num_steps = 50
-        inputs_np = np.tile(np.array([1.0, 0.5], dtype=np.float32),
+        inputs_np = np.tile(np.array([0.2, 0.1], dtype=np.float32),
                             (num_steps, 1))
 
         packed = pack_ctrnn_population(genomes, config)

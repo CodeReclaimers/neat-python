@@ -80,11 +80,11 @@ class CTRNN:
                 s = ne.aggregation(node_inputs)
                 z = ne.activation(ne.bias + ne.response * s)
                 decay = math.exp(-dt / ne.time_constant)
-                ovalues[node_key] = decay * ovalues[node_key] + (1.0 - decay) * z
+                ovalues[node_key] = decay * ivalues[node_key] + (1.0 - decay) * z
 
             self.time_seconds += dt
 
-        ovalues = self.values[1 - self.active]
+        ovalues = self.values[self.active]
         return [ovalues[i] for i in self.output_nodes]
 
     @staticmethod
