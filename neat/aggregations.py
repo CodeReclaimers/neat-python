@@ -56,6 +56,8 @@ def validate_aggregation(function):
     try:
         signature = inspect.signature(function)
     except (TypeError, ValueError) as exc:
+        # CPython builtins (e.g. max, sum) often lack introspectable signatures.
+        # Skip signature validation for these; they are assumed correct.
         if isinstance(function, types.BuiltinFunctionType):
             return
         raise InvalidAggregationFunction("Unable to inspect aggregation callable signature.") from exc
@@ -64,7 +66,7 @@ def validate_aggregation(function):
         signature.bind(object())
     except TypeError as exc:
         raise InvalidAggregationFunction(
-            "A function taking a single positional argument is required"
+            "A callable with exactly one required positional argument is required"
         ) from exc
 
 
