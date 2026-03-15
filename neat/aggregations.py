@@ -49,7 +49,7 @@ class InvalidAggregationFunction(TypeError):
     pass
 
 
-def validate_aggregation(function):  # TODO: Recognize when need `reduce`
+def validate_aggregation(function):
     if not callable(function):
         raise InvalidAggregationFunction("A callable object is required.")
 
@@ -60,17 +60,12 @@ def validate_aggregation(function):  # TODO: Recognize when need `reduce`
             return
         raise InvalidAggregationFunction("Unable to inspect aggregation callable signature.") from exc
 
-    accepts_positional = any(
-        parameter.kind in (
-            inspect.Parameter.POSITIONAL_ONLY,
-            inspect.Parameter.POSITIONAL_OR_KEYWORD,
-            inspect.Parameter.VAR_POSITIONAL,
-        )
-        for parameter in signature.parameters.values()
-    )
-
-    if not accepts_positional:
-        raise InvalidAggregationFunction("A function taking at least one positional argument is required")
+    try:
+        signature.bind(object())
+    except TypeError as exc:
+        raise InvalidAggregationFunction(
+            "A function taking a single positional argument is required"
+        ) from exc
 
 
 class AggregationFunctionSet:

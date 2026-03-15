@@ -91,6 +91,10 @@ def keyword_only_function(*, items):
     return sum(items)
 
 
+def two_argument_function(items, scale):
+    return sum(items) * scale
+
+
 def test_function_set():
     s = aggregations.AggregationFunctionSet()
     assert s.get('sum') is not None
@@ -163,6 +167,21 @@ def test_bad_add3():
         pass
     else:
         raise Exception("Should have had a TypeError/derived for keyword_only_function")
+
+
+def test_bad_add4():
+    local_dir = os.path.dirname(__file__)
+    config_path = os.path.join(local_dir, 'test_configuration')
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                         config_path)
+
+    try:
+        config.genome_config.add_aggregation('two_argument_function', two_argument_function)
+    except TypeError:
+        pass
+    else:
+        raise Exception("Should have had a TypeError/derived for two_argument_function")
 
 
 if __name__ == '__main__':
