@@ -29,3 +29,6 @@ venv
 build
 dist
 neat_python.egg-info
+
+# Progress logs (local working notes, not committed)
+progress-*.md
