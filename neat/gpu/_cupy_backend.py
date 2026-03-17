@@ -131,14 +131,8 @@ def evaluate_ctrnn_batch(packed, inputs_cpu, dt):
     scale[:, :num_inputs] = 0.0
 
     # Transfer inputs to GPU.
-    if inputs_cpu.ndim == 2:
-        # [num_steps, num_inputs] → broadcast to all genomes
-        inputs_gpu = cp.asarray(inputs_cpu.astype(np.float32))
-        per_genome_inputs = False
-    else:
-        # [num_steps, N, num_inputs]
-        inputs_gpu = cp.asarray(inputs_cpu.astype(np.float32))
-        per_genome_inputs = True
+    # Shape is either [num_steps, num_inputs] (broadcast) or [num_steps, N, num_inputs].
+    inputs_gpu = cp.asarray(inputs_cpu.astype(np.float32))
 
     # Initialize state.
     u = cp.zeros((N, M), dtype=cp.float32)
@@ -165,15 +159,11 @@ def evaluate_ctrnn_batch(packed, inputs_cpu, dt):
 
     for step in range(num_steps):
         # Step 1: Set input node states.
-        if per_genome_inputs:
-            u[:, :num_inputs] = inputs_gpu[step]  # [N, num_inputs]
-        else:
-            u[:, :num_inputs] = inputs_gpu[step]  # [num_inputs] broadcast
+        u[:, :num_inputs] = inputs_gpu[step]
 
         # Step 2: Batched matrix-vector multiply.
         # s = W @ u → [N, M] (treat u as [N, M, 1], squeeze result)
-        cp.matmul(W, u[:, :, None], out=s_buf[:, :, None] if False else None)
-        s_buf = cp.matmul(W, u[:, :, None]).squeeze(-1)  # [N, M]
+        cp.matmul(W, u[:, :, None], out=s_buf[:, :, None])
 
         # Step 3: Apply activation function via custom kernel.
         s_flat = s_buf.ravel()
@@ -187,10 +177,7 @@ def evaluate_ctrnn_batch(packed, inputs_cpu, dt):
         u += scale * z_buf
 
         # Step 5: Re-clamp input nodes.
-        if per_genome_inputs:
-            u[:, :num_inputs] = inputs_gpu[step]
-        else:
-            u[:, :num_inputs] = inputs_gpu[step]
+        u[:, :num_inputs] = inputs_gpu[step]
 
         # Step 6: Record output node states.
         trajectory[:, step, :] = u[:, out_start:out_end]
@@ -235,13 +222,9 @@ def evaluate_iznn_batch(packed, inputs_cpu, dt, num_steps):
     d = cp.asarray(packed['d'])              # [N, M]
     node_mask = cp.asarray(packed['node_mask'])  # [N, M]
 
-    # Transfer inputs.
-    if inputs_cpu.ndim == 2:
-        inputs_gpu = cp.asarray(inputs_cpu.astype(np.float32))
-        per_genome_inputs = False
-    else:
-        inputs_gpu = cp.asarray(inputs_cpu.astype(np.float32))
-        per_genome_inputs = True
+    # Transfer inputs to GPU.
+    # Shape is either [num_steps, num_inputs] (broadcast) or [num_steps, N, num_inputs].
+    inputs_gpu = cp.asarray(inputs_cpu.astype(np.float32))
 
     # Initialize state: v = c, u_recov = b * v, fired = 0.
     v = c.copy()
@@ -263,10 +246,7 @@ def evaluate_iznn_batch(packed, inputs_cpu, dt, num_steps):
     for step in range(num_steps):
         # Build source vector: fired for neuron slots, external input for input slots.
         source[:] = fired
-        if per_genome_inputs:
-            source[:, :num_inputs] = inputs_gpu[step]
-        else:
-            source[:, :num_inputs] = inputs_gpu[step]
+        source[:, :num_inputs] = inputs_gpu[step]
 
         # Compute synaptic current: I = bias + W @ source
         I = bias + cp.matmul(W, source[:, :, None]).squeeze(-1)

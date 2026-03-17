@@ -67,23 +67,13 @@ class GPUCTRNNEvaluator:
         num_steps = int(self.t_max / self.dt)
 
         # Precompute input trajectory on CPU.
+        # first_input shape is either [num_inputs] or [N, num_inputs].
         first_input = np.asarray(self.input_fn(0.0, self.dt), dtype=np.float32)
-        if first_input.ndim == 1:
-            # Scalar input: [num_inputs]
-            inputs = np.zeros((num_steps, len(first_input)), dtype=np.float32)
-            inputs[0] = first_input
-            for step in range(1, num_steps):
-                inputs[step] = np.asarray(
-                    self.input_fn(step * self.dt, self.dt), dtype=np.float32)
-        else:
-            # Per-genome input: [N, num_inputs]
-            N = len(genomes)
-            num_inputs = first_input.shape[-1]
-            inputs = np.zeros((num_steps, N, num_inputs), dtype=np.float32)
-            inputs[0] = first_input
-            for step in range(1, num_steps):
-                inputs[step] = np.asarray(
-                    self.input_fn(step * self.dt, self.dt), dtype=np.float32)
+        inputs = np.zeros((num_steps, *first_input.shape), dtype=np.float32)
+        inputs[0] = first_input
+        for step in range(1, num_steps):
+            inputs[step] = np.asarray(
+                self.input_fn(step * self.dt, self.dt), dtype=np.float32)
 
         # Pack genomes into padded arrays.
         packed = pack_ctrnn_population(genomes, config)
@@ -131,21 +121,13 @@ class GPUIZNNEvaluator:
         num_steps = int(self.t_max / self.dt)
 
         # Precompute input trajectory on CPU.
+        # first_input shape is either [num_inputs] or [N, num_inputs].
         first_input = np.asarray(self.input_fn(0.0, self.dt), dtype=np.float32)
-        if first_input.ndim == 1:
-            inputs = np.zeros((num_steps, len(first_input)), dtype=np.float32)
-            inputs[0] = first_input
-            for step in range(1, num_steps):
-                inputs[step] = np.asarray(
-                    self.input_fn(step * self.dt, self.dt), dtype=np.float32)
-        else:
-            N = len(genomes)
-            num_inputs = first_input.shape[-1]
-            inputs = np.zeros((num_steps, N, num_inputs), dtype=np.float32)
-            inputs[0] = first_input
-            for step in range(1, num_steps):
-                inputs[step] = np.asarray(
-                    self.input_fn(step * self.dt, self.dt), dtype=np.float32)
+        inputs = np.zeros((num_steps, *first_input.shape), dtype=np.float32)
+        inputs[0] = first_input
+        for step in range(1, num_steps):
+            inputs[step] = np.asarray(
+                self.input_fn(step * self.dt, self.dt), dtype=np.float32)
 
         packed = pack_iznn_population(genomes, config)
         trajectory = evaluate_iznn_batch(packed, inputs, self.dt, num_steps)
