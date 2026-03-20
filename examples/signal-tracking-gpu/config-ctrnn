@@ -1,0 +1,88 @@
+[NEAT]
+fitness_criterion     = max
+fitness_threshold     = -0.001
+pop_size              = 300
+reset_on_extinction   = False
+no_fitness_termination = False
+
+[DefaultGenome]
+num_inputs              = 2
+num_hidden              = 0
+num_outputs             = 1
+initial_connection      = full
+feed_forward            = False
+
+compatibility_disjoint_coefficient = 1.0
+compatibility_weight_coefficient   = 0.6
+
+conn_add_prob           = 0.3
+conn_delete_prob        = 0.1
+node_add_prob           = 0.2
+node_delete_prob        = 0.1
+
+# Activation: tanh only (GPU-compatible)
+activation_default      = tanh
+activation_options      = tanh
+activation_mutate_rate  = 0.0
+
+# Aggregation: sum only (GPU-compatible)
+aggregation_default     = sum
+aggregation_options     = sum
+aggregation_mutate_rate = 0.0
+
+bias_init_mean          = 0.0
+bias_init_stdev         = 1.0
+bias_init_type          = gaussian
+bias_max_value          = 30.0
+bias_min_value          = -30.0
+bias_mutate_power       = 0.5
+bias_mutate_rate        = 0.7
+bias_replace_rate       = 0.1
+
+response_init_mean      = 1.0
+response_init_stdev     = 0.5
+response_init_type      = gaussian
+response_max_value      = 30.0
+response_min_value      = -30.0
+response_mutate_power   = 0.1
+response_mutate_rate    = 0.1
+response_replace_rate   = 0.0
+
+weight_init_mean        = 0.0
+weight_init_stdev       = 1.0
+weight_init_type        = gaussian
+weight_max_value        = 30.0
+weight_min_value        = -30.0
+weight_mutate_power     = 0.5
+weight_mutate_rate      = 0.8
+weight_replace_rate     = 0.1
+
+# Per-node time constants
+time_constant_init_mean      = 0.05
+time_constant_init_stdev     = 0.02
+time_constant_init_type      = gaussian
+time_constant_max_value      = 1.0
+time_constant_min_value      = 0.001
+time_constant_mutate_power   = 0.01
+time_constant_mutate_rate    = 0.3
+time_constant_replace_rate   = 0.05
+
+enabled_default              = True
+enabled_mutate_rate          = 0.01
+single_structural_mutation   = false
+structural_mutation_surer    = default
+enabled_rate_to_true_add     = 0.0
+enabled_rate_to_false_add    = 0.0
+
+[DefaultSpeciesSet]
+compatibility_threshold = 3.0
+
+[DefaultStagnation]
+species_fitness_func = max
+max_stagnation       = 20
+species_elitism      = 2
+
+[DefaultReproduction]
+elitism            = 2
+survival_threshold = 0.2
+min_species_size   = 2
