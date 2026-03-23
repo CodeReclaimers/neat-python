@@ -98,13 +98,15 @@ class BaseGene:
             else:
                 setattr(new_gene, a.name, getattr(gene2, a.name))
         
-        # Implement the 75% disable rule from the NEAT paper:
-        # If either parent has a disabled gene, there is a 75% chance
-        # the offspring gene will be disabled.
+        # 75% disable rule from NEAT paper (Stanley & Miikkulainen, 2002, p. 111):
+        # "There was a 75% chance that an inherited gene was disabled if it was
+        # disabled in either parent."
+        # This rule REPLACES the randomly-inherited enabled attribute when either
+        # parent has the gene disabled.
         if hasattr(new_gene, 'enabled'):
             if not self.enabled or not gene2.enabled:
-                if random() < 0.75:
-                    new_gene.enabled = False
+                # Override whatever was randomly inherited: 75% disabled, 25% enabled.
+                new_gene.enabled = random() >= 0.75
 
         return new_gene
 
@@ -157,7 +159,7 @@ class DefaultConnectionGene(BaseGene):
     def distance(self, other, config):
         d = abs(self.weight - other.weight)
         if self.enabled != other.enabled:
-            d += 1.0
+            d += getattr(config, 'compatibility_enable_penalty', 1.0)
         return d * config.compatibility_weight_coefficient
     
     def __eq__(self, other):

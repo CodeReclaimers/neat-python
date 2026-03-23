@@ -211,5 +211,54 @@ class TestDefaultConnectionGene(unittest.TestCase):
         self.assertIn(child.enabled, {True, False})
 
 
+class TestConnectionDistanceEnablePenalty(unittest.TestCase):
+    """Tests for the configurable enabled-state penalty in connection distance."""
+
+    def test_connection_distance_enable_penalty_default(self):
+        """Default penalty of 1.0 should be used when config has no explicit setting."""
+        cfg = _DummyConfig()
+        # No compatibility_enable_penalty attribute → defaults to 1.0 via getattr
+
+        g1 = DefaultConnectionGene((0, 1), innovation=1)
+        g2 = DefaultConnectionGene((0, 1), innovation=1)
+        g1.weight = 0.0
+        g1.enabled = True
+        g2.weight = 0.0
+        g2.enabled = False
+
+        # (0.0 + 1.0) * 0.5 = 0.5
+        self.assertAlmostEqual(g1.distance(g2, cfg), 0.5)
+
+    def test_connection_distance_enable_penalty_zero(self):
+        """With penalty=0.0, enabled mismatch should not affect distance."""
+        cfg = _DummyConfig()
+        cfg.compatibility_enable_penalty = 0.0
+
+        g1 = DefaultConnectionGene((0, 1), innovation=1)
+        g2 = DefaultConnectionGene((0, 1), innovation=1)
+        g1.weight = 0.0
+        g1.enabled = True
+        g2.weight = 0.0
+        g2.enabled = False
+
+        # (0.0 + 0.0) * 0.5 = 0.0
+        self.assertAlmostEqual(g1.distance(g2, cfg), 0.0)
+
+    def test_connection_distance_enable_penalty_custom(self):
+        """Custom penalty value should be used in distance calculation."""
+        cfg = _DummyConfig()
+        cfg.compatibility_enable_penalty = 2.0
+
+        g1 = DefaultConnectionGene((0, 1), innovation=1)
+        g2 = DefaultConnectionGene((0, 1), innovation=1)
+        g1.weight = 1.0
+        g1.enabled = True
+        g2.weight = 1.0
+        g2.enabled = False
+
+        # (0.0 + 2.0) * 0.5 = 1.0
+        self.assertAlmostEqual(g1.distance(g2, cfg), 1.0)
+
+
 if __name__ == "__main__":
     unittest.main()

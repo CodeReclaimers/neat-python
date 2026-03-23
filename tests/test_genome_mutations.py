@@ -843,5 +843,99 @@ class TestGenomeMutations(unittest.TestCase):
                                "Feedforward genome should have no cycles")
 
 
+class TestDanglingNodePruning(unittest.TestCase):
+    """Tests for dangling node pruning after deletion mutations (Item G)."""
+
+    def setUp(self):
+        local_dir = os.path.dirname(__file__)
+        config_path = os.path.join(local_dir, 'test_configuration')
+        self.config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                                 neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                                 config_path)
+        self.innovation_tracker = neat.InnovationTracker()
+        self.config.genome_config.innovation_tracker = self.innovation_tracker
+
+    def _make_genome(self, gid=1):
+        g = neat.DefaultGenome(gid)
+        g.configure_new(self.config.genome_config)
+        return g
+
+    def test_prune_preserves_output_nodes(self):
+        """Output nodes should never be pruned, even with no incoming connections."""
+        genome = self._make_genome()
+        gc = self.config.genome_config
+
+        # Clear all connections.
+        genome.connections.clear()
+
+        # Prune should not remove output nodes.
+        genome._prune_dangling_nodes(gc)
+
+        for k in gc.output_keys:
+            self.assertIn(k, genome.nodes,
+                         f"Output node {k} should never be pruned")
+
+    def test_prune_preserves_connected_nodes(self):
+        """Nodes on a valid path to output should not be pruned."""
+        genome = self._make_genome()
+        gc = self.config.genome_config
+
+        # Add a hidden node connected input→hidden→output.
+        genome.mutate_add_node(gc)
+
+        # Count nodes before pruning.
+        node_count_before = len(genome.nodes)
+
+        # Pruning should not remove anything since the new node is connected.
+        genome._prune_dangling_nodes(gc)
+
+        self.assertEqual(len(genome.nodes), node_count_before,
+                        "Connected nodes should not be pruned")
+
+    def test_delete_connection_prunes_dangling_nodes(self):
+        """Deleting all connections to a hidden node should prune it."""
+        genome = self._make_genome()
+        gc = self.config.genome_config
+
+        # Add a node (splits a connection into two: input→hidden, hidden→output).
+        initial_hidden = [k for k in genome.nodes if k not in gc.output_keys]
+
+        genome.mutate_add_node(gc)
+
+        new_hidden = [k for k in genome.nodes if k not in gc.output_keys
+                      and k not in initial_hidden]
+        if not new_hidden:
+            self.skipTest("mutate_add_node did not create a hidden node")
+
+        hidden_key = new_hidden[0]
+
+        # Find ALL connections involving the hidden node.
+        involving_hidden = [k for k, c in genome.connections.items()
+                           if hidden_key in c.key]
+
+        if len(involving_hidden) < 2:
+            self.skipTest("Hidden node doesn't have enough connections")
+
+        # Delete all connections involving the hidden node.
+        for key in involving_hidden:
+            del genome.connections[key]
+
+        genome._prune_dangling_nodes(gc)
+
+        # The hidden node should have been pruned (no connections at all).
+        self.assertNotIn(hidden_key, genome.nodes,
+                        f"Fully disconnected hidden node {hidden_key} should be pruned")
+
+    def test_delete_connection_backward_compatible(self):
+        """Calling mutate_delete_connection() without config should still work."""
+        genome = self._make_genome()
+        if not genome.connections:
+            self.skipTest("Genome has no connections to delete")
+
+        initial_conn_count = len(genome.connections)
+        genome.mutate_delete_connection()  # No config argument
+        self.assertLessEqual(len(genome.connections), initial_conn_count)
+
+
 if __name__ == '__main__':
     unittest.main()

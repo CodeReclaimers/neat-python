@@ -917,5 +917,87 @@ class TestSpeciesManagement(unittest.TestCase):
                 self.assertIsInstance(fitness, (int, float))
 
 
+class TestDynamicCompatibilityThreshold(unittest.TestCase):
+    """Tests for dynamic compatibility threshold adjustment (Item E)."""
+
+    def setUp(self):
+        local_dir = os.path.dirname(__file__)
+        config_path = os.path.join(local_dir, 'test_configuration')
+        self.config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                                 neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                                 config_path)
+        self.reporters = ReporterSet()
+        self.innovation_tracker = neat.InnovationTracker()
+        self.config.genome_config.innovation_tracker = self.innovation_tracker
+
+    def _create_population(self, n):
+        population = {}
+        for i in range(n):
+            g = neat.DefaultGenome(i)
+            g.configure_new(self.config.genome_config)
+            g.fitness = 0.0
+            population[i] = g
+        return population
+
+    def test_static_threshold_when_target_none(self):
+        """Default behavior (target=none) should not adjust threshold."""
+        species_set = DefaultSpeciesSet(self.config.species_set_config, self.reporters)
+        self.assertEqual(self.config.species_set_config.target_num_species, 'none')
+
+        original_threshold = self.config.species_set_config.compatibility_threshold
+        population = self._create_population(20)
+        species_set.speciate(self.config, population, 0)
+
+        self.assertEqual(self.config.species_set_config.compatibility_threshold,
+                        original_threshold)
+
+    def test_dynamic_threshold_increases_when_too_many_species(self):
+        """Threshold should increase when more species than target."""
+        self.config.species_set_config.target_num_species = '2'
+        self.config.species_set_config.threshold_adjust_rate = 0.5
+        self.config.species_set_config.compatibility_threshold = 0.001  # Very low → many species
+
+        species_set = DefaultSpeciesSet(self.config.species_set_config, self.reporters)
+        population = self._create_population(30)
+        species_set.speciate(self.config, population, 0)
+
+        if len(species_set.species) <= 2:
+            self.skipTest("Need more than 2 species for this test")
+
+        # After speciation, threshold should have increased.
+        self.assertGreater(self.config.species_set_config.compatibility_threshold, 0.001)
+
+    def test_dynamic_threshold_decreases_when_too_few_species(self):
+        """Threshold should decrease when fewer species than target."""
+        self.config.species_set_config.target_num_species = '100'
+        self.config.species_set_config.threshold_adjust_rate = 0.5
+        self.config.species_set_config.compatibility_threshold = 1000.0  # Very high → few species
+
+        species_set = DefaultSpeciesSet(self.config.species_set_config, self.reporters)
+        population = self._create_population(20)
+        species_set.speciate(self.config, population, 0)
+
+        # Should be one species with high threshold.
+        self.assertLess(len(species_set.species), 100)
+        # Threshold should have decreased.
+        self.assertLess(self.config.species_set_config.compatibility_threshold, 1000.0)
+
+    def test_dynamic_threshold_respects_bounds(self):
+        """Threshold should never go below min or above max."""
+        self.config.species_set_config.target_num_species = '1000'
+        self.config.species_set_config.threshold_adjust_rate = 200.0  # Large rate
+        self.config.species_set_config.threshold_min = 0.5
+        self.config.species_set_config.threshold_max = 50.0
+        self.config.species_set_config.compatibility_threshold = 1.0
+
+        species_set = DefaultSpeciesSet(self.config.species_set_config, self.reporters)
+        population = self._create_population(20)
+        species_set.speciate(self.config, population, 0)
+
+        # Threshold should be clamped to min.
+        self.assertGreaterEqual(self.config.species_set_config.compatibility_threshold, 0.5)
+        self.assertLessEqual(self.config.species_set_config.compatibility_threshold, 50.0)
+
+
 if __name__ == '__main__':
     unittest.main()

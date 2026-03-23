@@ -37,7 +37,10 @@ class DefaultGenomeConfig:
                         ConfigParameter('node_delete_prob', float),
                         ConfigParameter('single_structural_mutation', bool, 'false'),
                         ConfigParameter('structural_mutation_surer', str, 'default'),
-                        ConfigParameter('initial_connection', str, 'unconnected')]
+                        ConfigParameter('initial_connection', str, 'unconnected'),
+                        ConfigParameter('compatibility_excess_coefficient', str, 'auto'),
+                        ConfigParameter('compatibility_include_node_genes', bool, True),
+                        ConfigParameter('compatibility_enable_penalty', float, 1.0)]
 
         # Gather configuration data from the gene classes.
         self.node_gene_type = params['node_gene_type']
@@ -351,7 +354,7 @@ class DefaultGenome:
                 self.mutate_add_connection(config)
             elif r < ((config.node_add_prob + config.node_delete_prob +
                        config.conn_add_prob + config.conn_delete_prob) / div):
-                self.mutate_delete_connection()
+                self.mutate_delete_connection(config)
         else:
             if random() < config.node_add_prob:
                 self.mutate_add_node(config)
@@ -363,7 +366,7 @@ class DefaultGenome:
                 self.mutate_add_connection(config)
 
             if random() < config.conn_delete_prob:
-                self.mutate_delete_connection()
+                self.mutate_delete_connection(config)
 
         # Mutate connection genes.
         for cg in self.connections.values():
@@ -513,12 +516,45 @@ class DefaultGenome:
 
         del self.nodes[del_key]
 
+        self._prune_dangling_nodes(config)
+
         return del_key
 
-    def mutate_delete_connection(self):
+    def mutate_delete_connection(self, config=None):
         if self.connections:
             key = choice(list(self.connections.keys()))
             del self.connections[key]
+            if config is not None:
+                self._prune_dangling_nodes(config)
+
+    def _prune_dangling_nodes(self, config):
+        """Remove hidden nodes that cannot affect any output.
+
+        After connection or node deletion, some hidden nodes may become
+        disconnected from the output path. This method removes them along
+        with any connections that reference only disconnected nodes.
+
+        Output nodes are never removed. Input keys are not stored in
+        self.nodes and are unaffected.
+        """
+        output_keys = set(config.output_keys)
+        input_keys = set(config.input_keys)
+
+        # Determine which nodes are required for output computation.
+        enabled_connections = [cg.key for cg in self.connections.values() if cg.enabled]
+        required = required_for_output(list(input_keys), list(output_keys),
+                                       enabled_connections)
+
+        # Find hidden nodes that are NOT required.
+        nodes_to_remove = [node_key for node_key in self.nodes
+                           if node_key not in output_keys and node_key not in required]
+
+        # Remove dangling nodes and their connections.
+        for node_key in nodes_to_remove:
+            del self.nodes[node_key]
+            connections_to_remove = [k for k in self.connections if node_key in k]
+            for conn_key in connections_to_remove:
+                del self.connections[conn_key]
 
     def distance(self, other, config):
         """
@@ -528,7 +564,7 @@ class DefaultGenome:
 
         # Compute node gene distance component.
         node_distance = 0.0
-        if self.nodes or other.nodes:
+        if config.compatibility_include_node_genes and (self.nodes or other.nodes):
             disjoint_nodes = 0
             for k2 in other.nodes:
                 if k2 not in self.nodes:
@@ -547,26 +583,58 @@ class DefaultGenome:
                              (config.compatibility_disjoint_coefficient *
                               disjoint_nodes)) / max_nodes
 
-        # Compute connection gene differences.
+        # Compute connection gene distance using innovation-number matching.
+        # This is consistent with crossover, which also matches by innovation number.
         connection_distance = 0.0
         if self.connections or other.connections:
-            disjoint_connections = 0
-            for k2 in other.connections:
-                if k2 not in self.connections:
-                    disjoint_connections += 1
+            self_by_inn = {c.innovation: c for c in self.connections.values()}
+            other_by_inn = {c.innovation: c for c in other.connections.values()}
 
-            for k1, c1 in self.connections.items():
-                c2 = other.connections.get(k1)
-                if c2 is None:
-                    disjoint_connections += 1
+            # Determine excess vs disjoint boundary.
+            self_max_inn = max(self_by_inn.keys()) if self_by_inn else 0
+            other_max_inn = max(other_by_inn.keys()) if other_by_inn else 0
+
+            excess_coefficient = config.compatibility_excess_coefficient
+            if excess_coefficient == 'auto':
+                excess_coefficient = config.compatibility_disjoint_coefficient
+            else:
+                excess_coefficient = float(excess_coefficient)
+
+            homologous_distance = 0.0
+            disjoint_count = 0
+            excess_count = 0
+
+            all_innovations = set(self_by_inn.keys()) | set(other_by_inn.keys())
+            for inn in all_innovations:
+                c1 = self_by_inn.get(inn)
+                c2 = other_by_inn.get(inn)
+                if c1 is not None and c2 is not None and c1.key == c2.key:
+                    # True homologous pair.
+                    homologous_distance += c1.distance(c2, config)
                 else:
-                    # Homologous genes compute their own distance value.
-                    connection_distance += c1.distance(c2, config)
+                    # Disjoint or excess. Classify each genome's contribution.
+                    if c1 is not None and c2 is None:
+                        if inn > other_max_inn:
+                            excess_count += 1
+                        else:
+                            disjoint_count += 1
+                    elif c2 is not None and c1 is None:
+                        if inn > self_max_inn:
+                            excess_count += 1
+                        else:
+                            disjoint_count += 1
+                    else:
+                        # Both present but key mismatch (innovation collision):
+                        # treat as two disjoint genes.
+                        disjoint_count += 2
 
-            max_conn = max(len(self.connections), len(other.connections))
-            connection_distance = (connection_distance +
-                                   (config.compatibility_disjoint_coefficient *
-                                    disjoint_connections)) / max_conn
+            max_conn = max(len(self_by_inn), len(other_by_inn))
+            if max_conn > 0:
+                connection_distance = (
+                    homologous_distance
+                    + config.compatibility_disjoint_coefficient * disjoint_count
+                    + excess_coefficient * excess_count
+                ) / max_conn
 
         distance = node_distance + connection_distance
         return distance

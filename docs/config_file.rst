@@ -179,6 +179,34 @@ required for your particular implementation.
     The minimum number of genomes per species after reproduction. **This defaults to 1.**
     Note: the effective minimum per-species population is max(min_species_size, elitism) to ensure elites are always preserved.
 
+.. index:: ! fitness_sharing
+
+* *fitness_sharing*
+    The method used to compute adjusted fitness for offspring allocation. Valid values are:
+
+    * ``normalized`` - Species mean fitness is normalized to [0, 1] based on population min/max. This is the **default** and preserves existing behavior.
+    * ``canonical`` - Species mean fitness is used directly (no normalization), matching the canonical NEAT paper. This preserves the ratio of fitness values between species, unlike normalized sharing which creates rank-like selection pressure.
+
+    .. versionadded:: 1.2
+
+.. index:: ! spawn_method
+
+* *spawn_method*
+    The method used to allocate offspring counts across species. Valid values are:
+
+    * ``smoothed`` - Offspring counts move halfway toward target each generation (momentum-based). This is the **default** and preserves existing behavior.
+    * ``proportional`` - Direct proportional allocation based on adjusted fitness. Offspring counts change immediately to match fitness ratios, matching canonical NEAT.
+
+    .. versionadded:: 1.2
+
+.. index:: ! interspecies_crossover_prob
+
+* *interspecies_crossover_prob*
+    The probability that an offspring's second parent is selected from a different species.
+    The canonical NEAT paper uses a small value (0.001). **This defaults to 0.0** (disabled, preserving existing behavior).
+
+    .. versionadded:: 1.2
+
 .. index:: genome
 .. index:: DefaultGenome
 
@@ -197,6 +225,41 @@ required for your particular implementation.
 
 * *compatibility_threshold*
     Individuals whose :term:`genomic distance` is less than this threshold are considered to be in the same :term:`species`.
+
+.. index:: ! target_num_species
+
+* *target_num_species*
+    If set to an integer, the compatibility threshold will be dynamically adjusted after each generation
+    to try to maintain this number of species. If set to ``none`` (the default), the threshold is static.
+    The canonical NEAT paper describes this dynamic adjustment mechanism.
+    **This defaults to "none".**
+
+    .. versionadded:: 1.2
+
+.. index:: ! threshold_adjust_rate
+
+* *threshold_adjust_rate*
+    The amount by which the compatibility threshold is adjusted each generation when
+    ``target_num_species`` is set. If there are too many species, the threshold increases by this amount;
+    if too few, it decreases. **This defaults to 0.1.**
+
+    .. versionadded:: 1.2
+
+.. index:: ! threshold_min
+
+* *threshold_min*
+    The minimum allowed value for the compatibility threshold during dynamic adjustment.
+    **This defaults to 0.1.**
+
+    .. versionadded:: 1.2
+
+.. index:: ! threshold_max
+
+* *threshold_max*
+    The maximum allowed value for the compatibility threshold during dynamic adjustment.
+    **This defaults to 100.0.**
+
+    .. versionadded:: 1.2
 
 [DefaultGenome] section
 -----------------------
@@ -321,7 +384,22 @@ required for your particular implementation.
 .. index:: disjoint
 
 * *compatibility_disjoint_coefficient*
-    The coefficient for the :term:`disjoint` and :term:`excess` :term:`gene` counts' contribution to the :term:`genomic distance`.
+    The coefficient for the :term:`disjoint` :term:`gene` counts' contribution to the :term:`genomic distance`.
+    Also used for :term:`excess` genes unless ``compatibility_excess_coefficient`` is explicitly set.
+
+.. _compatibility-excess-coefficient-label:
+
+.. index:: ! compatibility_excess_coefficient
+.. index:: excess
+
+* *compatibility_excess_coefficient*
+    The coefficient for the :term:`excess` :term:`gene` counts' contribution to the :term:`genomic distance`.
+    Excess genes are those with innovation numbers beyond the range of the other genome.
+    **This defaults to "auto"**, meaning the value of ``compatibility_disjoint_coefficient`` is used.
+    Set to a numeric value (e.g., ``1.0``) to weight excess genes differently from disjoint genes,
+    matching the canonical NEAT formula where c₁ (excess) and c₂ (disjoint) are separate coefficients.
+
+    .. versionadded:: 1.2
 
 .. _compatibility-weight-coefficient-label:
 
@@ -337,6 +415,28 @@ required for your particular implementation.
 .. note::
   It is currently possible for two :term:`homologous` nodes or connections to have a higher contribution to the :term:`genomic distance` than a
   disjoint or excess :term:`node` or :term:`connection`, depending on their :term:`attributes` and the settings of the above parameters.
+
+.. _compatibility-include-node-genes-label:
+
+.. index:: ! compatibility_include_node_genes
+
+* *compatibility_include_node_genes*
+    If ``True``, node gene differences contribute to the :term:`genomic distance`.
+    If ``False``, only connection genes are used, matching the canonical NEAT distance formula.
+    **This defaults to True.**
+
+    .. versionadded:: 1.2
+
+.. _compatibility-enable-penalty-label:
+
+.. index:: ! compatibility_enable_penalty
+
+* *compatibility_enable_penalty*
+    The penalty added to the distance between two :term:`homologous` :term:`connections <connection>` when their
+    :term:`enabled`/disabled states differ. The canonical NEAT paper does not include this penalty.
+    Set to ``0.0`` to disable it. **This defaults to 1.0.**
+
+    .. versionadded:: 1.2
 
 .. index:: mutation
 .. index:: connection

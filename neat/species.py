@@ -61,7 +61,11 @@ class DefaultSpeciesSet(DefaultClassConfig):
     @classmethod
     def parse_config(cls, param_dict):
         return DefaultClassConfig(param_dict,
-                                  [ConfigParameter('compatibility_threshold', float)],
+                                  [ConfigParameter('compatibility_threshold', float),
+                                   ConfigParameter('target_num_species', str, 'none'),
+                                   ConfigParameter('threshold_adjust_rate', float, 0.1),
+                                   ConfigParameter('threshold_min', float, 0.1),
+                                   ConfigParameter('threshold_max', float, 100.0)],
                                   'DefaultSpeciesSet')
 
     def speciate(self, config, population, generation):
@@ -147,6 +151,23 @@ class DefaultSpeciesSet(DefaultClassConfig):
             gdstdev = stdev(distances.distances.values())
             self.reporters.info(
                 f'Mean genetic distance {gdmean:.3f}, standard deviation {gdstdev:.3f}')
+
+        # Dynamic threshold adjustment (only when target_num_species is configured).
+        target = self.species_set_config.target_num_species
+        if target != 'none':
+            target = int(target)
+            num_species = len(self.species)
+            adjust_rate = self.species_set_config.threshold_adjust_rate
+            if num_species > target:
+                self.species_set_config.compatibility_threshold += adjust_rate
+            elif num_species < target:
+                self.species_set_config.compatibility_threshold -= adjust_rate
+
+            # Clamp to configured bounds.
+            self.species_set_config.compatibility_threshold = max(
+                self.species_set_config.threshold_min,
+                min(self.species_set_config.threshold_max,
+                    self.species_set_config.compatibility_threshold))
 
     def get_species_id(self, individual_id):
         return self.genome_to_species[individual_id]

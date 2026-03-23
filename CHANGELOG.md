@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Canonical fitness sharing option** via `fitness_sharing = canonical` in `[DefaultReproduction]` config section. Default `normalized` preserves existing behavior. (NEAT paper compliance)
+- **Interspecies crossover** via `interspecies_crossover_prob` parameter in `[DefaultReproduction]`. Default 0.0 (disabled). (NEAT paper compliance)
+- **Dynamic compatibility threshold** via `target_num_species` in `[DefaultSpeciesSet]`. Default `none` (static threshold). Related parameters: `threshold_adjust_rate`, `threshold_min`, `threshold_max`. (NEAT paper compliance)
+- **Separate excess gene coefficient** via `compatibility_excess_coefficient` in `[DefaultGenome]`. Defaults to `compatibility_disjoint_coefficient` (set to `auto`). (NEAT paper compliance)
+- **Configurable node gene distance** via `compatibility_include_node_genes` in `[DefaultGenome]`. Default True (current behavior). Set to False for canonical NEAT distance formula. (NEAT paper compliance)
+- **Configurable enabled-state penalty** via `compatibility_enable_penalty` in `[DefaultGenome]`. Default 1.0 (current behavior). Set to 0.0 for canonical NEAT distance formula. (NEAT paper compliance)
+- **Canonical spawn allocation** via `spawn_method = proportional` in `[DefaultReproduction]`. Default `smoothed` (current behavior). (NEAT paper compliance)
+
+### Changed
+- **Distance function now matches genes by innovation number**, consistent with crossover behavior. Previously used tuple keys (endpoint pairs). This affects speciation when the same connection endpoints receive different innovation numbers in different generations (uncommon but possible). (NEAT paper compliance)
+- **Dangling nodes are now pruned** after `mutate_delete_node` and `mutate_delete_connection`. Hidden nodes that become disconnected from all outputs are automatically removed along with their connections. This reduces structural bloat in long evolution runs.
+
+### Fixed
+- **75% disable rule** now matches the NEAT paper specification (Stanley & Miikkulainen, 2002, p. 111). Previously, the rule was applied after random attribute inheritance, producing an effective ~87.5% disable rate. Now correctly produces 75%. This may affect evolution dynamics in existing configurations.
+
 - **GPU-accelerated evaluation** for CTRNN and Izhikevich spiking networks via optional CuPy dependency
   - `GPUCTRNNEvaluator` and `GPUIZNNEvaluator` in `neat.gpu.evaluator`
   - Batch-evaluates entire populations on GPU using padded tensor operations

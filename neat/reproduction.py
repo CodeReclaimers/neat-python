@@ -29,7 +29,10 @@ class DefaultReproduction(DefaultClassConfig):
         return DefaultClassConfig(param_dict,
                                   [ConfigParameter('elitism', int, 0),
                                    ConfigParameter('survival_threshold', float, 0.2),
-                                   ConfigParameter('min_species_size', int, 1)],
+                                   ConfigParameter('min_species_size', int, 1),
+                                   ConfigParameter('fitness_sharing', str, 'normalized'),
+                                   ConfigParameter('spawn_method', str, 'smoothed'),
+                                   ConfigParameter('interspecies_crossover_prob', float, 0.0)],
                                   'DefaultReproduction')
 
     def __init__(self, config, reporters, stagnation):
@@ -89,6 +92,24 @@ class DefaultReproduction(DefaultClassConfig):
         norm = pop_size / total_spawn
         spawn_amounts = [max(min_species_size, int(round(n * norm))) for n in spawn_amounts]
 
+        return spawn_amounts
+
+    @staticmethod
+    def compute_spawn_proportional(adjusted_fitness, pop_size, min_species_size):
+        """Direct proportional allocation (canonical NEAT).
+
+        Each species gets offspring proportional to its adjusted fitness,
+        with a minimum of min_species_size. No smoothing relative to
+        previous sizes.
+        """
+        af_sum = sum(adjusted_fitness)
+        spawn_amounts = []
+        for af in adjusted_fitness:
+            if af_sum > 0:
+                s = max(min_species_size, int(round(af / af_sum * pop_size)))
+            else:
+                s = min_species_size
+            spawn_amounts.append(s)
         return spawn_amounts
 
     def _adjust_spawn_exact(self, spawn_amounts, pop_size, min_species_size):
@@ -193,18 +214,29 @@ class DefaultReproduction(DefaultClassConfig):
             species.species = {}
             return {}  # was []
 
-        # Find minimum/maximum fitness across the entire population, for use in
-        # species adjusted fitness computation.
-        min_fitness = min(all_fitnesses)
-        max_fitness = max(all_fitnesses)
-        # Do not allow the fitness range to be zero, as we divide by it below.
-        # TODO: The ``1.0`` below is rather arbitrary, and should be configurable.
-        fitness_range = max(1.0, max_fitness - min_fitness)
-        for afs in remaining_species:
-            # Compute adjusted fitness.
-            msf = mean([m.fitness for m in afs.members.values()])
-            af = (msf - min_fitness) / fitness_range
-            afs.adjusted_fitness = af
+        if self.reproduction_config.fitness_sharing == 'canonical':
+            # Canonical NEAT: adjusted fitness = mean(member fitnesses).
+            # Offspring allocated proportionally to these means (no min/max normalization).
+            for afs in remaining_species:
+                afs.adjusted_fitness = mean([m.fitness for m in afs.members.values()])
+
+            # Shift so all adjusted fitnesses are positive (required by compute_spawn).
+            min_af = min(s.adjusted_fitness for s in remaining_species)
+            if min_af < 0:
+                shift = abs(min_af) + 1e-6
+                for afs in remaining_species:
+                    afs.adjusted_fitness += shift
+        else:
+            # Default 'normalized' behavior: normalize to [0, 1] based on population min/max.
+            min_fitness = min(all_fitnesses)
+            max_fitness = max(all_fitnesses)
+            # Do not allow the fitness range to be zero, as we divide by it below.
+            # TODO: The ``1.0`` below is rather arbitrary, and should be configurable.
+            fitness_range = max(1.0, max_fitness - min_fitness)
+            for afs in remaining_species:
+                msf = mean([m.fitness for m in afs.members.values()])
+                af = (msf - min_fitness) / fitness_range
+                afs.adjusted_fitness = af
 
         adjusted_fitnesses = [s.adjusted_fitness for s in remaining_species]
         avg_adjusted_fitness = mean(adjusted_fitnesses)  # type: float
@@ -217,8 +249,12 @@ class DefaultReproduction(DefaultClassConfig):
         # self.reproduction_config.elitism)? That would probably produce more accurate tracking
         # of population sizes and relative fitnesses... doing. TODO: document.
         min_species_size = max(min_species_size, self.reproduction_config.elitism)
-        spawn_amounts = self.compute_spawn(adjusted_fitnesses, previous_sizes,
-                                           pop_size, min_species_size)
+        if self.reproduction_config.spawn_method == 'proportional':
+            spawn_amounts = self.compute_spawn_proportional(adjusted_fitnesses,
+                                                            pop_size, min_species_size)
+        else:
+            spawn_amounts = self.compute_spawn(adjusted_fitnesses, previous_sizes,
+                                               pop_size, min_species_size)
         # Adjust spawn counts so that the total exactly matches the requested
         # population size while respecting the per-species minimum.
         spawn_amounts = self._adjust_spawn_exact(spawn_amounts, pop_size, min_species_size)
@@ -262,7 +298,18 @@ class DefaultReproduction(DefaultClassConfig):
                 spawn -= 1
 
                 parent1_id, parent1 = random.choice(old_members)
-                parent2_id, parent2 = random.choice(old_members)
+
+                # Interspecies crossover: with configured probability, select
+                # parent2 from a different species.
+                if (self.reproduction_config.interspecies_crossover_prob > 0
+                        and random.random() < self.reproduction_config.interspecies_crossover_prob
+                        and len(remaining_species) > 1):
+                    other_species = [rs for rs in remaining_species if rs.key != s.key]
+                    other_s = random.choice(other_species)
+                    other_members = list(other_s.members.items())
+                    parent2_id, parent2 = random.choice(other_members)
+                else:
+                    parent2_id, parent2 = random.choice(old_members)
 
                 # Note that if the parents are not distinct, crossover will produce a
                 # genetically identical clone of the parent (but with a different ID).

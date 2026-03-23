@@ -31,7 +31,7 @@ neat-python correctly implements the most complex and critical aspects of the NE
 * **Structural mutations** (add-node and add-connection) following standard NEAT practice
 * **75% disable rule** during crossover (with implementation note below)
 
-However, neat-python contains several implementation choices that differ from the original 2002 NEAT paper. These design decisions that create a NEAT variant with different evolutionary dynamics. Researchers must understand these differences when publishing results.
+However, neat-python contains several implementation choices that differ from the original 2002 NEAT paper. Many of these differences are now configurable, allowing researchers to choose between neat-python's default behavior and canonical NEAT behavior.
 
 Key Implementation Differences
 -------------------------------
@@ -41,7 +41,7 @@ High-Impact Differences
 
 **1. Fitness Sharing Mechanism**
 
-The most significant deviation affects selection pressure and speciation dynamics.
+The default behavior uses normalized fitness sharing, which differs from canonical NEAT.
 
 *Canonical NEAT:*
 
@@ -50,41 +50,60 @@ The most significant deviation affects selection pressure and speciation dynamic
    adjusted_fitness = raw_fitness / species_size
    # offspring_allocation proportional to sum(adjusted_fitness per species)
 
-*neat-python implementation:*
+*neat-python default (normalized):*
 
 .. code-block:: python
 
-   # From neat/reproduction.py
-   # Species fitness is normalized to [0,1] based on population min/max
-   af = (msf - min_fitness) / fitness_range
+   af = (msf - min_fitness) / fitness_range  # Normalized to [0, 1]
 
-**Impact:** This creates rank-like selection pressure that scales with fitness variance. In low-variance populations, near-optimal species can be effectively eliminated. Species with many members are not penalized as in canonical NEAT, fundamentally altering the "protection of innovation" mechanism central to NEAT's design.
+**Impact:** Normalized sharing creates rank-like selection pressure. In low-variance populations, near-optimal species can be effectively eliminated.
 
-**Example:** If Species A has fitness 100 and Species B has fitness 101, canonical NEAT allocates offspring nearly equally (~50/50), while neat-python gives Species B 100% of offspring (minus minimums), reducing Species A to minimum size.
+**Configurable:** Set ``fitness_sharing = canonical`` in ``[DefaultReproduction]`` for paper-faithful behavior. Default ``normalized`` preserves existing behavior.
 
 **2. Genomic Distance Metric**
 
-The distance metric used for speciation differs in three ways from the canonical formula δ = c₁·E/N + c₂·D/N + c₃·W̄:
+The distance metric used for speciation is now configurable to match the canonical formula δ = c₁·E/N + c₂·D/N + c₃·W̄.
 
-1. Node genes are included in the distance calculation (normalized by max node count)
-2. Enabled/disabled state mismatch adds a +1 penalty per connection
-3. Per-connection distance combines weight differences with enabled state and disjoint penalties
+Connection genes are matched by **innovation number** (consistent with crossover). The full distance formula is:
 
-*Location:* ``neat/genome.py`` lines 520-561, ``neat/genes.py`` lines 151-155
+.. math::
 
-**Impact:** Speciation boundaries differ from canonical NEAT, structural mutations may be penalized twice, and cluster dynamics differ even with identical hyperparameters. Direct comparison to published NEAT results becomes problematic.
+   \delta = \delta_{\text{nodes}} + \delta_{\text{connections}}
+
+**Connection gene distance:**
+
+.. math::
+
+   \delta_{\text{connections}} = \frac{c_2 \cdot D + c_1 \cdot E + \sum_{i \in M} d_i}{N_c}
+
+Where:
+
+- *D* = number of disjoint connection genes (innovation within the other genome's range)
+- *E* = number of excess connection genes (innovation beyond the other genome's range)
+- *M* = set of homologous (matching) connection gene pairs
+- *d_i* = (|w₁ - w₂| + p · [e₁ ≠ e₂]) · c₃ for each matching pair, where *p* is ``compatibility_enable_penalty`` (default 1.0)
+- *N_c* = max number of connection genes in either genome
+- *c₁* = ``compatibility_excess_coefficient`` (defaults to ``compatibility_disjoint_coefficient`` if set to ``auto``)
+- *c₂* = ``compatibility_disjoint_coefficient``
+- *c₃* = ``compatibility_weight_coefficient``
+
+**Node gene distance** (when ``compatibility_include_node_genes`` is True, the default):
+
+.. math::
+
+   \delta_{\text{nodes}} = \frac{c_2 \cdot D_n + \sum_{i \in M_n} d_i^{(n)}}{N_n}
+
+Where node distance *d_i^(n)* includes bias difference, response difference, time_constant difference, and +1 penalties for activation and aggregation function mismatches, all scaled by c₃.
+
+**To approximate canonical NEAT distance:**
+
+- Set ``compatibility_include_node_genes = False``
+- Set ``compatibility_enable_penalty = 0.0``
+- Set ``compatibility_excess_coefficient`` explicitly if c₁ ≠ c₂
 
 **3. Disable Rule Implementation**
 
-The 75% disable rule is applied AFTER random attribute inheritance rather than INSTEAD of it, resulting in an effective disable rate of approximately 87.5% when one parent has the gene disabled:
-
-.. code-block:: python
-
-   # Probability analysis:
-   # Random inheritance: 50% chance of inheriting disabled state
-   # Then 75% chance of disabling: 0.5 + (0.5 × 0.75) = 0.875
-
-**Impact:** This reduces re-enabling of previously disabled connections compared to canonical NEAT and may affect network growth patterns and structural evolution.
+The 75% disable rule now correctly matches the paper: when either parent has a gene disabled, the offspring's enabled state is determined by a fresh 75/25 coin flip (75% disabled, 25% enabled), replacing whatever value was randomly inherited.
 
 Medium-Impact Differences
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -104,9 +123,9 @@ The original NEAT paper assumed fixed sigmoid activation and summation. This sig
 
 neat-python uses "best-fit" clustering (place genome in species with closest representative) rather than the original "first-fit" approach (place in first compatible species). This is generally considered an improvement for stability and is less order-dependent.
 
-**6. Static Compatibility Threshold**
+**6. Dynamic Compatibility Threshold**
 
-The compatibility threshold for speciation is fixed rather than dynamically adjusted to maintain target species counts. This can cause species counts to drift over time.
+By default the compatibility threshold for speciation is fixed. Set ``target_num_species`` in ``[DefaultSpeciesSet]`` to enable dynamic adjustment toward a target species count (as described in the paper). Configure ``threshold_adjust_rate``, ``threshold_min``, and ``threshold_max`` to control the adjustment behavior.
 
 **7. Initial Connectivity**
 
@@ -114,7 +133,7 @@ Multiple initialization topologies are available (``unconnected``, ``fs_neat_noh
 
 **8. Spawn Allocation Smoothing**
 
-Offspring counts are smoothed relative to previous species sizes with exact matching routines enforcing per-species minimums. This improves stability in practice but deviates from the paper.
+By default, offspring counts are smoothed relative to previous species sizes. Set ``spawn_method = proportional`` in ``[DefaultReproduction]`` for direct proportional allocation (canonical NEAT). Default ``smoothed`` preserves existing behavior.
 
 Recommendations for Academic Use
 ---------------------------------
@@ -122,24 +141,25 @@ Recommendations for Academic Use
 For Strict NEAT Replication Studies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If your research requires exact canonical NEAT behavior for comparison with other implementations or replication of published results:
+If your research requires exact canonical NEAT behavior for comparison with other implementations or replication of published results, all major differences are now configurable:
 
-**1. Modify fitness sharing in reproduction logic**
+**1. Use canonical fitness sharing and spawn allocation**
 
-The ``neat/reproduction.py`` module (lines 176-225) needs modification to implement canonical fitness sharing without normalization.
+Set ``fitness_sharing = canonical`` and ``spawn_method = proportional`` in ``[DefaultReproduction]``.
 
-**2. Modify the distance metric**
+**2. Configure the distance metric for canonical NEAT**
 
-Adjust ``neat/genome.py`` to match the canonical formula:
+Set ``compatibility_include_node_genes = False`` and ``compatibility_enable_penalty = 0.0`` in ``[DefaultGenome]``. Optionally set ``compatibility_excess_coefficient`` if c₁ ≠ c₂.
 
-* Remove node gene contributions
-* Remove enabled/disabled penalty
-* Compute W̄ as pure average weight difference on matching connections
-* Expose c₁, c₂, c₃ as separate configuration parameters
+**3. Enable dynamic compatibility threshold**
 
-**3. Configure for canonical search space**
+Set ``target_num_species`` in ``[DefaultSpeciesSet]`` to maintain a target species count.
 
-Lock configuration to canonical NEAT parameters:
+**4. Enable interspecies crossover**
+
+Set ``interspecies_crossover_prob`` to a small value (e.g., 0.001) in ``[DefaultReproduction]``.
+
+**5. Lock activation and aggregation to canonical defaults**
 
 .. code-block:: ini
 
@@ -152,13 +172,7 @@ Lock configuration to canonical NEAT parameters:
    initial_connection = unconnected
    feed_forward = True
 
-**4. Consider implementing dynamic compatibility threshold**
-
-For species count stabilization, add threshold adjustment mechanisms.
-
-**5. Run sensitivity analysis**
-
-Evaluate the impact of the disable rate difference (75% vs 87.5%).
+See the "Configuration for Canonical Behavior" section below for a complete template.
 
 For General NEAT-Variant Research
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -209,7 +223,7 @@ Provide complete, runnable code including the specific neat-python version and a
 Configuration for Canonical Behavior
 -------------------------------------
 
-If you need behavior closer to canonical NEAT without code modification, use this configuration template as a starting point:
+neat-python now supports canonical NEAT behavior through configuration alone. Use this template as a starting point:
 
 .. code-block:: ini
 
@@ -224,21 +238,25 @@ If you need behavior closer to canonical NEAT without code modification, use thi
    activation_default      = sigmoid
    activation_mutate_rate  = 0.0
    activation_options      = sigmoid
-   
+
    aggregation_default     = sum
    aggregation_mutate_rate = 0.0
    aggregation_options     = sum
-   
+
    # Disable response evolution
    response_mutate_rate    = 0.0
    response_replace_rate   = 0.0
-   
+
    # Minimal initial connectivity
    initial_connection      = unconnected
-   
+
    # Standard NEAT topology
    feed_forward            = True
-   
+
+   # Canonical distance metric: no node genes, no enable penalty
+   compatibility_include_node_genes = False
+   compatibility_enable_penalty     = 0.0
+
    # Configure other mutation rates as needed for your problem
    bias_mutate_rate        = 0.7
    bias_replace_rate       = 0.1
@@ -251,6 +269,7 @@ If you need behavior closer to canonical NEAT without code modification, use thi
 
    [DefaultSpeciesSet]
    compatibility_threshold = 3.0
+   target_num_species      = 10
 
    [DefaultStagnation]
    species_fitness_func = max
@@ -258,10 +277,11 @@ If you need behavior closer to canonical NEAT without code modification, use thi
    species_elitism      = 2
 
    [DefaultReproduction]
-   elitism            = 2
-   survival_threshold = 0.2
-
-Note that even with this configuration, fitness sharing and distance metric differences remain. Complete canonical behavior requires code modification.
+   elitism                     = 2
+   survival_threshold          = 0.2
+   fitness_sharing             = canonical
+   spawn_method                = proportional
+   interspecies_crossover_prob = 0.001
 
 Working with Deterministic Evolution
 -------------------------------------
@@ -380,13 +400,13 @@ See :doc:`customization` for guidance on extending the library.
 Summary
 -------
 
-neat-python is a robust, well-maintained NEAT implementation suitable for serious academic research when used with awareness of its characteristics. The library correctly implements the most critical algorithmic components (innovation tracking, crossover, structural mutations) but differs from canonical NEAT in fitness sharing and distance calculation.
+neat-python is a robust, well-maintained NEAT implementation suitable for serious academic research. The library correctly implements the critical algorithmic components (innovation tracking, crossover, structural mutations) and now offers configuration options for canonical NEAT behavior.
 
-**For canonical NEAT replication:** Code modifications and careful configuration are necessary.
+**For canonical NEAT replication:** All major differences from the paper are configurable without code modification. See the configuration template above.
 
-**For NEAT-variant research:** The library is excellent as-is, provided implementation choices are documented in publications.
+**For NEAT-variant research:** The library is excellent with default settings, provided implementation choices are documented in publications.
 
-**For all research:** Understanding these differences enables informed use and appropriate interpretation of results. The pure Python implementation and comprehensive test suite make verification and modification straightforward—a significant advantage for academic research.
+**For all research:** The pure Python implementation and comprehensive test suite make verification and modification straightforward—a significant advantage for academic research.
 
 References
 ----------

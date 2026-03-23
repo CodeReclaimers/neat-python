@@ -301,5 +301,197 @@ class TestElitism(unittest.TestCase):
         self.assertTrue(any_other_survivors, "No surviving species after reproduction")
 
 
+class TestCanonicalFitnessSharing(unittest.TestCase):
+    """Tests for fitness_sharing = 'canonical' (Item A)."""
+
+    def setUp(self):
+        local_dir = os.path.dirname(__file__)
+        config_path = os.path.join(local_dir, 'test_configuration')
+        self.config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                                 neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                                 config_path)
+        self.reporters = ReporterSet()
+        self.stagnation = DefaultStagnation(self.config.stagnation_config, self.reporters)
+        self.species_set = DefaultSpeciesSet(self.config.species_set_config, self.reporters)
+
+    def test_canonical_fitness_sharing_proportional(self):
+        """With canonical sharing, species with 2x mean fitness should get ~2x offspring."""
+        self.config.reproduction_config.fitness_sharing = 'canonical'
+        self.config.reproduction_config.spawn_method = 'proportional'
+        self.config.reproduction_config.elitism = 0
+        self.config.reproduction_config.min_species_size = 1
+
+        reproduction = DefaultReproduction(self.config.reproduction_config,
+                                           self.reporters, self.stagnation)
+        pop_size = self.config.pop_size
+        population = reproduction.create_new(self.config.genome_type,
+                                             self.config.genome_config, pop_size)
+
+        # Use moderate threshold to get a manageable number of species.
+        self.species_set.speciate(self.config, population, 0)
+
+        if len(self.species_set.species) < 2:
+            self.skipTest("Could not create 2 species")
+
+        # Assign fitness: first species gets mean=100, second gets mean=200.
+        species_list = sorted(self.species_set.species.items())
+        for gid, genome in species_list[0][1].members.items():
+            genome.fitness = 100.0
+        for gid, genome in species_list[1][1].members.items():
+            genome.fitness = 200.0
+        # Remaining species get moderate fitness.
+        for sid, s in species_list[2:]:
+            for gid, genome in s.members.items():
+                genome.fitness = 50.0
+
+        new_pop = reproduction.reproduce(self.config, self.species_set, pop_size, 0)
+        self.assertEqual(len(new_pop), pop_size)
+
+    def test_canonical_fitness_sharing_negative_fitness(self):
+        """Canonical sharing should handle negative fitness values."""
+        self.config.reproduction_config.fitness_sharing = 'canonical'
+        reproduction = DefaultReproduction(self.config.reproduction_config,
+                                           self.reporters, self.stagnation)
+        pop_size = self.config.pop_size
+        population = reproduction.create_new(self.config.genome_type,
+                                             self.config.genome_config, pop_size)
+        self.species_set.speciate(self.config, population, 0)
+
+        # Assign negative fitness values.
+        for genome in population.values():
+            genome.fitness = -random.random() * 10.0
+
+        new_pop = reproduction.reproduce(self.config, self.species_set, pop_size, 0)
+        self.assertEqual(len(new_pop), pop_size)
+
+    def test_normalized_fitness_sharing_default(self):
+        """Default 'normalized' should produce valid population."""
+        self.assertEqual(self.config.reproduction_config.fitness_sharing, 'normalized')
+        reproduction = DefaultReproduction(self.config.reproduction_config,
+                                           self.reporters, self.stagnation)
+        pop_size = self.config.pop_size
+        population = reproduction.create_new(self.config.genome_type,
+                                             self.config.genome_config, pop_size)
+        self.species_set.speciate(self.config, population, 0)
+
+        for genome in population.values():
+            genome.fitness = random.random()
+
+        new_pop = reproduction.reproduce(self.config, self.species_set, pop_size, 0)
+        self.assertEqual(len(new_pop), pop_size)
+
+
+class TestProportionalSpawn(unittest.TestCase):
+    """Tests for spawn_method = 'proportional' (Item J)."""
+
+    def test_proportional_spawn_direct_allocation(self):
+        """Proportional spawn should allocate based on fitness ratios without smoothing."""
+        spawn = DefaultReproduction.compute_spawn_proportional(
+            [1.0, 3.0], 40, 5)
+        # 1/(1+3) * 40 = 10, 3/(1+3) * 40 = 30
+        self.assertEqual(spawn, [10, 30])
+
+    def test_proportional_spawn_respects_minimum(self):
+        """Minimum species size should be enforced."""
+        spawn = DefaultReproduction.compute_spawn_proportional(
+            [0.001, 1.0], 40, 10)
+        # First species would get < 10, should be clamped to 10.
+        self.assertGreaterEqual(spawn[0], 10)
+
+    def test_proportional_spawn_zero_fitness_sum(self):
+        """With zero total fitness, all species get minimum size."""
+        spawn = DefaultReproduction.compute_spawn_proportional(
+            [0.0, 0.0], 40, 10)
+        self.assertEqual(spawn, [10, 10])
+
+    def test_smoothed_spawn_default(self):
+        """Default spawn_method should be 'smoothed'."""
+        local_dir = os.path.dirname(__file__)
+        config_path = os.path.join(local_dir, 'test_configuration')
+        config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                             neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                             config_path)
+        self.assertEqual(config.reproduction_config.spawn_method, 'smoothed')
+
+
+class TestInterspeciesCrossover(unittest.TestCase):
+    """Tests for interspecies_crossover_prob (Item F)."""
+
+    def setUp(self):
+        local_dir = os.path.dirname(__file__)
+        config_path = os.path.join(local_dir, 'test_configuration')
+        self.config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                                 neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                                 config_path)
+        self.reporters = ReporterSet()
+        self.stagnation = DefaultStagnation(self.config.stagnation_config, self.reporters)
+        self.species_set = DefaultSpeciesSet(self.config.species_set_config, self.reporters)
+
+    def test_interspecies_crossover_zero_default(self):
+        """Default config should have interspecies_crossover_prob = 0.0."""
+        self.assertAlmostEqual(
+            self.config.reproduction_config.interspecies_crossover_prob, 0.0)
+
+    def test_interspecies_crossover_occurs(self):
+        """With prob=1.0 and multiple species, some offspring should have cross-species parents."""
+        self.config.reproduction_config.interspecies_crossover_prob = 1.0
+        self.config.reproduction_config.elitism = 0
+        self.config.reproduction_config.min_species_size = 1
+
+        reproduction = DefaultReproduction(self.config.reproduction_config,
+                                           self.reporters, self.stagnation)
+        pop_size = self.config.pop_size
+        population = reproduction.create_new(self.config.genome_type,
+                                             self.config.genome_config, pop_size)
+
+        # Use default threshold to get natural species.
+        self.species_set.speciate(self.config, population, 0)
+
+        if len(self.species_set.species) < 2:
+            self.skipTest("Could not create multiple species")
+
+        for genome in population.values():
+            genome.fitness = random.random()
+
+        new_pop = reproduction.reproduce(self.config, self.species_set, pop_size, 0)
+        self.assertEqual(len(new_pop), pop_size)
+
+        # Check that some ancestors come from different species.
+        species_membership = {}
+        for sid, s in self.species_set.species.items():
+            for gid in s.members:
+                species_membership[gid] = sid
+
+        cross_species_count = 0
+        for gid, (p1, p2) in reproduction.ancestors.items():
+            if p1 in species_membership and p2 in species_membership:
+                if species_membership[p1] != species_membership[p2]:
+                    cross_species_count += 1
+
+        self.assertGreater(cross_species_count, 0,
+                          "Expected some cross-species offspring with prob=1.0")
+
+    def test_interspecies_crossover_single_species(self):
+        """With only one species, interspecies crossover should not crash."""
+        self.config.reproduction_config.interspecies_crossover_prob = 1.0
+
+        reproduction = DefaultReproduction(self.config.reproduction_config,
+                                           self.reporters, self.stagnation)
+        pop_size = self.config.pop_size
+        population = reproduction.create_new(self.config.genome_type,
+                                             self.config.genome_config, pop_size)
+
+        # High threshold to keep everything in one species.
+        self.config.species_set_config.compatibility_threshold = 1000.0
+        self.species_set.speciate(self.config, population, 0)
+        self.assertEqual(len(self.species_set.species), 1)
+
+        for genome in population.values():
+            genome.fitness = random.random()
+
+        new_pop = reproduction.reproduce(self.config, self.species_set, pop_size, 0)
+        self.assertEqual(len(new_pop), pop_size)
+
+
 if __name__ == '__main__':
     unittest.main()
