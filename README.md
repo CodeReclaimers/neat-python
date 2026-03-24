@@ -92,4 +92,18 @@ url = {https://github.com/CodeReclaimers/neat-python}
 ```
 
 ## Thank you! ##
-Many thanks to the folks who have [cited this repository](https://scholar.google.com/scholar?start=0&hl=en&as_sdt=5,34&sciodt=0,34&cites=15315010889003730796&scipsc=) in their own work. 
+Many thanks to the folks who have [cited this repository](https://scholar.google.com/scholar?start=0&hl=en&as_sdt=5,34&sciodt=0,34&cites=15315010889003730796&scipsc=) in their own work.
+
+## About the Maintainer ##
+
+neat-python is developed and maintained by Alan McIntyre
+(CodeReclaimers LLC, ORCID: [0000-0002-8071-4219](https://orcid.org/0000-0002-8071-4219)).
+
+Alan McIntyre is an independent consultant with 28+
+years of software development experience and an MS in Applied Mathematics.
+Specializations include computational geometry, CAD reverse engineering, C++ scientific computing, and Python scientific computing.
+
+Available for research consulting and implementation engagements.
+Full profile: [https://codereclaimers.com/consulting](https://codereclaimers.com/consulting)
+Contact: consulting@codereclaimers.com
+
