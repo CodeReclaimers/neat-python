@@ -6,18 +6,33 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 NEAT-Python is a pure-Python implementation of NEAT (NeuroEvolution of Augmenting Topologies), a method for evolving arbitrary neural networks. This project has no dependencies beyond the Python standard library and supports Python 3.8-3.14 and PyPy3.
 
+## Development Environment
+
+A micromamba environment named `neat-python` is available with all dependencies (including CuPy for GPU tests). Prefix commands with `micromamba run -n neat-python` to use it:
+
+```bash
+# Run commands in the neat-python environment
+micromamba run -n neat-python pytest tests/ -v
+micromamba run -n neat-python python examples/xor/evolve-minimal.py
+```
+
 ## Key Development Commands
+
+All commands below assume the `neat-python` micromamba environment. Prefix with `micromamba run -n neat-python` when running from outside the environment.
 
 ### Testing
 ```bash
 # Run all tests with coverage
-pytest tests/ --cov=neat --cov-report=term --cov-report=xml -v
+micromamba run -n neat-python pytest tests/ --cov=neat --cov-report=term --cov-report=xml -v
 
 # Run a single test file
-pytest tests/test_genome.py -v
+micromamba run -n neat-python pytest tests/test_genome.py -v
 
 # Run a specific test
-pytest tests/test_genome.py::TestGenome::test_mutate_add_node -v
+micromamba run -n neat-python pytest tests/test_genome.py::TestGenome::test_mutate_add_node -v
+
+# Run GPU tests (requires CuPy + NVIDIA GPU, both available in the micromamba env)
+micromamba run -n neat-python pytest tests/test_gpu.py -v
 ```
 
 ### Installation
