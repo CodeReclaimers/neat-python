@@ -14,6 +14,54 @@ For further information regarding general concepts and theory, please see the [p
 `neat-python` is licensed under the [3-clause BSD license](https://opensource.org/licenses/BSD-3-Clause).  It is
 currently only supported on Python 3.8 through 3.14, and pypy3.
 
+## What's New in 2.1 ##
+
+### Bug fixes
+
+* **`fitness_criterion = min` now works correctly.** Previously, only the termination check
+  honored this setting — best-genome tracking, stagnation detection, elite selection, crossover
+  parent selection, spawn allocation, and statistics reporting all hardcoded "higher is better."
+  All fitness comparisons throughout the library now respect the configured criterion.
+* **Checkpoints no longer repeat work on restore.** Checkpoints are now saved after fitness
+  evaluation (in `post_evaluate`) instead of after reproduction (in `end_generation`). Restoring
+  a checkpoint skips the already-completed evaluation and proceeds directly to reproduction.
+  For experiments with expensive fitness functions this eliminates potentially hours of redundant
+  computation per restore. Checkpoint file `N` now means "generation N has been evaluated."
+  Old checkpoint files (5-tuple format) are still loadable.
+* **Reporter output no longer mixes generation boundaries.** The species detail table printed by
+  `StdOutReporter` previously appeared in `end_generation` using the post-reproduction population,
+  which belongs to the *next* generation. It now appears in `post_evaluate` alongside the fitness
+  statistics, so all output under the "Running generation N" banner is consistent.
+* **Fixed two double-buffer bugs in `CTRNN.advance`.** Incorrect buffer swapping could cause
+  state corruption during multi-step CTRNN evaluation.
+* **Fixed aggregation validation for builtins and callables.**
+
+### NEAT paper compliance
+
+Configurable options to more closely match Stanley & Miikkulainen (2002), with backward-compatible defaults:
+
+* Connection gene matching by innovation number in the distance function (with separate
+  `excess_coefficient`)
+* Canonical fitness sharing (`fitness_sharing = canonical`)
+* Proportional spawn allocation (`spawn_method = proportional`)
+* Interspecies crossover (`interspecies_crossover_prob`)
+* Dynamic compatibility threshold adjustment (`compatibility_threshold_adjustment`)
+* 75% disable rule fix: replaces (rather than layers on) inherited enabled value
+* Pruning of dangling nodes after deletion mutations
+* Node gene distance contribution and enable/disable penalty are now configurable
+
+### GPU acceleration
+
+* Optional GPU-accelerated evaluation for CTRNN and Izhikevich networks via CuPy
+  (`pip install 'neat-python[gpu]'`). Lazy imports — `import neat` never triggers a GPU dependency.
+* CTRNN integration switched from forward Euler to exponential Euler (ETD1) for improved
+  numerical stability.
+
+### Other
+
+* 55 new unit tests covering feature gaps (618 total).
+* Sphinx 9.x documentation build compatibility fix.
+
 ## What's New in 2.0 ##
 
 The CTRNN (Continuous-Time Recurrent Neural Network) implementation now supports **per-node evolvable time constants**. In v1.x, all nodes shared a single fixed time constant passed at network creation time. In v2.0, each node carries its own time constant as an evolved gene attribute, allowing the network to operate across multiple timescales simultaneously.
