@@ -40,9 +40,11 @@ Initialization/Reproduction
 Crossover/Mutation
 ---------------------------
 
-  :py:meth:`configure_crossover(self, genome1, genome2, config) <DefaultGenome.configure_crossover>`
+  :py:meth:`configure_crossover(self, genome1, genome2, config, fitness_criterion=None) <DefaultGenome.configure_crossover>`
 
-  Configure the genome as a child of the given parent genomes.
+  Configure the genome as a child of the given parent genomes. The optional ``fitness_criterion`` parameter
+  (``'max'``, ``'min'``, or ``None``) determines which parent is considered fitter for the purpose of inheriting
+  disjoint and excess genes. When ``'min'``, lower fitness is better. Defaults to ``'max'`` if not provided.
 
   :py:meth:`mutate(self, config) <DefaultGenome.mutate>`
 

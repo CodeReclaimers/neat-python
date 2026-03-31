@@ -76,13 +76,8 @@ New genome types
 To use a different genome type, you can create a custom class whose interface matches that of
 `DefaultGenome` and pass this as the ``genome_type`` argument to the `Config` constructor. The minimum genome type interface is documented here: :ref:`genome-interface-label`.
 
-This is demonstrated in the `circuit evolution
-<https://github.com/CodeReclaimers/neat-python/blob/master/examples/circuits/evolve.py>`_ example.
-
 Alternatively, you can subclass `DefaultGenome` in cases where you need to just add some extra behavior.
-This is done in the `OpenAI lander
-<https://github.com/CodeReclaimers/neat-python/blob/master/examples/openai-lander/evolve.py>`_ example to
-add an evolvable per-genome reward discount value. It is also done in the :py:mod:`iznn` setup, with :py:class:`IZGenome <iznn.IZGenome>`.
+This is done in the :py:mod:`iznn` setup, with :py:class:`IZGenome <iznn.IZGenome>`.
 
 .. index:: species
 

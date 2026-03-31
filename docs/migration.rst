@@ -1,7 +1,49 @@
-Migration Guide for neat-python 1.0
-====================================
+Migration Guide
+===============
 
-This guide helps you migrate from neat-python 0.93 to 1.0, which includes breaking changes to the parallel evaluation APIs.
+Migration from 1.x to 2.0
+--------------------------
+
+neat-python 2.0 includes one breaking API change:
+
+CTRNN time constants
+~~~~~~~~~~~~~~~~~~~~
+
+In v1.x, all CTRNN nodes shared a single fixed time constant passed at network creation time::
+
+    # v1.x (no longer works)
+    net = neat.ctrnn.CTRNN.create(genome, config, time_constant=0.01)
+
+In v2.0, each node carries its own time constant as an evolved gene attribute::
+
+    # v2.0
+    net = neat.ctrnn.CTRNN.create(genome, config)
+
+The ``time_constant`` parameter has been removed from ``CTRNN.create()``. Time constants are now
+configured via the ``[DefaultGenome]`` section of your config file using the ``time_constant_*``
+parameters (e.g., ``time_constant_init_mean``, ``time_constant_mutate_rate``). The defaults
+(mean 1.0, zero mutation rate) reproduce the old behavior of a fixed time constant of 1.0.
+
+For details, see `CTRNN-CHANGES.md <https://github.com/CodeReclaimers/neat-python/blob/master/examples/lorenz-ctrnn/docs/CTRNN-CHANGES.md>`_.
+
+Checkpoint format
+~~~~~~~~~~~~~~~~~
+
+Checkpoints created with v1.x are not loadable in v2.0 due to internal class changes (per-node
+time constants change the gene structure). Re-run evolution from scratch or keep the old version
+installed for loading legacy checkpoints.
+
+Other changes
+~~~~~~~~~~~~~
+
+- Feedforward and discrete-time recurrent configurations require no changes.
+- The CTRNN integration method changed from forward Euler to exponential Euler (ETD1), which
+  improves numerical stability but produces slightly different trajectories for the same ``dt``.
+
+Migration from 0.93 to 1.0
+---------------------------
+
+This section helps you migrate from neat-python 0.93 to 1.0, which includes breaking changes to the parallel evaluation APIs.
 
 Overview of Changes
 -------------------

@@ -16,14 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Configurable node gene distance** via `compatibility_include_node_genes` in `[DefaultGenome]`. Default True (current behavior). Set to False for canonical NEAT distance formula. (NEAT paper compliance)
 - **Configurable enabled-state penalty** via `compatibility_enable_penalty` in `[DefaultGenome]`. Default 1.0 (current behavior). Set to 0.0 for canonical NEAT distance formula. (NEAT paper compliance)
 - **Canonical spawn allocation** via `spawn_method = proportional` in `[DefaultReproduction]`. Default `smoothed` (current behavior). (NEAT paper compliance)
-
-### Changed
-- **Distance function now matches genes by innovation number**, consistent with crossover behavior. Previously used tuple keys (endpoint pairs). This affects speciation when the same connection endpoints receive different innovation numbers in different generations (uncommon but possible). (NEAT paper compliance)
-- **Dangling nodes are now pruned** after `mutate_delete_node` and `mutate_delete_connection`. Hidden nodes that become disconnected from all outputs are automatically removed along with their connections. This reduces structural bloat in long evolution runs.
-
-### Fixed
-- **75% disable rule** now matches the NEAT paper specification (Stanley & Miikkulainen, 2002, p. 111). Previously, the rule was applied after random attribute inheritance, producing an effective ~87.5% disable rate. Now correctly produces 75%. This may affect evolution dynamics in existing configurations.
-
 - **GPU-accelerated evaluation** for CTRNN and Izhikevich spiking networks via optional CuPy dependency
   - `GPUCTRNNEvaluator` and `GPUIZNNEvaluator` in `neat.gpu.evaluator`
   - Batch-evaluates entire populations on GPU using padded tensor operations
@@ -32,9 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Requires sum aggregation; other aggregation functions raise `ValueError`
   - `import neat` never loads CuPy; all GPU imports are lazy
   - Benchmark script in `benchmarks/gpu_benchmark.py`
-  - See `GPU_DESIGN_NOTES.md` for design rationale
+  - GPU comparison examples in `examples/signal-tracking-gpu/` and `examples/spike-timing-gpu/`
 
 ### Changed
+- **Distance function now matches genes by innovation number**, consistent with crossover behavior. Previously used tuple keys (endpoint pairs). This affects speciation when the same connection endpoints receive different innovation numbers in different generations (uncommon but possible). (NEAT paper compliance)
+- **Dangling nodes are now pruned** after `mutate_delete_node` and `mutate_delete_connection`. Hidden nodes that become disconnected from all outputs are automatically removed along with their connections. This reduces structural bloat in long evolution runs.
 - **CTRNN integration method** changed from forward Euler to exponential Euler (ETD1)
   - Integrates the linear decay term `-y/tau` exactly
   - Unconditionally stable regardless of `dt/tau` ratio (forward Euler required `dt < 2*tau`)
@@ -43,6 +37,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     to the same continuous solution as `dt` decreases
   - The `time_constant_min_value` constraint is relaxed: values well below the integration
     timestep are now safe
+- **Checkpoint timing moved from `end_generation` to `post_evaluate`**. Checkpoints now save the evaluated population (with fitness values) rather than the unevaluated post-reproduction population. Restoring a checkpoint no longer re-runs the last generation's fitness evaluation. Checkpoint file `N` now means "generation N has been evaluated." Old 5-tuple checkpoint files are still loadable for backward compatibility.
+- **Reporter species output moved from `end_generation` to `post_evaluate`**. The `StdOutReporter` species detail table now appears alongside fitness statistics for the same generation, eliminating the previous mismatch where species sizes from the next generation were printed under the current generation's banner.
+
+### Fixed
+- **`fitness_criterion = min` now works correctly**. Previously, only the termination check honored this setting. Best-genome tracking, stagnation detection, elite selection, crossover parent selection, spawn allocation, and statistics reporting all hardcoded "higher is better." All fitness comparisons now use direction-aware methods on the `Config` object (`is_better_fitness`, `meets_threshold`, `worst_fitness`).
+- **75% disable rule** now matches the NEAT paper specification (Stanley & Miikkulainen, 2002, p. 111). Previously, the rule was applied after random attribute inheritance, producing an effective ~87.5% disable rate. Now correctly produces 75%. This may affect evolution dynamics in existing configurations.
+- **Two double-buffer bugs in CTRNN advance method** fixed. Incorrect buffer swapping could cause state corruption during multi-step CTRNN evaluation.
+- **Aggregation validation** for builtins and callables fixed.
 
 
 ## [1.1.0] - 2025-12-05
@@ -91,11 +93,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **Add-node mutation bias behavior**: Newly inserted nodes created by `mutate_add_node` now start with zero bias so that splitting a connection is as neutral as possible with respect to the original signal flow. This makes the structural mutation less disruptive while preserving the existing weight-preserving semantics (incoming weight 1.0, outgoing weight equal to the original connection).
-- **Checkpoint Generation Semantics**: Clarified and corrected how checkpoint generation numbers are labeled and interpreted.
-  - A checkpoint file named `neat-checkpoint-N` now always contains the population, species state, and RNG state needed to begin evaluating **generation `N`**.
-  - Previously, checkpoints were labeled with the index of the generation that had just been evaluated, while storing the *next* generation's population; this could make restored runs appear to "repeat" the previous generation.
-  - The NEAT evolution loop and genetic algorithm behavior are unchanged; this is a bookkeeping fix that aligns checkpoint behavior with user expectations and the original NEAT paper's generational model.
-  - New and updated tests in `tests/test_checkpoint.py` and `tests/test_population.py` enforce the invariant that checkpoint `N` resumes at the start of generation `N`.
+- **Checkpoint Generation Semantics**: Clarified and corrected how checkpoint generation numbers are labeled and interpreted. (Note: checkpoint timing was further improved in v2.1 to save after evaluation rather than after reproduction, eliminating wasted work on restore.)
 - **Population Size Drift**: Fixed small mismatches between actual population size and configured `pop_size`
   - `DefaultReproduction.reproduce()` now strictly enforces `len(population) == config.pop_size` for every non-extinction generation
   - New `_adjust_spawn_exact` helper adjusts per-species spawn counts after `compute_spawn()` to correct rounding/clamping drift
@@ -131,7 +129,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `InnovationTracker` class in `neat/innovation.py`
 - Comprehensive unit tests in `tests/test_innovation.py` (19 tests)
 - Integration tests in `tests/test_innovation_integration.py` (6 tests)
-- Innovation tracking documentation in `INNOVATION_TRACKING_IMPLEMENTATION.md`
+- Innovation tracking documentation in `docs/innovation_numbers.rst`
 
 ### Changed
 - **BREAKING**: `DefaultConnectionGene.__init__()` now requires mandatory `innovation` parameter

@@ -419,9 +419,10 @@ Uses :py:mod:`pickle` to save and restore populations (and other aspects of the 
 
     A reporter class that performs checkpointing, saving and restoring the simulation state (including population, randomization, and other aspects).
     It saves the current state every ``generation_interval`` generations or ``time_interval_seconds`` seconds, whichever happens first.
-    Subclasses :py:class:`reporting.BaseReporter`. (The potential save point is at the end of a generation.) The start of the filename will be equal
-    to ``filename_prefix``, followed by the generation number. If there is a need to check the last generation for which a checkpoint was saved, such as to
-    determine which file to load, access ``last_generation_checkpoint``; if -1, none have been saved.
+    Subclasses :py:class:`reporting.BaseReporter`. Checkpoints are saved after fitness evaluation (in ``post_evaluate``), so the saved population
+    contains genomes with their evaluated fitness values. The start of the filename will be equal to ``filename_prefix``, followed by the generation
+    number. Checkpoint file ``N`` means "generation N has been evaluated." If there is a need to check the last generation for which a checkpoint was
+    saved, such as to determine which file to load, access ``last_generation_checkpoint``; if -1, none have been saved.
 
     :param generation_interval: If not None, maximum number of generations between checkpoints.
     :type generation_interval: :pytypes:`int <typesnumeric>` or None
@@ -429,28 +430,34 @@ Uses :py:mod:`pickle` to save and restore populations (and other aspects of the 
     :type time_interval_seconds: :pytypes:`float <typesnumeric>` or None
     :param str filename_prefix: The prefix for the checkpoint file names.
 
-    .. py:method:: save_checkpoint(config, population, species, generation)
+    .. py:method:: save_checkpoint(config, population, species_set, generation, best_genome=None)
 
       Saves the current simulation (including randomization) state to (if using the default ``neat-checkpoint-`` for ``filename_prefix``)
-      :file:`neat-checkpoint-{generation}`, with ``generation`` being the generation number.
+      :file:`neat-checkpoint-{generation}`, with ``generation`` being the generation that has just been evaluated.
 
       :param config: The `config.Config` configuration instance to be used.
       :type config: :datamodel:`instance <index-48>`
       :param population: A population as created by :py:meth:`reproduction.DefaultReproduction.create_new` or a compatible implementation.
       :type population: dict(int, :datamodel:`object <objects-values-and-types>`)
-      :param species: A :py:class:`species.DefaultSpeciesSet` (or compatible implementation) instance.
-      :type species: :datamodel:`instance <index-48>`
+      :param species_set: A :py:class:`species.DefaultSpeciesSet` (or compatible implementation) instance.
+      :type species_set: :datamodel:`instance <index-48>`
       :param generation: The generation number.
       :type generation: :pytypes:`int <typesnumeric>`
+      :param best_genome: The all-time best genome seen so far (preserved across checkpoint/restore).
+      :type best_genome: :datamodel:`object <objects-values-and-types>` or None
 
-    .. py:staticmethod:: restore_checkpoint(filename)
+    .. py:staticmethod:: restore_checkpoint(filename, new_config=None)
 
       Resumes the simulation from a previous saved point. Loads the specified file, sets the randomization state, and returns
-      a :py:class:`population.Population` object set up with the rest of the previous state.
+      a :py:class:`population.Population` object set up with the rest of the previous state. The restored population's
+      first call to :py:meth:`Population.run <population.Population.run>` will skip fitness evaluation for the already-evaluated
+      generation and proceed directly to reproduction.
 
       :param str filename: The file to be restored from.
+      :param new_config: If provided, replaces the saved configuration (useful for changing parameters between runs).
+      :type new_config: :datamodel:`instance <index-48>` or None
       :return: :py:class:`Population <population.Population>` instance that can be used with :py:meth:`Population.run <population.Population.run>` to restart the simulation.
-      :rtype:  :datamodel:`instance <index-48>` 
+      :rtype:  :datamodel:`instance <index-48>`
 
 .. index:: fitness_criterion
 .. index:: fitness_threshold

@@ -34,4 +34,10 @@ For convenience, a conda environment that supports running all of the examples i
 
 * `export` Train a small XOR network and export the resulting NEAT network to a framework-agnostic JSON format.
 
+* `lorenz-ctrnn` Evolve CTRNN networks to predict the Lorenz attractor, demonstrating per-node evolvable time constants (v2.0 feature).
+
+* `signal-tracking-gpu` GPU-accelerated CTRNN signal tracking comparison (requires `neat-python[gpu]`).
+
+* `spike-timing-gpu` GPU-accelerated Izhikevich spiking network spike timing comparison (requires `neat-python[gpu]`).
+
 * `openai-lander` Archived OpenAI Gym LunarLander example containing pre-trained winner genomes referenced in the documentation.

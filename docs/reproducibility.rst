@@ -155,12 +155,13 @@ Saving Checkpoints
    # Run evolution
    pop.run(eval_genomes, 50)
 
-In this example, checkpoints named ``neat-checkpoint-5``, ``neat-checkpoint-10``,
-``neat-checkpoint-15``, ... will be created.  The numeric suffix ``N`` always
-refers to the **next generation to be evaluated**.  In other words, a
-checkpoint labeled ``neat-checkpoint-25`` contains the population and species
-state for generation 25 at the point just before its fitness evaluation
-begins.
+In this example, checkpoints named ``neat-checkpoint-4``, ``neat-checkpoint-9``,
+``neat-checkpoint-14``, ... will be created.  The numeric suffix ``N`` always
+refers to the generation that has just been **evaluated**.  In other words, a
+checkpoint labeled ``neat-checkpoint-25`` contains the evaluated population
+(with fitness values) for generation 25.  Restoring this checkpoint will skip
+re-evaluation of generation 25 and proceed directly to reproduction, continuing
+with generation 26.
 
 Restoring Checkpoints
 ^^^^^^^^^^^^^^^^^^^^^^

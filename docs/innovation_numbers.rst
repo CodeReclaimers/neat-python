@@ -221,9 +221,9 @@ When two genomes mate, genes are matched by innovation number:
                    parent1_genes[innovation],
                    parent2_genes[innovation]
                ]).copy()
-           elif fittest parent has it:
-               # Disjoint/excess - inherit from fittest
-               child_genes[innovation] = fittest_gene.copy()
+           elif innovation in fitter_parent_genes:
+               # Disjoint/excess from fitter parent - inherit
+               child_genes[innovation] = fitter_parent_genes[innovation].copy()
 
 Generation Tracking
 ~~~~~~~~~~~~~~~~~~~
@@ -250,10 +250,11 @@ The innovation tracker is automatically saved with checkpoints:
 
 .. code-block:: python
 
-   # Saving
-   checkpoint_data = (generation, config, population, species_set, rndstate)
-   # innovation_tracker saved as part of population.reproduction
-   
+   # Saving (in post_evaluate callback)
+   checkpoint_data = (generation, config, population, species_set,
+                      rndstate, best_genome)
+   # innovation_tracker is saved as part of config.genome_config
+
    # Loading
    population = neat.Checkpointer.restore_checkpoint('checkpoint-file')
    # innovation_tracker automatically reconnected to genome_config
@@ -263,7 +264,8 @@ The global counter state is preserved, so innovation numbers continue from where
 Implementation Details
 ~~~~~~~~~~~~~~~~~~~~~~
 
-For complete implementation details, see ``INNOVATION_TRACKING_IMPLEMENTATION.md`` in the `source repository <https://github.com/CodeReclaimers/neat-python/blob/master/INNOVATION_TRACKING_IMPLEMENTATION.md>`_.
+For complete implementation details, see the ``InnovationTracker`` class in ``neat/innovation.py``
+in the `source repository <https://github.com/CodeReclaimers/neat-python/blob/master/neat/innovation.py>`_.
 
 References
 ----------

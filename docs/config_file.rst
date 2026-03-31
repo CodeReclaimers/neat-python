@@ -624,6 +624,37 @@ required for your particular implementation.
     The probability that :term:`mutation` will replace the response multiplier of a node with a newly :py:meth:`chosen <attributes.FloatAttribute.init_value>` 
     random value (as if it were a new node).
 
+.. index:: time_constant
+
+* *time_constant_init_mean*
+    The mean of the normal/gaussian distribution used to select time constant values for new nodes.
+    **Default: 1.0.** Only relevant for CTRNN networks; for feedforward and discrete-time recurrent
+    networks this attribute is unused.
+
+* *time_constant_init_stdev*
+    The standard deviation of the distribution used to select time constant values for new nodes.
+    **Default: 0.0** (all new nodes start with the mean value).
+
+* *time_constant_max_value*
+    The maximum allowed time constant value. **Default: 10.0.**
+
+* *time_constant_min_value*
+    The minimum allowed time constant value. **Default: 0.01.**
+
+* *time_constant_mutate_power*
+    The standard deviation of the zero-centered normal/gaussian distribution from which a time constant
+    mutation value is drawn. **Default: 0.0** (no mutation).
+
+* *time_constant_mutate_rate*
+    The probability that mutation will change the time constant of a node by adding a random value.
+    **Default: 0.0** (no mutation).
+
+* *time_constant_replace_rate*
+    The probability that mutation will replace the time constant of a node with a newly chosen random
+    value. **Default: 0.0** (no replacement).
+
+.. versionadded:: 2.0
+
 .. index:: ! single_structural_mutation
 .. index:: ! structural_mutation_surer
 .. index:: mutation

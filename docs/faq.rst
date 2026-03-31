@@ -180,11 +180,13 @@ Smaller populations:
 Can I use GPUs?
 ~~~~~~~~~~~~~~~
 
-**NEAT-Python is CPU-only.** The evolutionary algorithm itself doesn't benefit from GPU acceleration.
+The evolutionary algorithm itself (selection, crossover, speciation) runs on CPU. However, neat-python
+includes optional **GPU-accelerated network evaluation** for CTRNN and Izhikevich spiking networks via
+the ``neat.gpu`` module. Install with ``pip install 'neat-python[gpu]'``. See :doc:`ctrnn` for details.
 
-**However:**
+**Beyond the built-in GPU support:**
 
-- You **can** use GPUs in your fitness function (e.g., if running neural network simulations with PyTorch)
+- You **can** also use GPUs in your own fitness function (e.g., running simulations with PyTorch or JAX)
 - The evolved networks themselves are small and fast on CPU
 - Use ``ParallelEvaluator`` to utilize multiple CPU cores
 
