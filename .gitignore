@@ -32,3 +32,6 @@ neat_python.egg-info
 
 # Progress logs (local working notes, not committed)
 progress-*.md
+
+# Claude Code project instructions (local)
+CLAUDE.md
