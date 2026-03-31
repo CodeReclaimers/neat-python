@@ -100,23 +100,6 @@ class StdOutReporter(BaseReporter):
         self.generation_start_time = time.time()
 
     def end_generation(self, config, population, species_set):
-        ng = len(population)
-        ns = len(species_set.species)
-        if self.show_species_detail:
-            print(f'Population of {ng:d} members in {ns:d} species (after reproduction):')
-            print("   ID   age  size   fitness   adj fit  stag")
-            print("  ====  ===  ====  =========  =======  ====")
-            for sid in sorted(species_set.species):
-                s = species_set.species[sid]
-                a = self.generation - s.created
-                n = len(s.members)
-                f = "--" if s.fitness is None else f"{s.fitness:.3f}"
-                af = "--" if s.adjusted_fitness is None else f"{s.adjusted_fitness:.3f}"
-                st = self.generation - s.last_improved
-                print(f"  {sid:>4}  {a:>3}  {n:>4}  {f:>9}  {af:>7}  {st:>4}")
-        else:
-            print(f'Population of {ng:d} members in {ns:d} species (after reproduction)')
-
         elapsed = time.time() - self.generation_start_time
         self.generation_times.append(elapsed)
         self.generation_times = self.generation_times[-10:]
@@ -128,6 +111,23 @@ class StdOutReporter(BaseReporter):
             print(f"Generation time: {elapsed:.3f} sec")
 
     def post_evaluate(self, config, population, species, best_genome):
+        ng = len(population)
+        ns = len(species.species)
+        if self.show_species_detail:
+            print(f'Population of {ng:d} members in {ns:d} species:')
+            print("   ID   age  size   fitness   adj fit  stag")
+            print("  ====  ===  ====  =========  =======  ====")
+            for sid in sorted(species.species):
+                s = species.species[sid]
+                a = self.generation - s.created
+                n = len(s.members)
+                f = "--" if s.fitness is None else f"{s.fitness:.3f}"
+                af = "--" if s.adjusted_fitness is None else f"{s.adjusted_fitness:.3f}"
+                st = self.generation - s.last_improved
+                print(f"  {sid:>4}  {a:>3}  {n:>4}  {f:>9}  {af:>7}  {st:>4}")
+        else:
+            print(f'Population of {ng:d} members in {ns:d} species')
+
         fitnesses = [c.fitness for c in population.values()]
         fit_mean = mean(fitnesses)
         fit_std = stdev(fitnesses)

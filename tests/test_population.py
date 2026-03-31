@@ -37,10 +37,13 @@ class PopulationTests(unittest.TestCase):
 
     def test_checkpoint_generation_matches_population_generation(self):
         """When checkpointing every generation, the last checkpoint label should
-        match the population's generation counter after the run.
+        match the last evaluated generation.
 
-        This encodes the convention that checkpoint ``N`` contains the state
-        needed to begin evaluating generation ``N``.
+        Checkpoints are saved after evaluation, so checkpoint ``N`` contains
+        the evaluated population for generation ``N``.  After ``run(fn, 5)``
+        the loop evaluates generations 0-4 and then reproduces, leaving
+        ``p.generation == 5``.  The last checkpoint is for the last evaluated
+        generation, which is ``p.generation - 1``.
         """
         # Load configuration.
         local_dir = os.path.dirname(__file__)
@@ -63,14 +66,18 @@ class PopulationTests(unittest.TestCase):
         num_generations = 5
         p.run(eval_genomes, num_generations)
 
-        # The last checkpoint label should match the population's generation
-        # counter, since we are checkpointing every generation.
-        self.assertEqual(p.generation, checkpointer.last_generation_checkpoint)
+        # The last checkpoint is for the last evaluated generation (p.generation - 1),
+        # because checkpoints are saved after evaluation but before reproduction.
+        self.assertEqual(p.generation - 1, checkpointer.last_generation_checkpoint)
 
     def test_count_after_checkpoint_restore(self):
         """
         Test that the genome indexer in DefaultGenome continues from the last genome ID
         after restoring from a checkpoint.
+
+        The checkpoint saves the evaluated population (before reproduction),
+        so the genome indexer should continue from the max key in that
+        checkpoint's population, not the final post-run population.
         """
         # Load configuration.
         local_dir = os.path.dirname(__file__)
@@ -94,8 +101,9 @@ class PopulationTests(unittest.TestCase):
             filename_prefix, checkpointer.last_generation_checkpoint
         )
         restored_population = neat.Checkpointer.restore_checkpoint(filename)
-        last_genome_key = max([x.key for x in p.population.values()])
-        
+        # The indexer should continue from the max key in the restored population.
+        last_genome_key = max(restored_population.population.keys())
+
         self.assertEqual(
             next(restored_population.reproduction.genome_indexer),
             last_genome_key + 1

@@ -13,21 +13,25 @@ class Checkpointer(BaseReporter):
     """
     A reporter class that performs checkpointing using `pickle`
     to save and restore populations (and other aspects of the simulation state).
+
+    Checkpoints are saved after fitness evaluation (in ``post_evaluate``), so the
+    saved population contains genomes with their evaluated fitness values.  This
+    means restoring a checkpoint never re-evaluates work that was already done.
+
+    The checkpoint filename suffix (for example, ``neat-checkpoint-10``) refers to
+    the generation that has just been **evaluated**.  Restoring checkpoint ``N``
+    reproduces from generation ``N``'s evaluated results and then continues
+    evaluation from generation ``N + 1``.
     """
 
     def __init__(self, generation_interval, time_interval_seconds=None,
                  filename_prefix='neat-checkpoint-'):
         """
-        Saves the current state (at the end of a generation) every ``generation_interval`` generations or
-        ``time_interval_seconds``, whichever happens first.
+        Saves the current state (after fitness evaluation) every
+        ``generation_interval`` generations or ``time_interval_seconds``,
+        whichever happens first.
 
-        The checkpoint filename suffix (for example, ``neat-checkpoint-10``) always refers to the
-        **next generation to be evaluated**.  In other words, a checkpoint created with suffix ``N``
-        contains the population and species state for generation ``N`` at the point just before
-        its fitness evaluation begins.
-
-        :param generation_interval: If not None, maximum number of generations between save intervals,
-                                    measured in generations-to-be-evaluated
+        :param generation_interval: If not None, maximum number of generations between save intervals
         :type generation_interval: int or None
         :param time_interval_seconds: If not None, maximum number of seconds between checkpoint attempts
         :type time_interval_seconds: float or None
@@ -38,30 +42,18 @@ class Checkpointer(BaseReporter):
         self.filename_prefix = filename_prefix
 
         self.current_generation = None
-        # Tracks the most recent generation index for which a checkpoint was created.
-        # This value is interpreted as the next generation to be evaluated when the
-        # checkpoint is restored (see above).
-        self.last_generation_checkpoint = 0
+        self.last_generation_checkpoint = -1
         self.last_time_checkpoint = time.time()
 
     def start_generation(self, generation):
-        """Record the index of the generation that is about to be evaluated.
-
-        Note that at the time :meth:`end_generation` is called for generation ``g``,
-        the population and species that are passed in already correspond to the
-        *next* generation (``g + 1``).  This reporter therefore uses ``g + 1`` as
-        the generation index stored in checkpoints, so that restoring a
-        checkpoint labeled ``N`` always resumes at the beginning of generation
-        ``N``.
-        """
         self.current_generation = generation
 
-    def end_generation(self, config, population, species_set):
-        """Potentially save a checkpoint at the end of a generation.
+    def post_evaluate(self, config, population, species, best_genome):
+        """Potentially save a checkpoint after fitness evaluation.
 
-        The ``population`` and ``species_set`` arguments contain the state for
-        the next generation to be evaluated, whose index is
-        ``self.current_generation + 1``.
+        At this point the population has been evaluated and species membership
+        corresponds to the evaluated genomes, so the checkpoint captures a
+        fully consistent state with no wasted work on restore.
         """
         checkpoint_due = False
 
@@ -70,71 +62,84 @@ class Checkpointer(BaseReporter):
             if dt >= self.time_interval_seconds:
                 checkpoint_due = True
 
-        # The generation whose population is being saved.
-        next_generation = self.current_generation + 1
-
         if (not checkpoint_due) and (self.generation_interval is not None):
-            # Compare the upcoming generation index against the last checkpointed
-            # generation index to decide whether a new checkpoint is due.
-            dg = next_generation - self.last_generation_checkpoint
+            dg = self.current_generation - self.last_generation_checkpoint
             if dg >= self.generation_interval:
                 checkpoint_due = True
 
         if checkpoint_due:
-            self.save_checkpoint(config, population, species_set, next_generation)
-            self.last_generation_checkpoint = next_generation
+            self.save_checkpoint(config, population, species,
+                                 self.current_generation, best_genome)
+            self.last_generation_checkpoint = self.current_generation
             self.last_time_checkpoint = time.time()
 
-    def save_checkpoint(self, config, population, species_set, generation):
+    def save_checkpoint(self, config, population, species_set, generation, best_genome=None):
         """
         Save the current simulation state.
-        
-        Note: This is called from Population via the reporter interface.
-        We need to access the innovation tracker from the Population's reproduction object.
-        However, since this is a reporter callback, we don't have direct access to Population.
-        The innovation tracker will be saved as part of the config state when needed.
+
+        The saved data includes the evaluated population (with fitness values),
+        the species set, the generation index, the all-time best genome, and the
+        random state for reproducibility.
         """
         filename = f'{self.filename_prefix}{generation}'
         print(f"Saving checkpoint to {filename}")
 
         with gzip.open(filename, 'w', compresslevel=5) as f:
-            # Note: innovation_tracker is stored in config.genome_config.innovation_tracker
-            # and is automatically included via pickle
-            data = (generation, config, population, species_set, random.getstate())
+            data = (generation, config, population, species_set,
+                    random.getstate(), best_genome)
             pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     @staticmethod
     def restore_checkpoint(filename, new_config=None):
         """
         Resumes the simulation from a previous saved point.
-        
-        The innovation tracker state is preserved in the pickled config and must be
-        transferred to the new reproduction object to ensure innovation numbers continue
-        correctly and prevent collisions during crossover.
+
+        The checkpoint contains the evaluated population from generation ``N``.
+        On restore, evaluation is skipped for this generation and the evolution
+        loop proceeds directly to reproduction, continuing with generation
+        ``N + 1``.
+
+        The innovation tracker state is preserved in the pickled config and
+        transferred to the new reproduction object to ensure innovation numbers
+        continue correctly.
         """
         with gzip.open(filename) as f:
-            generation, saved_config, population, species_set, rndstate = pickle.load(f)
+            data = pickle.load(f)
+            # Support both old (5-tuple) and new (6-tuple) checkpoint formats.
+            if len(data) == 6:
+                generation, saved_config, population, species_set, rndstate, best_genome = data
+            else:
+                generation, saved_config, population, species_set, rndstate = data
+                best_genome = None
+
             random.setstate(rndstate)
-            
+
             # Extract the saved innovation tracker from the config before replacing it
             saved_innovation_tracker = None
             if hasattr(saved_config.genome_config, 'innovation_tracker'):
                 saved_innovation_tracker = saved_config.genome_config.innovation_tracker
-            
+
             # Use new config if provided, otherwise use saved config
             if new_config is not None:
                 config = new_config
             else:
                 config = saved_config
-            
+
             # Create Population with restored state
-            # This creates a new reproduction object with a fresh innovation tracker
             restored_pop = Population(config, (population, species_set, generation))
-            
+
+            # Restore best_genome so the all-time best is not lost
+            if best_genome is not None:
+                restored_pop.best_genome = best_genome
+
+            # Tell run() to skip the first evaluation — it was already done
+            # before this checkpoint was saved.
+            restored_pop._skip_first_evaluation = True
+
             # Replace the fresh innovation tracker with the saved one to maintain
             # the correct innovation numbering sequence
             if saved_innovation_tracker is not None:
                 restored_pop.reproduction.innovation_tracker = saved_innovation_tracker
                 config.genome_config.innovation_tracker = saved_innovation_tracker
-            
+
             return restored_pop

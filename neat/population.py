@@ -64,6 +64,7 @@ class Population:
                 self.reproduction.genome_indexer = count(max(self.population.keys()) + 1)
 
         self.best_genome = None
+        self._skip_first_evaluation = False
 
     def add_reporter(self, reporter):
         self.reporters.add(reporter)
@@ -100,29 +101,35 @@ class Population:
 
             self.reporters.start_generation(self.generation)
 
-            # Evaluate all genomes using the user-provided function.
-            fitness_function(list(self.population.items()), self.config)
+            if self._skip_first_evaluation:
+                # Restored from a checkpoint saved after evaluation.
+                # The population already has fitness values and reporters
+                # already saw these results, so skip straight to reproduction.
+                self._skip_first_evaluation = False
+            else:
+                # Evaluate all genomes using the user-provided function.
+                fitness_function(list(self.population.items()), self.config)
 
-            # Gather and report statistics.
-            best = None
-            for g in self.population.values():
-                if g.fitness is None:
-                    raise RuntimeError(f"Fitness not assigned to genome {g.key}")
+                # Gather and report statistics.
+                best = None
+                for g in self.population.values():
+                    if g.fitness is None:
+                        raise RuntimeError(f"Fitness not assigned to genome {g.key}")
 
-                if best is None or self.config.is_better_fitness(g.fitness, best.fitness):
-                    best = g
-            self.reporters.post_evaluate(self.config, self.population, self.species, best)
+                    if best is None or self.config.is_better_fitness(g.fitness, best.fitness):
+                        best = g
+                self.reporters.post_evaluate(self.config, self.population, self.species, best)
 
-            # Track the best genome ever seen.
-            if self.best_genome is None or self.config.is_better_fitness(best.fitness, self.best_genome.fitness):
-                self.best_genome = best
+                # Track the best genome ever seen.
+                if self.best_genome is None or self.config.is_better_fitness(best.fitness, self.best_genome.fitness):
+                    self.best_genome = best
 
-            if not self.config.no_fitness_termination:
-                # End if the fitness threshold is reached.
-                fv = self.fitness_criterion(g.fitness for g in self.population.values())
-                if self.config.meets_threshold(fv, self.config.fitness_threshold):
-                    self.reporters.found_solution(self.config, self.generation, best)
-                    break
+                if not self.config.no_fitness_termination:
+                    # End if the fitness threshold is reached.
+                    fv = self.fitness_criterion(g.fitness for g in self.population.values())
+                    if self.config.meets_threshold(fv, self.config.fitness_threshold):
+                        self.reporters.found_solution(self.config, self.generation, best)
+                        break
 
             # Create the next generation from the current generation.
             self.population = self.reproduction.reproduce(self.config, self.species,

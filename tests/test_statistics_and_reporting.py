@@ -224,44 +224,71 @@ class TestStdOutReporter(unittest.TestCase):
     
     @patch('sys.stdout', new_callable=StringIO)
     def test_end_generation_basic_output(self, mock_stdout):
-        """Test end_generation with basic output (no species detail)."""
+        """Test end_generation outputs timing info (species detail is now in post_evaluate)."""
         reporter = StdOutReporter(show_species_detail=False)
         reporter.start_generation(1)
-        
+
         population = {i: MockGenome(i) for i in range(10)}
         species_set = MockSpeciesSet({1: MockSpecies(1, list(population.values())[:5]),
                                       2: MockSpecies(2, list(population.values())[5:])})
-        
+
         config = MagicMock()
         reporter.end_generation(config, population, species_set)
-        
+
         output = mock_stdout.getvalue()
-        self.assertIn("Population of 10 members in 2 species", output)
         self.assertIn("Total extinctions: 0", output)
         self.assertIn("Generation time:", output)
-    
+        # Species detail is no longer in end_generation
+        self.assertNotIn("Population of", output)
+
     @patch('sys.stdout', new_callable=StringIO)
     def test_end_generation_detailed_output(self, mock_stdout):
-        """Test end_generation with species detail enabled."""
+        """Test end_generation does not include species detail (moved to post_evaluate)."""
         reporter = StdOutReporter(show_species_detail=True)
         reporter.generation = 10
         reporter.generation_start_time = time.time()
-        
+
         members1 = [MockGenome(i, fitness=float(i)) for i in range(5)]
         members2 = [MockGenome(i, fitness=float(i)) for i in range(5, 10)]
-        
+
         species1 = MockSpecies(1, members1, fitness=2.5, adjusted_fitness=1.2, created=5, last_improved=8)
         species2 = MockSpecies(2, members2, fitness=7.5, adjusted_fitness=3.7, created=7, last_improved=10)
-        
+
         population = {g.key: g for g in members1 + members2}
         species_set = MockSpeciesSet({1: species1, 2: species2})
-        
+
         config = MagicMock()
         reporter.end_generation(config, population, species_set)
-        
+
         output = mock_stdout.getvalue()
-        self.assertIn("ID   age  size   fitness   adj fit  stag", output)
+        # Species detail has moved to post_evaluate
+        self.assertNotIn("ID   age  size   fitness   adj fit  stag", output)
+        self.assertIn("Total extinctions: 0", output)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_post_evaluate_species_detail(self, mock_stdout):
+        """Test post_evaluate includes species detail when show_species_detail is True."""
+        reporter = StdOutReporter(show_species_detail=True)
+        reporter.generation = 10
+        reporter.generation_start_time = time.time()
+
+        members1 = [MockGenome(i, fitness=float(i)) for i in range(5)]
+        members2 = [MockGenome(i, fitness=float(i)) for i in range(5, 10)]
+
+        species1 = MockSpecies(1, members1, fitness=2.5, adjusted_fitness=1.2, created=5, last_improved=8)
+        species2 = MockSpecies(2, members2, fitness=7.5, adjusted_fitness=3.7, created=7, last_improved=10)
+
+        population = {g.key: g for g in members1 + members2}
+        species_set = MockSpeciesSet({1: species1, 2: species2})
+
+        best = members2[-1]
+        config = MagicMock()
+        reporter.post_evaluate(config, population, species_set, best)
+
+        output = mock_stdout.getvalue()
         self.assertIn("Population of 10 members in 2 species", output)
+        self.assertIn("ID   age  size   fitness   adj fit  stag", output)
+        self.assertIn("Best fitness:", output)
     
     @patch('sys.stdout', new_callable=StringIO)
     def test_end_generation_tracks_timing(self, mock_stdout):
