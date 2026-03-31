@@ -9,6 +9,8 @@ IEEE TRANSACTIONS ON NEURAL NETWORKS, VOL. 14, NO. 6, NOVEMBER 2003
 http://www.izhikevich.org/publications/spikes.pdf
 """
 
+from math import isfinite
+
 from neat.attributes import FloatAttribute
 from neat.genes import BaseGene, DefaultConnectionGene
 from neat.genome import DefaultGenomeConfig, DefaultGenome
@@ -106,6 +108,12 @@ class IZNeuron:
             self.u += dt_msec * self.a * (self.b * self.v - self.u)
         except OverflowError:
             # Reset without producing a spike.
+            self.v = self.c
+            self.u = self.b * self.v
+
+        # PyPy (and other runtimes) may produce inf/nan instead of raising
+        # OverflowError.  Apply the same reset in that case.
+        if not isfinite(self.v) or not isfinite(self.u):
             self.v = self.c
             self.u = self.b * self.v
 
