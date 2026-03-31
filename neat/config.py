@@ -156,6 +156,29 @@ class Config:
                 ConfigParameter('no_fitness_termination', bool, False),
                 ConfigParameter('seed', int, None, optional=True)]
 
+    def is_better_fitness(self, a, b):
+        """Return True if fitness value *a* is strictly better than *b*.
+
+        'Better' means higher when fitness_criterion is 'max' or 'mean',
+        and lower when fitness_criterion is 'min'.
+        """
+        if self.fitness_criterion == 'min':
+            return a < b
+        return a > b
+
+    def meets_threshold(self, fitness_value, threshold):
+        """Return True if *fitness_value* satisfies the termination threshold."""
+        if self.fitness_criterion == 'min':
+            return fitness_value <= threshold
+        return fitness_value >= threshold
+
+    def worst_fitness(self):
+        """Return a sentinel value worse than any real fitness."""
+        import sys
+        if self.fitness_criterion == 'min':
+            return sys.float_info.max
+        return -sys.float_info.max
+
     def __init__(self, genome_type, reproduction_type, species_set_type, stagnation_type, filename, config_information=None):
         # Check that the provided types have the required methods.
         assert hasattr(genome_type, 'parse_config')

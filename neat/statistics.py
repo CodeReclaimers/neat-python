@@ -22,8 +22,12 @@ class StatisticsReporter(BaseReporter):
         BaseReporter.__init__(self)
         self.most_fit_genomes = []
         self.generation_statistics = []
+        self._fitness_criterion = None
 
     def post_evaluate(self, config, population, species, best_genome):
+        # Remember the fitness criterion so sorting methods can use it.
+        if self._fitness_criterion is None:
+            self._fitness_criterion = getattr(config, 'fitness_criterion', 'max')
         self.most_fit_genomes.append(copy.deepcopy(best_genome))
 
         # Store the fitnesses of the members of each currently active species.
@@ -61,18 +65,14 @@ class StatisticsReporter(BaseReporter):
             best_unique[g.key] = g
         best_unique_list = list(best_unique.values())
 
-        def key(genome):
-            return genome.fitness
-
-        return sorted(best_unique_list, key=key, reverse=True)[:n]
+        # When fitness_criterion is 'min', lower fitness is better.
+        descending = (self._fitness_criterion != 'min')
+        return sorted(best_unique_list, key=lambda g: g.fitness, reverse=descending)[:n]
 
     def best_genomes(self, n):
         """Returns the n most fit genomes ever seen."""
-
-        def key(g):
-            return g.fitness
-
-        return sorted(self.most_fit_genomes, key=key, reverse=True)[:n]
+        descending = (self._fitness_criterion != 'min')
+        return sorted(self.most_fit_genomes, key=lambda g: g.fitness, reverse=descending)[:n]
 
     def best_genome(self):
         """Returns the most fit genome ever seen."""

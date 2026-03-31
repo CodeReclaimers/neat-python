@@ -124,26 +124,49 @@ class TestFitnessEvaluation(unittest.TestCase):
     
     def test_fitness_criterion_min(self):
         """
-        Test that 'min' fitness criterion selects minimum fitness.
-        
-        Should terminate when min fitness reaches threshold.
+        Test that 'min' fitness criterion treats lower fitness as better.
+
+        With fitness_criterion='min', termination occurs when the population's
+        minimum fitness is at or below the threshold (i.e., the best genome
+        has reached a sufficiently low fitness value).
         """
         self.config.fitness_criterion = 'min'
         self.config.fitness_threshold = 0.5
         pop = neat.Population(self.config)
-        
+
         generation_count = [0]
-        
+
         def fitness_function(genomes, config):
             generation_count[0] += 1
             for i, (genome_id, genome) in enumerate(genomes):
-                # All genomes get fitness >= 0.5
-                genome.fitness = 0.6 + i * 0.1
-        
+                # All genomes get fitness <= 0.5 (meeting the 'min' threshold)
+                genome.fitness = 0.3 + i * 0.01
+
         result = pop.run(fitness_function, 10)
-        
-        # Should terminate after 1 generation (min = 0.6 >= 0.5)
+
+        # Should terminate after 1 generation (min = 0.3 <= 0.5)
         self.assertEqual(generation_count[0], 1)
+
+    def test_fitness_criterion_min_no_early_termination(self):
+        """
+        Test that 'min' criterion does NOT terminate when fitness is above threshold.
+        """
+        self.config.fitness_criterion = 'min'
+        self.config.fitness_threshold = 0.5
+        pop = neat.Population(self.config)
+
+        generation_count = [0]
+
+        def fitness_function(genomes, config):
+            generation_count[0] += 1
+            for i, (genome_id, genome) in enumerate(genomes):
+                # All genomes have fitness above the threshold
+                genome.fitness = 0.6 + i * 0.1
+
+        result = pop.run(fitness_function, 3)
+
+        # Should NOT terminate early — min fitness (0.6) > threshold (0.5)
+        self.assertEqual(generation_count[0], 3)
     
     def test_fitness_criterion_mean(self):
         """

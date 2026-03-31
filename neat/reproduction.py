@@ -200,7 +200,7 @@ class DefaultReproduction(DefaultClassConfig):
         # interfering with the shared fitness scheme.
         all_fitnesses = []
         remaining_species = []
-        for stag_sid, stag_s, stagnant in self.stagnation.update(species, generation):
+        for stag_sid, stag_s, stagnant in self.stagnation.update(species, generation, config):
             if stagnant:
                 self.reporters.species_stagnant(stag_sid, stag_s)
             else:
@@ -228,6 +228,9 @@ class DefaultReproduction(DefaultClassConfig):
                     afs.adjusted_fitness += shift
         else:
             # Default 'normalized' behavior: normalize to [0, 1] based on population min/max.
+            # Higher adjusted fitness always means more offspring, so when
+            # fitness_criterion is 'min' the mapping is inverted: the species
+            # with the lowest raw fitness gets the highest adjusted fitness.
             min_fitness = min(all_fitnesses)
             max_fitness = max(all_fitnesses)
             # Do not allow the fitness range to be zero, as we divide by it below.
@@ -236,6 +239,8 @@ class DefaultReproduction(DefaultClassConfig):
             for afs in remaining_species:
                 msf = mean([m.fitness for m in afs.members.values()])
                 af = (msf - min_fitness) / fitness_range
+                if config.fitness_criterion == 'min':
+                    af = 1.0 - af
                 afs.adjusted_fitness = af
 
         adjusted_fitnesses = [s.adjusted_fitness for s in remaining_species]
@@ -272,10 +277,13 @@ class DefaultReproduction(DefaultClassConfig):
             s.members = {}
             species.species[s.key] = s
 
-            # Sort members in order of descending fitness, with genome id as a
-            # deterministic tie-breaker so that ordering (and thus parent
-            # selection) is reproducible across runs and checkpoint restores.
-            old_members.sort(reverse=True, key=lambda x: (x[1].fitness, x[0]))
+            # Sort members in order of descending fitness (best first), with
+            # genome id as a deterministic tie-breaker so that ordering (and
+            # thus parent selection) is reproducible across runs and checkpoint
+            # restores.  When fitness_criterion is 'min', lower fitness is
+            # better, so we sort in ascending order instead.
+            ascending = (config.fitness_criterion == 'min')
+            old_members.sort(reverse=not ascending, key=lambda x: (x[1].fitness, x[0]))
 
             # Transfer elites to new generation.
             if self.reproduction_config.elitism > 0:
@@ -315,7 +323,8 @@ class DefaultReproduction(DefaultClassConfig):
                 # genetically identical clone of the parent (but with a different ID).
                 gid = next(self.genome_indexer)
                 child = config.genome_type(gid)
-                child.configure_crossover(parent1, parent2, config.genome_config)
+                child.configure_crossover(parent1, parent2, config.genome_config,
+                                         fitness_criterion=config.fitness_criterion)
                 child.mutate(config.genome_config)
                 new_population[gid] = child
                 self.ancestors[gid] = (parent1_id, parent2_id)

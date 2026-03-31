@@ -109,18 +109,18 @@ class Population:
                 if g.fitness is None:
                     raise RuntimeError(f"Fitness not assigned to genome {g.key}")
 
-                if best is None or g.fitness > best.fitness:
+                if best is None or self.config.is_better_fitness(g.fitness, best.fitness):
                     best = g
             self.reporters.post_evaluate(self.config, self.population, self.species, best)
 
             # Track the best genome ever seen.
-            if self.best_genome is None or best.fitness > self.best_genome.fitness:
+            if self.best_genome is None or self.config.is_better_fitness(best.fitness, self.best_genome.fitness):
                 self.best_genome = best
 
             if not self.config.no_fitness_termination:
                 # End if the fitness threshold is reached.
                 fv = self.fitness_criterion(g.fitness for g in self.population.values())
-                if fv >= self.config.fitness_threshold:
+                if self.config.meets_threshold(fv, self.config.fitness_threshold):
                     self.reporters.found_solution(self.config, self.generation, best)
                     break
 

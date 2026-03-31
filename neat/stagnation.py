@@ -30,7 +30,7 @@ class DefaultStagnation(DefaultClassConfig):
 
         self.reporters = reporters
 
-    def update(self, species_set, generation):
+    def update(self, species_set, generation, config=None):
         """
         Required interface method. Updates species fitness history information,
         checking for ones that have not improved in max_stagnation generations,
@@ -38,6 +38,10 @@ class DefaultStagnation(DefaultClassConfig):
         species_elitism parameter if they were removed,
         in which case the highest-fitness species are spared -
         returns a list with stagnant species marked for removal.
+
+        The *config* parameter (top-level Config object) is used to determine
+        the fitness direction (max vs min).  When omitted, higher fitness is
+        assumed to be better (backward compatibility).
         """
         species_data = []
         # Iterate species in a deterministic order (by species id) so that
@@ -46,20 +50,29 @@ class DefaultStagnation(DefaultClassConfig):
         for sid in sorted(species_set.species.keys()):
             s = species_set.species[sid]
             if s.fitness_history:
-                prev_fitness = max(s.fitness_history)
+                if config is not None:
+                    prev_fitness = (min if config.fitness_criterion == 'min' else max)(s.fitness_history)
+                else:
+                    prev_fitness = max(s.fitness_history)
             else:
-                prev_fitness = -sys.float_info.max
+                prev_fitness = config.worst_fitness() if config is not None else -sys.float_info.max
 
             s.fitness = self.species_fitness_func(s.get_fitnesses())
             s.fitness_history.append(s.fitness)
             s.adjusted_fitness = None
-            if prev_fitness is None or s.fitness > prev_fitness:
+            if config is not None:
+                improved = config.is_better_fitness(s.fitness, prev_fitness)
+            else:
+                improved = s.fitness > prev_fitness
+            if improved:
                 s.last_improved = generation
 
             species_data.append((sid, s))
 
-        # Sort in ascending fitness order.
-        species_data.sort(key=lambda x: x[1].fitness)
+        # Sort in ascending fitness order (least fit first, so they are
+        # candidates for stagnation removal before the fittest species).
+        reverse = (config is not None and config.fitness_criterion == 'min')
+        species_data.sort(key=lambda x: x[1].fitness, reverse=reverse)
 
         result = []
         species_fitnesses = []

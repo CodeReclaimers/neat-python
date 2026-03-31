@@ -264,17 +264,24 @@ class DefaultGenome:
                         sep='\n', file=sys.stderr)
                 self.connect_partial_nodirect(config)
 
-    def configure_crossover(self, genome1, genome2, config):
+    def configure_crossover(self, genome1, genome2, config, fitness_criterion=None):
         """
         Configure a new genome by crossover from two parent genomes.
-        
+
         Implements NEAT paper (Stanley & Miikkulainen, 2002, p. 108) crossover:
         "When crossing over, the genes in both genomes with the same innovation
         numbers are lined up. Genes are randomly chosen from either parent at
         matching genes, whereas all excess or disjoint genes are always included
         from the more fit parent."
+
+        *fitness_criterion* controls which parent is considered fitter.
+        When 'min', lower fitness is better.  Defaults to 'max' if not provided.
         """
-        if genome1.fitness > genome2.fitness:
+        if fitness_criterion == 'min':
+            better = genome1.fitness < genome2.fitness
+        else:
+            better = genome1.fitness > genome2.fitness
+        if better:
             parent1, parent2 = genome1, genome2
         else:
             parent1, parent2 = genome2, genome1
