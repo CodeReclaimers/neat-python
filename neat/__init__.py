@@ -1,6 +1,6 @@
 """A NEAT (NeuroEvolution of Augmenting Topologies) implementation"""
 
-__version__ = '2.0.0'
+__version__ = '2.1.0'
 
 import neat.nn as nn
 import neat.ctrnn as ctrnn
