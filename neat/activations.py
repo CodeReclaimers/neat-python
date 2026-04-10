@@ -4,6 +4,7 @@ code for using them,
 and code for adding new user-defined ones
 """
 
+import inspect
 import math
 import types
 
@@ -106,8 +107,22 @@ def validate_activation(function):
                        types.LambdaType)):
         raise InvalidActivationFunction("A function object is required.")
 
-    if function.__code__.co_argcount != 1:  # avoid deprecated use of `inspect`
-        raise InvalidActivationFunction("A single-argument function is required.")
+    try:
+        signature = inspect.signature(function)
+    except (TypeError, ValueError) as exc:
+        # CPython builtins (e.g. max, min) may lack an introspectable
+        # signature. Mirror validate_aggregation: accept them and let
+        # any arity errors surface at use time.
+        if isinstance(function, types.BuiltinFunctionType):
+            return
+        raise InvalidActivationFunction(
+            "Unable to inspect activation callable signature.") from exc
+
+    try:
+        signature.bind(object())
+    except TypeError as exc:
+        raise InvalidActivationFunction(
+            "A single-argument function is required.") from exc
 
 
 class ActivationFunctionSet:

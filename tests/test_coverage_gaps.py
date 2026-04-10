@@ -16,6 +16,7 @@ import pytest
 import neat
 from neat.activations import (
     elu_activation, lelu_activation, selu_activation,
+    validate_activation, InvalidActivationFunction,
 )
 from neat.aggregations import AggregationFunctionSet, validate_aggregation, InvalidAggregationFunction
 from neat.config import ConfigParameter, UnknownConfigItemError
@@ -84,6 +85,66 @@ class TestActivationFunctions:
 
     def test_selu_zero(self):
         assert selu_activation(0.0) == 0.0
+
+
+# ──────────────────────────────────────────────────────────────────────
+# validate_activation signature handling (mirrors validate_aggregation)
+# ──────────────────────────────────────────────────────────────────────
+
+class TestValidateActivation:
+    """Regression tests for validate_activation.
+
+    Previously the function accessed ``function.__code__.co_argcount``
+    directly, which raised ``AttributeError`` on CPython builtins (which
+    lack a ``__code__`` attribute) even though the isinstance check admitted
+    ``BuiltinFunctionType``. It now uses ``inspect.signature`` + ``bind``,
+    matching ``validate_aggregation``.
+    """
+
+    def test_accepts_plain_function(self):
+        def f(z):
+            return z
+        validate_activation(f)  # should not raise
+
+    def test_accepts_lambda(self):
+        validate_activation(lambda z: z)  # should not raise
+
+    def test_accepts_builtin_with_introspectable_signature(self):
+        # This is the regression test for the original bug.
+        # Before the fix, validate_activation(abs) raised
+        # AttributeError: 'builtin_function_or_method' object has no
+        # attribute '__code__'.
+        validate_activation(abs)  # should not raise
+
+    def test_accepts_builtin_without_introspectable_signature(self):
+        # CPython's ``max`` and ``min`` raise ValueError from
+        # inspect.signature. The fallback should accept them.
+        validate_activation(max)
+        validate_activation(min)
+
+    def test_rejects_two_arg_function_with_invalid_activation_function(self):
+        def f(a, b):
+            return a + b
+        with pytest.raises(InvalidActivationFunction):
+            validate_activation(f)
+
+    def test_rejects_zero_arg_function_with_invalid_activation_function(self):
+        def f():
+            return 0.0
+        with pytest.raises(InvalidActivationFunction):
+            validate_activation(f)
+
+    def test_rejects_two_arg_builtin_with_invalid_activation_function(self):
+        # divmod has an introspectable signature (x, y, /) — should be
+        # rejected cleanly, not propagate a TypeError or AttributeError.
+        with pytest.raises(InvalidActivationFunction):
+            validate_activation(divmod)
+
+    def test_rejects_non_callable_with_invalid_activation_function(self):
+        with pytest.raises(InvalidActivationFunction):
+            validate_activation(42)
+        with pytest.raises(InvalidActivationFunction):
+            validate_activation("not a function")
 
 
 # ──────────────────────────────────────────────────────────────────────
