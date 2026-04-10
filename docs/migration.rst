@@ -302,8 +302,8 @@ If you encounter issues during migration:
 Version Information
 -------------------
 
-- This guide applies to migration from neat-python 0.93 → 1.0
-- Last updated: 2025-11-09
+- This guide covers migrations: 1.x → 2.0 and 0.93 → 1.0
+- Last updated: 2026-03-02
 
 Configuration File Migration (v1.0)
 ====================================

@@ -249,7 +249,7 @@ Now that you've seen NEAT in action, here's where to go next:
 **Understand NEAT**
    :doc:`neat_overview` - How the NEAT algorithm works
    
-   :doc:`innovation_numbers` - Understanding v1.0.0's key feature
+   :doc:`innovation_numbers` - Innovation number tracking (introduced in v1.0.0)
 
 **Customize Behavior**
    :doc:`customization` - Advanced customization options

@@ -2,14 +2,20 @@ Welcome to NEAT-Python's documentation!
 =======================================
 
 .. warning::
-   **Breaking Changes in v1.0.0**
-   
-   Version 1.0.0 introduces breaking changes that affect existing code:
-   
-   * **Innovation number tracking**: Now fully implemented per NEAT paper - checkpoints from v0.x are incompatible
-   * **Parallel evaluation**: ThreadedEvaluator and DistributedEvaluator removed; use ParallelEvaluator
-   * **Configuration**: New required parameters must be explicitly specified
-   
+   **Breaking Changes — cumulative through v2.1**
+
+   If you are upgrading from an earlier version, note the following breaking changes:
+
+   * **v2.0**: ``CTRNN.create()`` no longer accepts a ``time_constant`` argument.
+     Time constants are now per-node evolvable gene attributes, configured via
+     ``time_constant_*`` parameters in the ``[DefaultGenome]`` config section.
+     Checkpoints created with v1.x are not loadable in v2.0 or later.
+   * **v1.0**: Innovation number tracking fully implemented per the NEAT paper;
+     checkpoints from v0.x are not compatible. ``ThreadedEvaluator`` and
+     ``DistributedEvaluator`` were removed — use ``ParallelEvaluator`` instead.
+     All required configuration parameters must now be explicitly specified in
+     the config file.
+
    See the :doc:`migration` guide for detailed upgrade instructions.
 
 :abbr:`NEAT (NeuroEvolution of Augmenting Topologies)` is a method developed by Kenneth O. Stanley for evolving arbitrary neural

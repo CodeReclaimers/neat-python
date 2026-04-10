@@ -20,8 +20,16 @@ This method should write the configuration item definitions to the given file.
 Initialization
 --------------
 
-`__init__(self, config, reporters, stagnation)` - Takes the top-level Config object, a ReporterSet instance,
-and a stagnation object instance.
+`__init__(self, config, reporters, stagnation)` - Takes the reproduction configuration sub-object
+(as returned by this class's ``parse_config`` method — for ``DefaultReproduction`` this is a
+``DefaultClassConfig`` with fields like ``elitism``, ``survival_threshold``, ``min_species_size``,
+etc.), a ``ReporterSet`` instance, and a stagnation object instance.
+
+.. warning::
+   The ``config`` parameter passed to ``__init__`` is the **reproduction sub-config**, not the
+   top-level ``Config`` object. Note that the ``config`` argument passed to
+   ``reproduce(self, config, species, pop_size, generation)`` IS the top-level ``Config`` —
+   the same parameter name refers to different objects in ``__init__`` and ``reproduce``.
 
 Other methods
 -------------

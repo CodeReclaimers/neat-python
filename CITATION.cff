@@ -22,5 +22,5 @@ authors:
     orcid: 'https://orcid.org/0000-0002-6694-0228'
 repository-code: 'https://github.com/CodeReclaimers/neat-python'
 license: BSD-3-Clause
-version: 2.0.1
+version: 2.1.0
 doi: 10.5281/zenodo.19024753

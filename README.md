@@ -125,7 +125,7 @@ your name added to the citation, please submit an issue.
 
 APA
 ```
-McIntyre, A., Kallada, M., Miguel, C. G., Feher de Silva, C., & Netto, M. L. neat-python (Version 2.0.1) [Computer software]. https://doi.org/10.5281/zenodo.19024753
+McIntyre, A., Kallada, M., Miguel, C. G., Feher de Silva, C., & Netto, M. L. neat-python (Version 2.1.0) [Computer software]. https://doi.org/10.5281/zenodo.19024753
 ```
 
 Bibtex
@@ -133,7 +133,7 @@ Bibtex
 @software{McIntyre_neat-python,
 author = {McIntyre, Alan and Kallada, Matt and Miguel, Cesar G. and Feher de Silva, Carolina and Netto, Marcio Lobo},
 title = {{neat-python}},
-version = {2.0.1},
+version = {2.1.0},
 doi = {10.5281/zenodo.19024753},
 url = {https://github.com/CodeReclaimers/neat-python}
 }
