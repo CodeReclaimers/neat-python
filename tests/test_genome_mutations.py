@@ -401,9 +401,13 @@ class TestGenomeMutations(unittest.TestCase):
     
     def test_remove_node_deletes_node(self):
         """
-        Test that remove_node mutation deletes a node.
+        Test that remove_node mutation deletes at least one node.
 
-        Should remove exactly one node from the genome.
+        After deleting the chosen hidden node, mutate_delete_node also
+        prunes any other hidden nodes that can no longer reach an output,
+        so the reduction may be greater than one. See
+        test_remove_node_deletes_exactly_one for an exact-count check on
+        a genome constructed to have no prunable cascades.
         """
         genome = self.create_minimal_genome()
 
@@ -419,8 +423,53 @@ class TestGenomeMutations(unittest.TestCase):
         if initial_count > len(self.config.genome_config.output_keys):
             genome.mutate_delete_node(self.config.genome_config)
 
-            self.assertEqual(len(genome.nodes), initial_count - 1,
-                           "Should remove one node")
+            self.assertLess(len(genome.nodes), initial_count,
+                            "Should remove at least one node")
+            self.assertGreaterEqual(
+                len(genome.nodes), len(self.config.genome_config.output_keys),
+                "Output nodes must never be removed")
+
+    def test_remove_node_deletes_exactly_one(self):
+        """
+        Test that remove_node removes exactly one node when no cascading
+        prune is possible.
+
+        Constructs a genome where every hidden node has its own independent
+        input->hidden->output path, so deleting any single hidden node leaves
+        the remaining hidden node fully connected to the output and
+        _prune_dangling_nodes has nothing to remove.
+        """
+        config = self.config.genome_config
+        genome = neat.DefaultGenome(1)
+
+        # Output node 0 plus two parallel hidden nodes 1 and 2.
+        for node_id in (0, 1, 2):
+            genome.nodes[node_id] = genome.create_node(config, node_id)
+
+        # Each hidden node gets its own full path: both inputs -> hidden -> output.
+        edges = [
+            (-1, 1), (-2, 1), (1, 0),
+            (-1, 2), (-2, 2), (2, 0),
+        ]
+        for innovation, (in_id, out_id) in enumerate(edges, start=1):
+            conn = genome.create_connection(config, in_id, out_id, innovation)
+            genome.connections[conn.key] = conn
+
+        initial_count = len(genome.nodes)
+        self.assertEqual(initial_count, 3)
+
+        genome.mutate_delete_node(config)
+
+        self.assertEqual(len(genome.nodes), initial_count - 1,
+                         "Should remove exactly one node when no cascade is possible")
+        # The surviving hidden node must still have both its input edges and
+        # its output edge intact.
+        surviving_hidden = [k for k in genome.nodes if k not in config.output_keys]
+        self.assertEqual(len(surviving_hidden), 1)
+        h = surviving_hidden[0]
+        self.assertIn((-1, h), genome.connections)
+        self.assertIn((-2, h), genome.connections)
+        self.assertIn((h, 0), genome.connections)
     
     def test_remove_node_deletes_associated_connections(self):
         """
@@ -450,15 +499,18 @@ class TestGenomeMutations(unittest.TestCase):
         removed_nodes = nodes_before - nodes_after
         
         if removed_nodes:
-            # Exactly one node should be removed
-            self.assertEqual(len(removed_nodes), 1, "Should remove exactly one node")
-            removed_node = list(removed_nodes)[0]
-            
-            # All connections involving this node should be gone
-            for conn_key, conn in connections_before.items():
-                if removed_node in conn_key:
-                    self.assertNotIn(conn_key, genome.connections,
-                                   "Connections to deleted node should be removed")
+            # At least one node should be removed. mutate_delete_node may also
+            # prune hidden nodes that can no longer reach an output, so the
+            # removed set can contain more than the explicitly chosen node.
+            self.assertGreaterEqual(len(removed_nodes), 1,
+                                    "Should remove at least one node")
+
+            # For every removed node, all connections touching it must be gone.
+            for removed_node in removed_nodes:
+                for conn_key in connections_before:
+                    if removed_node in conn_key:
+                        self.assertNotIn(conn_key, genome.connections,
+                                       "Connections to deleted node should be removed")
     
     def test_remove_node_protects_output_nodes(self):
         """
