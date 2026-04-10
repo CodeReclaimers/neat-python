@@ -76,57 +76,67 @@ Has the built-in :term:`aggregation functions <aggregation function>`, code for 
   .. py:function:: product_aggregation(x)
 
     An adaptation of the multiplication function to take an :pygloss:`iterable`.
+    Returns ``1.0`` for an empty input (the multiplicative identity, from
+    ``reduce``'s initializer).
 
     :param x: The numbers to be multiplied together; takes any ``iterable``.
     :type x: list(:pytypes:`float <typesnumeric>`) or tuple(:pytypes:`float <typesnumeric>`) or set(:pytypes:`float <typesnumeric>`)
-    :return: :math:`\prod(x)`
+    :return: :math:`\prod(x)` for nonempty ``x``, otherwise ``1.0``.
     :rtype: :pytypes:`float <typesnumeric>`
 
   .. py:function:: sum_aggregation(x)
 
-    Probably the most commonly-used aggregation function.
+    Probably the most commonly-used aggregation function. Returns ``0`` for an
+    empty input (via Python's built-in ``sum``).
 
     :param x: The numbers to find the sum of; takes any :pygloss:`iterable`.
     :type x: list(:pytypes:`float <typesnumeric>`) or tuple(:pytypes:`float <typesnumeric>`) or set(:pytypes:`float <typesnumeric>`)
-    :return: :math:`\sum(x)`
+    :return: :math:`\sum(x)` for nonempty ``x``, otherwise ``0``.
     :rtype: :pytypes:`float <typesnumeric>`
 
   .. py:function:: max_aggregation(x)
 
-    Returns the maximum of the inputs.
+    Returns the maximum of the inputs, or ``0.0`` for an empty input (e.g.
+    an orphaned node with no incoming connections).
 
     :param x: The numbers to find the greatest of; takes any :pygloss:`iterable`.
     :type x: list(:pytypes:`float <typesnumeric>`) or tuple(:pytypes:`float <typesnumeric>`) or set(:pytypes:`float <typesnumeric>`)
-    :return: :math:`\max(x)`
+    :return: :math:`\max(x)` for nonempty ``x``, otherwise ``0.0``.
     :rtype: :pytypes:`float <typesnumeric>`
 
   .. py:function:: min_aggregation(x)
 
-    Returns the minimum of the inputs.
+    Returns the minimum of the inputs, or ``0.0`` for an empty input (e.g.
+    an orphaned node with no incoming connections).
 
     :param x: The numbers to find the least of; takes any :pygloss:`iterable`.
     :type x: list(:pytypes:`float <typesnumeric>`) or tuple(:pytypes:`float <typesnumeric>`) or set(:pytypes:`float <typesnumeric>`)
-    :return: :math:`\min(x)`
+    :return: :math:`\min(x)` for nonempty ``x``, otherwise ``0.0``.
     :rtype: :pytypes:`float <typesnumeric>`
 
   .. py:function:: maxabs_aggregation(x)
 
-    Returns the maximum by absolute value, which may be positive or negative. Envisioned as suitable for neural network pooling operations.
+    Returns the maximum by absolute value, which may be positive or negative.
+    Envisioned as suitable for neural network pooling operations. Returns
+    ``0.0`` for an empty input (e.g. an orphaned node with no incoming
+    connections).
 
     :param x: The numbers to find the absolute-value maximum of; takes any :pygloss:`iterable`.
     :type x: list(:pytypes:`float <typesnumeric>`) or tuple(:pytypes:`float <typesnumeric>`) or set(:pytypes:`float <typesnumeric>`)
-    :return: :math:`x_i, i = \text{argmax}\lvert\mathbf{x}\rvert`
+    :return: :math:`x_i, i = \text{argmax}\lvert\mathbf{x}\rvert` for nonempty ``x``, otherwise ``0.0``.
     :rtype: :pytypes:`float <typesnumeric>`
 
     .. versionadded:: 0.92
 
   .. py:function:: median_aggregation(x)
 
-    Returns the :py:func:`median <math_util.median2>` of the inputs.
+    Returns the :py:func:`median <math_util.median2>` of the inputs, or
+    ``0.0`` for an empty input (e.g. an orphaned node with no incoming
+    connections).
 
     :param x: The numbers to find the median of; takes any :pygloss:`iterable`.
     :type x: list(:pytypes:`float <typesnumeric>`) or tuple(:pytypes:`float <typesnumeric>`) or set(:pytypes:`float <typesnumeric>`)
-    :return: The median; if there are an even number of inputs, takes the mean of the middle two.
+    :return: The median for nonempty ``x`` (if there are an even number of inputs, takes the mean of the middle two); otherwise ``0.0``.
     :rtype: :pytypes:`float <typesnumeric>`
 
     .. versionadded:: 0.92
@@ -135,10 +145,11 @@ Has the built-in :term:`aggregation functions <aggregation function>`, code for 
 
     Returns the arithmetic mean. Potentially maintains a more stable result than ``sum`` for changing numbers of :term:`enabled`
     :term:`connections <connection>`, which may be good or bad depending on the circumstances; having both available to the algorithm is advised.
+    Returns ``0.0`` for an empty input (e.g. an orphaned node with no incoming connections).
 
     :param x: The numbers to find the mean of; takes any :pygloss:`iterable`.
     :type x: list(:pytypes:`float <typesnumeric>`) or tuple(:pytypes:`float <typesnumeric>`) or set(:pytypes:`float <typesnumeric>`)
-    :return: The arithmetic mean.
+    :return: The arithmetic mean for nonempty ``x``, otherwise ``0.0``.
     :rtype: :pytypes:`float <typesnumeric>`
 
     .. versionadded:: 0.92
@@ -152,11 +163,15 @@ Has the built-in :term:`aggregation functions <aggregation function>`, code for 
 
   .. py:function:: validate_aggregation(function)
 
-    Checks to make sure its parameter is a function that takes at least one argument.
+    Checks that ``function`` is callable with exactly one positional argument.
+    Returns early (accepting the callable) for CPython builtins whose
+    signatures cannot be inspected via ``inspect.signature``.
 
     :param function: Object to be checked.
     :type function: :datamodel:`object <objects-values-and-types>`
-    :raises InvalidAggregationFunction: If the object does not pass the tests.
+    :raises InvalidAggregationFunction: If the object is not callable, its
+        signature cannot be inspected (and it is not a builtin), or it cannot
+        be invoked with exactly one positional argument.
 
     .. versionadded:: 0.92
 
