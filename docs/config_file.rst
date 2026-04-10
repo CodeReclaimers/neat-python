@@ -121,8 +121,11 @@ required for your particular implementation.
 .. index:: ! species_fitness_func
 
 * *species_fitness_func*
-    The function used to compute species fitness.  **This defaults to ``mean``.** Allowed values are: ``max``, ``min``, ``mean``, and
-    :py:func:`median <math_util.median>`
+    The function used to compute species fitness.  **This defaults to ``mean``.**
+    Allowed values are: ``max``, ``min``, ``mean``, :py:func:`median <math_util.median>`
+    (returns the upper-middle element for even-length inputs), and
+    :py:func:`median2 <math_util.median2>` (averages the two middle values for
+    even-length inputs — the conventional statistical median).
 
 .. note::
 
@@ -187,7 +190,7 @@ required for your particular implementation.
     * ``normalized`` - Species mean fitness is normalized to [0, 1] based on population min/max. This is the **default** and preserves existing behavior.
     * ``canonical`` - Species mean fitness is used directly (no normalization), matching the canonical NEAT paper. This preserves the ratio of fitness values between species, unlike normalized sharing which creates rank-like selection pressure.
 
-    .. versionadded:: 1.2
+    .. versionadded:: 2.1
 
 .. index:: ! spawn_method
 
@@ -197,7 +200,7 @@ required for your particular implementation.
     * ``smoothed`` - Offspring counts move halfway toward target each generation (momentum-based). This is the **default** and preserves existing behavior.
     * ``proportional`` - Direct proportional allocation based on adjusted fitness. Offspring counts change immediately to match fitness ratios, matching canonical NEAT.
 
-    .. versionadded:: 1.2
+    .. versionadded:: 2.1
 
 .. index:: ! interspecies_crossover_prob
 
@@ -205,7 +208,7 @@ required for your particular implementation.
     The probability that an offspring's second parent is selected from a different species.
     The canonical NEAT paper uses a small value (0.001). **This defaults to 0.0** (disabled, preserving existing behavior).
 
-    .. versionadded:: 1.2
+    .. versionadded:: 2.1
 
 .. index:: genome
 .. index:: DefaultGenome
@@ -234,7 +237,7 @@ required for your particular implementation.
     The canonical NEAT paper describes this dynamic adjustment mechanism.
     **This defaults to "none".**
 
-    .. versionadded:: 1.2
+    .. versionadded:: 2.1
 
 .. index:: ! threshold_adjust_rate
 
@@ -243,7 +246,7 @@ required for your particular implementation.
     ``target_num_species`` is set. If there are too many species, the threshold increases by this amount;
     if too few, it decreases. **This defaults to 0.1.**
 
-    .. versionadded:: 1.2
+    .. versionadded:: 2.1
 
 .. index:: ! threshold_min
 
@@ -251,7 +254,7 @@ required for your particular implementation.
     The minimum allowed value for the compatibility threshold during dynamic adjustment.
     **This defaults to 0.1.**
 
-    .. versionadded:: 1.2
+    .. versionadded:: 2.1
 
 .. index:: ! threshold_max
 
@@ -259,7 +262,7 @@ required for your particular implementation.
     The maximum allowed value for the compatibility threshold during dynamic adjustment.
     **This defaults to 100.0.**
 
-    .. versionadded:: 1.2
+    .. versionadded:: 2.1
 
 [DefaultGenome] section
 -----------------------
@@ -292,8 +295,12 @@ required for your particular implementation.
 .. index:: X_options
 
 * *activation_options*
-    A space-separated list of the activation functions that may be used by nodes.  **This defaults to** :ref:`sigmoid <sigmoid-label>`. The
-    built-in available functions can be found in :ref:`activation-functions-label`; more can be added as described in :ref:`customization-label`.
+    A space-separated list of the activation functions that may be used by nodes.
+    **This parameter is required.** The built-in available functions can be found in
+    :ref:`activation-functions-label`; more can be added as described in
+    :ref:`customization-label`. If you only need one activation function, set
+    ``activation_options`` to just that one name (e.g. ``activation_options = sigmoid``)
+    and set ``activation_mutate_rate = 0.0``.
 
 .. index:: aggregation function
 .. index:: mutation
@@ -318,11 +325,15 @@ required for your particular implementation.
 .. index:: X_options
 
 * *aggregation_options*
-    A space-separated list of the aggregation functions that may be used by nodes.  **This defaults to "sum".** The
-    available functions (defined in `aggregations`) are: ``sum``, :py:func:`product <aggregations.product_aggregation>`, ``min``, ``max``, ``mean``, ``median``,
-    and :py:func:`maxabs <aggregations.maxabs_aggregation>` (which returns the input value with the greatest absolute value; the returned
-    value may be positive or negative). New aggregation functions can be defined similarly to :ref:`new activation functions <customization-label>`.
-    (Note that the function needs to take a `list` or other `iterable`; the `reduce <functools.reduce>` function, as in `aggregations`, may be of use in this.)
+    A space-separated list of the aggregation functions that may be used by nodes.
+    **This parameter is required.** The available functions (defined in `aggregations`)
+    are: ``sum``, :py:func:`product <aggregations.product_aggregation>`, ``min``,
+    ``max``, ``mean``, ``median``, and :py:func:`maxabs <aggregations.maxabs_aggregation>`
+    (which returns the input value with the greatest absolute value; the returned
+    value may be positive or negative). New aggregation functions can be defined
+    similarly to :ref:`new activation functions <customization-label>`.
+    (Note that the function needs to take a `list` or other `iterable`; the
+    `reduce <functools.reduce>` function, as in `aggregations`, may be of use in this.)
 
     .. versionchanged:: 0.92
       Moved out of :py:mod:`genome` into :py:mod:`aggregations`; maxabs, mean, and median added; method for defining new aggregation functions added.
@@ -399,7 +410,7 @@ required for your particular implementation.
     Set to a numeric value (e.g., ``1.0``) to weight excess genes differently from disjoint genes,
     matching the canonical NEAT formula where c₁ (excess) and c₂ (disjoint) are separate coefficients.
 
-    .. versionadded:: 1.2
+    .. versionadded:: 2.1
 
 .. _compatibility-weight-coefficient-label:
 
@@ -425,7 +436,7 @@ required for your particular implementation.
     If ``False``, only connection genes are used, matching the canonical NEAT distance formula.
     **This defaults to True.**
 
-    .. versionadded:: 1.2
+    .. versionadded:: 2.1
 
 .. _compatibility-enable-penalty-label:
 
@@ -436,7 +447,7 @@ required for your particular implementation.
     :term:`enabled`/disabled states differ. The canonical NEAT paper does not include this penalty.
     Set to ``0.0`` to disable it. **This defaults to 1.0.**
 
-    .. versionadded:: 1.2
+    .. versionadded:: 2.1
 
 .. index:: mutation
 .. index:: connection
@@ -463,7 +474,11 @@ required for your particular implementation.
 .. index:: X_default
 
 * *enabled_default*
-    The default :term:`enabled` :term:`attribute <attributes>` of newly created connections.  Valid values are ``True`` and ``False``.
+    The default :term:`enabled` :term:`attribute <attributes>` of newly created
+    connections. Valid values are ``True`` and ``False`` (and their case-insensitive
+    equivalents ``1``/``0``, ``on``/``off``, ``yes``/``no``) for a fixed initial
+    state, or ``random`` (alias ``none``) to give each new connection an independent
+    50/50 enabled/disabled state.
 
 .. note::
   "Newly created connections" include ones in newly-created genomes, if those have initial connections
@@ -634,6 +649,14 @@ required for your particular implementation.
 * *time_constant_init_stdev*
     The standard deviation of the distribution used to select time constant values for new nodes.
     **Default: 0.0** (all new nodes start with the mean value).
+
+* *time_constant_init_type*
+    If set to ``gaussian`` or ``normal``, time constant initialization uses a
+    normal/gaussian distribution. If set to ``uniform``, a uniform distribution
+    over the range derived from ``time_constant_init_mean`` and
+    ``time_constant_init_stdev``, clamped by ``time_constant_min_value`` and
+    ``time_constant_max_value``. **Default: "gaussian".** Only relevant for CTRNN
+    networks.
 
 * *time_constant_max_value*
     The maximum allowed time constant value. **Default: 10.0.**

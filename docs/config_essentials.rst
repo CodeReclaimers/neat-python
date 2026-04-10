@@ -1,7 +1,7 @@
 Configuration Essentials
 ========================
 
-NEAT requires a configuration file to control evolution, but don't be overwhelmed! While the complete configuration has 40+ parameters, you only need to understand about 10-15 to get started effectively.
+NEAT requires a configuration file to control evolution, but don't be overwhelmed! While the complete configuration has 70+ parameters, you only need to understand about 10-15 to get started effectively.
 
 This guide covers the essentials. For complete documentation, see :doc:`config_file`.
 
@@ -69,7 +69,7 @@ Here's a minimal working config file. You can copy this as a template:
    num_outputs             = 1
    num_hidden              = 0
    feed_forward            = True
-   initial_connection      = full
+   initial_connection      = full_direct
    
    # Activation function
    activation_default      = sigmoid
