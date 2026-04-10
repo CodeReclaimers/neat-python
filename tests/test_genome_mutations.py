@@ -402,20 +402,23 @@ class TestGenomeMutations(unittest.TestCase):
     def test_remove_node_deletes_node(self):
         """
         Test that remove_node mutation deletes a node.
-        
+
         Should remove exactly one node from the genome.
         """
         genome = self.create_minimal_genome()
-        
-        # Add some nodes first
+
+        # Add nodes, also adding connections between splits so that
+        # each split targets a distinct connection (avoiding the
+        # within-generation dedup in the innovation tracker).
         for _ in range(3):
             if genome.connections:
                 genome.mutate_add_node(self.config.genome_config)
-        
+                genome.mutate_add_connection(self.config.genome_config)
+
         initial_count = len(genome.nodes)
         if initial_count > len(self.config.genome_config.output_keys):
             genome.mutate_delete_node(self.config.genome_config)
-            
+
             self.assertEqual(len(genome.nodes), initial_count - 1,
                            "Should remove one node")
     

@@ -100,24 +100,91 @@ class TestInnovationTracker(unittest.TestCase):
         inn = tracker.get_innovation_number(2, 3, 'add_connection')
         self.assertEqual(inn, 4)
 
-    def test_add_node_mutations_tracked_separately(self):
-        """Test that add_node mutations track both connections separately."""
+    def test_node_split_deduplication(self):
+        """Test that splitting the same connection in one generation produces
+        the same node ID and innovation numbers, regardless of which genome
+        performs the split."""
         tracker = neat.InnovationTracker()
-        
-        # Split connection 0->1 by adding node 2
-        inn_in = tracker.get_innovation_number(0, 2, 'add_node_in')
-        inn_out = tracker.get_innovation_number(2, 1, 'add_node_out')
-        
-        self.assertEqual(inn_in, 1)
-        self.assertEqual(inn_out, 2)
-        
-        # Another genome splits same connection
-        inn_in2 = tracker.get_innovation_number(0, 2, 'add_node_in')
-        inn_out2 = tracker.get_innovation_number(2, 1, 'add_node_out')
-        
-        # Should get same innovation numbers
-        self.assertEqual(inn_in2, inn_in)
-        self.assertEqual(inn_out2, inn_out)
+        next_node = iter(range(10, 100))
+
+        # Genome A splits connection 0->1
+        node_a, inn_in_a, inn_out_a = tracker.get_node_split(
+            0, 1, lambda: next(next_node)
+        )
+        print(f"  Genome A: node={node_a}, in_inn={inn_in_a}, out_inn={inn_out_a}")
+
+        self.assertEqual(node_a, 10)    # first call allocates from iterator
+        self.assertEqual(inn_in_a, 1)
+        self.assertEqual(inn_out_a, 2)
+
+        # Genome B splits the SAME connection 0->1 in the same generation
+        node_b, inn_in_b, inn_out_b = tracker.get_node_split(
+            0, 1, lambda: next(next_node)
+        )
+        print(f"  Genome B: node={node_b}, in_inn={inn_in_b}, out_inn={inn_out_b}")
+
+        # Must get the same node ID and innovation numbers
+        self.assertEqual(node_b, node_a)
+        self.assertEqual(inn_in_b, inn_in_a)
+        self.assertEqual(inn_out_b, inn_out_a)
+
+    def test_node_split_different_connections_get_different_ids(self):
+        """Test that splitting different connections produces different node IDs
+        and innovation numbers."""
+        tracker = neat.InnovationTracker()
+        next_node = iter(range(10, 100))
+
+        node_a, inn_in_a, inn_out_a = tracker.get_node_split(
+            0, 1, lambda: next(next_node)
+        )
+        node_b, inn_in_b, inn_out_b = tracker.get_node_split(
+            2, 3, lambda: next(next_node)
+        )
+        print(f"  Split (0->1): node={node_a}, innovations=({inn_in_a}, {inn_out_a})")
+        print(f"  Split (2->3): node={node_b}, innovations=({inn_in_b}, {inn_out_b})")
+
+        self.assertNotEqual(node_a, node_b)
+        self.assertNotEqual(inn_in_a, inn_in_b)
+        self.assertNotEqual(inn_out_a, inn_out_b)
+
+    def test_node_split_allocator_called_only_once(self):
+        """Test that the allocate_node_key callable is only called the first time
+        a connection is split in a generation (not on dedup hits)."""
+        tracker = neat.InnovationTracker()
+        call_count = [0]
+
+        def allocator():
+            call_count[0] += 1
+            return 42
+
+        tracker.get_node_split(0, 1, allocator)
+        self.assertEqual(call_count[0], 1)
+
+        # Second call for same split should NOT call allocator
+        tracker.get_node_split(0, 1, allocator)
+        self.assertEqual(call_count[0], 1)
+
+    def test_node_split_reset_between_generations(self):
+        """Test that the same connection split in different generations gets
+        different node IDs and innovation numbers."""
+        tracker = neat.InnovationTracker()
+        next_node = iter(range(10, 100))
+
+        node_g1, inn_in_g1, inn_out_g1 = tracker.get_node_split(
+            0, 1, lambda: next(next_node)
+        )
+
+        tracker.reset_generation()
+
+        node_g2, inn_in_g2, inn_out_g2 = tracker.get_node_split(
+            0, 1, lambda: next(next_node)
+        )
+        print(f"  Gen 1: node={node_g1}, innovations=({inn_in_g1}, {inn_out_g1})")
+        print(f"  Gen 2: node={node_g2}, innovations=({inn_in_g2}, {inn_out_g2})")
+
+        self.assertNotEqual(node_g1, node_g2)
+        self.assertNotEqual(inn_in_g1, inn_in_g2)
+        self.assertNotEqual(inn_out_g1, inn_out_g2)
 
     def test_pickle_serialization(self):
         """Test that InnovationTracker can be pickled and unpickled."""

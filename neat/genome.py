@@ -403,7 +403,24 @@ class DefaultGenome:
 
         # Choose a random connection to split
         conn_to_split = choice(list(self.connections.values()))
-        new_node_id = config.get_new_node_key(self.nodes)
+
+        i, o = conn_to_split.key
+
+        # Get the node ID and innovation numbers for this split from the tracker.
+        # If another genome already split this same connection in this generation,
+        # we get back the same node ID and innovation numbers — this is a core NEAT
+        # requirement for proper crossover alignment (Stanley & Miikkulainen, 2002).
+        new_node_id, in_innovation, out_innovation = (
+            config.innovation_tracker.get_node_split(
+                i, o, lambda: config.get_new_node_key(self.nodes)
+            )
+        )
+
+        # If this genome already has this node (e.g. from crossover with a genome
+        # that previously split this same connection), skip the mutation.
+        if new_node_id in self.nodes:
+            return
+
         ng = self.create_node(config, new_node_id)
 
         # Make the new node as neutral as possible with respect to the
@@ -419,18 +436,6 @@ class DefaultGenome:
         # the original connection (depending on the activation function of the new node).
         conn_to_split.enabled = False
 
-        i, o = conn_to_split.key
-        
-        # Get innovation numbers for the two new connections
-        # These are keyed by the connection being split, so multiple genomes splitting
-        # the same connection get matching innovation numbers
-        in_innovation = config.innovation_tracker.get_innovation_number(
-            i, new_node_id, 'add_node_in'
-        )
-        out_innovation = config.innovation_tracker.get_innovation_number(
-            new_node_id, o, 'add_node_out'
-        )
-        
         # Add the two new connections with their innovation numbers
         self.add_connection(config, i, new_node_id, 1.0, True, innovation=in_innovation)
         self.add_connection(config, new_node_id, o, conn_to_split.weight, True, innovation=out_innovation)

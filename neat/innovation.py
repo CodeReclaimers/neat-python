@@ -96,6 +96,44 @@ class InnovationTracker:
         
         return innovation_number
     
+    def get_node_split(self, in_node, out_node, allocate_node_key):
+        """
+        Get or assign innovation numbers and a node ID for splitting a connection.
+
+        If this same connection (in_node -> out_node) has already been split in the
+        current generation, returns the previously assigned (node_id, in_innovation,
+        out_innovation). Otherwise, calls allocate_node_key() to obtain a new node ID
+        and assigns two new innovation numbers.
+
+        This ensures that when multiple genomes independently split the same connection
+        in one generation, they all receive the same node ID and matching innovation
+        numbers — a core requirement of the NEAT algorithm for proper crossover alignment.
+
+        Args:
+            in_node: The input node of the connection being split
+            out_node: The output node of the connection being split
+            allocate_node_key: A callable that returns a new unique node ID.
+                               Only called the first time this split is seen in
+                               the current generation.
+
+        Returns:
+            tuple: (node_id, in_innovation, out_innovation)
+        """
+        key = (in_node, out_node, 'split_node')
+
+        if key in self.generation_innovations:
+            return self.generation_innovations[key]
+
+        node_id = allocate_node_key()
+        self.global_counter += 1
+        in_innovation = self.global_counter
+        self.global_counter += 1
+        out_innovation = self.global_counter
+        result = (node_id, in_innovation, out_innovation)
+        self.generation_innovations[key] = result
+
+        return result
+
     def reset_generation(self):
         """
         Clear generation-specific tracking at the start of a new generation.
