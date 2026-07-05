@@ -367,6 +367,92 @@ class TestIZNNPacking:
         print(f"  Izhikevich params packed correctly")
 
 
+class TestSparsePacking:
+    """Test COO edge-list packing (sparse_upload=True)."""
+
+    @staticmethod
+    def _scatter_cpu(packed):
+        """Densify a sparse-packed population on CPU (reference scatter)."""
+        N = packed['num_genomes']
+        M = packed['max_nodes']
+        W = np.zeros((N, M, M), dtype=np.float32)
+        idx = packed['edge_index']
+        if idx.shape[0]:
+            W[idx[:, 0], idx[:, 1], idx[:, 2]] = packed['edge_weight']
+        return W
+
+    def test_ctrnn_sparse_matches_dense(self):
+        """Sparse edges scattered on CPU must reproduce the dense W exactly."""
+        from neat.gpu._padding import pack_ctrnn_population
+
+        config = _make_ctrnn_config()
+        g1 = _make_simple_ctrnn_genome(config, genome_id=1, w_in1=3.0, w_in2=-1.5)
+        g2 = _make_simple_ctrnn_genome(config, genome_id=2, add_hidden=True)
+        g3 = _make_simple_ctrnn_genome(config, genome_id=3, w_in1=5.0)
+        g3.connections[(-2, 0)].enabled = False  # disabled edge must be excluded
+        genomes = [(1, g1), (2, g2), (3, g3)]
+
+        dense = pack_ctrnn_population(genomes, config)
+        sparse = pack_ctrnn_population(genomes, config, sparse_upload=True)
+
+        assert sparse['W'] is None
+        assert sparse['edge_index'].dtype == np.int32
+        assert sparse['edge_index'].shape[1] == 3
+        assert sparse['edge_weight'].dtype == np.float32
+        assert sparse['edge_index'].shape[0] == sparse['edge_weight'].shape[0]
+        # 2 (g1) + 3 (g2) + 1 (g3, one disabled) enabled connections.
+        assert sparse['edge_index'].shape[0] == 6
+
+        assert np.array_equal(self._scatter_cpu(sparse), dense['W'])
+
+        # Non-weight arrays must be unaffected by the flag.
+        for key in ('bias', 'response', 'tau', 'activation_id', 'node_mask'):
+            assert np.array_equal(sparse[key], dense[key])
+        assert sparse['num_genomes'] == dense['num_genomes'] == 3
+        print(f"  {sparse['edge_index'].shape[0]} edges reproduce dense W "
+              f"({dense['W'].nbytes} B dense vs "
+              f"{sparse['edge_index'].nbytes + sparse['edge_weight'].nbytes} B sparse)")
+
+    def test_iznn_sparse_matches_dense(self):
+        from neat.gpu._padding import pack_iznn_population
+
+        config = _make_iznn_config()
+        genomes = [
+            (1, _make_simple_iznn_genome(config, genome_id=1, w_in1=15.0)),
+            (2, _make_simple_iznn_genome(config, genome_id=2, w_in1=5.0, w_in2=-2.0)),
+        ]
+
+        dense = pack_iznn_population(genomes, config)
+        sparse = pack_iznn_population(genomes, config, sparse_upload=True)
+
+        assert sparse['W'] is None
+        assert np.array_equal(self._scatter_cpu(sparse), dense['W'])
+        for key in ('bias', 'a', 'b', 'c', 'd', 'node_mask'):
+            assert np.array_equal(sparse[key], dense[key])
+        print(f"  {sparse['edge_index'].shape[0]} IZNN edges reproduce dense W")
+
+    def test_sparse_no_connections(self):
+        """A connectionless genome packs to an empty edge list."""
+        from neat.gpu._padding import pack_ctrnn_population
+
+        config = _make_ctrnn_config()
+        genome = neat.DefaultGenome(1)
+        node0 = DefaultNodeGene(0)
+        node0.bias = 0.0
+        node0.response = 1.0
+        node0.activation = 'tanh'
+        node0.aggregation = 'sum'
+        node0.time_constant = 1.0
+        genome.nodes[0] = node0
+        genomes = [(1, genome)]
+
+        packed = pack_ctrnn_population(genomes, config, sparse_upload=True)
+        assert packed['edge_index'].shape == (0, 3)
+        assert packed['edge_weight'].shape == (0,)
+        assert np.all(self._scatter_cpu(packed) == 0)
+        print("  No connections: empty edge arrays, zero W after scatter")
+
+
 # ---------------------------------------------------------------------------
 # GPU Numerical Equivalence Tests (require CuPy)
 # ---------------------------------------------------------------------------
@@ -466,6 +552,38 @@ class TestCTRNNGPUEquivalence:
             print(f"  Genome {gid}: max batch vs individual diff = {max_diff:.2e}")
             assert max_diff < 1e-6, (
                 f"Genome {gid}: batched result differs from individual by {max_diff}")
+
+    def test_sparse_upload_matches_dense(self):
+        """
+        Sparse (COO + GPU scatter) and dense uploads must produce bit-identical
+        trajectories — the simulation kernels see the same device-side W.
+        """
+        from neat.gpu._padding import pack_ctrnn_population
+        from neat.gpu._cupy_backend import evaluate_ctrnn_batch
+
+        config = _make_ctrnn_config()
+        genomes = [
+            (1, _make_simple_ctrnn_genome(config, genome_id=1, bias=0.3, w_in1=1.0)),
+            (2, _make_simple_ctrnn_genome(config, genome_id=2, bias=-0.5, w_in1=2.0)),
+            (3, _make_simple_ctrnn_genome(config, genome_id=3, bias=0.0, w_in1=-1.0,
+                                           add_hidden=True)),
+        ]
+
+        dt = 0.005
+        num_steps = 100
+        inputs_np = np.tile(np.array([0.5, -0.3], dtype=np.float32),
+                            (num_steps, 1))
+
+        traj_dense = evaluate_ctrnn_batch(
+            pack_ctrnn_population(genomes, config), inputs_np, dt)
+        traj_sparse = evaluate_ctrnn_batch(
+            pack_ctrnn_population(genomes, config, sparse_upload=True),
+            inputs_np, dt)
+
+        assert np.array_equal(traj_dense, traj_sparse), (
+            f"Sparse upload diverged from dense: max diff "
+            f"{np.max(np.abs(traj_dense - traj_sparse)):.2e}")
+        print("  Sparse and dense uploads produced identical trajectories.")
 
     def test_response_parameter_effect(self):
         """
@@ -607,6 +725,31 @@ class TestIZNNGPUEquivalence:
             print(f"  Genome {gid}: max batch vs individual diff = {max_diff:.2e}")
             assert max_diff < 1e-6
 
+    def test_sparse_upload_matches_dense(self):
+        """Sparse and dense uploads must produce identical spike trains."""
+        from neat.gpu._padding import pack_iznn_population
+        from neat.gpu._cupy_backend import evaluate_iznn_batch
+
+        config = _make_iznn_config()
+        genomes = [
+            (1, _make_simple_iznn_genome(config, genome_id=1, w_in1=15.0)),
+            (2, _make_simple_iznn_genome(config, genome_id=2, w_in1=5.0, bias=2.0)),
+        ]
+
+        dt = 0.05
+        num_steps = 200
+        inputs_np = np.tile(np.array([1.0, 0.5], dtype=np.float32),
+                            (num_steps, 1))
+
+        traj_dense = evaluate_iznn_batch(
+            pack_iznn_population(genomes, config), inputs_np, dt, num_steps)
+        traj_sparse = evaluate_iznn_batch(
+            pack_iznn_population(genomes, config, sparse_upload=True),
+            inputs_np, dt, num_steps)
+
+        assert np.array_equal(traj_dense, traj_sparse)
+        print("  Sparse and dense IZNN uploads produced identical spike trains.")
+
     def test_no_input_no_spikes(self):
         """With zero external input and zero bias, neurons should not spike."""
         from neat.gpu._padding import pack_iznn_population
@@ -662,6 +805,40 @@ class TestGPUEvaluatorIntegration:
             assert isinstance(genome.fitness, float)
             assert genome.fitness >= 0.0
             print(f"  Genome {gid}: fitness = {genome.fitness:.6f}")
+
+    def test_ctrnn_evaluator_sparse_matches_dense_fitness(self):
+        """sparse_upload=True must yield the same fitness values as dense."""
+        from neat.gpu.evaluator import GPUCTRNNEvaluator
+
+        config = _make_ctrnn_config()
+
+        def make_genomes():
+            return [
+                (1, _make_simple_ctrnn_genome(config, genome_id=1, bias=0.3)),
+                (2, _make_simple_ctrnn_genome(config, genome_id=2, bias=-0.5,
+                                              add_hidden=True)),
+            ]
+
+        def input_fn(t, dt):
+            return [math.sin(2 * math.pi * t), math.cos(2 * math.pi * t)]
+
+        def fitness_fn(trajectory):
+            return float(np.mean(np.abs(trajectory)))
+
+        genomes_dense = make_genomes()
+        GPUCTRNNEvaluator(dt=0.01, t_max=0.5, input_fn=input_fn,
+                          fitness_fn=fitness_fn).evaluate(genomes_dense, config)
+
+        genomes_sparse = make_genomes()
+        GPUCTRNNEvaluator(dt=0.01, t_max=0.5, input_fn=input_fn,
+                          fitness_fn=fitness_fn,
+                          sparse_upload=True).evaluate(genomes_sparse, config)
+
+        for (gid, gd), (_, gs) in zip(genomes_dense, genomes_sparse):
+            assert gd.fitness == gs.fitness, (
+                f"Genome {gid}: dense fitness {gd.fitness} != "
+                f"sparse fitness {gs.fitness}")
+            print(f"  Genome {gid}: fitness {gd.fitness:.6f} (dense == sparse)")
 
     def test_iznn_evaluator_assigns_fitness(self):
         """GPUIZNNEvaluator.evaluate should set genome.fitness for all genomes."""

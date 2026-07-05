@@ -42,13 +42,19 @@ class GPUCTRNNEvaluator:
         ``fitness_fn(output_trajectory) -> float`` where output_trajectory
         is an ndarray of shape ``[num_steps, num_outputs]``.
         Called once per genome on CPU after GPU simulation.
+    sparse_upload : bool
+        If True, upload connection weights as a COO edge list and scatter
+        into the dense weight tensor on the GPU, instead of transferring the
+        full (mostly zero) dense tensor. Reduces host-to-device transfer
+        volume; results are identical.
     """
 
-    def __init__(self, dt, t_max, input_fn, fitness_fn):
+    def __init__(self, dt, t_max, input_fn, fitness_fn, sparse_upload=False):
         self.dt = dt
         self.t_max = t_max
         self.input_fn = input_fn
         self.fitness_fn = fitness_fn
+        self.sparse_upload = sparse_upload
 
     def evaluate(self, genomes, config):
         """
@@ -76,7 +82,8 @@ class GPUCTRNNEvaluator:
                 self.input_fn(step * self.dt, self.dt), dtype=np.float32)
 
         # Pack genomes into padded arrays.
-        packed = pack_ctrnn_population(genomes, config)
+        packed = pack_ctrnn_population(genomes, config,
+                                       sparse_upload=self.sparse_upload)
 
         # Run GPU simulation.
         trajectory = evaluate_ctrnn_batch(packed, inputs, self.dt)
@@ -104,13 +111,17 @@ class GPUIZNNEvaluator:
         ``fitness_fn(output_trajectory) -> float`` where output_trajectory
         is an ndarray of shape ``[num_steps, num_outputs]`` containing
         spike indicators (0.0 or 1.0).
+    sparse_upload : bool
+        If True, upload connection weights as a COO edge list and scatter
+        into the dense weight tensor on the GPU (see GPUCTRNNEvaluator).
     """
 
-    def __init__(self, dt, t_max, input_fn, fitness_fn):
+    def __init__(self, dt, t_max, input_fn, fitness_fn, sparse_upload=False):
         self.dt = dt
         self.t_max = t_max
         self.input_fn = input_fn
         self.fitness_fn = fitness_fn
+        self.sparse_upload = sparse_upload
 
     def evaluate(self, genomes, config):
         """Evaluate all genomes on GPU. Same interface as NEAT fitness function."""
@@ -129,7 +140,8 @@ class GPUIZNNEvaluator:
             inputs[step] = np.asarray(
                 self.input_fn(step * self.dt, self.dt), dtype=np.float32)
 
-        packed = pack_iznn_population(genomes, config)
+        packed = pack_iznn_population(genomes, config,
+                                      sparse_upload=self.sparse_upload)
         trajectory = evaluate_iznn_batch(packed, inputs, self.dt, num_steps)
 
         for i, (genome_id, genome) in enumerate(genomes):

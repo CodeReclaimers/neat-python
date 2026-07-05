@@ -35,6 +35,69 @@ _UNSUPPORTED_AGGREGATIONS = frozenset([
 ])
 
 
+def _collect_genome_edges(g_idx, genome, key_map, required, edges):
+    """
+    Append (genome_idx, dst_idx, src_idx, weight) tuples for every enabled
+    connection of ``genome`` whose endpoints are packable, to ``edges``.
+
+    The filtering rules match the original dense fill exactly: the connection
+    must be enabled, both endpoints must be in the key map, and the
+    destination must be a required (non-input) node.
+    """
+    for cg in genome.connections.values():
+        if not cg.enabled:
+            continue
+
+        src_key, dst_key = cg.key
+        # Only include connections where both endpoints are in the key map.
+        if src_key not in key_map or dst_key not in key_map:
+            continue
+        # dst must be a required node (non-input).
+        if dst_key not in required:
+            continue
+
+        edges.append((g_idx, key_map[dst_key], key_map[src_key], cg.weight))
+
+
+def _edges_to_arrays(np, edges):
+    """
+    Convert an edge tuple list into COO arrays.
+
+    Returns (edge_index [E, 3] int32, edge_weight [E] float32) where each
+    edge_index row is (genome_idx, dst_idx, src_idx).
+    """
+    if edges:
+        edge_index = np.array([e[:3] for e in edges], dtype=np.int32)
+        edge_weight = np.array([e[3] for e in edges], dtype=np.float32)
+    else:
+        edge_index = np.zeros((0, 3), dtype=np.int32)
+        edge_weight = np.zeros((0,), dtype=np.float32)
+    return edge_index, edge_weight
+
+
+def _finalize_weights(np, edges, N, M, sparse_upload):
+    """
+    Turn the accumulated edge list into the weight entries of a packed dict:
+    either COO arrays for GPU-side scatter (sparse_upload=True) or a dense
+    CPU-built W [N, M, M] (sparse_upload=False).
+    """
+    edge_index, edge_weight = _edges_to_arrays(np, edges)
+
+    if sparse_upload:
+        return {
+            'W': None,
+            'edge_index': edge_index,
+            'edge_weight': edge_weight,
+        }
+
+    W = np.zeros((N, M, M), dtype=np.float32)
+    if len(edge_weight):
+        # Connection keys are unique per (src, dst), so no duplicate
+        # (genome, dst, src) triples exist and scatter order is irrelevant.
+        W[edge_index[:, 0], edge_index[:, 1], edge_index[:, 2]] = edge_weight
+    return {'W': W}
+
+
 def _build_node_key_map(genome, config, required_nodes):
     """
     Build a mapping from neat-python node keys to dense indices.
@@ -70,7 +133,7 @@ def _build_node_key_map(genome, config, required_nodes):
     return key_map, num_nodes
 
 
-def pack_ctrnn_population(genomes, config):
+def pack_ctrnn_population(genomes, config, sparse_upload=False):
     """
     Convert a list of (genome_id, genome) pairs into padded NumPy arrays
     for GPU CTRNN evaluation.
@@ -81,16 +144,28 @@ def pack_ctrnn_population(genomes, config):
         The population to pack.
     config : neat.Config
         The NEAT configuration object.
+    sparse_upload : bool
+        If True, connection weights are returned as a COO edge list
+        (``edge_index``/``edge_weight``) instead of a dense ``W``; the GPU
+        backend scatters them into a device-side dense W. This cuts the
+        host-to-device transfer from N*M*M*4 bytes to ~16 bytes per enabled
+        connection. If False (default), a dense ``W`` is built on the CPU.
 
     Returns
     -------
     dict with keys:
-        W : ndarray [N, M, M] float32 — weight matrices
+        W : ndarray [N, M, M] float32 — weight matrices, or None when
+            sparse_upload=True
+        edge_index : ndarray [E, 3] int32 — (genome_idx, dst, src) rows;
+            only present when sparse_upload=True
+        edge_weight : ndarray [E] float32 — only present when
+            sparse_upload=True
         bias : ndarray [N, M] float32
         response : ndarray [N, M] float32
         tau : ndarray [N, M] float32
         activation_id : ndarray [N, M] int32
         node_mask : ndarray [N, M] bool
+        num_genomes : int
         num_inputs : int
         num_outputs : int
         max_nodes : int
@@ -118,7 +193,6 @@ def pack_ctrnn_population(genomes, config):
     M = max_nodes
 
     # Allocate arrays.
-    W = np.zeros((N, M, M), dtype=np.float32)
     bias = np.zeros((N, M), dtype=np.float32)
     response = np.ones((N, M), dtype=np.float32)  # default 1.0
     tau = np.ones((N, M), dtype=np.float32)  # default 1.0 (won't matter for masked-out nodes)
@@ -130,6 +204,7 @@ def pack_ctrnn_population(genomes, config):
     node_mask[:, num_inputs:num_inputs + num_outputs] = True
 
     node_key_maps = []
+    edges = []
 
     # Second pass: fill arrays.
     for g_idx, (genome_id, genome, required, key_map, num_nodes) in enumerate(per_genome_info):
@@ -167,38 +242,26 @@ def pack_ctrnn_population(genomes, config):
                     f"'{agg_name}' is not supported on GPU. Only 'sum' aggregation "
                     f"is supported (required for batched matrix-vector multiply).")
 
-        # Fill weight matrix from enabled connections.
-        for cg in genome.connections.values():
-            if not cg.enabled:
-                continue
+        # Collect enabled connections as COO edges.
+        _collect_genome_edges(g_idx, genome, key_map, required, edges)
 
-            src_key, dst_key = cg.key
-            # Only include connections where both endpoints are in the key map.
-            if src_key not in key_map or dst_key not in key_map:
-                continue
-            # dst must be a required node (non-input).
-            if dst_key not in required:
-                continue
-
-            src_idx = key_map[src_key]
-            dst_idx = key_map[dst_key]
-            W[g_idx, dst_idx, src_idx] = cg.weight
-
-    return {
-        'W': W,
+    packed = {
         'bias': bias,
         'response': response,
         'tau': tau,
         'activation_id': activation_id,
         'node_mask': node_mask,
+        'num_genomes': N,
         'num_inputs': num_inputs,
         'num_outputs': num_outputs,
         'max_nodes': M,
         'node_key_maps': node_key_maps,
     }
+    packed.update(_finalize_weights(np, edges, N, M, sparse_upload))
+    return packed
 
 
-def pack_iznn_population(genomes, config):
+def pack_iznn_population(genomes, config, sparse_upload=False):
     """
     Convert a list of (genome_id, genome) pairs into padded NumPy arrays
     for GPU Izhikevich spiking network evaluation.
@@ -209,17 +272,26 @@ def pack_iznn_population(genomes, config):
         The population to pack.
     config : neat.Config
         The NEAT configuration object.
+    sparse_upload : bool
+        If True, return connection weights as a COO edge list instead of a
+        dense ``W`` (see ``pack_ctrnn_population``).
 
     Returns
     -------
     dict with keys:
-        W : ndarray [N, M, M] float32 — weight matrices
+        W : ndarray [N, M, M] float32 — weight matrices, or None when
+            sparse_upload=True
+        edge_index : ndarray [E, 3] int32 — (genome_idx, dst, src) rows;
+            only present when sparse_upload=True
+        edge_weight : ndarray [E] float32 — only present when
+            sparse_upload=True
         bias : ndarray [N, M] float32
         a : ndarray [N, M] float32
         b : ndarray [N, M] float32
         c : ndarray [N, M] float32
         d : ndarray [N, M] float32
         node_mask : ndarray [N, M] bool
+        num_genomes : int
         num_inputs : int
         num_outputs : int
         max_nodes : int
@@ -247,7 +319,6 @@ def pack_iznn_population(genomes, config):
     M = max_nodes
 
     # Allocate arrays.
-    W = np.zeros((N, M, M), dtype=np.float32)
     bias_arr = np.zeros((N, M), dtype=np.float32)
     a_arr = np.zeros((N, M), dtype=np.float32)
     b_arr = np.zeros((N, M), dtype=np.float32)
@@ -259,6 +330,7 @@ def pack_iznn_population(genomes, config):
     node_mask[:, num_inputs:num_inputs + num_outputs] = True
 
     node_key_maps = []
+    edges = []
 
     # Second pass: fill arrays.
     for g_idx, (genome_id, genome, required, key_map, num_nodes) in enumerate(per_genome_info):
@@ -280,31 +352,21 @@ def pack_iznn_population(genomes, config):
             c_arr[g_idx, dense_idx] = node.c
             d_arr[g_idx, dense_idx] = node.d
 
-        # Fill weight matrix.
-        for cg in genome.connections.values():
-            if not cg.enabled:
-                continue
+        # Collect enabled connections as COO edges.
+        _collect_genome_edges(g_idx, genome, key_map, required, edges)
 
-            src_key, dst_key = cg.key
-            if src_key not in key_map or dst_key not in key_map:
-                continue
-            if dst_key not in required:
-                continue
-
-            src_idx = key_map[src_key]
-            dst_idx = key_map[dst_key]
-            W[g_idx, dst_idx, src_idx] = cg.weight
-
-    return {
-        'W': W,
+    packed = {
         'bias': bias_arr,
         'a': a_arr,
         'b': b_arr,
         'c': c_arr,
         'd': d_arr,
         'node_mask': node_mask,
+        'num_genomes': N,
         'num_inputs': num_inputs,
         'num_outputs': num_outputs,
         'max_nodes': M,
         'node_key_maps': node_key_maps,
     }
+    packed.update(_finalize_weights(np, edges, N, M, sparse_upload))
+    return packed

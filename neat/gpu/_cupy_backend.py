@@ -92,6 +92,68 @@ def _get_activation_kernel():
     return cp.RawKernel(_ACTIVATION_KERNEL_CODE, 'apply_activation')
 
 
+# ---------------------------------------------------------------------------
+# COO-edge scatter kernel (sparse W upload)
+# ---------------------------------------------------------------------------
+# Scatters a COO edge list (genome_idx, dst, src, weight) into a
+# zero-initialized dense W [N, M, M] on the device. Used when the population
+# was packed with sparse_upload=True: only ~16 bytes per enabled connection
+# cross the PCIe bus instead of the full N*M*M*4-byte dense tensor.
+
+_SCATTER_KERNEL_CODE = '''
+extern "C" __global__
+void scatter_edges(
+    const int*   __restrict__ edge_index,   // [E, 3] rows: (genome, dst, src)
+    const float* __restrict__ edge_weight,  // [E]
+    float*       __restrict__ W,            // [N*M*M], zero-initialized
+    int num_edges,
+    int M
+) {
+    int i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i >= num_edges) return;
+
+    // 64-bit offset: N*M*M can exceed 2^31 for large populations.
+    long long g   = edge_index[3 * i];
+    long long dst = edge_index[3 * i + 1];
+    long long src = edge_index[3 * i + 2];
+    W[(g * M + dst) * M + src] = edge_weight[i];
+}
+'''
+
+
+def _get_scatter_kernel():
+    """Compile and cache the edge scatter kernel."""
+    cp = _import_cupy()
+    return cp.RawKernel(_SCATTER_KERNEL_CODE, 'scatter_edges')
+
+
+def _upload_W(cp, packed):
+    """
+    Materialize the dense weight tensor W [N, M, M] on the device.
+
+    Dense-packed populations (packed['W'] is an ndarray) transfer it as-is.
+    Sparse-packed populations (packed['W'] is None) transfer only the COO
+    edge arrays and scatter them into a device-side zero tensor.
+    """
+    if packed['W'] is not None:
+        return cp.asarray(packed['W'])
+
+    N = packed['num_genomes']
+    M = packed['max_nodes']
+    W = cp.zeros((N, M, M), dtype=cp.float32)
+
+    num_edges = packed['edge_index'].shape[0]
+    if num_edges:
+        edge_index = cp.asarray(packed['edge_index'])
+        edge_weight = cp.asarray(packed['edge_weight'])
+        kernel = _get_scatter_kernel()
+        block_size = 256
+        grid_size = (num_edges + block_size - 1) // block_size
+        kernel((grid_size,), (block_size,),
+               (edge_index, edge_weight, W, num_edges, M))
+    return W
+
+
 def evaluate_ctrnn_batch(packed, inputs_cpu, dt):
     """
     Run batched CTRNN simulation on GPU using exponential Euler integration.
@@ -99,7 +161,8 @@ def evaluate_ctrnn_batch(packed, inputs_cpu, dt):
     Parameters
     ----------
     packed : dict
-        Output of pack_ctrnn_population(). NumPy arrays on CPU.
+        Output of pack_ctrnn_population(), dense or sparse_upload=True.
+        NumPy arrays on CPU.
     inputs_cpu : ndarray [num_steps, num_inputs] or [num_steps, N, num_inputs]
         Precomputed input trajectory. If 2-D, broadcast across population.
     dt : float
@@ -113,14 +176,14 @@ def evaluate_ctrnn_batch(packed, inputs_cpu, dt):
     cp = _import_cupy()
     np = _import_numpy()
 
-    N = packed['W'].shape[0]
+    N = packed['num_genomes']
     M = packed['max_nodes']
     num_inputs = packed['num_inputs']
     num_outputs = packed['num_outputs']
     num_steps = inputs_cpu.shape[0]
 
-    # Transfer parameters to GPU.
-    W = cp.asarray(packed['W'])                     # [N, M, M]
+    # Transfer parameters to GPU (W: dense copy or sparse scatter).
+    W = _upload_W(cp, packed)                       # [N, M, M]
     bias = cp.asarray(packed['bias'])               # [N, M]
     response = cp.asarray(packed['response'])       # [N, M]
     tau = cp.asarray(packed['tau'])                  # [N, M]
@@ -196,7 +259,8 @@ def evaluate_iznn_batch(packed, inputs_cpu, dt, num_steps):
     Parameters
     ----------
     packed : dict
-        Output of pack_iznn_population(). NumPy arrays on CPU.
+        Output of pack_iznn_population(), dense or sparse_upload=True.
+        NumPy arrays on CPU.
     inputs_cpu : ndarray [num_steps, num_inputs] or [num_steps, N, num_inputs]
         Precomputed input trajectory.
     dt : float
@@ -212,13 +276,13 @@ def evaluate_iznn_batch(packed, inputs_cpu, dt, num_steps):
     cp = _import_cupy()
     np = _import_numpy()
 
-    N = packed['W'].shape[0]
+    N = packed['num_genomes']
     M = packed['max_nodes']
     num_inputs = packed['num_inputs']
     num_outputs = packed['num_outputs']
 
-    # Transfer to GPU.
-    W = cp.asarray(packed['W'])              # [N, M, M]
+    # Transfer to GPU (W: dense copy or sparse scatter).
+    W = _upload_W(cp, packed)                # [N, M, M]
     bias = cp.asarray(packed['bias'])        # [N, M]
     a = cp.asarray(packed['a'])              # [N, M]
     b = cp.asarray(packed['b'])              # [N, M]
