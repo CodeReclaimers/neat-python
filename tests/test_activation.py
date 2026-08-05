@@ -105,6 +105,21 @@ def test_cube():
     assert activations.cube_activation(0.5) == 0.125
     assert activations.cube_activation(1.0) == 1.0
 
+def test_gelu():
+    assert_almost_equal(activations.gelu_activation(-1.0), -0.15865525393145707)
+    assert_almost_equal(activations.gelu_activation(-0.5), -0.15426876936299347)
+    assert activations.gelu_activation(0.0) == 0.0
+    assert_almost_equal(activations.gelu_activation(0.5), 0.3457312306370065)
+    assert_almost_equal(activations.gelu_activation(1.0), 0.8413447460685429)
+
+
+def test_gelu_approximation():
+    assert_almost_equal(activations.gelu_approximation_activation(-1.0), -0.1588080093917233)
+    assert_almost_equal(activations.gelu_approximation_activation(-0.5), -0.15428599017485606)
+    assert activations.gelu_approximation_activation(0.0) == 0.0
+    assert_almost_equal(activations.gelu_approximation_activation(0.5), 0.34571400982514394)
+    assert_almost_equal(activations.gelu_approximation_activation(1.0), 0.8411919906082768)
+
 
 def plus_activation(x):
     """ Not useful - just a check. """
@@ -145,6 +160,8 @@ def test_function_set():
     assert s.get('hat') is not None
     assert s.get('square') is not None
     assert s.get('cube') is not None
+    assert s.get('gelu') is not None
+    assert s.get('gelu_approximation') is not None
 
     assert s.is_valid('sigmoid')
     assert s.is_valid('tanh')
@@ -163,6 +180,8 @@ def test_function_set():
     assert s.is_valid('hat')
     assert s.is_valid('square')
     assert s.is_valid('cube')
+    assert s.is_valid('gelu')
+    assert s.is_valid('gelu_approximation') 
 
     assert not s.is_valid('foo')
 
@@ -213,3 +232,5 @@ if __name__ == '__main__':
     test_hat()
     test_square()
     test_cube()
+    test_gelu()
+    test_gelu_approximation()

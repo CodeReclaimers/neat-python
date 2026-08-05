@@ -96,6 +96,18 @@ def cube_activation(z):
     return z ** 3
 
 
+def gelu_activation(z):
+    return 0.5 * z * (1 + math.erf(z / math.sqrt(2)))
+
+
+def gelu_approximation_activation(z):
+    return 0.5 * z * (
+        1 + math.tanh(
+            math.sqrt(2 / math.pi) * (z + 0.044715 * z**3)
+        )
+    )
+
+
 class InvalidActivationFunction(TypeError):
     pass
 
@@ -151,6 +163,8 @@ class ActivationFunctionSet:
         self.add('hat', hat_activation)
         self.add('square', square_activation)
         self.add('cube', cube_activation)
+        self.add('gelu', gelu_activation)
+        self.add('gelu_approximation', gelu_approximation_activation)
 
     def add(self, name, function):
         validate_activation(function)
