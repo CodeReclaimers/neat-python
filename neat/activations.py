@@ -163,6 +163,8 @@ class ActivationFunctionSet:
         self.add('hat', hat_activation)
         self.add('square', square_activation)
         self.add('cube', cube_activation)
+        self.add('gelu', gelu_activation)
+        self.add('gelu_approximation', gelu_approximation_activation)
 
     def add(self, name, function):
         validate_activation(function)
