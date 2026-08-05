@@ -95,6 +95,8 @@ def square_activation(z):
 def cube_activation(z):
     return z ** 3
 
+def gelu_activation(z):
+    return 0.5 * z * (1 + math.erf(z / math.sqrt(2)))
 
 class InvalidActivationFunction(TypeError):
     pass
