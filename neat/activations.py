@@ -95,8 +95,18 @@ def square_activation(z):
 def cube_activation(z):
     return z ** 3
 
+
 def gelu_activation(z):
     return 0.5 * z * (1 + math.erf(z / math.sqrt(2)))
+
+
+def gelu_approximation_activation(z):
+    return 0.5 * z * (
+        1 + math.tanh(
+            math.sqrt(2 / math.pi) * (z + 0.044715 * z**3)
+        )
+    )
+
 
 class InvalidActivationFunction(TypeError):
     pass
